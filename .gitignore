@@ -1,0 +1,27 @@
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Microsoft Office temporary files
+~$*.docx
+~$*.xlsx
+~$*.pptx
+
+# Node / Dependencies (future frontend/backend)
+node_modules/
+.next/
+dist/
+build/
+out/
+
+# Environment and secrets
+.env
+.env*.local
+*.pem
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
