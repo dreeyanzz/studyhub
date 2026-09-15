@@ -1,0 +1,39 @@
+# The job name `checks` is a required status check on main; renaming it blocks
+# every PR until the ruleset is updated. There are no `paths:` filters on
+# purpose: a required check that never runs leaves docs-only PRs waiting.
+# A `db` job (pgTAP policy tests on a fresh local stack) arrives with the first
+# migration in STORY-01.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    env:
+      # Placeholders so `next build` can run; no job talks to a real project.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
