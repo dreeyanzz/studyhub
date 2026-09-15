@@ -1,0 +1,7 @@
+# Requests Adrian's review automatically on every pull request.
+#
+# Do NOT turn on "Require review from Code Owners" in the rulesets. Adrian is the
+# only owner and cannot approve his own pull requests, so his PRs could never
+# merge. Reviews are already required by Ruleset A (one approval from anyone
+# with write access). See docs/DECISIONS.md, D-014.
+* @dreeyanzz
