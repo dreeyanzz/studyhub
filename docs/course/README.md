@@ -3,14 +3,14 @@
 These are the documents submitted for CPEPE361. The `.md` files are the source, and the
 `.docx` files are generated from them (D-021). Never edit a `.docx` by hand.
 
-| File                                               | What it is                                                                   |
-| -------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `StudyHub_SRS.md` / `.docx`                        | Software Requirements Specification v2.0: the requirements baseline (FR-x.y) |
-| `StudyHub_Project_Planning_Worksheet.md` / `.docx` | Project Planning Worksheet v2.0                                              |
-| `StudyHub_Sprint_1_Plan.md`                        | Sprint 1 plan: backlog, stories, tasks, estimates                            |
-| `StudyHub_Project_Management_Board.html` / `.svg`  | The board snapshot for the Sprint 1 submission                               |
-| `diagrams/`                                        | The figures used by the SRS                                                  |
-| `archive/`                                         | The v1 originals, kept for audit                                             |
+| File                                               | What it is                                                                                    |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `StudyHub_SRS.md` / `.docx`                        | Software Requirements Specification v2.0: the requirements baseline (FR-x.y)                  |
+| `StudyHub_Project_Planning_Worksheet.md` / `.docx` | Project Planning Worksheet v2.0                                                               |
+| `StudyHub_Sprint_1_Plan.md` / `.docx`              | Sprint 1 plan: backlog, stories, tasks, estimates. Its `.docx` is created on the first export |
+| `StudyHub_Project_Management_Board.html` / `.svg`  | The board snapshot for the Sprint 1 submission                                                |
+| `diagrams/`                                        | The figures used by the SRS                                                                   |
+| `archive/`                                         | The v1 originals, kept for audit                                                              |
 
 ## Changing a deliverable
 

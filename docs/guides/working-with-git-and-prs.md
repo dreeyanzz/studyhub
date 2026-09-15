@@ -67,8 +67,9 @@ git fetch
 git merge origin/main
 ```
 
-Resolve any conflicts, run `npm run check`, then push. You never need to rebase or
-force-push.
+Resolve any conflicts, run `npm run check`, then push. Day to day, you never need to
+rebase or force-push. The one exception is repairing a stacked pull request (next
+section), and a person does that, not an AI agent.
 
 ## Never stack pull requests
 

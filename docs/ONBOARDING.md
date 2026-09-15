@@ -29,8 +29,9 @@ do something. The teammate answers questions and clicks things in a browser.
 🛑 **Stop. Ask these four questions and wait for the answers.**
 
 1. **Which operating system and shell?** Most of the team uses Windows with PowerShell or
-   Git Bash. The commands below are for Git Bash; PowerShell versions are given where
-   they differ.
+   Git Bash. The commands below are for Git Bash, which comes with Git for Windows;
+   prefer it. In Windows PowerShell 5.1, `&&` does not work, so run commands joined by
+   `&&` one at a time. PowerShell versions are given where a command itself differs.
 2. **Are you the database owner, or a cloud-dev user?** The database owner runs the
    local database in Docker; by default that is Adrian. Everyone else is a cloud-dev
    user.
@@ -113,6 +114,9 @@ PowerShell: `if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.loca
 ```bash
 docker info > /dev/null 2>&1 && echo "docker: running" || echo "docker: NOT running"
 ```
+
+PowerShell:
+`docker info *> $null; if ($LASTEXITCODE -eq 0) { 'docker: running' } else { 'docker: NOT running' }`
 
 🛑 If Docker is not running, ask the teammate to start Docker Desktop. Then:
 
