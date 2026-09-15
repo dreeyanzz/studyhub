@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh api repos/dreeyanzz/studyhub/pulls/*/merge:*)",
+      "Bash(gh api -X PUT repos/dreeyanzz/studyhub/pulls:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin HEAD:main:*)",
+      "Bash(git push -u origin main:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push origin +*:*)",
+      "Bash(supabase db push:*)",
+      "Bash(npx supabase db push:*)",
+      "Bash(supabase link:*)",
+      "Bash(npx supabase link:*)",
+      "PowerShell(gh pr merge:*)",
+      "PowerShell(gh pr review:*)",
+      "PowerShell(git push origin main:*)",
+      "PowerShell(git push --force:*)",
+      "PowerShell(git push -f:*)",
+      "PowerShell(npx supabase db push:*)",
+      "PowerShell(npx supabase link:*)",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__execute_sql"
+    ]
+  }
+}
