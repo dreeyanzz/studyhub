@@ -134,8 +134,9 @@ These job names are a contract, because renaming one blocks every PR.
 
 ## Git and pull requests
 
-- **`main` is protected** (D-014). Every change is a pull request with 1 approval and squash merge, and only Adrian lands it.
-  - Adrian approves teammates' PRs; a teammate approves Adrian's.
+- **`main` is protected** (D-014). Every change is a pull request, squash-merged, and only Adrian lands it.
+  - **Reviews:** Adrian approves teammates' PRs; a teammate approves Adrian's.
+  - The required approval count is **temporarily 0**, because Adrian is the only active developer. It goes back to 1 when the first teammate can review (issue #72).
 - **Branch:** `feature/STORY-xx-short-desc`. The course requires it.
   - Several small branches per story are fine.
   - A fix uses the story it fixes; repo chores use STORY-00.

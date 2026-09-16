@@ -147,7 +147,7 @@ Their lengths are decided in STORY-09's design.
 **Decision:** Two rulesets protect `main`. Their exported JSON is kept in `.github/rulesets/`.
 
 - **A, "main: PR, 1 approval, CI":**
-  - A PR is required, with 1 approval.
+  - A PR is required. The approval count is **temporarily 0**; see the exception below.
   - Stale approvals are dismissed, and review threads must be resolved.
   - Squash merge only.
   - Required checks: `checks` and `pr-title`.
@@ -155,7 +155,9 @@ Their lengths are decided in STORY-09's design.
   - The bypass list is empty.
 - **B, "main: only Adrian lands":** Restrict updates. Only the Repository admin (Adrian) may bypass, and only through a PR.
 
-**Why:** CPEPE361 requires PR reviews. On a personal repository, collaborators cannot be read-only, and classic "restrict pushes" is organisation-only. Because nobody can bypass A, even Adrian's merges get a review and green CI.
+**Why:** CPEPE361 requires PR reviews. On a personal repository, collaborators cannot be read-only, and classic "restrict pushes" is organisation-only. Because nobody can bypass A, even Adrian is held to it.
+
+**Temporary exception (2026-09-17):** STORY-00 was built before the teammates were onboarded. GitHub does not allow self-approval, so requiring one approval would have left the foundation pull requests unmergeable and the teammates unable to start. Ruleset A therefore requires **0** approvals for now, and the committed snapshot reflects that. Everything else still applies: a pull request, squash only, green CI, resolved threads, and an empty bypass list. Issue #72 tracks restoring it to 1 when the first teammate can review.
 
 **Rejected:**
 

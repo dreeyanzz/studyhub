@@ -41,7 +41,7 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 5. **Build.** Small commits, tests alongside the code, and `npm run check` before you
    push ([git and PRs](docs/guides/working-with-git-and-prs.md),
    [testing](docs/guides/testing.md)).
-6. **Pull request.** Fill in the template. One approval is required
+6. **Pull request.** Fill in the template, and ask for a review
    ([reviewing and merging](docs/guides/reviewing-and-merging.md)).
 7. **Merge.** Adrian squash-merges it. The issue closes, and the card moves to Done.
 
@@ -61,7 +61,7 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 
 - **Direct pushes to `main` are blocked for every change**, including docs. Everything goes through a pull request.
 - **Every PR targets `main`.** Never base a PR on another PR's branch.
-- **A PR needs one approval.** Adrian approves teammates' PRs, and a teammate approves Adrian's.
+- **Every PR is reviewed.** Adrian approves teammates' PRs, and a teammate approves Adrian's. The required approval count is temporarily 0 while Adrian is the only active developer, and returns to 1 when the first teammate can review (issue #72).
 - **Only Adrian can merge** ([D-014](docs/DECISIONS.md)). If he is unavailable, nothing merges, so keep PRs small.
 - **Squash merge only.** The PR title and body become the commit on `main`, so write them for someone reading the history later.
 
@@ -74,7 +74,7 @@ A task or story is done when:
 - [ ] docs the change makes stale are updated in the same PR
 - [ ] accessibility is checked (48×48 px targets, keyboard, focus, contrast, 360/768/1024
       px)
-- [ ] it has one approval, and Adrian squash-merged it
+- [ ] it has been reviewed, and Adrian squash-merged it
 - [ ] the issue is closed and the card is in Done
 
 ## AI assistants
