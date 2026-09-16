@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Decisions log
+    url: https://github.com/dreeyanzz/studyhub/blob/main/docs/DECISIONS.md
+    about: Check whether a question has already been decided.
+  - name: How we work
+    url: https://github.com/dreeyanzz/studyhub/blob/main/CONTRIBUTING.md
+    about: The team workflow, branch and PR rules, and the guides.

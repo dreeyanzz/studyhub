@@ -1,0 +1,31 @@
+name: Decision needed
+description: An open question that blocks or shapes work. The answer is recorded in docs/DECISIONS.md.
+title: "Decision: "
+labels: ["decision-needed"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Ask it in plain words.
+    validations:
+      required: true
+  - type: textarea
+    id: what-depends
+    attributes:
+      label: What depends on the answer
+      description: What breaks, or which work is blocked, if we get this wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options
+      description: Two or three concrete options, each with its cost. Mark your recommendation.
+    validations:
+      required: true
+  - type: input
+    id: decider
+    attributes:
+      label: Who decides
+      placeholder: Adrian / the team / the instructor
