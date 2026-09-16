@@ -1,22 +1,22 @@
 # StudyHub
 
 > **Web-Based Co-Working Space and Study Spot Discovery and Reservation Platform**  
-> *Course: Software Development 1*
+> _Course: Software Development 1_
 
 ---
 
 ## 📌 Overview
 
-**StudyHub** is a centralized, responsive web platform designed to solve the seat-finding and workspace-uncertainty problem faced by students, freelancers, and remote learners. Through a live, host-updated snap-grid seat map, multi-filter search, and a *reserve-now* instant seat-hold workflow, users can discover conducive study spots, inspect verified amenities (Wi-Fi tiers, power socket availability, noise levels), and secure an exact desk before commuting.
+**StudyHub** is a centralized, responsive web platform designed to solve the seat-finding and workspace-uncertainty problem faced by students, freelancers, and remote learners. Through a live, host-updated snap-grid seat map, multi-filter search, and a _reserve-now_ instant seat-hold workflow, users can discover conducive study spots, inspect verified amenities (Wi-Fi tiers, power socket availability, noise levels), and secure an exact desk before commuting.
 
 ---
 
 ## 👥 Development Team
 
-* **Adrian Seth Tabotabo**
-* **Maria Faith Antigua**
-* **Luke Miguel Dongque**
-* **James Niño Mandawe**
+- **Adrian Seth Tabotabo**
+- **Maria Faith Antigua**
+- **Luke Miguel Dongque**
+- **James Niño Mandawe**
 
 ---
 

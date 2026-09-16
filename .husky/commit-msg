@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+# Rejects commit messages that would break the history on main: a leading
+# byte-order mark (PowerShell 5.1 adds one) or a subject that is not
+# `type(scope): summary`. See docs/guides/working-with-git-and-prs.md.
+msg_file="$1"
+
+if [ "$(head -c 3 "$msg_file" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ]; then
+  echo "commit-msg: the message starts with a byte-order mark (BOM)."
+  echo "Use git commit -m, a Git Bash heredoc, or a UTF-8 file without BOM."
+  exit 1
+fi
+
+subject=$(head -n 1 "$msg_file")
+case "$subject" in
+  "Merge "* | "Revert \""* | "fixup! "* | "squash! "*) exit 0 ;;
+esac
+
+if ! printf '%s' "$subject" | grep -Eq '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([A-Za-z0-9._-]+\))?!?: .+'; then
+  echo "commit-msg: the subject must look like 'type(scope): summary'."
+  echo "Example: feat(STORY-01): add the profiles table"
+  echo "Types: feat fix docs style refactor perf test build ci chore revert"
+  exit 1
+fi
