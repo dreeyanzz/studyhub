@@ -1,0 +1,14 @@
+.next/
+node_modules/
+coverage/
+playwright-report/
+test-results/
+package-lock.json
+next-env.d.ts
+lib/supabase/database.types.ts
+supabase/.temp/
+supabase/.branches/
+
+# Course deliverables are submitted as written; formatting them would churn diffs.
+docs/course/
+StudyHub_*.md

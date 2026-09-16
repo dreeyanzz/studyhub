@@ -1,0 +1,73 @@
+name: Story
+description: A user story (parent issue). Its tasks become sub-issues once its design doc is merged.
+title: 'STORY-XX: '
+labels: ['type:story', 'needs-design']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        No code starts until this story's design doc is merged in `docs/design/`.
+        See `docs/guides/planning-a-story.md`.
+  - type: textarea
+    id: story
+    attributes:
+      label: Story
+      description: As a <role>, I want <capability>, so that <benefit>.
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source
+      description: SRS FR IDs or sections, and any DECISIONS entries (e.g. FR-3.1, D-007).
+    validations:
+      required: true
+  - type: dropdown
+    id: moscow
+    attributes:
+      label: MoSCoW
+      options: ['Must', 'Should', 'Could', "Won't have this sprint"]
+    validations:
+      required: true
+  - type: dropdown
+    id: points
+    attributes:
+      label: Story points (1–10)
+      options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+    validations:
+      required: true
+  - type: input
+    id: estimate
+    attributes:
+      label: Estimate (working days)
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owner
+      description: The person who writes the design doc.
+  - type: dropdown
+    id: sprint
+    attributes:
+      label: Sprint
+      options: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Product Backlog']
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Unticked checkboxes. Tick one only after you have verified it yourself.
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+  - type: input
+    id: design
+    attributes:
+      label: Design doc
+      placeholder: docs/design/STORY-XX-short-desc.md
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
