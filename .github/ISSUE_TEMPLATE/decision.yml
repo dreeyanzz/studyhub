@@ -1,7 +1,7 @@
 name: Decision needed
 description: An open question that blocks or shapes work. The answer is recorded in docs/DECISIONS.md.
-title: "Decision: "
-labels: ["decision-needed"]
+title: 'Decision: '
+labels: ['decision-needed']
 body:
   - type: textarea
     id: question

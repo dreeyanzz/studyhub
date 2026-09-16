@@ -1,13 +1,13 @@
 name: Bug
 description: Something is broken. The fix branch goes under the story whose code it fixes.
-title: "Bug: "
-labels: ["type:bug"]
+title: 'Bug: '
+labels: ['type:bug']
 body:
   - type: input
     id: story
     attributes:
       label: Related story
-      placeholder: "#"
+      placeholder: '#'
   - type: textarea
     id: observed
     attributes:
@@ -37,4 +37,4 @@ body:
     id: severity
     attributes:
       label: Severity
-      options: ["Blocks work", "Wrong data or security", "Annoying", "Cosmetic"]
+      options: ['Blocks work', 'Wrong data or security', 'Annoying', 'Cosmetic']

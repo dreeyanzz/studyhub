@@ -1,7 +1,7 @@
 name: Story
 description: A user story (parent issue). Its tasks become sub-issues once its design doc is merged.
-title: "STORY-XX: "
-labels: ["type:story", "needs-design"]
+title: 'STORY-XX: '
+labels: ['type:story', 'needs-design']
 body:
   - type: markdown
     attributes:
@@ -26,14 +26,14 @@ body:
     id: moscow
     attributes:
       label: MoSCoW
-      options: ["Must", "Should", "Could", "Won't have this sprint"]
+      options: ['Must', 'Should', 'Could', "Won't have this sprint"]
     validations:
       required: true
   - type: dropdown
     id: points
     attributes:
       label: Story points (1–10)
-      options: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
+      options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']
     validations:
       required: true
   - type: input
@@ -51,7 +51,7 @@ body:
     id: sprint
     attributes:
       label: Sprint
-      options: ["Sprint 1", "Sprint 2", "Sprint 3", "Product Backlog"]
+      options: ['Sprint 1', 'Sprint 2', 'Sprint 3', 'Product Backlog']
   - type: textarea
     id: acceptance
     attributes:
