@@ -1,0 +1,169 @@
+<svg viewBox="0 0 1224 564" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="kanban-title kanban-desc">
+  <title id="kanban-title">StudyHub CPEPE361 Sprint 1 Planning Board</title>
+  <desc id="kanban-desc">Sprint 1 kickoff Kanban board showing Product Backlog (4 stories), Sprint 1 Backlog (6 stories ready for execution), and empty In Progress, Code Review, and Done columns reflecting baseline repository planning state.</desc>
+
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;display=swap');
+      text { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+      .mono { font-family: 'Geist Mono', ui-monospace, monospace; }
+    </style>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+    </pattern>
+  </defs>
+
+  <!-- 1. Background -->
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+  <rect width="100%" height="100%" fill="url(#dots)" opacity="0.55"/>
+
+  <!-- 2. Column Backgrounds (ink @ 0.02, no border per spec) -->
+  <rect x="32"  y="48" width="216" height="440" rx="8" fill="rgba(45,49,66,0.02)"/>
+  <rect x="268" y="48" width="216" height="440" rx="8" fill="rgba(45,49,66,0.02)"/>
+  <rect x="504" y="48" width="216" height="440" rx="8" fill="rgba(45,49,66,0.02)"/>
+  <rect x="740" y="48" width="216" height="440" rx="8" fill="rgba(45,49,66,0.02)"/>
+  <rect x="976" y="48" width="216" height="440" rx="8" fill="rgba(45,49,66,0.02)"/>
+
+  <!-- 3. Column Headers & WIP Chips (rx=2 rectangular tag, NEVER a pill) -->
+  <!-- Col 1: Product Backlog -->
+  <text x="44" y="68" fill="#2d3142" font-size="12" font-weight="600">Product Backlog</text>
+  <rect x="208" y="56" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+  <text x="224" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">4</text>
+  <line x1="32" y1="80" x2="248" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
+
+  <!-- Col 2: Sprint 1 Backlog (Focal Accent: Active scope for Sprint 1) -->
+  <text x="280" y="68" fill="#2d3142" font-size="12" font-weight="600">Sprint 1 Backlog</text>
+  <rect x="424" y="56" width="52" height="16" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="0.8"/>
+  <text x="450" y="67" fill="#eb6c36" font-size="8" class="mono" text-anchor="middle">6 · 39p</text>
+  <line x1="268" y1="80" x2="484" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
+
+  <!-- Col 3: In Progress -->
+  <text x="516" y="68" fill="#2d3142" font-size="12" font-weight="600">In Progress</text>
+  <rect x="672" y="56" width="40" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+  <text x="692" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">0 / 2</text>
+  <line x1="504" y1="80" x2="720" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
+
+  <!-- Col 4: Code Review -->
+  <text x="752" y="68" fill="#2d3142" font-size="12" font-weight="600">Code Review</text>
+  <rect x="916" y="56" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+  <text x="932" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">0 / 2</text>
+  <line x1="740" y1="80" x2="956" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
+
+  <!-- Col 5: Done -->
+  <text x="988" y="68" fill="#2d3142" font-size="12" font-weight="600">Done</text>
+  <rect x="1152" y="56" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
+  <text x="1168" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">0</text>
+  <line x1="976" y1="80" x2="1192" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
+
+
+  <!-- 4. Column 1 Cards: Product Backlog (Sprints 2 & 3 deferrals) -->
+  <!-- Card 1: STORY-07 -->
+  <rect x="40" y="96" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="52" y="114" fill="#2d3142" font-size="11" font-weight="600">Snap-Grid Seat Map Builder</text>
+  <text x="52" y="128" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-07] · 10 PTS · 5D</text>
+  <text x="52" y="142" fill="#4f5d75" font-size="9" class="mono">Sprint 2 Deferral · Team</text>
+
+  <!-- Card 2: STORY-08 -->
+  <rect x="40" y="160" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="52" y="178" fill="#2d3142" font-size="11" font-weight="600">Live Geo-Discovery &amp; Map</text>
+  <text x="52" y="192" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-08] · 8 PTS · 4D</text>
+  <text x="52" y="206" fill="#4f5d75" font-size="9" class="mono">Sprint 2 Deferral · Team</text>
+
+  <!-- Card 3: STORY-09 -->
+  <rect x="40" y="224" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="52" y="242" fill="#2d3142" font-size="11" font-weight="600">Exact-Seat Holds &amp; Pays</text>
+  <text x="52" y="256" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-09] · 10 PTS · 5D</text>
+  <text x="52" y="270" fill="#4f5d75" font-size="9" class="mono">Sprint 3 Deferral · Team</text>
+
+  <!-- Card 4: STORY-10 -->
+  <rect x="40" y="288" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="52" y="306" fill="#2d3142" font-size="11" font-weight="600">QR Check-in &amp; Moderation</text>
+  <text x="52" y="320" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-10] · 8 PTS · 4D</text>
+  <text x="52" y="334" fill="#4f5d75" font-size="9" class="mono">Sprint 3 Deferral · Team</text>
+
+
+  <!-- 5. Column 2 Cards: Sprint 1 Backlog (ALL 6 Sprint 1 Stories ready for kickoff) -->
+  <!-- Card 1: STORY-01 -->
+  <rect x="276" y="96" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="288" y="114" fill="#2d3142" font-size="11" font-weight="600">Foundation, DB &amp; RLS</text>
+  <text x="288" y="128" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-01] · 8 PTS · 3D</text>
+  <text x="288" y="142" fill="#4f5d75" font-size="9" class="mono">Adrian · feat/STORY-01-database-rls</text>
+
+  <!-- Card 2: STORY-02 -->
+  <rect x="276" y="160" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="288" y="178" fill="#2d3142" font-size="11" font-weight="600">Accessible Design System</text>
+  <text x="288" y="192" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-02] · 5 PTS · 2D</text>
+  <text x="288" y="206" fill="#4f5d75" font-size="9" class="mono">Maria · feat/STORY-02-design-system</text>
+
+  <!-- Card 3: STORY-03 -->
+  <rect x="276" y="224" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="288" y="242" fill="#2d3142" font-size="11" font-weight="600">Multi-Role Auth &amp; RBAC</text>
+  <text x="288" y="256" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-03] · 8 PTS · 3D</text>
+  <text x="288" y="270" fill="#4f5d75" font-size="9" class="mono">Luke · feat/STORY-03-auth-rbac</text>
+
+  <!-- Card 4: STORY-04 -->
+  <rect x="276" y="288" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="288" y="306" fill="#2d3142" font-size="11" font-weight="600">Seeker Portal &amp; Profile CRUD</text>
+  <text x="288" y="320" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-04] · 5 PTS · 2D</text>
+  <text x="288" y="334" fill="#4f5d75" font-size="9" class="mono">James · feat/STORY-04-seeker-profile</text>
+
+  <!-- Card 5: STORY-05 (Focal Accent: Primary walking skeleton deliverable) -->
+  <rect x="276" y="352" width="200" height="56" rx="6" fill="rgba(235,108,54,0.06)" stroke="#eb6c36" stroke-width="1"/>
+  <rect x="276" y="352" width="4" height="56" rx="2" fill="#eb6c36"/>
+  <text x="288" y="370" fill="#2d3142" font-size="11" font-weight="600">Host Space Listing CRUD</text>
+  <text x="288" y="384" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-05] · 8 PTS · 3D</text>
+  <text x="288" y="398" fill="#4f5d75" font-size="9" class="mono">Adrian &amp; James · feat/05-space-crud</text>
+
+  <!-- Card 6: STORY-06 -->
+  <rect x="276" y="416" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="288" y="434" fill="#2d3142" font-size="11" font-weight="600">Vitest Test Suite &amp; QA</text>
+  <text x="288" y="448" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-06] · 5 PTS · 2D</text>
+  <text x="288" y="462" fill="#4f5d75" font-size="9" class="mono">James · feat/STORY-06-testing-qa</text>
+
+
+  <!-- 6. Column 3: In Progress (Clean Empty State) -->
+  <rect x="512" y="96" width="200" height="376" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
+  <text x="612" y="270" fill="#7a8399" font-size="11" font-weight="500" text-anchor="middle">Ready for Kickoff</text>
+  <text x="612" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">No active tasks in flight</text>
+  <text x="612" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">WIP Limit: 2 stories</text>
+
+
+  <!-- 7. Column 4: Code Review (Clean Empty State) -->
+  <rect x="748" y="96" width="200" height="376" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
+  <text x="848" y="270" fill="#7a8399" font-size="11" font-weight="500" text-anchor="middle">PR Reviews Gate</text>
+  <text x="848" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">No pending pull requests</text>
+  <text x="848" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">Mandatory peer approval</text>
+
+
+  <!-- 8. Column 5: Done (Clean Empty State) -->
+  <rect x="984" y="96" width="200" height="376" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
+  <text x="1084" y="270" fill="#7a8399" font-size="11" font-weight="500" text-anchor="middle">Planning Phase Baseline</text>
+  <text x="1084" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">0 / 6 stories completed</text>
+  <text x="1084" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">Pending branch merges to main</text>
+
+
+  <!-- 9. Legend Strip (Horizontal strip at bottom) -->
+  <line x1="32" y1="504" x2="1192" y2="504" stroke="rgba(45,49,66,0.12)" stroke-width="0.8"/>
+  <text x="32" y="524" fill="#7a8399" font-size="8" class="mono" letter-spacing="0.16em">LEGEND</text>
+
+  <!-- Item 1: Backlog / Default Card -->
+  <rect x="120" y="516" width="16" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="144" y="526" fill="#4f5d75" font-size="9">Sprint Backlog Story</text>
+
+  <!-- Item 2: Focal / Primary CRUD Story -->
+  <rect x="340" y="516" width="16" height="12" rx="2" fill="rgba(235,108,54,0.06)" stroke="#eb6c36" stroke-width="1"/>
+  <rect x="340" y="516" width="4" height="12" rx="1" fill="#eb6c36"/>
+  <text x="364" y="526" fill="#4f5d75" font-size="9">Primary CRUD / Focal Story</text>
+
+  <!-- Item 3: Empty Column State -->
+  <rect x="580" y="516" width="16" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="604" y="526" fill="#4f5d75" font-size="9">Empty (Pre-Execution State)</text>
+
+  <!-- Item 4: Product Backlog -->
+  <rect x="800" y="516" width="16" height="12" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="824" y="526" fill="#4f5d75" font-size="9">Future Sprint Deferral (S2/S3)</text>
+
+  <!-- Item 5: Active Scope Tag -->
+  <rect x="1000" y="516" width="28" height="12" rx="2" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="0.8"/>
+  <text x="1036" y="526" fill="#4f5d75" font-size="9">Sprint Active Scope Tag</text>
+</svg>

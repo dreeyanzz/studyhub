@@ -1,22 +1,22 @@
 # StudyHub
 
 > **Web-Based Co-Working Space and Study Spot Discovery and Reservation Platform**  
-> *Course: Software Development 1*
+> _Course: Software Development 1_
 
 ---
 
 ## 📌 Overview
 
-**StudyHub** is a centralized, responsive web platform designed to solve the seat-finding and workspace-uncertainty problem faced by students, freelancers, and remote learners. Through a live, host-updated snap-grid seat map, multi-filter search, and a *reserve-now* instant seat-hold workflow, users can discover conducive study spots, inspect verified amenities (Wi-Fi tiers, power socket availability, noise levels), and secure an exact desk before commuting.
+**StudyHub** is a centralized, responsive web platform designed to solve the seat-finding and workspace-uncertainty problem faced by students, freelancers, and remote learners. Through a live, host-updated snap-grid seat map, multi-filter search, and a _reserve-now_ instant seat-hold workflow, users can discover conducive study spots, inspect verified amenities (Wi-Fi tiers, power socket availability, noise levels), and secure an exact desk before commuting.
 
 ---
 
 ## 👥 Development Team
 
-* **Adrian Seth Tabotabo**
-* **Maria Faith Antigua**
-* **Luke Miguel Dongque**
-* **James Niño Mandawe**
+- **Adrian Seth Tabotabo**
+- **Maria Faith Antigua**
+- **Luke Miguel Dongque**
+- **James Niño Mandawe**
 
 ---
 
@@ -35,27 +35,27 @@
 
 ```text
 studyhub/
-├── README.md                                    # Project overview and repository documentation
-├── .gitignore                                   # Standard gitignore for documents, temp files, and OS artifacts
-├── StudyHub_SRS.md                              # Software Requirements Specification (v2.0 Markdown)
-├── StudyHub_SRS.docx                            # Software Requirements Specification (v2.0 Word Document)
-├── StudyHub_Project_Planning_Worksheet.md        # Project Planning Worksheet (v2.0 Markdown)
-├── StudyHub_Project_Planning_Worksheet.docx      # Project Planning Worksheet (v2.0 Word Document)
-├── diagrams/                                    # Architectural and UI diagrams
-│   ├── d1_state.png                             # Reservation & seat state machine
-│   ├── d2_tags.png                              # Hybrid amenity and tag taxonomy
-│   └── d3_seatmap.png                           # Snap-grid seat map layout specification
-└── originals_v1_backup/                         # Baseline v1 documents preserved for historical audit
-    ├── StudyHub_Project_Planning_Worksheet_v1_original.docx
-    └── StudyHub_SRS_v1_original.docx
+├── README.md                     # Project overview
+├── .github/                      # PR template, issue forms, PR title check
+├── .gitattributes                # LF line endings for text files; binary file rules
+├── .editorconfig                 # Editor defaults (UTF-8 without BOM, LF, 2 spaces)
+└── docs/
+    └── course/                   # Course deliverables (.md is the source; .docx is generated)
+        ├── StudyHub_SRS.md / .docx
+        ├── StudyHub_Project_Planning_Worksheet.md / .docx
+        ├── StudyHub_Sprint_1_Plan.md
+        ├── StudyHub_Project_Management_Board.html / .svg
+        ├── diagrams/             # Seat state machine, tag taxonomy, seat map layout
+        └── archive/              # v1 originals kept for audit
 ```
 
 ---
 
 ## 📑 Documentation Links
 
-- [Software Requirements Specification (SRS v2.0)](StudyHub_SRS.md)
-- [Project Planning Worksheet (v2.0)](StudyHub_Project_Planning_Worksheet.md)
+- [Software Requirements Specification (SRS v2.0)](docs/course/StudyHub_SRS.md)
+- [Project Planning Worksheet (v2.0)](docs/course/StudyHub_Project_Planning_Worksheet.md)
+- [Sprint 1 Plan](docs/course/StudyHub_Sprint_1_Plan.md)
 
 ---
 
