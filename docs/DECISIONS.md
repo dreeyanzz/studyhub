@@ -146,7 +146,7 @@ Their lengths are decided in STORY-09's design.
 
 **Decision:** Two rulesets protect `main`. Their exported JSON is kept in `.github/rulesets/`.
 
-- **A, "main: PR, 1 approval, CI":**
+- **A, "main: PR, CI, squash":**
   - A PR is required. The approval count is **temporarily 0**; see the exception below.
   - Stale approvals are dismissed, and review threads must be resolved.
   - An extra approval is required for changes GitHub cannot attribute to a user account, so a pull request carrying unattributed commits needs 1 approval even while the count is 0.
