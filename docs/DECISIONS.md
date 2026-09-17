@@ -254,3 +254,22 @@ Maria maintains the board; Adrian is Project Manager.
 ## D-024 · License (open)
 
 **Status:** Open. There is no LICENSE file until the school's policy on course project IP has been checked. Until then, all rights are reserved by the team.
+
+## D-025 · One reference document styles every course .docx
+
+**Decision:** `scripts/reference.docx` holds the submission formatting — Times New Roman,
+US Letter, one-inch margins — and `npm run docs:docx` passes it to pandoc for every course
+document. It is the one `.docx` in the repository that is an input, so it is the one that
+may be edited by hand; changing the look means editing its styles in Word and committing
+it. Extends D-021.
+
+**Why:** pandoc takes docx fonts and page size only from a reference document, and a
+course submission has to look consistent across deliverables.
+
+**Rejected:** Styling each exported file in Word (the next export overwrites it, which is
+exactly what D-021 was written to prevent), and leaving Word's defaults, which gave Aptos
+on whatever paper size the machine's locale picked.
+
+**Consequence:** The `.docx` files exported before this entry were styled by the old
+defaults. They change the next time anyone runs the export, so regenerate the whole set in
+one PR rather than leaving a submission half-restyled.
