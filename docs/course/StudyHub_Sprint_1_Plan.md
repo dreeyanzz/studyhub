@@ -354,6 +354,6 @@ A user story or sprint deliverable is formally marked as **DONE** only when sati
 - [ ] **Database Integrity & Security**: All table mutations protected by verified Row-Level Security policies, with negative tests; no secret key exposed to the client.
 - [ ] **Accessibility & Responsiveness**: WCAG 2.1 AA compliant color contrast ($\ge 4.5:1$), touch targets $\ge 48\text{px} \times 48\text{px}$, keyboard focus rings, and no horizontal scrolling at $360$, $768$, and $1024\text{px}$.
 - [ ] **Verified Criteria**: Every acceptance criterion is ticked by the named person who verified it, and the pull request says how.
-- [ ] **Peer Code Review**: The pull request has been reviewed and all review threads are resolved. The required approval count is temporarily 0 while Adrian is the only active developer; it returns to 1 when the first teammate can review (issue #72).
+- [ ] **Peer Code Review**: The pull request has been reviewed and all review threads are resolved. The required approval count is 1; Adrian approves teammates' PRs, and a teammate approves Adrian's (D-014).
 - [ ] **Docs**: Any document this change makes stale is updated in the same pull request.
 - [ ] **Tracking**: The issue is closed and its card is in Done.

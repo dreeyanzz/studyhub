@@ -58,5 +58,9 @@ and what the right user is prevented from doing to their own rows.
 | STORY-08 |            | not written |
 | STORY-09 |            | not written |
 | STORY-10 |            | not written |
+| STORY-11 |            | not written |
+| STORY-12 |            | not written |
+| STORY-13 |            | not written |
+| STORY-14 |            | not written |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.

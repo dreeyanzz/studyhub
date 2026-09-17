@@ -146,19 +146,24 @@ Their lengths are decided in STORY-09's design.
 
 **Decision:** Two rulesets protect `main`. Their exported JSON is kept in `.github/rulesets/`.
 
-- **A, "main: PR, 1 approval, CI":**
-  - A PR is required. The approval count is **temporarily 0**; see the exception below.
+- **A, "main: PR, CI, reviews, and merge control"** (`.github/rulesets/main-pr-ci-reviews.json`):
+  - A PR is required. The approval count is 1.
   - Stale approvals are dismissed, and review threads must be resolved.
-  - An extra approval is required for changes GitHub cannot attribute to a user account, so a pull request carrying unattributed commits needs 1 approval even while the count is 0.
+  - An extra approval is required for changes GitHub cannot attribute to a user account.
   - Squash merge only.
   - Required checks: `checks` and `pr-title`.
-  - No force-push and no deletion.
-  - The bypass list is empty.
-- **B, "main: only Adrian lands":** Restrict updates. Only the Repository admin (Adrian) may bypass, and only through a PR.
+  - Restrict updates: Collaborators cannot merge or push directly to `main`.
+  - Bypass: Repository Admin (Adrian) has `bypass_mode: "always"`. This allows Adrian to land PRs without false "ref protected" blockers, bypass pending reviews/CI when verified locally or during rapid iteration, and push directly when needed, while teammates remain strictly held to the PR, 1-review, and CI requirements.
+- **B, "main: core integrity"** (`.github/rulesets/main-core-integrity.json`):
+  - No force-push and no branch deletion.
+  - The bypass list is empty: even the Repository Admin cannot accidentally delete `main` or rewrite its history.
 
-**Why:** CPEPE361 requires PR reviews. On a personal repository, collaborators cannot be read-only, and classic "restrict pushes" is organisation-only. Because nobody can bypass A, even Adrian is held to it.
+**Why:** CPEPE361 requires PR reviews and team governance. On a personal repository, collaborators cannot be read-only, and classic "restrict pushes" is organisation-only. By splitting rulesets into core integrity (unbypassable) and PR/review policy (bypassed only by the Project Manager), the repository guarantees history safety and holds all teammates to course compliance while giving Adrian full merge authority and superuser velocity.
 
-**Temporary exception (2026-09-17):** STORY-00 was built before the teammates were onboarded. GitHub does not allow self-approval, so requiring one approval would have left the foundation pull requests unmergeable and the teammates unable to start. Ruleset A therefore requires **0** approvals for now, and the committed snapshot reflects that. Everything else still applies: a pull request, squash only, green CI, resolved threads, and an empty bypass list. Issue #72 tracks restoring it to 1 when the first teammate can review.
+**Evolution:**
+
+- _2026-09-16:_ Ruleset A had 0 approvals while Adrian was setting up foundation before teammates onboarded (#72).
+- _2026-09-18:_ Restored to 1 approval requirement once teammates onboarded. Admin bypass mode set to `always` on the PR/review policy ruleset to prevent false "Cannot update this protected ref" blocks during PR merges and permit local-CI verified direct pushes. Core integrity isolated with zero bypass.
 
 **Rejected:**
 
