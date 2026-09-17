@@ -85,10 +85,10 @@ Defining out-of-scope features prevents scope creep — the uncontrolled expansi
 |----|----|
 | **People** | 4 Developers / System Engineers (Adrian Seth Tabotabo, Maria Faith Antigua, Luke Miguel Dongque, James Niño Mandawe) covering frontend, backend, database, and quality testing. |
 | **Hardware** | Development laptops (Intel Core i5/i7, 16 GB RAM), local Wi-Fi, and test devices (Windows/Mac desktops, Android and iOS phones for responsive testing, plus a device camera for QR check-in testing). |
-| **Software / Development Tools** | VS Code, Git & GitHub, Next.js / React, Node.js, Tailwind CSS, Supabase (PostgreSQL, Auth, Row-Level Security), Prisma or the Supabase client, Leaflet.js / OpenStreetMap, PayMongo or Stripe sandbox, Postman, and modern browsers. |
+| **Software / Development Tools** | VS Code, Git & GitHub, Next.js / React, Node.js, Tailwind CSS, Supabase (PostgreSQL, Auth, Row-Level Security) accessed only through the Supabase client, Leaflet.js / OpenStreetMap, PayMongo or Stripe sandbox, Postman, and modern browsers. |
 | **Internet / Network** | High-speed broadband (min. 50 Mbps) for repository sync, package installation, cloud database queries, and deployment testing. |
 | **Budget** | ₱0 – ₱2,500. Free-tier hosting (Vercel, Supabase, GitHub), open-source libraries, free OpenStreetMap tiles, and free sandbox payments; small contingency for domain registration if deployed publicly. |
-| **Time** | 14 weeks: Requirements Analysis (Wk 1–3), System Design (Wk 4–5), Sprint Development (Wk 6–10), QA & Integration Testing (Wk 11–12), Final Evaluation & Deployment (Wk 13–14). |
+| **Time** | 14 weeks: Requirements Analysis (Wk 1–3), System Design (Wk 4–5), Sprint Development — three two-week sprints (Wk 6–11), QA & Integration Testing (Wk 12), Final Evaluation & Deployment (Wk 13–14). |
 
 # PART 6. FEASIBILITY ANALYSIS
 
@@ -116,13 +116,13 @@ Explanation: Adoption looks promising: 87.5% of respondents gave a top rating (a
 
 **Expected Development Time: 14 Weeks (1 Academic Semester)**
 
-Explanation: The 14-week schedule is achievable due to disciplined scoping. High-risk dependencies (real-money processing, future scheduling, IoT hardware, video conferencing) were deliberately excluded. Work is distributed across the 4-member team using two-week Agile-Scrum sprints, with Weeks 11–14 reserved for QA, bug-fixing, and user acceptance testing.
+Explanation: The 14-week schedule is achievable due to disciplined scoping. High-risk dependencies (real-money processing, future scheduling, IoT hardware, video conferencing) were deliberately excluded. Work is distributed across the 4-member team using two-week Agile-Scrum sprints, with Weeks 12–14 reserved for QA, bug-fixing, and user acceptance testing.
 
 # PART 7. PROJECT RISKS
 
 | **No.** | **Possible Risk** | **Possible Effect** | **Suggested Solution / Response** |
 |----|----|----|----|
-| 1 | Availability accuracy depends on Hosts keeping the seat map current (walk-in vs. app). | Stale counts or a Seeker arriving to find a seat taken, damaging trust. | One-tap host state control on the snap-grid seat map; reserve-now only (a Seeker can never hold an occupied seat); paid holds the system guarantees; a visible "last updated" timestamp; and 15-minute no-show auto-release. |
+| 1 | Availability accuracy depends on Hosts keeping the seat map current (walk-in vs. app). | Stale counts or a Seeker arriving to find a seat taken, damaging trust. | One-tap host state control on the snap-grid seat map; reserve-now only (a Seeker can never hold an occupied seat); paid holds the system guarantees; a visible "last updated" timestamp; and automatic release when the seeker-set wait window expires. |
 | 2 | Two-sided cold start — few initial host listings. | Users perceive the platform as unhelpful and abandon it. | Curate an initial directory of popular student study spots near campus with verified public info, and offer free, zero-commission onboarding to local hosts. |
 | 3 | Concurrent hold conflicts during exam-week peaks. | Race conditions causing double-booking of the same unit. | Enforce one active hold per unit within a single atomic PostgreSQL transaction (no external lock service needed), backed by Vercel serverless auto-scaling. |
 | 4 | Sandbox-only payments limit the real no-show deterrent. | The fee-forfeiture guard is demonstrated but not monetized in v1; refund/dispute logic must still be modeled. | Implement the full flow in sandbox with paid/forfeited/refunded states and administrator refunds; document real-money rollout (merchant onboarding, KYC) as future work. |
@@ -167,7 +167,7 @@ The group unanimously recommends proceeding. StudyHub addresses a validated, urg
 
 The planning phase bridges human needs and technical implementation before any code is written. Without it, teams fall prey to scope creep, architectural misalignment, conflicting priorities, and wasted effort on features users do not need.
 
-Our preliminary survey (N = 16) surfaced a critical reality: while 75% of users want live seat tracking, their biggest concern is data accuracy between walk-ins and digital bookings. Identifying this early led us to a current-state ("reserve-now") model where users only hold seats that are open now — so the system can guarantee an advance-paid hold, and the accuracy of the live view depends on simple host updates shown with a "last updated" time. It also led us to guard no-shows with a small sandbox reservation fee (forfeited on a 15-minute no-show) rather than free bookings that trolls could abuse.
+Our preliminary survey (N = 16) surfaced a critical reality: while 75% of users want live seat tracking, their biggest concern is data accuracy between walk-ins and digital bookings. Identifying this early led us to a current-state ("reserve-now") model where users only hold seats that are open now — so the system can guarantee an advance-paid hold, and the accuracy of the live view depends on simple host updates shown with a "last updated" time. It also led us to guard no-shows with a small sandbox reservation fee (forfeited when the chosen wait window of the seeker expires without a check-in) rather than free bookings that trolls could abuse.
 
 Planning also enabled disciplined scope delimitation — deferring real-money processing, future scheduling, IoT hardware, and video conferencing — to protect the 14-week timeline, and steered concrete architecture choices such as Supabase Auth with Row-Level Security, a grid-based seat map, and atomic database transactions to prevent double-booking. In short, thorough planning minimized financial and technical risk, aligned the team, set measurable evaluation criteria, and produced the blueprint for software that is robust, usable, and purposeful.
 
