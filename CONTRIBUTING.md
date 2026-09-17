@@ -61,7 +61,7 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 
 - **Direct pushes to `main` are blocked for every change**, including docs. Everything goes through a pull request.
 - **Every PR targets `main`.** Never base a PR on another PR's branch.
-- **Every PR is reviewed.** Adrian approves teammates' PRs, and a teammate approves Adrian's. The required approval count is temporarily 0 while Adrian is the only active developer, and returns to 1 when the first teammate can review (issue #72).
+- **Every PR is reviewed.** 1 approval is required ([D-014](docs/DECISIONS.md)). Adrian approves teammates' PRs, and a teammate approves Adrian's.
 - **Only Adrian can merge** ([D-014](docs/DECISIONS.md)). If he is unavailable, nothing merges, so keep PRs small.
 - **Squash merge only.** The PR title and body become the commit on `main`, so write them for someone reading the history later.
 

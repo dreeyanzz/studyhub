@@ -93,7 +93,7 @@ A person runs these commands, not an AI agent.
 | `pr-title`           | The PR title, the branch name, and the PR body      |
 | `db` (from STORY-01) | pgTAP database policy tests on a fresh local stack  |
 
-All required checks must be green. A PR also needs one approval, once the rule requires one again (issue #72).
+All required checks must be green. A PR also needs 1 approving review from a teammate (D-014).
 
 ## Fixing common mistakes
 

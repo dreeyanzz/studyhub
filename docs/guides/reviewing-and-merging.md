@@ -1,6 +1,6 @@
 # Reviewing and merging
 
-Every pull request is reviewed before it merges, and only Adrian can merge (D-014). The required approval count is temporarily 0, because Adrian is the only active developer; it goes back to 1 when the first teammate can review (issue #72). Adrian approves teammates' PRs, and a teammate approves Adrian's. Nobody can
+Every pull request is reviewed before it merges, and only Adrian can merge (D-014). The required approval count is 1. Adrian approves teammates' PRs, and a teammate approves Adrian's. Nobody can
 approve their own PR.
 
 ## Reviewing a pull request
@@ -45,7 +45,7 @@ settled. After pushing changes, request the review again.
 
 1. **Check** that:
    - the required checks are green
-   - it has an approval, once the rule requires one again (issue #72)
+   - it has 1 approving review from a peer
    - every thread is resolved
    - for story work, the design doc is merged
 2. **Read the squash commit title and message** in the merge box. They are what stays on `main`, and you can fix the wording there. The `Co-Authored-By:` line must stay last.
