@@ -36,10 +36,29 @@
 ```text
 studyhub/
 ├── README.md                     # Project overview
-├── .github/                      # PR template, issue forms, PR title check
+├── AGENTS.md                     # How we build here: the rules every AI tool and person reads first
+├── CLAUDE.md                     # One line, importing AGENTS.md
+├── CONTRIBUTING.md               # The workflow on one screen
+├── app/                          # Next.js 16 App Router routes and layouts
+├── components/                   # shadcn/ui primitives and shared components (from STORY-02)
+├── lib/                          # supabase/ clients, validation/ Zod schemas, utils; tests alongside
+├── supabase/                     # config.toml; migrations/, tests/ and seed.sql from STORY-01
+├── scripts/                      # Repo scripts (docx export)
+├── notes/                        # Postmortems, and the template for them
+├── .github/                      # PR template, issue forms, CI, PR title check, ruleset snapshots
+├── .husky/                       # commit-msg and pre-commit hooks
+├── .env.example                  # Copy to .env.local (gitignored)
+├── package.json                  # Scripts: dev, check, build, db:*, docs:docx
 ├── .gitattributes                # LF line endings for text files; binary file rules
 ├── .editorconfig                 # Editor defaults (UTF-8 without BOM, LF, 2 spaces)
 └── docs/
+    ├── README.md                 # Documentation map, and which document wins
+    ├── DECISIONS.md              # Every decision, and what it rejected
+    ├── GLOSSARY.md               # The words to use in code, UI and docs
+    ├── ONBOARDING.md             # Machine setup, written for an AI agent to run
+    ├── DEVELOPMENT.md            # Accounts, environments, secrets, the daily loop
+    ├── guides/                   # Planning a story, git and PRs, reviewing, testing, AI, board
+    ├── design/                   # One design doc per story, plus the template
     └── course/                   # Course deliverables (.md is the source; .docx is generated)
         ├── StudyHub_SRS.md / .docx
         ├── StudyHub_Project_Planning_Worksheet.md / .docx
@@ -52,6 +71,21 @@ studyhub/
 ---
 
 ## 📑 Documentation Links
+
+**Start here**
+
+- [AGENTS.md](AGENTS.md) — how we build here; every AI tool and person reads it first
+- [CONTRIBUTING.md](CONTRIBUTING.md) — the workflow on one screen
+- [docs/ONBOARDING.md](docs/ONBOARDING.md) — ask your AI assistant to set up your machine
+- [docs/README.md](docs/README.md) — the documentation map, and which document wins
+
+**Decisions and vocabulary**
+
+- [docs/DECISIONS.md](docs/DECISIONS.md) — every decision, and what it rejected
+- [docs/GLOSSARY.md](docs/GLOSSARY.md) — the words to use in code, UI and docs
+- [docs/design/](docs/design/) — one design doc per story, merged before its code starts
+
+**Course deliverables**
 
 - [Software Requirements Specification (SRS v2.0)](docs/course/StudyHub_SRS.md)
 - [Project Planning Worksheet (v2.0)](docs/course/StudyHub_Project_Planning_Worksheet.md)
