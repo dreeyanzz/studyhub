@@ -136,11 +136,13 @@ Copy the printed API URL and publishable key (called "anon key" on older CLI out
 Then:
 
 ```bash
-npm run db:reset && npm run db:types && npm run db:test
+npm run db:reset
 ```
 
-Until STORY-01 lands there are no migrations or tests. Report that plainly rather than
-as a failure.
+Until STORY-01 lands there are no migrations, no `supabase/tests/` and no `lib/supabase/`
+directory, so skip `npm run db:types` and `npm run db:test` for now. `db:types` would fail
+outright, because it redirects into a folder that does not exist yet. Report that plainly
+rather than as a failure.
 
 ### 8b. Everyone else: the shared cloud dev project
 

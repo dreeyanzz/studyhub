@@ -22,7 +22,7 @@ git switch -c feature/STORY-03-login-page
 
 - **Types:** `feat fix docs style refactor perf test build ci chore revert`.
 - **Subject:** starts with a lowercase letter, uses the imperative ("add", not "added"), and has no full stop at the end.
-- **Hooks:** the commit-msg hook rejects anything else, and the pre-commit hook formats and lints the files you staged.
+- **Hooks:** the commit-msg hook rejects a byte-order mark and any subject that is not `type(scope): summary`. It does not check the case of the subject, the mood, or a trailing full stop — the `pr-title` check enforces the lowercase summary, and only on the PR title, which is the commit that lands on `main`. The pre-commit hook formats and lints the files you staged.
 
 Keep commits small and focused. They are squashed when the PR merges, so the branch
 commits are for you and your reviewer. The PR title and body are what stays on `main`.
