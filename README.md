@@ -24,8 +24,8 @@
 
 1. **Space Discovery & Multi-Filter Search**: Search by location/radius, operational hours, noise level, Wi-Fi speed tier, power outlet availability, and curated/custom tags.
 2. **Reserve-Now Exact-Seat Selection**: Current-state reservation model featuring interactive snap-grid seat maps where seekers select and hold specific seats.
-3. **Pending-Payment Sandbox Flow**: 10-minute hold window backed by a sandbox payment gateway with automatic seat release upon expiry.
-4. **Host Seat-Map & Occupancy Management**: In-browser snap-grid layout builder enabling hosts to position desks, amenities, and toggle seat states (Available, Occupied, Reserved, Maintenance) in real time.
+3. **Pending-Payment Sandbox Flow**: a payment window to complete the sandbox reservation fee, then a seeker-set wait window while travelling; the unit auto-releases when either expires.
+4. **Host Seat-Map & Occupancy Management**: In-browser snap-grid layout builder enabling hosts to position desks and amenities and set the state of any unit (Available, Pending Payment, Reserved, Occupied), with every availability view labelled "host-updated · X min ago".
 5. **Role-Based Access Control & Security**: Supabase Auth with Row-Level Security (RLS) enforcing strict permissions across Seekers, Hosts, and Administrators.
 6. **Community Reviews & Moderation**: Verified-user ratings, amenity feedback, and administrative moderation tools.
 
@@ -61,6 +61,6 @@ studyhub/
 
 ## 🛠️ Tech Stack & Constraints
 
-- **Frontend**: Next.js / React, Tailwind CSS, TypeScript
-- **Backend & Database**: Supabase (PostgreSQL, Supabase Auth, Row-Level Security, Realtime)
-- **Deployment**: Vercel / Cloudflare
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript, Tailwind 4, shadcn/ui on Base UI
+- **Backend & Database**: Supabase (PostgreSQL, Supabase Auth, Row-Level Security), accessed only through the Supabase client
+- **Deployment**: Vercel (Hobby plan) — `main` deploys to production, pull requests get preview deployments

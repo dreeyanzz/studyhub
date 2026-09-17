@@ -1,6 +1,6 @@
 <svg viewBox="0 0 1224 564" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="kanban-title kanban-desc">
   <title id="kanban-title">StudyHub CPEPE361 Sprint 1 Planning Board</title>
-  <desc id="kanban-desc">Sprint 1 kickoff Kanban board showing Product Backlog (4 stories), Sprint 1 Backlog (6 stories ready for execution), and empty In Progress, Code Review, and Done columns reflecting baseline repository planning state.</desc>
+  <desc id="kanban-desc">Sprint 1 Kanban board showing Product Backlog (4 stories), Sprint 1 Backlog (6 stories ready for execution), STORY-00 repository foundation In Progress, and empty Code Review and Done columns.</desc>
 
   <defs>
     <style>
@@ -40,13 +40,13 @@
   <!-- Col 3: In Progress -->
   <text x="516" y="68" fill="#2d3142" font-size="12" font-weight="600">In Progress</text>
   <rect x="672" y="56" width="40" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
-  <text x="692" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">0 / 2</text>
+  <text x="692" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">1 / 4</text>
   <line x1="504" y1="80" x2="720" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
 
   <!-- Col 4: Code Review -->
   <text x="752" y="68" fill="#2d3142" font-size="12" font-weight="600">Code Review</text>
   <rect x="916" y="56" width="32" height="16" rx="2" fill="transparent" stroke="rgba(45,49,66,0.40)" stroke-width="0.8"/>
-  <text x="932" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">0 / 2</text>
+  <text x="932" y="67" fill="rgba(45,49,66,0.80)" font-size="8" class="mono" text-anchor="middle">0 / 4</text>
   <line x1="740" y1="80" x2="956" y2="80" stroke="rgba(45,49,66,0.20)" stroke-width="1"/>
 
   <!-- Col 5: Done -->
@@ -86,59 +86,62 @@
   <!-- Card 1: STORY-01 -->
   <rect x="276" y="96" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
   <text x="288" y="114" fill="#2d3142" font-size="11" font-weight="600">Foundation, DB &amp; RLS</text>
-  <text x="288" y="128" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-01] · 8 PTS · 3D</text>
-  <text x="288" y="142" fill="#4f5d75" font-size="9" class="mono">Adrian · feat/STORY-01-database-rls</text>
+  <text x="288" y="128" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-01] · 8 PTS · 3D · ADRIAN</text>
+  <text x="288" y="142" fill="#4f5d75" font-size="8" class="mono">feature/STORY-01-database-rls</text>
 
   <!-- Card 2: STORY-02 -->
   <rect x="276" y="160" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
   <text x="288" y="178" fill="#2d3142" font-size="11" font-weight="600">Accessible Design System</text>
-  <text x="288" y="192" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-02] · 5 PTS · 2D</text>
-  <text x="288" y="206" fill="#4f5d75" font-size="9" class="mono">Maria · feat/STORY-02-design-system</text>
+  <text x="288" y="192" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-02] · 5 PTS · 2D · MARIA</text>
+  <text x="288" y="206" fill="#4f5d75" font-size="8" class="mono">feature/STORY-02-design-system</text>
 
   <!-- Card 3: STORY-03 -->
   <rect x="276" y="224" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
   <text x="288" y="242" fill="#2d3142" font-size="11" font-weight="600">Multi-Role Auth &amp; RBAC</text>
-  <text x="288" y="256" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-03] · 8 PTS · 3D</text>
-  <text x="288" y="270" fill="#4f5d75" font-size="9" class="mono">Luke · feat/STORY-03-auth-rbac</text>
+  <text x="288" y="256" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-03] · 8 PTS · 3D · LUKE</text>
+  <text x="288" y="270" fill="#4f5d75" font-size="8" class="mono">feature/STORY-03-auth-rbac</text>
 
   <!-- Card 4: STORY-04 -->
   <rect x="276" y="288" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
   <text x="288" y="306" fill="#2d3142" font-size="11" font-weight="600">Seeker Portal &amp; Profile CRUD</text>
-  <text x="288" y="320" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-04] · 5 PTS · 2D</text>
-  <text x="288" y="334" fill="#4f5d75" font-size="9" class="mono">James · feat/STORY-04-seeker-profile</text>
+  <text x="288" y="320" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-04] · 5 PTS · 2D · JAMES</text>
+  <text x="288" y="334" fill="#4f5d75" font-size="8" class="mono">feature/STORY-04-seeker-profile-crud</text>
 
   <!-- Card 5: STORY-05 (Focal Accent: Primary walking skeleton deliverable) -->
   <rect x="276" y="352" width="200" height="56" rx="6" fill="rgba(235,108,54,0.06)" stroke="#eb6c36" stroke-width="1"/>
   <rect x="276" y="352" width="4" height="56" rx="2" fill="#eb6c36"/>
   <text x="288" y="370" fill="#2d3142" font-size="11" font-weight="600">Host Space Listing CRUD</text>
-  <text x="288" y="384" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-05] · 8 PTS · 3D</text>
-  <text x="288" y="398" fill="#4f5d75" font-size="9" class="mono">Adrian &amp; James · feat/05-space-crud</text>
+  <text x="288" y="384" fill="#eb6c36" font-size="8" font-weight="600" class="mono">[STORY-05] · 8 PTS · 3D · ADRIAN</text>
+  <text x="288" y="398" fill="#4f5d75" font-size="8" class="mono">feature/STORY-05-host-space-crud</text>
 
   <!-- Card 6: STORY-06 -->
   <rect x="276" y="416" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
   <text x="288" y="434" fill="#2d3142" font-size="11" font-weight="600">Vitest Test Suite &amp; QA</text>
-  <text x="288" y="448" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-06] · 5 PTS · 2D</text>
-  <text x="288" y="462" fill="#4f5d75" font-size="9" class="mono">James · feat/STORY-06-testing-qa</text>
+  <text x="288" y="448" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-06] · 5 PTS · 2D · JAMES</text>
+  <text x="288" y="462" fill="#4f5d75" font-size="8" class="mono">feature/STORY-06-testing-qa</text>
 
 
-  <!-- 6. Column 3: In Progress (Clean Empty State) -->
-  <rect x="512" y="96" width="200" height="376" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
-  <text x="612" y="270" fill="#7a8399" font-size="11" font-weight="500" text-anchor="middle">Ready for Kickoff</text>
-  <text x="612" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">No active tasks in flight</text>
-  <text x="612" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">WIP Limit: 2 stories</text>
+  <!-- 6. Column 3: In Progress (STORY-00 repository foundation) -->
+  <rect x="512" y="96" width="200" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+  <text x="524" y="114" fill="#2d3142" font-size="11" font-weight="600">Repo Foundation</text>
+  <text x="524" y="128" fill="#2e5aa8" font-size="8" font-weight="600" class="mono">[STORY-00] · 5 PTS · 3D · ADRIAN</text>
+  <text x="524" y="142" fill="#4f5d75" font-size="8" class="mono">issue #49 · 2 of 7 tasks merged</text>
+  <rect x="512" y="160" width="200" height="312" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
+  <text x="612" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">Sprint 1 stories not started</text>
+  <text x="612" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">WIP Limit: 4 stories</text>
 
 
   <!-- 7. Column 4: Code Review (Clean Empty State) -->
   <rect x="748" y="96" width="200" height="376" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
   <text x="848" y="270" fill="#7a8399" font-size="11" font-weight="500" text-anchor="middle">PR Reviews Gate</text>
   <text x="848" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">No pending pull requests</text>
-  <text x="848" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">Mandatory peer approval</text>
+  <text x="848" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">Review required · Adrian merges</text>
 
 
   <!-- 8. Column 5: Done (Clean Empty State) -->
   <rect x="984" y="96" width="200" height="376" rx="6" fill="transparent" stroke="rgba(45,49,66,0.15)" stroke-dasharray="4,4" stroke-width="1"/>
   <text x="1084" y="270" fill="#7a8399" font-size="11" font-weight="500" text-anchor="middle">Planning Phase Baseline</text>
-  <text x="1084" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">0 / 6 stories completed</text>
+  <text x="1084" y="286" fill="#4f5d75" font-size="8" class="mono" text-anchor="middle">0 / 7 stories completed</text>
   <text x="1084" y="302" fill="rgba(45,49,66,0.50)" font-size="8" class="mono" text-anchor="middle">Pending branch merges to main</text>
 
 
