@@ -30,7 +30,7 @@ StudyHub is a web app for finding a study or co-working space and holding an ope
 
 - Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui.
 - Supabase (Postgres, Auth, Row-Level Security).
-- Leaflet + OpenStreetMap.
+- Leaflet + OpenStreetMap (added with the map story).
 - A sandbox payment gateway.
 - Vercel.
 
@@ -68,7 +68,8 @@ components/ui/        shadcn/ui primitives (added through `npx shadcn add`)
 components/<domain>/  components shared across routes
 hooks/                shared client hooks
 lib/utils.ts          cn()
-lib/supabase/         client.ts, server.ts, proxy.ts, database.types.ts (generated)
+lib/supabase/         client.ts, server.ts, admin.ts (secret key; app/api only),
+                      proxy.ts, database.types.ts (generated)
 lib/validation/       Zod schemas shared by browser and server
 lib/data/             server-only query helpers
 lib/<domain>/         pure logic: no database, no session, no React; tests next to it
@@ -80,6 +81,13 @@ docs/                 README (map), DECISIONS, GLOSSARY, ONBOARDING, DEVELOPMENT
 notes/                postmortems
 ```
 
+Most of that tree does not exist yet; it is where files go when a story creates them. On
+`main` today there are only `app/` (a layout and a placeholder page), `lib/utils.ts`,
+`scripts/`, `supabase/config.toml` and `docs/`. The route groups, `app/api/`,
+`components/`, `hooks/`, `lib/supabase/`, `lib/validation/`, `lib/data/`,
+`supabase/migrations/`, `supabase/tests/`, `supabase/seed.sql` and `e2e/` arrive with the
+stories that need them.
+
 ## Commands
 
 > Keep this block true. A PR that changes a script updates it.
@@ -88,6 +96,7 @@ notes/                postmortems
 npm install            # Node 24 (see .nvmrc)
 npm run dev            # http://localhost:3000
 npm run check          # typecheck + lint + format check + unit tests
+npm test               # unit tests only (Vitest)
 npm run build          # production build (CI runs it too)
 npm run format         # Prettier, writes changes
 npm run db:start       # local Supabase in Docker (database owner only)

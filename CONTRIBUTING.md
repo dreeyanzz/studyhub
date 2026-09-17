@@ -55,7 +55,7 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 
 - **Types:** `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
 - **Summaries** start with a lowercase letter.
-- **Enforcement:** the commit-msg hook and the `pr-title` check.
+- **Enforcement:** the commit-msg hook checks the `type(scope): subject` shape; the `pr-title` check enforces the lowercase summary on the PR title, which is what lands on `main`.
 
 ## Repository rules
 

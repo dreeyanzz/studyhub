@@ -149,6 +149,7 @@ Their lengths are decided in STORY-09's design.
 - **A, "main: PR, 1 approval, CI":**
   - A PR is required. The approval count is **temporarily 0**; see the exception below.
   - Stale approvals are dismissed, and review threads must be resolved.
+  - An extra approval is required for changes GitHub cannot attribute to a user account, so a pull request carrying unattributed commits needs 1 approval even while the count is 0.
   - Squash merge only.
   - Required checks: `checks` and `pr-title`.
   - No force-push and no deletion.
@@ -190,7 +191,7 @@ Their lengths are decided in STORY-09's design.
 - Adrian owns migrations and runs the local Docker stack.
 - Teammates use one shared cloud dev project, which is migrated only from merged `main` (Adrian runs `supabase db push`). No schema edits happen in the dashboard.
 - A production project is created before the Final phase.
-- CI runs the pgTAP tests on a fresh local stack.
+- CI runs the pgTAP tests on a fresh local stack, in a `db` job that arrives with the first migration (STORY-01).
 
 **Why:** Docker is heavy on laptops, and a single migration owner avoids version collisions.
 
