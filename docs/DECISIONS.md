@@ -278,3 +278,11 @@ on whatever paper size the machine's locale picked.
 **Consequence:** The `.docx` files exported before this entry were styled by the old
 defaults. They change the next time anyone runs the export, so regenerate the whole set in
 one PR rather than leaving a submission half-restyled.
+
+## D-026 · Worq as application brand, StudyHub as technical codename
+
+**Decision:** The consumer-facing application and product brand is **Worq**. The internal project, repository name (`dreeyanzz/studyhub`), package name, and academic course deliverable codename remains **StudyHub**.
+
+**Why:** "Worq" provides a punchy, modern consumer brand suitable for both students seeking study spots and remote professionals/freelancers booking co-working spaces. Keeping "StudyHub" as the internal repository and technical codename avoids breaking git remotes for teammates, preserves CI workflow definitions, and maintains continuity with CPEPE361 course registrations and syllabus grading.
+
+**Rejected:** A full codebase, repository, and course document rename (Option B), which would disrupt team git remotes, break external links, and create needless grading friction.
