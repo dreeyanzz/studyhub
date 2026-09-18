@@ -8,9 +8,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# StudyHub: guide for AI agents and humans
+# Worq (Project StudyHub): guide for AI agents and humans
 
-StudyHub is a web app for finding a study or co-working space and holding an open seat
+Worq (technical codename: StudyHub, D-026) is a web app for finding a study or co-working space and holding an open seat
 **now**:
 
 - **Seekers** search spaces on a map, filter them by curated tags, pick an exact unit on the host's seat map, and pay a sandbox reservation fee to hold it.

@@ -13,7 +13,10 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'StudyHub',
+  title: {
+    default: 'Worq',
+    template: '%s | Worq',
+  },
   description: 'Discover study and co-working spaces and hold an open seat now.',
 }
 
