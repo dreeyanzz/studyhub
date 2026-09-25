@@ -19,8 +19,8 @@ Deliver the official **Walking Skeleton Baseline** for StudyHub as mandated by t
 1. **Managed Database Connection**: Supabase PostgreSQL with robust schemas, automated trigger functions, and Row-Level Security (RLS) enforcement.
 2. **Multi-Role Authentication**: Supabase Auth with custom user roles (`seeker`, `host`, `admin`), Row-Level Security as the security boundary, and Next.js SSR session refresh and route redirects in `proxy.ts`.
 3. **Primary End-to-End CRUD Flows**:
-   - **User Profile CRUD**: View and edit user personal info, contact numbers, and preferences.
-   - **Host Space Listing CRUD**: Host creation, viewing, updating, and deletion of basic study hub/co-working venue details (name, location, description, operating hours, base hourly rate, and amenity tags).
+   - **User Profile CRUD**: View and edit their own name and contact number.
+   - **Host Space Listing CRUD**: Host creation, viewing, updating, and deletion of basic study hub/co-working venue details (name, address, description, and daily opening and closing times).
 4. **Accessible UI Shell**: Next.js 16 App Router layout, WCAG 2.1 AA compliant design tokens, and shadcn/ui accessible primitives (built on Base UI).
 5. **Quality Assurance**: Automated Vitest unit test suite covering input validation schemas and RBAC route guard logic.
 
@@ -46,13 +46,13 @@ To satisfy the CPEPE361 Prelim & Midterm requirements, the product features are 
 | **Must Have (M)**   | Multi-Role Authentication               | **Sprint 1**  | Email/password login and registration with explicit role selection (`seeker` vs. `host`), blocking client escalation to `admin`. |
 | **Must Have (M)**   | Database Schemas & Row-Level Security   | **Sprint 1**  | PostgreSQL tables for `profiles` and `spaces` with 1:1 user links, cascade deletes, and RLS preventing cross-tenant mutation.    |
 | **Must Have (M)**   | RBAC Route Guard Middleware             | **Sprint 1**  | Server-side session verification protecting `/seeker/*`, `/host/*`, and `/admin/*` routes from unauthorized roles.               |
-| **Must Have (M)**   | Primary CRUD 1: User Profile Management | **Sprint 1**  | Seekers and Hosts can read and update their own full name, phone number, and preferences.                                        |
-| **Must Have (M)**   | Primary CRUD 2: Host Space Listing CRUD | **Sprint 1**  | Hosts can create, view, update, and delete basic study space listings (name, address, rate, hours, amenities).                   |
+| **Must Have (M)**   | Primary CRUD 1: User Profile Management | **Sprint 1**  | Seekers and Hosts can read and update their own full name and phone number.                                                      |
+| **Must Have (M)**   | Primary CRUD 2: Host Space Listing CRUD | **Sprint 1**  | Hosts can create, view, update, and delete basic study space listings (name, address, description, opening and closing times).    |
 | **Should Have (S)** | WCAG 2.1 AA Design System & Shell       | **Sprint 1**  | Accessible color tokens, keyboard navigation focus rings, mobile-responsive layout, and public landing hero.                     |
 | **Should Have (S)** | Automated Unit Testing Suite            | **Sprint 1**  | Vitest test coverage for auth form validations, password constraints, and role-guard redirection logic.                          |
 | **Should Have (S)** | Test Data Seeding                       | **Sprint 1**  | `seed.sql` script with reproducible Admin, Host, and Seeker accounts and sample venue records.                                   |
-| **Could Have (C)**  | Amenity Multi-Select Badges             | **Sprint 1**  | Interactive toggles for Wi-Fi speed tier, power outlet accessibility, aircon, and quiet zone tags on space listings.             |
 | **Could Have (C)**  | Admin Console Shell                     | **Sprint 1**  | Read-only administrative dashboard displaying registered user counts and database health metrics.                                |
+| **Won't Have (W)**  | Amenity Multi-Select Badges             | _Sprint 2_    | Curated amenity tags (Wi-Fi tier, power outlets, aircon, quiet zone) arrive with STORY-08's tag design (D-027).                  |
 | **Won't Have (W)**  | Interactive Snap-Grid Seat Map Builder  | _Sprint 2_    | Visual canvas/grid for hosts to place desks, power sockets, and zones (deferred to Sprint 2).                                    |
 | **Won't Have (W)**  | Live Geo-Search & Interactive Map       | _Sprint 2_    | Leaflet/OpenStreetMap discovery with live distance calculation and amenity filtering (deferred to Sprint 2).                        |
 | **Won't Have (W)**  | Image Storage & Venue Photo Uploads     | _Sprint 2_    | Supabase Storage bucket integration for space photography (deferred to Sprint 2).                                                |
@@ -109,10 +109,10 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 1. Bind the Supabase environment variables already scaffolded in STORY-00 (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; `SUPABASE_SECRET_KEY` stays server-only).
 2. Write migration `20260914000001_init_auth_and_profiles.sql` defining `user_role` ENUM (`seeker`, `host`, `admin`) and `public.profiles` table linked 1:1 to `auth.users(id)`.
 3. Implement `handle_new_user()` PostgreSQL trigger function extracting role metadata upon signup and sanitizing against client-side `admin` self-promotion.
-4. Define `public.spaces` table with fields: `id`, `host_id` (FK to profiles), `name`, `description`, `address`, `hourly_rate`, `operating_hours`, `amenities` (text array), `status`, and timestamps.
+4. Define `public.spaces` table with fields: `id`, `host_id` (FK to profiles), `name`, `description`, `address`, `opens_at` and `closes_at` (the same hours every day), `status` (verification), and timestamps (D-027).
 5. Configure Row-Level Security (RLS) policies:
-   - `profiles`: Public select, self-update only, admin full oversight.
-   - `spaces`: Public select for active spaces, host insert/update/delete restricted to `host_id = auth.uid()`.
+   - `profiles`: each user reads their own row and updates only their name and phone number, never their role; Administrators read all rows; everyone else gets 0 rows.
+   - `spaces`: everyone reads verified spaces; a host reads, inserts, updates and deletes only their own (`host_id = auth.uid()`), never the verification status; Administrators read all.
 6. Create `supabase/seed.sql` with reproducible invented test accounts (`admin@example.test`, seeded locally only, `host@example.test`, `seeker@example.test`).
 7. Generate TypeScript database definitions with `npm run db:types` (`lib/supabase/database.types.ts`).
 8. Add the Supabase SSR client factories (`lib/supabase/client.ts`, `lib/supabase/server.ts`) that STORY-03, STORY-04 and STORY-05 build on.
@@ -184,7 +184,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 
 ### [STORY-04] Seeker Portal & User Profile CRUD
 
-- **Story**: _As a Seeker, I want to access my personal dashboard and view/update my profile details, so that my account information and contact preferences remain accurate._
+- **Story**: _As a Seeker, I want to access my personal dashboard and view/update my profile details, so that my account information and contact details remain accurate._
 - **Story Points**: `5 / 10`
 - **Time Estimate**: `2 Days`
 - **Assignee**: `James Niño Mandawe`
@@ -195,7 +195,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 
 1. Build authenticated dashboard shell (`app/(dashboard)/seeker/layout.tsx` and `components/dashboard-header.tsx`).
 2. Construct Seeker dashboard view (`app/(dashboard)/seeker/page.tsx`) showing account status, role badge, and quick stats.
-3. Implement Profile Edit form allowing users to update their `full_name`, `phone_number`, and study preference tags.
+3. Implement Profile Edit form allowing users to update their `full_name` and `phone_number` (study preferences move to STORY-08, D-027).
 4. Wire form submission to Supabase `profiles` table update action with optimistic UI state and toast/alert feedback.
 5. Display informational placeholder cards highlighting upcoming Sprint 2 (Search Spaces) and Sprint 3 (Active Reservations) features.
 
@@ -224,9 +224,8 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
    - Space Name (`text`, required).
    - Address / Location (`text`, required).
    - Description (`textarea`).
-   - Operating Hours (`text`, e.g., "7:00 AM - 11:00 PM").
-   - Base Hourly Rate (`numeric`, PHP).
-   - Amenity Checkbox Tags (High-Speed Wi-Fi, Dedicated Outlets, Air Conditioning, Quiet Zone).
+   - Opening and Closing Time (`time`, required; a closing time earlier than the opening time means after midnight, and equal times mean open 24 hours).
+   - No price or amenity tags in Sprint 1: tags arrive with STORY-08 and the reservation fee with STORY-09 (D-027).
 4. Implement "Edit Space Listing" dialog allowing hosts to modify existing listing details.
 5. Implement "Delete Space" confirmation dialog ensuring safe deletion of unneeded listings.
 6. Enforce RLS verification ensuring hosts can neither view unapproved draft listings of other hosts nor modify other hosts' venues.
@@ -234,7 +233,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 #### Acceptance Criteria:
 
 - [ ] Host can create a new space listing and see it appear immediately in their space list.
-- [ ] Host can update the name, rate, or amenities of their own listing.
+- [ ] Host can update the name, address, or hours of their own listing.
 - [ ] Host can delete their listing with confirmation.
 - [ ] Non-owners cannot edit or delete spaces belonging to another host.
 
@@ -259,7 +258,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
    - Tests Seeker access permissions (allow `/seeker`, deny `/host`, deny `/admin`).
    - Tests Host access permissions (allow `/host`, deny `/seeker`, deny `/admin`).
    - Tests Admin access permissions across all portals.
-4. Write validation tests for Space Listing schema (ensuring positive rates, non-empty titles).
+4. Write validation tests for Space Listing schema (required name and address, valid opening and closing times).
 5. Run the repository checks before every push: `npm run check` (typecheck, lint, format check, unit tests) and `npm run db:test` (pgTAP policy tests).
 
 #### Acceptance Criteria:
