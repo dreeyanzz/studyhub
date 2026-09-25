@@ -46,7 +46,8 @@ Each row of the design's §5 becomes a TSK sub-issue, created with the Task form
 - an assignee
 
 Add each one to the story as a sub-issue: on the story's page, use "Create sub-issue" or
-"Add existing issue".
+"Add existing issue". An agent does the same from the command line with the
+[board guide's commands](board-guide.md#commands-for-agents).
 
 **Sizing:**
 

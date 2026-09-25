@@ -109,6 +109,7 @@ example, expiry checked in the query itself, with Supabase `pg_cron` for clean-u
 | Database, migrations, RLS, CI, merging    | Adrian |
 | Design system, UI primitives, the board   | Maria  |
 | Authentication, sessions, the route guard | Luke   |
-| Portal shells, tests, QA                  | James  |
+| The automated test suite (STORY-06)       | Luke   |
+| Portal shells, QA                         | James  |
 
 Stories after Sprint 1 are assigned at sprint planning.
