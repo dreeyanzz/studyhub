@@ -26,9 +26,9 @@ The answer should be `feature/STORY-xx-short-desc`.
 
 ## Working with an agent
 
-- **Start from the plan.** Give it the issue number and the design doc. Ask for a plan first, agree on it, and only then let it write code.
+- **Let it run the story loop.** Say "Start my Sprint 1 story", and in later sessions "Continue my story". The agent follows [the story loop](../../AGENTS.md#the-story-loop): it writes the design doc first, codes only after Adrian merges it, and walks you through every change before opening a PR.
 - **Keep the scope small:** one concern per session and per PR.
-- **Check its work.** Read every diff before committing, and run `npm run check` yourself.
+- **Check its work.** Read every diff it walks you through before you say go, and run `npm run check` yourself.
 - **Protect secrets.** Never paste keys, passwords or `.env.local` into a chat.
 - **Keep it honest.** Don't let an agent tick acceptance criteria it did not verify.
 
