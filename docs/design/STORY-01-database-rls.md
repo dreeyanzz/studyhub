@@ -1,11 +1,11 @@
 # STORY-01: Database schemas and row-level security
 
 **Status:** draft · **Owner:** @dreeyanzz · **Story:** #50 · **FR:** SRS §3.5.1, §3.8,
-FR-5.1 · **Depends on:** nothing · **Decisions:** D-007, D-013, D-017, D-019
+FR-5.1 · **Depends on:** nothing · **Decisions:** D-007, D-013, D-017, D-019, D-027
 
-> **Draft for the on-site day, Saturday 26 September.** Items marked **Proposal** are
-> for the team to confirm. The profile fields are agreed with Luke and James, the space
-> fields with James (STORY-05). See §8.
+> **Draft.** Adrian settled the first draft's three open questions on 26 September
+> (D-027). The team confirms them at the on-site meeting, and then this doc is marked
+> approved.
 
 ## 0. Scope
 
@@ -65,31 +65,31 @@ sequenceDiagram
 | `role`                     | `user_role`   | Not null, default `seeker`. Set by the trigger, never by the user            |
 | `full_name`                | `text`        | Null allowed, at most 100 characters                                         |
 | `phone_number`             | `text`        | Null allowed, at most 20 characters; STORY-04's Zod schema checks the format |
-| `study_preferences`        | `text[]`      | **Proposal.** Not null, default `{}`; see §8                                 |
 | `created_at`, `updated_at` | `timestamptz` | Not null, default `now()`; a trigger keeps `updated_at` current              |
 
-**`spaces`** (**Proposal**, to confirm with STORY-05's design):
+**`spaces`**. STORY-05's forms use exactly these fields:
 
-| Column                     | Type           | Rules                                                                                      |
-| -------------------------- | -------------- | ------------------------------------------------------------------------------------------ |
-| `id`                       | `uuid` PK      | Default `gen_random_uuid()`                                                                |
-| `host_id`                  | `uuid`         | Not null, default `auth.uid()`; references `profiles(id)`, on delete cascade               |
-| `name`                     | `text`         | Not null, 1–100 characters                                                                 |
-| `description`              | `text`         | Null allowed, at most 2,000 characters                                                     |
-| `address`                  | `text`         | Not null, 1–200 characters                                                                 |
-| `opens_at`, `closes_at`    | `time`         | Not null, and not equal. A closing time earlier than the opening time means after midnight |
-| `status`                   | `space_status` | Not null, default `pending`. Only an Administrator changes it (STORY-14)                   |
-| `created_at`, `updated_at` | `timestamptz`  | As in `profiles`                                                                           |
+| Column                     | Type           | Rules                                                                                                                |
+| -------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `id`                       | `uuid` PK      | Default `gen_random_uuid()`                                                                                          |
+| `host_id`                  | `uuid`         | Not null, default `auth.uid()`; references `profiles(id)`, on delete cascade                                         |
+| `name`                     | `text`         | Not null, 1–100 characters                                                                                           |
+| `description`              | `text`         | Null allowed, at most 2,000 characters                                                                               |
+| `address`                  | `text`         | Not null, 1–200 characters                                                                                           |
+| `opens_at`, `closes_at`    | `time`         | Not null; the same hours every day. Closing earlier than opening means after midnight, and equal means open 24 hours |
+| `status`                   | `space_status` | Not null, default `pending`. Only an Administrator changes it (STORY-14)                                             |
+| `created_at`, `updated_at` | `timestamptz`  | As in `profiles`                                                                                                     |
 
-There is no price column and there are no tags or coordinates yet; see §7 and §8.
+There is no price, no tags and no coordinates yet (D-027).
 
 **Space status:**
 
-| From      | Event                     | To         | Who                      |
-| --------- | ------------------------- | ---------- | ------------------------ |
-| (none)    | A Host creates a space    | `pending`  | Host                     |
-| `pending` | An Administrator approves | `verified` | Administrator (STORY-14) |
-| `pending` | An Administrator rejects  | `rejected` | Administrator (STORY-14) |
+| From       | Event                     | To         | Who                                    |
+| ---------- | ------------------------- | ---------- | -------------------------------------- |
+| (none)     | A Host creates a space    | `pending`  | Host                                   |
+| `pending`  | An Administrator approves | `verified` | Administrator (STORY-14)               |
+| `pending`  | An Administrator rejects  | `rejected` | Administrator (STORY-14)               |
+| `verified` | The Host edits the space  | `verified` | Host. STORY-14 may change this (D-027) |
 
 Sprint 1 has no screen for the Administrator's transitions. The seed provides verified
 spaces.
@@ -117,7 +117,7 @@ exposes only `public` and `graphql_public`.
 | Table      | Verb           | Who                 | Columns granted                                           | Policy                                                              |
 | ---------- | -------------- | ------------------- | --------------------------------------------------------- | ------------------------------------------------------------------- |
 | `profiles` | select         | anon, authenticated | all                                                       | Own row, or the caller is an Administrator. Anyone else gets 0 rows |
-| `profiles` | update         | authenticated       | `full_name`, `phone_number`, `study_preferences`          | Own row only                                                        |
+| `profiles` | update         | authenticated       | `full_name`, `phone_number`                               | Own row only                                                        |
 | `profiles` | insert, delete | nobody              | —                                                         | The trigger inserts; deleting the auth user cascades                |
 | `spaces`   | select         | anon, authenticated | all                                                       | Verified; or own (any status); or the caller is an Administrator    |
 | `spaces`   | insert         | authenticated       | `name`, `description`, `address`, `opens_at`, `closes_at` | The caller is a Host, and `host_id` is the caller                   |
@@ -186,6 +186,7 @@ authenticated` and `request.jwt.claims` ([testing guide](../guides/testing.md)).
 | pgTAP  | A Host sets `status` or `host_id` on insert or update                      | `42501`                                     |
 | pgTAP  | Another Host updates or deletes the Host's space                           | 0 rows affected, row unchanged              |
 | pgTAP  | A Host updates and deletes their own space                                 | Succeeds                                    |
+| pgTAP  | A Host edits their own verified space                                      | Succeeds, and it stays `verified`           |
 | Manual | `npm run db:reset` on a fresh stack                                        | Applies cleanly, no warnings                |
 | Manual | Each seeded account signs in with its password through the Auth API        | Succeeds                                    |
 
@@ -193,12 +194,12 @@ Each new test is watched failing once: drop the policy, see it go red, put it ba
 
 ## 5. Tasks and estimates
 
-| Task     | What                                                                                                        | Owner  | Points | Days | Depends on                  |
-| -------- | ----------------------------------------------------------------------------------------------------------- | ------ | ------ | ---- | --------------------------- |
-| TSK-01.1 | `profiles`, the sign-up trigger, `has_role`, grants, RLS, seed users, pgTAP, `db` CI job                    | Adrian | 4      | 1    | Saturday's profile fields   |
-| TSK-01.2 | `spaces`, grants, RLS, seed spaces, pgTAP                                                                   | Adrian | 3      | 1    | TSK-01.1, STORY-05's design |
-| TSK-01.3 | `lib/supabase/client.ts` and `server.ts`, with the generated types                                          | Adrian | 2      | 0.5  | TSK-01.1                    |
-| TSK-01.4 | Cloud dev project: migrate from `main`, turn off email confirmation, share keys; make `db` a required check | Adrian | 1      | 0.5  | TSK-01.1 to 01.3 merged     |
+| Task     | What                                                                                                                  | Owner  | Points | Days | Depends on              |
+| -------- | --------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ---- | ----------------------- |
+| TSK-01.1 | `profiles`, the sign-up trigger, `has_role`, grants, RLS, seed users, pgTAP, `db` CI job                              | Adrian | 4      | 1    | —                       |
+| TSK-01.2 | `spaces`, grants, RLS, seed spaces, pgTAP                                                                             | Adrian | 3      | 1    | TSK-01.1                |
+| TSK-01.3 | `lib/supabase/client.ts` and `server.ts`, with the generated types                                                    | Adrian | 2      | 0.5  | TSK-01.1                |
+| TSK-01.4 | Cloud dev project: migrate from `main` and share keys (email confirmation is already off); make `db` a required check | Adrian | 1      | 0.5  | TSK-01.1 to 01.3 merged |
 
 ## 6. Build order
 
@@ -229,18 +230,22 @@ TSK-01.4 is not a PR. Adrian does it after row 3 merges, then tells the team.
   when a space closes (D-004). Two `time` columns can be compared; a sentence can't.
 - **An `hourly_rate` column.** Worq charges a reservation fee (D-005), which is not a
   rate, and price is a curated filter tag (FR-1.2) that arrives with tags in Sprint 2.
+- **Study preferences on the profile in Sprint 1** (D-027). Nothing reads them yet, and
+  free text would clash with the curated tags (D-006). STORY-08 turns them into a
+  Seeker's default search filters.
+- **An `amenities` text array on spaces** (D-027). It breaks the curated and custom
+  split of D-006. Tags get their own tables in STORY-08, which is the first story that
+  filters by them.
+- **Different hours for each weekday.** No Sprint 1 story needs them; a later table can
+  add them.
+- **Sending an edited verified space back to `pending`** (D-027). There is no
+  Administrator screen until STORY-14, so a Host fixing a typo would hide their space
+  with no way to approve it again. STORY-14 revisits this.
 
-## 8. Open questions for Saturday
+## 8. Open questions
 
-1. **Profile fields.** Is "study preferences" worth having in Sprint 1? If yes, a
-   `text[]` filled from a fixed list in STORY-04's form works now, and STORY-08 can
-   switch it to curated tags. Otherwise drop it until STORY-08.
-2. **Space fields (with James).** Are `opens_at` and `closes_at` enough for hours? And do
-   we move tags from STORY-05 to STORY-08? Curated tags need their own tables, and search
-   (STORY-08) is the first story that uses them. If tags move, STORY-05's acceptance
-   criteria lose "tags".
-3. **Editing a verified space.** Should it go back to `pending`? This is for STORY-14 to
-   decide, not Sprint 1.
+None. The first draft's three questions (study preferences, space hours and tags, and
+re-verifying an edited space) are settled in D-027, and §7 gives the reasons.
 
 ## 9. After the build
 

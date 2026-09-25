@@ -286,3 +286,18 @@ one PR rather than leaving a submission half-restyled.
 **Why:** "Worq" provides a punchy, modern consumer brand suitable for both students seeking study spots and remote professionals/freelancers booking co-working spaces. Keeping "StudyHub" as the internal repository and technical codename avoids breaking git remotes for teammates, preserves CI workflow definitions, and maintains continuity with CPEPE361 course registrations and syllabus grading.
 
 **Rejected:** A full codebase, repository, and course document rename (Option B), which would disrupt team git remotes, break external links, and create needless grading friction.
+
+## D-027 · Sprint 1 profiles and spaces stay minimal
+
+**Decision:**
+
+- In Sprint 1, a profile holds a name and a phone number. A space holds a name, a description, an address, one opening and one closing time used every day, and a verification status.
+- Study preferences and space tags move to STORY-08. Price arrives as the curated price-tier tag (STORY-08) and the reservation fee (STORY-09).
+- A closing time earlier than the opening time means the space closes after midnight. Equal times mean it is open 24 hours.
+- A Host's edit keeps a verified space verified until STORY-14 decides otherwise.
+
+**Why:** Nothing in Sprint 1 reads preferences or tags. Storing either as free text now would clash with D-006's curated tags and need migrating later. The Midterm checks create, read, update and delete, which these fields already give. Until STORY-14 there is no Administrator screen, so sending an edited space back to pending would hide it with no way to approve it again.
+
+**Rejected:** A `study_preferences` array and an `amenities` array in Sprint 1; an `hourly_rate` column (a reservation fee is not a rate, D-005); hours as free text; different hours for each weekday.
+
+**Revisit:** STORY-08 for tags and preferences, and STORY-14 for re-verifying edited spaces.
