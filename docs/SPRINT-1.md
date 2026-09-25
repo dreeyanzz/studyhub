@@ -37,8 +37,8 @@ By Friday 9 October, anyone watching our demo should see this:
 - A public landing page that works on a phone, a tablet and a laptop.
 - Someone signs up as a **Seeker** or a **Host**, and logs in.
 - They land on **their own dashboard**, and can't open another role's pages.
-- A Seeker edits their **profile** (name, phone, preferences), and it's still there after
-  a refresh.
+- A Seeker edits their **profile** (name and phone number), and it's still there after a
+  refresh.
 - A Host **creates, edits and deletes a Space**.
 - Behind it all, the **database itself** refuses anyone who tries to read or change
   someone else's data.
@@ -164,7 +164,7 @@ flowchart LR
 
 | Story                                   | Owner                                    | Can start now?                                         | Waits for                                                               |
 | --------------------------------------- | ---------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------- |
-| STORY-01 Database and security rules    | Adrian                                   | Yes, all of it                                         | Saturday's agreement on the profile and space fields                    |
+| STORY-01 Database and security rules    | Adrian                                   | Yes, all of it                                         | A teammate's approval of its design (PR #83)                            |
 | STORY-02 Design system and public pages | Maria                                    | Yes, all of it                                         | Nothing                                                                 |
 | STORY-03 Sign-up, login and route guard | Luke                                     | The design doc, form rules and guard logic, with tests | STORY-01 to sign up and log in for real; STORY-02's inputs and buttons  |
 | STORY-04 Seeker portal and profile      | James                                    | The design doc and the page layout                     | STORY-01 to save a profile; STORY-03 to know who is signed in           |
@@ -205,7 +205,7 @@ Words used below:
 - signing up creates exactly one profile, as a Seeker or a Host, never an Administrator;
 - a user can't read or change another user's private profile, and can't change their own
   role;
-- the `spaces` table and its rules exist, with the fields agreed in STORY-05's design;
+- the `spaces` table and its rules exist, with the fields in D-027;
 - the connection files, the generated types and the seeded accounts are merged, and the
   `db` check runs in CI.
 
@@ -214,8 +214,8 @@ seeded Seeker and Host accounts exist there, and send each teammate the keys pri
 Luke and James can't sign up, log in or save anything for real until this happens, so it
 is the first thing to finish.
 
-**Needs from others:** on Saturday, agree the profile fields with James and Luke, and the
-space fields with James.
+**Needs from others:** a teammate approves the STORY-01 design (PR #83), so you can merge
+it. Its fields are already settled (D-027).
 
 **How to test:** pgTAP tests, run with `npm run db:test`. For each table, test three
 things: the right user can do it; the wrong user gets zero rows; the owner can't make a
@@ -338,15 +338,15 @@ put the code back.
 **In plain English.** The Seeker's home page after logging in.
 
 - It shows their name and role.
-- It lets them edit their name, phone number and study preferences.
+- It lets them edit their name and phone number.
 - Saving goes to the database and survives a page refresh.
 - Placeholder cards say what's coming: search in Sprint 2, reservations in Sprint 3.
 
 **Done when:**
 
 - `/seeker` shows the signed-in Seeker's profile and role;
-- editing the name, phone number or preferences saves through a Server Action and
-  survives a refresh;
+- editing the name or phone number saves through a Server Action and survives a
+  refresh;
 - a try at changing the user's id or role is refused by the database, not only hidden in
   the form;
 - the placeholder cards point to Sprint 2 and Sprint 3.
@@ -357,8 +357,8 @@ they merge.
 **Waits for:** STORY-01's `profiles` table to save anything; STORY-03 to know who is
 signed in.
 
-**Needs from others:** on Saturday, agree the profile fields with Adrian. For example,
-what exactly are "preferences"?
+**Already decided:** a profile has a name and a phone number only. Study preferences come
+later, with STORY-08 (D-027).
 
 **How to test:**
 
@@ -380,13 +380,13 @@ and the Server Actions). James builds the pages and the forms.
 **Done when:**
 
 - a Host creates a space and sees it in their list right away;
-- a Host edits the name, address, hours and tags of their own space;
+- a Host edits the name, address and hours of their own space;
 - a Host deletes their own space after confirming;
 - another Host can't edit or delete it, and an unverified space isn't public.
 
-**Open question for the design doc:** the old plan gave every space an hourly rate, but
-Worq charges a reservation fee and shows price as a tag (FR-1.2). The design doc decides
-which one the form has.
+**Already decided (D-027):** a space has a name, a description, an address, and one
+opening and closing time used every day. It has no price and no tags in Sprint 1: tags
+come with STORY-08, and the reservation fee with STORY-09.
 
 **Waits for:** STORY-01's `spaces` table; STORY-03 for signed-in Hosts; STORY-02's
 building blocks for the forms.
@@ -402,8 +402,8 @@ building blocks for the forms.
 
 - [ ] Everyone's machine passes `npm run check` and runs `npm run dev`.
 - [ ] Everyone's commits show under their own GitHub account.
-- [ ] We've agreed the profile fields, the space fields (including the hourly-rate
-      question), and whether Administrators can open every portal.
+- [ ] We've confirmed the STORY-01 decisions (D-027), and decided whether Administrators
+      can open every portal.
 - [ ] Design doc pull requests are open for STORY-01, 02 and 03, and the ones for
       STORY-04, 05 and 06 are started.
 - [ ] The design docs for STORY-01 and STORY-02 are merged, so Adrian and Maria can start
@@ -416,7 +416,7 @@ building blocks for the forms.
 | ---------- | ------------------------------------------------------------ |
 | 15 min     | Questions about this brief                                   |
 | 45–60 min  | Machine setup (section 1), for anyone not done yet           |
-| 45 min     | Agree the profile fields, the space fields and admin access  |
+| 20 min     | Confirm the STORY-01 decisions (D-027); decide admin access  |
 | 90–120 min | Write the design docs; Adrian reviews and merges on the spot |
 | 20 min     | The board, next steps, and the next check-in                 |
 
