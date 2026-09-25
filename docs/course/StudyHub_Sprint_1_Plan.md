@@ -32,8 +32,8 @@ Deliver the official **Walking Skeleton Baseline** for StudyHub as mandated by t
 | ------------------------ | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Adrian Seth Tabotabo** | **Backend Lead & Database Architect** | **STORY-01 & STORY-05**: Database migrations (`profiles`, `spaces` tables, `user_role` ENUM), RLS policies, trigger `handle_new_user()`, seed data fixtures, pgTAP policy tests, Space Listing backend Server Actions.                                                                                                       |
 | **Maria Faith Antigua**  | **Frontend Design System Lead**       | **STORY-02**: Next.js App Router config, Tailwind 4 token system in the `@theme` block of `app/globals.css` (WCAG 2.1 AA contrast $\ge 4.5:1$, $\ge 48\text{px}$ touch targets), shadcn/ui accessible primitives on Base UI (`Button`, `Input`, `Label`, `Card`, `Badge`, `Alert`), public landing hero, navbar, and footer. |
-| **Luke Miguel Dongque**  | **Auth & Security Specialist**        | **STORY-03**: Authentication interfaces (`/login`, `/register`), interactive Seeker vs. Host role selector card, client & server Zod validation schemas, root `proxy.ts` session guard, with RLS as the security boundary.                                                                                                   |
-| **James Niño Mandawe**   | **Portal Shells & QA Engineer**       | **STORY-04 & STORY-06**: Authenticated Seeker dashboard layout (`/seeker`), profile view/update form, Host portal layout (`/host`), Vitest unit testing suite, Playwright smoke tests, DoD compliance verification.                                                                                                          |
+| **Luke Miguel Dongque**  | **Auth & Security Specialist**        | **STORY-03 & STORY-06**: Authentication interfaces (`/login`, `/register`), interactive Seeker vs. Host role selector card, client & server Zod validation schemas, root `proxy.ts` session guard, with RLS as the security boundary; Vitest unit testing suite and Playwright smoke tests.                                 |
+| **James Niño Mandawe**   | **Portal Shells & QA Engineer**       | **STORY-04 & STORY-05 (pages)**: Authenticated Seeker dashboard layout (`/seeker`), profile view/update form, Host portal layout (`/host`) and space listing forms, DoD compliance verification.                                                                                                                            |
 
 ---
 
@@ -115,6 +115,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
    - `spaces`: Public select for active spaces, host insert/update/delete restricted to `host_id = auth.uid()`.
 6. Create `supabase/seed.sql` with reproducible invented test accounts (`admin@example.test`, seeded locally only, `host@example.test`, `seeker@example.test`).
 7. Generate TypeScript database definitions with `npm run db:types` (`lib/supabase/database.types.ts`).
+8. Add the Supabase SSR client factories (`lib/supabase/client.ts`, `lib/supabase/server.ts`) that STORY-03, STORY-04 and STORY-05 build on.
 
 #### Acceptance Criteria:
 
@@ -163,7 +164,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 
 #### Granular Tasks:
 
-1. Implement Supabase SSR client factories (`lib/supabase/client.ts`, `server.ts`, `proxy.ts`).
+1. Build the session helper `lib/supabase/proxy.ts` on STORY-01's client factories (`lib/supabase/client.ts`, `server.ts`).
 2. Build Zod validation schemas (`lib/validation/auth.ts`) validating email formats, password complexity ($\ge 8$ chars, numbers, symbols), and role selection.
 3. Build `/login` page with reactive client state, loading indicators, and error alert banners.
 4. Build `/register` page featuring an interactive Role Selector Card (Seeker vs. Host) with contextual explanatory copy.
@@ -244,7 +245,7 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 - **Story**: _As a QA engineer, I want automated unit tests for validation schemas and route guard logic, so that our codebase maintains high reliability and passes the Definition of Done._
 - **Story Points**: `5 / 10`
 - **Time Estimate**: `2 Days`
-- **Assignee**: `James Niño Mandawe`
+- **Assignee**: `Luke Miguel Dongque`
 - **Git Branch**: `feature/STORY-06-testing-qa`
 - **MoSCoW**: `Should Have`
 
@@ -317,7 +318,7 @@ _(Interactive version with HTML summary cards: [StudyHub_Project_Management_Boar
 |                    | [STORY-06]         |                          |                              |                    |
 |                    | Vitest Unit Tests  |                          |                              |                    |
 |                    | Est: 2d | Pts: 5   |                          |                              |                    |
-|                    | Assignee: James    |                          |                              |                    |
+|                    | Assignee: Luke     |                          |                              |                    |
 +--------------------+--------------------+--------------------------+------------------------------+--------------------+
 ```
 
@@ -333,7 +334,7 @@ _(Interactive version with HTML summary cards: [StudyHub_Project_Management_Boar
 | `STORY-03` | Multi-Role Authentication & RBAC Guard      | Sprint 1 Backlog | Luke Miguel Dongque          | 8 / 10       | 3 Days    | Must Have       | `feature/STORY-03-auth-rbac`           |
 | `STORY-04` | Seeker Portal & User Profile CRUD           | Sprint 1 Backlog | James Niño Mandawe           | 5 / 10       | 2 Days    | Must Have       | `feature/STORY-04-seeker-profile-crud` |
 | `STORY-05` | Host Portal & Space Listing CRUD            | Sprint 1 Backlog | Adrian Seth Tabotabo         | 8 / 10       | 3 Days    | Must Have       | `feature/STORY-05-host-space-crud`     |
-| `STORY-06` | Automated Testing Suite & QA Validation     | Sprint 1 Backlog | James Niño Mandawe           | 5 / 10       | 2 Days    | Should Have     | `feature/STORY-06-testing-qa`          |
+| `STORY-06` | Automated Testing Suite & QA Validation     | Sprint 1 Backlog | Luke Miguel Dongque          | 5 / 10       | 2 Days    | Should Have     | `feature/STORY-06-testing-qa`          |
 | `STORY-07` | Interactive Snap-Grid Seat Map Builder      | Product Backlog  | Team                         | 10 / 10      | 5 Days    | Won't Have (S1) | Defer to Sprint 2                      |
 | `STORY-08` | Live Geo-Discovery & Map Tag Filters        | Product Backlog  | Team                         | 8 / 10       | 4 Days    | Won't Have (S1) | Defer to Sprint 2                      |
 | `STORY-09` | Reserve-Now Seat Holds & Sandbox Payments   | Product Backlog  | Team                         | 10 / 10      | 5 Days    | Won't Have (S1) | Defer to Sprint 3                      |

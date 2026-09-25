@@ -6,6 +6,7 @@
   1. [`../README.md`](../README.md)
   2. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
   3. [`ONBOARDING.md`](ONBOARDING.md): ask your AI assistant to run it
+  4. [`SPRINT-1.md`](SPRINT-1.md): what each of us does this sprint
 - **AI agents:** [`../AGENTS.md`](../AGENTS.md) first, every session.
 
 ## Which document wins
@@ -27,6 +28,7 @@ When two documents disagree, the higher one wins and the lower one gets a fix PR
 | [`GLOSSARY.md`](GLOSSARY.md)       | The words to use in code, UI and docs                                           |
 | [`ONBOARDING.md`](ONBOARDING.md)   | Machine setup, written for an AI agent to run                                   |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Accounts, environments, secrets, the daily loop, changing the database          |
+| [`SPRINT-1.md`](SPRINT-1.md)       | The Sprint 1 brief: who does what, who waits for whom, how to test, the dates   |
 | [`guides/`](guides/)               | How-to guides for the team workflow                                             |
 | [`design/`](design/)               | Design docs (one per story), the template and the index                         |
 | [`course/`](course/)               | Course deliverables; `.md` is the source, `npm run docs:docx` makes the `.docx` |
