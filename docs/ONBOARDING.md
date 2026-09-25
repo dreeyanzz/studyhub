@@ -83,6 +83,9 @@ gh --version && gh auth status
 
 - **If `gh` is missing:** 🛑 ask before installing it (`winget install GitHub.cli`).
 - **If they are not logged in:** 🛑 the teammate runs `gh auth login` themselves. It opens a browser.
+- **If the token scopes in `gh auth status` do not include `project`:** 🛑 the teammate
+  runs `gh auth refresh -s project` themselves. It opens a browser. The agent needs this
+  scope to move the teammate's cards on the board.
 
 ### 5. Install dependencies
 
@@ -201,7 +204,9 @@ Tell the teammate, in this order:
 2. Anything skipped or failed, and why.
 3. Any file you changed other than `.env.local`. There should be none, except
    `lib/supabase/database.types.ts` for the database owner.
-4. What to read next: [`AGENTS.md`](../AGENTS.md), [`CONTRIBUTING.md`](../CONTRIBUTING.md),
-   and their story on the board.
+4. What to read next: [`SPRINT-1.md`](SPRINT-1.md), [`AGENTS.md`](../AGENTS.md) and
+   [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+5. What to say next: **"Start my Sprint 1 story."** That runs the story loop in
+   `AGENTS.md`: the design doc first, and code only after Adrian merges it.
 
 Then stop. Do not start a task unless the teammate gives you one.

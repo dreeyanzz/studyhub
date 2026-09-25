@@ -44,13 +44,15 @@ into a chat tool that cannot see the repository.
 1. This file.
 2. [`docs/README.md`](docs/README.md): the map of every document, and which one wins
    when two disagree.
-3. [`docs/course/StudyHub_SRS.md`](docs/course/StudyHub_SRS.md): the requirements,
+3. [`docs/SPRINT-1.md`](docs/SPRINT-1.md): the current sprint: who owns which story,
+   who waits for whom, and how each story is tested.
+4. [`docs/course/StudyHub_SRS.md`](docs/course/StudyHub_SRS.md): the requirements,
    cited as `FR-x.y`.
-4. [`docs/DECISIONS.md`](docs/DECISIONS.md): what is already decided and what was
+5. [`docs/DECISIONS.md`](docs/DECISIONS.md): what is already decided and what was
    rejected, cited as `D-NNN`.
-5. [`docs/GLOSSARY.md`](docs/GLOSSARY.md): the words to use.
-6. The story's design doc in [`docs/design/`](docs/design/).
-7. The issue you were given.
+6. [`docs/GLOSSARY.md`](docs/GLOSSARY.md): the words to use.
+7. The story's design doc in [`docs/design/`](docs/design/).
+8. The issue you were given.
 
 ## How the app fits together
 
@@ -156,7 +158,10 @@ These job names are a contract, because renaming one blocks every PR.
 
 ## If you are an AI agent
 
-- **You may:** create branches, commit, push feature branches, open pull requests, and comment on issues and PRs.
+- **You may:**
+  - create branches, commit, push feature branches, open pull requests, and request reviews;
+  - comment on issues and PRs;
+  - for your human's own stories: create the TSK issues from a merged design doc's §5 and attach them as sub-issues, edit their labels and assignees, and set their board fields and columns ([board guide](docs/guides/board-guide.md#commands-for-agents)).
 - **You may never:**
   - merge or approve a pull request
   - push to `main` or force-push
@@ -165,6 +170,57 @@ These job names are a contract, because renaming one blocks every PR.
   - change repository settings or rulesets
   - close issues, unless asked, and then only as "not planned"
 - If a task seems to need one of these, that is the signal to stop and ask, not to find a way around it. `.claude/settings.json` blocks the main commands for Claude Code, but these rules apply to every tool.
+
+### The story loop
+
+Most work here is done by an agent while a teammate prompts it. When your human says
+**"Start my Sprint 1 story"** or **"Continue my story"**, run this loop on your own.
+Stop only at the 🛑 points.
+
+1. **Find the story.** Run `git switch main && git pull`, then
+   `gh issue list --assignee @me --label type:story --state open`. Read the story
+   issue, the human's section of `docs/SPRINT-1.md`, and every `FR-x.y` and `D-NNN`
+   the story cites. If they have more than one story, work on the lowest-numbered one
+   that isn't blocked.
+2. **Check the design gate.** Is `docs/design/STORY-xx-*.md` merged on `main`?
+   - **No doc yet, and the sprint brief names someone else as its author** (for example,
+     Adrian writes STORY-05's): 🛑 tell your human to wait for it.
+   - **No doc yet:** write it from `docs/design/TEMPLATE.md` on `feature/STORY-xx-design`.
+     Read the design docs of the stories it depends on first. Open the PR (title
+     `docs(STORY-xx): design <summary>`, first body line `Refs #<story>`, reviewer
+     `dreeyanzz`). 🛑 Stop: no code until Adrian merges it.
+   - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
+   - **Merged:** go on.
+3. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
+   §5, then remove `needs-design` from the story.
+4. **Pick the next task** in the design's §6 build order whose dependencies are merged
+   on `main`. 🛑 If every remaining task is blocked, tell your human what it waits for
+   and who owns that.
+5. **Build it** on `feature/STORY-xx-short-desc`, branched from a fresh `main`. Move its
+   card to In Progress. Touch only the files the design names. Before writing Next.js
+   code, read the relevant guide in `node_modules/next/dist/docs/`. Tests go in with
+   the code.
+6. **Verify.** Run `npm run check`, plus `npm run db:test` if you changed SQL, plus the
+   manual checks in the design's §4. Fix until everything passes. Never report a check
+   you did not run.
+7. **Explain it.** Walk your human through the diff in plain English: what each file
+   does, and why. They must be able to defend every line in the Final phase.
+   🛑 Wait for their go-ahead.
+8. **Open the PR.** Fill in the template: first line `Closes #<task>`, then
+   `Refs #<story>`, and the AI assistance section. Request review from `dreeyanzz` (on
+   Adrian's own PRs, from a teammate), and move the task's card to Code Review.
+   🛑 Stop until the PR merges or your human asks for the next task.
+
+**Stop and ask** (your human asks Adrian) when:
+
+- the story or its design is unclear;
+- the work needs another story's files, a table or policy that doesn't exist yet
+  (tables and policies belong to Adrian's stories), or a change to a decision;
+- the approved design turns out to be wrong;
+- the same step has failed twice.
+
+Never build your own copy of something another story owns. For example, don't run
+`npx shadcn add` for a primitive that STORY-02 hasn't merged yet.
 
 ## Windows: writing commit and PR text
 

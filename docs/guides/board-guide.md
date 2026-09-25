@@ -54,6 +54,7 @@ The board's built-in workflows:
 | Move              | Who                                  | When                                   |
 | ----------------- | ------------------------------------ | -------------------------------------- |
 | To Sprint Backlog | Adrian and Maria, at sprint planning | When stories and tasks are chosen      |
+| To Sprint Backlog | The assignee's agent                 | When it creates tasks from a design    |
 | To In Progress    | The assignee                         | When they create the branch            |
 | To Code Review    | The author                           | When they open the pull request        |
 | To Done           | Automatic                            | When the PR merges or the issue closes |
@@ -78,6 +79,56 @@ At the end of a sprint:
 2. Rename the "Sprint N Backlog" column.
 3. Close the sprint's milestone.
 4. Take the board screenshot for the sprint review.
+
+## Commands for agents
+
+An agent working through the [story loop](../../AGENTS.md#the-story-loop) keeps its
+human's cards current with these commands. Editing the board needs the `project` scope
+on the GitHub CLI login. If a command says the scope is missing, the human runs
+`gh auth refresh -s project` themselves (it opens a browser).
+
+**Create a task from a design's §5 and attach it to its story.** The body repeats the
+task form's headings.
+
+```bash
+gh issue create --title "TSK-03.1: add the auth form rules" \
+  --label type:task --label area:auth --milestone "Sprint 1 (Midterm)" --assignee @me \
+  --body $'### Parent story\n\n#52\n\n### What\n\n…\n\n### Done when\n\n- [ ] …\n\n### Story points (1–10)\n\n2\n\n### Estimate (working days)\n\n0.5\n\n### Area\n\nauth'
+gh api repos/dreeyanzz/studyhub/issues/52/sub_issues \
+  -F sub_issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<task number> --jq .id)"
+```
+
+**Find an issue's card.** New issues land in Product Backlog on their own.
+
+```bash
+gh project item-list 4 --owner dreeyanzz --limit 200 --format json \
+  --jq '.items[] | select(.content.number == <issue number>) | .id'
+```
+
+**Set a card's fields.** Every edit takes
+`gh project item-edit --project-id PVT_kwHOCUJgA84Bjmvk --id <card id>`, plus one of:
+
+| Field           | Flags                                                                      |
+| --------------- | -------------------------------------------------------------------------- |
+| Status          | `--field-id PVTSSF_lAHOCUJgA84BjmvkzhiabXo --single-select-option-id <id>` |
+| Points          | `--field-id PVTF_lAHOCUJgA84BjmvkzhiabcA --number <1–10>`                  |
+| Estimate (days) | `--field-id PVTF_lAHOCUJgA84BjmvkzhiabcE --number <days>`                  |
+| MoSCoW          | `--field-id PVTSSF_lAHOCUJgA84BjmvkzhiabdA --single-select-option-id <id>` |
+| Sprint          | `--field-id PVTIF_lAHOCUJgA84BjmvkzhiabdE --iteration-id <id>`             |
+
+| Option                                                                        | Id                                                             |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Status: Product Backlog · Sprint 1 Backlog · In Progress · Code Review · Done | `4e0171a5` · `84205269` · `a939e066` · `cb631dc3` · `29f6bcd9` |
+| MoSCoW: Must · Should · Could · Won't                                         | `3eed1178` · `8fda412d` · `cb02434e` · `45aa925b`              |
+| Sprint: Sprint 1 · Sprint 2 · Sprint 3                                        | `ab8798f2` · `4cfb2471` · `4573e4ab`                           |
+
+A new task goes to Sprint 1 Backlog with its points, estimate and sprint set. After
+that, the card moves with the work, as the table in "Who moves cards" says. Never move
+another person's cards.
+
+**Changing sprint dates.** Editing the Sprint field's dates gives every sprint a new id
+and clears the sprint from every card. Before changing them, save each card's sprint.
+Afterwards, set it again on every card, and update the ids above.
 
 ## The course screenshot
 

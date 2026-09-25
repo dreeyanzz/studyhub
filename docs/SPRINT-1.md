@@ -90,6 +90,19 @@ that every AI tool and every one of us follows.
 Every story follows the same path. **No code for a story until its design doc is
 merged** (D-016).
 
+**Your AI does the steps; you steer it and understand what it did.** After setup, tell
+it:
+
+> **Start my Sprint 1 story.**
+
+It follows [the story loop](../AGENTS.md#the-story-loop). It finds your story, writes the
+design doc, and stops until Adrian merges it. Then it builds one task at a time, tests
+it, walks you through the change, and opens the pull request when you say go. In a new
+session, say **"Continue my story."** It tells you when it is blocked, or when you need
+to ask Adrian something.
+
+What happens along the way:
+
 1. **Plan: write a design doc.**
    - It's a one- or two-page plan for your story, in `docs/design/STORY-xx-short-desc.md`,
      copied from [the template](design/TEMPLATE.md).
@@ -98,14 +111,11 @@ merged** (D-016).
    - The test of a good one: someone who has never seen the code could read it and
      predict what the code does.
    - Branch `feature/STORY-xx-design`. PR title `docs(STORY-xx): design <short description>`.
-   - Your AI can help you draft it. Tell it: _"Read docs/SPRINT-1.md. I'm <name>, working
-     on STORY-xx. Help me write its design doc from docs/design/TEMPLATE.md. Don't write
-     any code yet."_
    - You must understand every line of it. The Final phase asks each of us to explain our
      own work.
 2. **Approval.** Adrian reviews the design doc. **His merge is the go-ahead.**
 3. **Tasks.** Each row of your design's task table (§5) becomes a task issue under your
-   story. Maria helps you put them on the board.
+   story. Your AI creates them and puts them on the board; Maria keeps the board tidy.
 4. **Build, one task at a time.** One branch and one pull request per task, each named
    `feature/STORY-xx-short-desc`. The tests go in the same pull request as the code.
 5. **Test before you push:** `npm run check`. Your section below says what else to check.
