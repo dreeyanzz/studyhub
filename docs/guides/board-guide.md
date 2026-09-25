@@ -120,11 +120,15 @@ gh project item-list 4 --owner dreeyanzz --limit 200 --format json \
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Status: Product Backlog · Sprint 1 Backlog · In Progress · Code Review · Done | `4e0171a5` · `84205269` · `a939e066` · `cb631dc3` · `29f6bcd9` |
 | MoSCoW: Must · Should · Could · Won't                                         | `3eed1178` · `8fda412d` · `cb02434e` · `45aa925b`              |
-| Sprint: Sprint 1 · Sprint 2 · Sprint 3                                        | `2784a62e` · `90347321` · `76b1a3e0`                           |
+| Sprint: Sprint 1 · Sprint 2 · Sprint 3                                        | `ab8798f2` · `4cfb2471` · `4573e4ab`                           |
 
 A new task goes to Sprint 1 Backlog with its points, estimate and sprint set. After
 that, the card moves with the work, as the table in "Who moves cards" says. Never move
 another person's cards.
+
+**Changing sprint dates.** Editing the Sprint field's dates gives every sprint a new id
+and clears the sprint from every card. Before changing them, save each card's sprint.
+Afterwards, set it again on every card, and update the ids above.
 
 ## The course screenshot
 
