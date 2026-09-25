@@ -190,12 +190,12 @@ Each new test is watched failing once: drop the policy, see it go red, put it ba
 
 ## 5. Tasks and estimates
 
-| Task     | What                                                                                                                  | Owner  | Points | Days | Depends on              |
-| -------- | --------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ---- | ----------------------- |
-| TSK-01.1 | `profiles`, the sign-up trigger, `has_role`, grants, RLS, seed users, pgTAP, `db` CI job                              | Adrian | 4      | 1    | —                       |
-| TSK-01.2 | `spaces`, grants, RLS, seed spaces, pgTAP                                                                             | Adrian | 3      | 1    | TSK-01.1                |
-| TSK-01.3 | `lib/supabase/client.ts` and `server.ts`, with the generated types                                                    | Adrian | 2      | 0.5  | TSK-01.1                |
-| TSK-01.4 | Cloud dev project: migrate from `main` and share keys (email confirmation is already off); make `db` a required check | Adrian | 1      | 0.5  | TSK-01.1 to 01.3 merged |
+| Task     | What                                                                                                                  | Owner  | Points | Days | Depends on      |
+| -------- | --------------------------------------------------------------------------------------------------------------------- | ------ | ------ | ---- | --------------- |
+| TSK-01.1 | `profiles`, the sign-up trigger, `has_role`, grants, RLS, seed users, pgTAP, `db` CI job                              | Adrian | 4      | 1    | —               |
+| TSK-01.2 | `spaces`, grants, RLS, seed spaces, pgTAP                                                                             | Adrian | 3      | 1    | TSK-01.1        |
+| TSK-01.3 | `lib/supabase/client.ts` and `server.ts`, with the generated types                                                    | Adrian | 2      | 0.5  | TSK-01.1        |
+| TSK-01.4 | Cloud dev project: migrate from `main` and share keys (email confirmation is already off); make `db` a required check | Adrian | 1      | 0.5  | Each row merged |
 
 ## 6. Build order
 
@@ -207,7 +207,8 @@ One PR per row, and every PR targets `main`.
 | 2   | `feature/STORY-01-supabase-clients` | `feat(STORY-01): add the supabase client factories`     | TSK-01.3. Unblocks Luke's STORY-03 |
 | 3   | `feature/STORY-01-spaces`           | `feat(STORY-01): add the spaces table and its policies` | TSK-01.2, with regenerated types   |
 
-TSK-01.4 is not a PR. Adrian does it after row 3 merges, then tells the team.
+TSK-01.4 is not a PR. Adrian updates the cloud dev project after each row merges. The
+keys go out after row 1, so Luke can test sign-up while rows 2 and 3 are built.
 
 ## 7. Rejected alternatives
 
