@@ -77,7 +77,7 @@ supabase/             config.toml, migrations/, tests/ (pgTAP), seed.sql
 e2e/                  Playwright journeys
 scripts/              repo scripts (docx export)
 docs/                 README (map), DECISIONS, GLOSSARY, ONBOARDING, DEVELOPMENT,
-                      guides/, design/, course/ (course deliverables)
+                      SPRINT-1, guides/, design/, course/ (course deliverables)
 notes/                postmortems
 ```
 
@@ -202,6 +202,8 @@ Every non-trivial change leaves a trace in the right place:
 ## Docs map
 
 - [`docs/README.md`](docs/README.md): map, ground-truth order, where things go
+- [`docs/SPRINT-1.md`](docs/SPRINT-1.md): the Sprint 1 brief in plain English: who
+  does what, who waits for whom, how to test, and the dates
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): decisions and what was rejected
 - [`docs/GLOSSARY.md`](docs/GLOSSARY.md): the words to use
 - [`docs/ONBOARDING.md`](docs/ONBOARDING.md): agent-run machine setup
