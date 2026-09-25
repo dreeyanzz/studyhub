@@ -174,6 +174,45 @@ flowchart LR
 **While you wait,** don't sit idle. Write your design doc, build the parts that don't need
 the missing piece, or review someone's pull request.
 
+### What runs at the same time, and in what order
+
+All four of us work at the same time from day one. Only one chain of steps has to go in
+order, because each step needs the one before it. This is the **critical path**:
+
+> STORY-01 profiles → STORY-01 connection files → cloud database updated → STORY-03
+> sign-up and login → STORY-04 and STORY-05 saving data → STORY-06 login test
+
+A delay anywhere on this chain delays the demo. So its pull requests are reviewed and
+merged first, and everything else fits around it.
+
+| When                  | Adrian                                                                                                                             | Maria                                                                      | Luke                                                                    | James                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Sat 26 Sep**        | Merge the STORY-01 design once a teammate approves it; write STORY-05's design                                                     | Write STORY-02's design                                                    | Write STORY-03's design                                                 | Write STORY-04's design                                                           |
+| **Sun 27 – Wed 30**   | STORY-01 in its three PRs: profiles, connection files, spaces. Update the cloud database after each; send the keys after the first | Tokens and building blocks first (merged by Wed 30), then the landing page | STORY-06's design; the auth form rules and role-guard logic, with tests | STORY-04's profile form rules, with tests; the `/seeker` and `/host` page layouts |
+| **Thu 1 – Fri 2 Oct** | STORY-05's Server Actions and space form rules                                                                                     | Header and footer; STORY-02 done                                           | `/login`, `/register` and `proxy.ts`; sign-up and login working on Fri  | STORY-04's profile page, saving once login works                                  |
+| **Mon 5 – Wed 7**     | Review and merge                                                                                                                   | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up; space form rule tests        | STORY-04 merged; STORY-05's pages wired to Adrian's Server Actions                |
+| **Thu 8**             | Walk through the app as each role; fix what we find                                                                                | Walk-through; the board screenshot                                         | The Playwright login test green                                         | Walk-through and fixes                                                            |
+| **Fri 9**             | Sprint review, demo and retrospective video                                                                                        | Same, together                                                             | Same, together                                                          | Same, together                                                                    |
+
+**Can happen at the same time:**
+
+- all the design docs;
+- STORY-02 alongside everything, because it needs nothing;
+- STORY-01 alongside the parts of STORY-03, STORY-04 and STORY-06 that need no
+  database: form rules, guard logic, page layouts and tests.
+
+**Must happen in order:**
+
+- STORY-01's profiles and connection files, then STORY-03's sign-up and login;
+- STORY-02's building blocks, then everyone's forms;
+- STORY-01's spaces, then STORY-05's Server Actions, then STORY-05's pages;
+- STORY-03's sign-in, then saving data in STORY-04 and STORY-05;
+- STORY-03, STORY-04 and STORY-05 merged, then STORY-06's login test.
+
+**Same person, so one after the other:** James does STORY-04, then STORY-05's pages. Luke
+does STORY-03, then STORY-06. Adrian does STORY-01, then STORY-05's back end. If James
+falls behind, Maria is free after STORY-02 and can take STORY-05's pages. Adrian decides.
+
 ## 5. Your part
 
 Words used below:
@@ -397,6 +436,11 @@ building blocks for the forms.
 - By hand: log in as `host@example.test`, then create, edit and delete a space.
 
 ## 6. Saturday 26 September, on site
+
+**First thing:** Luke or James reviews and approves the STORY-01 design (PR #83), so
+Adrian can merge it and start the critical path. After that, Adrian reviews design pull
+requests in the order that unblocks the most work: STORY-02, STORY-03, STORY-04. James
+reviews STORY-05's design, which is Adrian's own.
 
 **By the end of the day:**
 
