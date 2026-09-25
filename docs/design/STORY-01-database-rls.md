@@ -1,11 +1,7 @@
 # STORY-01: Database schemas and row-level security
 
-**Status:** draft · **Owner:** @dreeyanzz · **Story:** #50 · **FR:** SRS §3.5.1, §3.8,
+**Status:** approved 2026-09-26 · **Owner:** @dreeyanzz · **Story:** #50 · **FR:** SRS §3.5.1, §3.8,
 FR-5.1 · **Depends on:** nothing · **Decisions:** D-007, D-013, D-017, D-019, D-027
-
-> **Draft.** Adrian settled the first draft's three open questions on 26 September
-> (D-027). The team confirms them at the on-site meeting, and then this doc is marked
-> approved.
 
 ## 0. Scope
 
