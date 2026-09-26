@@ -69,7 +69,7 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 
 A task or story is done when:
 
-- [ ] CI is green (`checks`, `pr-title`, and `db` when SQL changed)
+- [ ] CI is green (`checks`, `pr-title` and `db`)
 - [ ] every acceptance criterion is ticked by the person who verified it, named in the PR
 - [ ] docs the change makes stale are updated in the same PR
 - [ ] accessibility is checked (48×48 px targets, keyboard, focus, contrast, 360/768/1024

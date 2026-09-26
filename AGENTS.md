@@ -114,7 +114,7 @@ Required CI checks on `main`:
 
 - `checks`
 - `pr-title`
-- `db`, once migrations exist
+- `db`
 
 These job names are a contract, because renaming one blocks every PR.
 

@@ -151,7 +151,7 @@ Their lengths are decided in STORY-09's design.
   - Stale approvals are dismissed, and review threads must be resolved.
   - An extra approval is required for changes GitHub cannot attribute to a user account.
   - Squash merge only.
-  - Required checks: `checks` and `pr-title`.
+  - Required checks: `checks`, `pr-title` and `db`.
   - Restrict updates: Collaborators cannot merge or push directly to `main`.
   - Bypass: Repository Admin (Adrian) has `bypass_mode: "always"`. This allows Adrian to land PRs without false "ref protected" blockers, bypass pending reviews/CI when verified locally or during rapid iteration, and push directly when needed, while teammates remain strictly held to the PR, 1-review, and CI requirements.
 - **B, "main: core integrity"** (`.github/rulesets/main-core-integrity.json`):
@@ -164,6 +164,7 @@ Their lengths are decided in STORY-09's design.
 
 - _2026-09-16:_ Ruleset A had 0 approvals while Adrian was setting up foundation before teammates onboarded (#72).
 - _2026-09-18:_ Restored to 1 approval requirement once teammates onboarded. Admin bypass mode set to `always` on the PR/review policy ruleset to prevent false "Cannot update this protected ref" blocks during PR merges and permit local-CI verified direct pushes. Core integrity isolated with zero bypass.
+- _2026-09-26:_ `db` added to the required checks once STORY-01 brought the first migrations (#89).
 
 **Rejected:**
 
