@@ -330,3 +330,27 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** One identical `.env.local` for all four of us, with the secret key in it.
 
 **Revisit:** The first design that needs `lib/supabase/admin.ts`.
+
+## D-030 · Board automation
+
+**Decision:** The project board (D-022) runs four built-in workflows: sub-issues are added automatically; anything added starts in Product Backlog; a pull request that closes an issue moves it to Code Review; closing an issue moves it to Done. Only issues are cards, never pull requests. "Pull request merged" and "Auto-close issue" stay off. The [board guide](guides/board-guide.md#automation) lists them.
+
+**Why:** Cards should follow the work without anyone remembering to move them. On 26 Sep every workflow except the sub-issue one was found off, because the columns they set no longer existed. STORY-01 and its four tasks were closed but still sat in Sprint 1 Backlog and Code Review. One card per task keeps the five course columns readable.
+
+**Rejected:** Moving every card by hand (it went stale within a day); pull requests as cards too (each task would appear twice); "Auto-close issue" (dragging a card to Done would close an issue whose pull request hasn't merged).
+
+**Revisit:** If the course asks to see pull requests on the board.
+
+## D-031 · One set of design tokens, light mode only
+
+**Decision:**
+
+- Every color, font and corner radius comes from the design tokens in `app/globals.css`. Components use token classes such as `bg-primary`, never raw hex values or a palette of their own.
+- Sprint 1 ships light mode only. There is no theme switch, and the unused neutral `.dark` block is removed.
+- The shadcn/ui controls are at least 48×48 px (SRS §3.2.2). Their smaller generated sizes are removed, so no story can pick one.
+
+**Why:** Contrast is checked once per token pair, in STORY-02's design, and every page inherits the result. A second theme would double those checks, and no requirement asks for one.
+
+**Rejected:** Colors chosen per page (contrast fixes drift apart); dark mode in Sprint 1; shadcn's default 24–36 px control sizes.
+
+**Revisit if:** A story needs dark mode. It adds a `.dark` block whose pairs pass the same checks.

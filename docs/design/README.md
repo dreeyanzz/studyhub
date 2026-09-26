@@ -49,7 +49,7 @@ and what the right user is prevented from doing to their own rows.
 | Story    | Design doc                                                         | Status                 |
 | -------- | ------------------------------------------------------------------ | ---------------------- |
 | STORY-01 | [STORY-01-database-rls.md](STORY-01-database-rls.md)               | implemented 2026-09-26 |
-| STORY-02 |                                                                    | not written            |
+| STORY-02 | [STORY-02-design-system.md](STORY-02-design-system.md)             | draft                  |
 | STORY-03 |                                                                    | not written            |
 | STORY-04 | [STORY-04-seeker-profile-crud.md](STORY-04-seeker-profile-crud.md) | draft                  |
 | STORY-05 |                                                                    | not written            |
