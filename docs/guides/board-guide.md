@@ -43,21 +43,37 @@ sprint milestone.
 
 ## Automation
 
-The board's built-in workflows:
+These built-in workflows are on (D-030). They live under the project's **⋯ → Workflows**.
 
-- New issues and pull requests are added to Product Backlog.
-- Closing an issue or merging its pull request moves it to Done.
-- Reopening moves it back to In Progress.
+| Workflow                       | What it does                                                              |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| Auto-add sub-issues to project | A new TSK sub-issue of a story on the board joins the board               |
+| Item added to project          | Anything added to the board starts in Product Backlog                     |
+| Pull request linked to issue   | A pull request whose body says `Closes #N` moves issue N to Code Review   |
+| Item closed                    | Closing an issue, including by merging its pull request, moves it to Done |
+
+Not automatic:
+
+- A new issue that isn't a sub-issue, such as a new story, joins the board only through
+  `gh project item-add` or by hand.
+- Reopening an issue doesn't move its card. Move it back to In Progress yourself.
+- Pull requests are never cards: a task's card stands for its pull request. So "Pull
+  request merged" stays off, and so does "Auto-close issue", which would close an issue as
+  soon as someone dragged its card to Done.
+
+**If a workflow shows a red warning** in that list, the column it sets was deleted or
+recreated, and GitHub has turned the workflow off. Open it, choose the column again, and
+save it, which turns it back on.
 
 ## Who moves cards
 
-| Move              | Who                                  | When                                   |
-| ----------------- | ------------------------------------ | -------------------------------------- |
-| To Sprint Backlog | Adrian and Maria, at sprint planning | When stories and tasks are chosen      |
-| To Sprint Backlog | The assignee's agent                 | When it creates tasks from a design    |
-| To In Progress    | The assignee                         | When they create the branch            |
-| To Code Review    | The author                           | When they open the pull request        |
-| To Done           | Automatic                            | When the PR merges or the issue closes |
+| Move              | Who                                  | When                                                                        |
+| ----------------- | ------------------------------------ | --------------------------------------------------------------------------- |
+| To Sprint Backlog | Adrian and Maria, at sprint planning | When stories and tasks are chosen                                           |
+| To Sprint Backlog | The assignee's agent                 | When it creates tasks from a design                                         |
+| To In Progress    | The assignee                         | When they create the branch                                                 |
+| To Code Review    | Automatic, or the author             | When the pull request opens with `Closes #N`; otherwise the author moves it |
+| To Done           | Automatic                            | When the PR merges or the issue closes                                      |
 
 WIP limits: at most 4 cards In Progress and 4 in Code Review, team-wide. If a column is
 full, finish or review something before starting more.
@@ -98,7 +114,8 @@ gh api repos/dreeyanzz/studyhub/issues/52/sub_issues \
   -F sub_issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<task number> --jq .id)"
 ```
 
-**Find an issue's card.** New issues land in Product Backlog on their own.
+**Find an issue's card.** A task joins the board in Product Backlog within a few seconds of
+being attached to its story.
 
 ```bash
 gh project item-list 4 --owner dreeyanzz --limit 200 --format json \
