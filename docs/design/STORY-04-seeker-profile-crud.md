@@ -1,6 +1,6 @@
 # STORY-04: Seeker portal and profile
 
-**Status:** draft · **Owner:** @JamesNino-Mandawe · **Story:** #53 · **FR:** SRS §3.5.1, §3.8 ·
+**Status:** approved 2026-09-27 · **Owner:** @JamesNino-Mandawe · **Story:** #53 · **FR:** SRS §3.5.1, §3.8 ·
 **Depends on:** STORY-01, STORY-02, STORY-03 · **Decisions:** D-007, D-010, D-013, D-016, D-019, D-027, D-028, D-031
 
 ## 0. Scope

@@ -49,9 +49,9 @@ and what the right user is prevented from doing to their own rows.
 | Story    | Design doc                                                         | Status                 |
 | -------- | ------------------------------------------------------------------ | ---------------------- |
 | STORY-01 | [STORY-01-database-rls.md](STORY-01-database-rls.md)               | implemented 2026-09-26 |
-| STORY-02 | [STORY-02-design-system.md](STORY-02-design-system.md)             | draft                  |
-| STORY-03 | [STORY-03-auth-rbac.md](STORY-03-auth-rbac.md)                     | draft                  |
-| STORY-04 | [STORY-04-seeker-profile-crud.md](STORY-04-seeker-profile-crud.md) | draft                  |
+| STORY-02 | [STORY-02-design-system.md](STORY-02-design-system.md)             | approved 2026-09-26    |
+| STORY-03 | [STORY-03-auth-rbac.md](STORY-03-auth-rbac.md)                     | approved 2026-09-27    |
+| STORY-04 | [STORY-04-seeker-profile-crud.md](STORY-04-seeker-profile-crud.md) | approved 2026-09-27    |
 | STORY-05 |                                                                    | not written            |
 | STORY-06 |                                                                    | not written            |
 | STORY-07 |                                                                    | not written            |
