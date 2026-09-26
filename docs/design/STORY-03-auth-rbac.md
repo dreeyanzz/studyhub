@@ -1,7 +1,7 @@
 # STORY-03: Multi-role authentication and route guard
 
 **Status:** draft · **Owner:** @lukedongque · **Story:** #52 · **FR:** SRS §3.5.1 ·
-**Depends on:** STORY-01, STORY-02 · **Decisions:** D-007, D-010, D-013, D-016, D-019, D-020, D-027, D-028, D-029, D-031
+**Depends on:** STORY-01, STORY-02 · **Decisions:** D-007, D-010, D-013, D-016, D-018, D-019, D-020, D-027, D-028, D-029, D-031, D-032
 
 ## 0. Scope
 
@@ -104,7 +104,8 @@ sequenceDiagram
     U->>P: GET request for path (e.g. /host/spaces)
     P->>SP: createServerClient with request cookies
     SP->>SP: supabase.auth.getUser() (refreshes session tokens)
-    SP-->>P: user object + profile role
+    SP->>SP: select role from profiles where id = user.id (RLS: own row only)
+    SP-->>P: user id + role from profiles (null when signed out)
     P->>G: evaluateRouteAccess(pathname, userRole)
     alt access allowed
         P-->>Page: NextResponse.next() with updated cookies
@@ -131,7 +132,7 @@ Shared between browser client and Server Actions using Zod:
 1. **`registerSchema`**:
    - `fullName`: string, trimmed, min 1 char, max 100 chars (`"Full name is required"` / `"Full name must not exceed 100 characters"`).
    - `email`: string, trimmed, lowercase, valid email format (`"Please enter a valid email address"`).
-   - `role`: `z.enum(['seeker', 'host'], { errorMap: () => ({ message: 'Please select whether you are a Seeker or a Host' }) })`.
+   - `role`: `z.enum(['seeker', 'host'], { error: 'Please select whether you are a Seeker or a Host' })` (Zod 4 syntax).
    - `password`: string, min 8 chars (`"Password must be at least 8 characters"`), max 72 chars, must contain at least one digit (`"Password must contain at least one number"`), must contain at least one symbol/special character (`"Password must contain at least one symbol"`).
    - `confirmPassword`: string.
    - Refinement: `password === confirmPassword` (`"Passwords do not match"`).
@@ -139,21 +140,23 @@ Shared between browser client and Server Actions using Zod:
 2. **`loginSchema`**:
    - `email`: string, trimmed, lowercase, valid email format.
    - `password`: string, min 1 char (`"Password is required"`).
-   - `returnUrl`: optional string, validated by `sanitizeReturnUrl` (must begin with `/` and not `//` to eliminate open-redirect vulnerabilities).
+   - `returnUrl`: optional string, validated by `sanitizeReturnUrl` (must begin with a single `/`, and must not begin with `//` or `/\` or contain a backslash, to rule out open redirects).
 
 ### Route Access Matrix (`lib/auth/role-guard.ts`)
 
-| Route Category    | Paths                               | Anonymous                     | `seeker`           | `host`           | `admin`           |
-| ----------------- | ----------------------------------- | ----------------------------- | ------------------ | ---------------- | ----------------- |
-| **Public**        | `/`, `/about`, `/contact`, `/terms` | Allow                         | Allow              | Allow            | Allow             |
-| **Auth**          | `/login`, `/register`               | Allow                         | Redirect `/seeker` | Redirect `/host` | Redirect `/admin` |
-| **Seeker Portal** | `/seeker`, `/seeker/*`              | Redirect `/login?returnUrl=…` | Allow              | Redirect `/host` | Allow             |
-| **Host Portal**   | `/host`, `/host/*`                  | Redirect `/login?returnUrl=…` | Redirect `/seeker` | Allow            | Allow             |
-| **Admin Portal**  | `/admin`, `/admin/*`                | Redirect `/login?returnUrl=…` | Redirect `/seeker` | Redirect `/host` | Allow             |
-| **System**        | `/api/auth/callback`                | Allow                         | Allow              | Allow            | Allow             |
+| Route Category    | Paths                       | Anonymous                     | `seeker`           | `host`           | `admin`           |
+| ----------------- | --------------------------- | ----------------------------- | ------------------ | ---------------- | ----------------- |
+| **Public**        | every path not listed below | Allow                         | Allow              | Allow            | Allow             |
+| **Auth**          | `/login`, `/register`       | Allow                         | Redirect `/seeker` | Redirect `/host` | Redirect `/admin` |
+| **Seeker Portal** | `/seeker`, `/seeker/*`      | Redirect `/login?returnUrl=…` | Allow              | Redirect `/host` | Allow             |
+| **Host Portal**   | `/host`, `/host/*`          | Redirect `/login?returnUrl=…` | Redirect `/seeker` | Allow            | Allow             |
+| **Admin Portal**  | `/admin`, `/admin/*`        | Redirect `/login?returnUrl=…` | Redirect `/seeker` | Redirect `/host` | Allow             |
+| **System**        | `/api/auth/callback`        | Allow                         | Allow              | Allow            | Allow             |
 
-**Decision on Administrator Access (D-031, Settling Sprint 1 Question):**  
-Administrators have access to `/admin`, `/seeker`, and `/host` (D-031). This allows platform administrators to audit seeker venue search/reservation experiences and inspect host space management portals as required by moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2), matching STORY-06 test assumptions.
+**The guard reads the role from `profiles`, never from `user_metadata`.** A signed-in user can rewrite their own `user_metadata` with `auth.updateUser()`, so a role taken from there could be forged. `lib/supabase/proxy.ts` reads the `role` column of the user's own `profiles` row, which RLS lets them read and the column grants stop them from changing (STORY-01). Row-Level Security stays the security boundary either way (D-007).
+
+**Decision on Administrator Access (D-032, Settling Sprint 1 Question):**  
+Administrators have access to `/admin`, `/seeker`, and `/host` (D-032). This allows platform administrators to audit seeker venue search/reservation experiences and inspect host space management portals as required by moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2), matching STORY-06 test assumptions.
 
 ## 3. UI and files
 
@@ -187,66 +190,70 @@ lib/
 
 ### Accessibility (WCAG 2.1 AA)
 
-- All inputs, buttons, and clickable controls have a minimum touch target size of 48×48 px (`min-h-[48px]`, `min-w-[48px]`).
+- Forms use STORY-02's `Button`, `Input`, `Label` and `Alert` from `components/ui/`, which are already at least 48×48 px with opaque focus rings (D-031). No custom size or focus classes.
 - Every form field is explicitly associated with a `<Label htmlFor="...">`.
 - Inline field errors use `aria-describedby` linked to error message IDs, with `aria-invalid="true"` set upon error.
-- Interactive elements provide clear focus rings using `focus-visible:ring-2 focus-visible:ring-offset-2`.
+- A form error that appears after submitting uses `Alert` with `role="alert"`.
 - Contrast ratio between text and background exceeds 4.5:1 for normal text and 3:1 for large text / controls.
 - Keyboard navigation: Full sequential navigation via Tab, Shift+Tab, and activation via Enter/Space.
 - Fully responsive across mobile (360px), tablet (768px), and desktop (1024px) without horizontal scrolling.
 
 ## 4. Security and test matrix
 
-| Layer                             | Case                                                                     | Expected                                                           |
-| --------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| **Vitest** (`auth.test.ts`)       | Valid email and compliant password (e.g. `Password123!`)                 | Passes validation                                                  |
-| **Vitest** (`auth.test.ts`)       | Password < 8 characters, or missing number, or missing symbol            | Fails with specific error message                                  |
-| **Vitest** (`auth.test.ts`)       | Registration with role `admin` or invalid string                         | Fails Zod enum validation                                          |
-| **Vitest** (`auth.test.ts`)       | Mismatched password and confirmPassword                                  | Fails refinement validation                                        |
-| **Vitest** (`role-guard.test.ts`) | Anonymous visitor requests `/seeker` or `/host/spaces`                   | Redirects to `/login?returnUrl=...`                                |
-| **Vitest** (`role-guard.test.ts`) | `seeker` requests `/host` or `/admin`                                    | Redirects to `/seeker`                                             |
-| **Vitest** (`role-guard.test.ts`) | `host` requests `/seeker` or `/admin`                                    | Redirects to `/host`                                               |
-| **Vitest** (`role-guard.test.ts`) | `admin` requests `/admin`, `/seeker`, or `/host`                         | Access allowed for all portals                                     |
-| **Vitest** (`role-guard.test.ts`) | Signed-in user requests `/login` or `/register`                          | Redirects to user's dashboard                                      |
-| **Vitest** (`role-guard.test.ts`) | Malicious `returnUrl` (e.g. `//evil.com`, `https://evil.com`)            | Sanitized to role dashboard (no open redirect)                     |
-| **Manual**                        | Sign up new Seeker (`test-seeker@example.test`)                          | Profile created with role `seeker`; redirected to `/seeker`        |
-| **Manual**                        | Sign up new Host (`test-host@example.test`)                              | Profile created with role `host`; redirected to `/host`            |
-| **Manual**                        | Tampered sign-up request attempting `role: "admin"` in user metadata     | Database trigger `private.handle_new_user()` aborts with exception |
-| **Manual**                        | Log in with seeded accounts (`seeker@example.test`, `host@example.test`) | Redirected to `/seeker` and `/host` respectively                   |
-| **Manual**                        | Click sign-out button                                                    | Session cookie cleared; redirected to `/`                          |
+| Layer                             | Case                                                                                    | Expected                                                           |
+| --------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Vitest** (`auth.test.ts`)       | Valid email and compliant password (e.g. `Password123!`)                                | Passes validation                                                  |
+| **Vitest** (`auth.test.ts`)       | Password < 8 characters, or missing number, or missing symbol                           | Fails with specific error message                                  |
+| **Vitest** (`auth.test.ts`)       | Registration with role `admin` or invalid string                                        | Fails Zod enum validation                                          |
+| **Vitest** (`auth.test.ts`)       | Mismatched password and confirmPassword                                                 | Fails refinement validation                                        |
+| **Vitest** (`role-guard.test.ts`) | Anonymous visitor requests `/seeker` or `/host/spaces`                                  | Redirects to `/login?returnUrl=...`                                |
+| **Vitest** (`role-guard.test.ts`) | `seeker` requests `/host` or `/admin`                                                   | Redirects to `/seeker`                                             |
+| **Vitest** (`role-guard.test.ts`) | `host` requests `/seeker` or `/admin`                                                   | Redirects to `/host`                                               |
+| **Vitest** (`role-guard.test.ts`) | `admin` requests `/admin`, `/seeker`, or `/host`                                        | Access allowed for all portals                                     |
+| **Vitest** (`role-guard.test.ts`) | Signed-in user requests `/login` or `/register`                                         | Redirects to user's dashboard                                      |
+| **Vitest** (`role-guard.test.ts`) | Malicious `returnUrl` (`//evil.com`, `/\evil.com`, `https://evil.com`)                  | Sanitized to role dashboard (no open redirect)                     |
+| **Manual**                        | Signed-in Seeker sets `role: "admin"` in their own `user_metadata`, then opens `/admin` | Still redirected to `/seeker`: the guard reads `profiles.role`     |
+| **Manual**                        | Sign up new Seeker (`test-seeker@example.test`)                                         | Profile created with role `seeker`; redirected to `/seeker`        |
+| **Manual**                        | Sign up new Host (`test-host@example.test`)                                             | Profile created with role `host`; redirected to `/host`            |
+| **Manual**                        | Tampered sign-up request attempting `role: "admin"` in user metadata                    | Database trigger `private.handle_new_user()` aborts with exception |
+| **Manual**                        | Log in with seeded accounts (`seeker@example.test`, `host@example.test`)                | Redirected to `/seeker` and `/host` respectively                   |
+| **Manual**                        | Click sign-out button                                                                   | Session cookie cleared; redirected to `/`                          |
 
 ## 5. Tasks and estimates
 
 These rows become the story's TSK sub-issues once this doc is merged:
 
-| Task     | What                                                                       | Owner        | Points (1–10) | Days | Depends on                             |
-| -------- | -------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------- |
-| TSK-03.1 | Shared Zod validation schemas (`lib/validation/auth.ts`) and unit tests    | @lukedongque | 2             | 0.5  | None                                   |
-| TSK-03.2 | Pure role-guard logic (`lib/auth/role-guard.ts`) and unit tests            | @lukedongque | 2             | 0.5  | None                                   |
-| TSK-03.3 | Next 16 `proxy.ts` and `lib/supabase/proxy.ts` session refresh & redirects | @lukedongque | 3             | 1.0  | TSK-03.2, STORY-01                     |
-| TSK-03.4 | `/login` and `/register` pages, forms, Server Actions, and auth callback   | @lukedongque | 5             | 1.0  | TSK-03.1, TSK-03.3, STORY-01, STORY-02 |
+| Task     | What                                                                                            | Owner        | Points (1–10) | Days | Depends on                             |
+| -------- | ----------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------- |
+| TSK-03.1 | Add `zod`, pinned exactly (D-018); shared Zod schemas (`lib/validation/auth.ts`) and unit tests | @lukedongque | 2             | 0.5  | None                                   |
+| TSK-03.2 | Pure role-guard logic (`lib/auth/role-guard.ts`) and unit tests                                 | @lukedongque | 2             | 0.5  | None                                   |
+| TSK-03.3 | Next 16 `proxy.ts` and `lib/supabase/proxy.ts` session refresh & redirects                      | @lukedongque | 3             | 1.0  | TSK-03.2, STORY-01                     |
+| TSK-03.4 | `/login` and `/register` pages, forms, Server Actions, and auth callback                        | @lukedongque | 5             | 1.0  | TSK-03.1, TSK-03.3, STORY-01, STORY-02 |
 
 ## 6. Build order
 
 One PR per row, and every PR targets `main`:
 
-| #   | Branch                        | PR title                                                           | Contains                                                           |
-| --- | ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| 1   | `feature/STORY-03-validation` | `feat(STORY-03): add auth validation schemas and tests`            | `lib/validation/auth.ts`, `lib/validation/auth.test.ts` (TSK-03.1) |
-| 2   | `feature/STORY-03-role-guard` | `feat(STORY-03): add role guard evaluation logic and tests`        | `lib/auth/role-guard.ts`, `lib/auth/role-guard.test.ts` (TSK-03.2) |
-| 3   | `feature/STORY-03-next-proxy` | `feat(STORY-03): add next 16 proxy and supabase session refresh`   | `proxy.ts`, `lib/supabase/proxy.ts` (TSK-03.3)                     |
-| 4   | `feature/STORY-03-auth-pages` | `feat(STORY-03): add login and register pages with server actions` | `app/(auth)/**`, `app/api/auth/callback/**` (TSK-03.4)             |
+| #   | Branch                        | PR title                                                           | Contains                                                                                                |
+| --- | ----------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| 1   | `feature/STORY-03-validation` | `feat(STORY-03): add auth validation schemas and tests`            | `package.json`, `package-lock.json`, `lib/validation/auth.ts`, `lib/validation/auth.test.ts` (TSK-03.1) |
+| 2   | `feature/STORY-03-role-guard` | `feat(STORY-03): add role guard evaluation logic and tests`        | `lib/auth/role-guard.ts`, `lib/auth/role-guard.test.ts` (TSK-03.2)                                      |
+| 3   | `feature/STORY-03-next-proxy` | `feat(STORY-03): add next 16 proxy and supabase session refresh`   | `proxy.ts`, `lib/supabase/proxy.ts` (TSK-03.3)                                                          |
+| 4   | `feature/STORY-03-auth-pages` | `feat(STORY-03): add login and register pages with server actions` | `app/(auth)/**`, `app/api/auth/callback/**` (TSK-03.4)                                                  |
 
 ## 7. Rejected alternatives
 
 - **Client-only auth guard with `useEffect`:** Rejected because it causes visible content flashes of protected pages, delays redirection, and impairs UX. Next 16 `proxy.ts` runs ahead of page rendering.
-- **Full database lookup on every static asset/sub-resource in `proxy.ts`:** Rejected to avoid high latency and database load. The proxy relies on the JWT payload and cached profile metadata refreshed via `getUser()`, while Postgres Row-Level Security remains the ultimate, authoritative security boundary for data access (D-007).
+- **Reading the role from `user_metadata` or the JWT:** Rejected because a user can rewrite their own `user_metadata`, so the role would be forgeable. The proxy instead makes one `profiles` query per page request, and its `matcher` skips static assets (`_next/static`, `_next/image`, `favicon.ico`, image files) so they cost nothing. Postgres Row-Level Security remains the security boundary for data (D-007).
 - **Single combined auth modal:** Rejected because dedicated routes (`/login`, `/register`) support bookmarking, deep-linking, predictable `returnUrl` handling, and better mobile accessibility.
 - **Admin registration option on the public form:** Rejected because administrator accounts must never be publicly self-registered (D-013, STORY-01).
 
 ## 8. Open questions
 
-- None. (The Sprint 1 question regarding Administrator portal access has been settled: Administrators are granted access to `/admin`, `/seeker`, and `/host` to facilitate platform inspection and moderation).
+- None blocking. The Sprint 1 question on Administrator portal access is settled by D-032.
+- **`/admin` has no page until STORY-14.** An Administrator (local stack and CI only, D-013) who logs in is sent to `/admin` and sees a 404 until then. STORY-03 does not build an admin page.
+- **Sign-out is owned here.** `signOut` lives in `app/(auth)/actions.ts`; the Seeker and Host portals' Log out buttons call it rather than writing their own.
+- **Zod is added here.** STORY-04 and STORY-05 schemas depend on TSK-03.1 for the package.
 
 ## 9. After the build
 

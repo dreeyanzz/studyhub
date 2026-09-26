@@ -341,12 +341,26 @@ one PR rather than leaving a submission half-restyled.
 
 **Revisit:** If the course asks to see pull requests on the board.
 
-## D-031 · Administrator portal access
+## D-031 · One set of design tokens, light mode only
 
-**Decision:** The `admin` role is permitted access to all user portals: `/admin`, `/seeker`, and `/host`. Seekers are restricted to `/seeker`, and Hosts are restricted to `/host`.
+**Decision:**
 
-**Why:** Platform administrators require visibility across the platform to inspect seeker discovery/reservation workflows and audit host space listings and dashboards for moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2). This settles the Sprint 1 brief question and aligns with STORY-06 automated testing assumptions.
+- Every color, font and corner radius comes from the design tokens in `app/globals.css`. Components use token classes such as `bg-primary`, never raw hex values or a palette of their own.
+- Sprint 1 ships light mode only. There is no theme switch, and the unused neutral `.dark` block is removed.
+- The shadcn/ui controls are at least 48×48 px (SRS §3.2.2). Their smaller generated sizes are removed, so no story can pick one.
 
-**Rejected:** Restricting administrators strictly to `/admin` (which would prevent administrators from auditing seeker and host user interfaces without managing separate test accounts).
+**Why:** Contrast is checked once per token pair, in STORY-02's design, and every page inherits the result. A second theme would double those checks, and no requirement asks for one.
 
-**Revisit:** Post-Midterm if dedicated role impersonation or separate auditor views are introduced.
+**Rejected:** Colors chosen per page (contrast fixes drift apart); dark mode in Sprint 1; shadcn's default 24–36 px control sizes.
+
+**Revisit if:** A story needs dark mode. It adds a `.dark` block whose pairs pass the same checks.
+
+## D-032 · Administrator portal access
+
+**Decision:** The `admin` role may open every portal: `/admin`, `/seeker` and `/host`. Seekers may open only `/seeker`, and Hosts only `/host`.
+
+**Why:** Administrators verify spaces and moderate reviews and listings (SRS §3.1.5, FR-5.1, FR-5.2), which means seeing what Seekers and Hosts see. This settles the Sprint 1 brief's question and matches what STORY-06's tests assume.
+
+**Rejected:** Restricting Administrators to `/admin`, which would leave them auditing the other portals through separate test accounts.
+
+**Revisit:** If role impersonation or a separate auditor view is introduced.
