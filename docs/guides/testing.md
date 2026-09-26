@@ -77,4 +77,8 @@ For UI work, check the page:
 - with the keyboard only
 - as each seeded role involved
 
+The seeded accounts sign in with the password in `supabase/seed.sql` on a local stack,
+and with `CLOUD_DEV_ACCOUNT_PASSWORD` from your `.env.local` on the cloud dev project
+(D-028). The cloud project has no Administrator account (D-013).
+
 Say in the PR which account you used and what you saw.

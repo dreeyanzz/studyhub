@@ -42,8 +42,8 @@ studyhub/
 ├── app/                          # Next.js 16 App Router routes and layouts
 ├── components/                   # shadcn/ui primitives and shared components (from STORY-02)
 ├── lib/                          # supabase/ clients, validation/ Zod schemas, utils; tests alongside
-├── supabase/                     # config.toml; migrations/, tests/ and seed.sql from STORY-01
-├── scripts/                      # Repo scripts (docx export)
+├── supabase/                     # config.toml, migrations/, tests/ (pgTAP) and seed.sql
+├── scripts/                      # Repo scripts (docx export, cloud dev test accounts)
 ├── notes/                        # Postmortems, and the template for them
 ├── .github/                      # PR template, issue forms, CI, PR title check, ruleset snapshots
 ├── .husky/                       # commit-msg and pre-commit hooks
