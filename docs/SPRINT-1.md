@@ -370,6 +370,10 @@ work against the cloud database straight away.
 **Question for Saturday:** can an Administrator open every portal, or only `/admin`?
 STORY-06 assumes every portal. Your design doc settles it.
 
+**Also for your design:** whether the public header shows a signed-in state, such as a
+link to the user's dashboard. STORY-02 leaves it out, because it is due before sign-in
+works (STORY-02 design §8).
+
 **How to test:**
 
 - Vitest tests for every form rule and every role-guard case (`npm test`).

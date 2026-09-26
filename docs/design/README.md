@@ -64,5 +64,3 @@ and what the right user is prevented from doing to their own rows.
 | STORY-14 |                                                        | not written            |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.
-
-STORY-02 also has an [AI execution plan and design diagrams](STORY-02-ai-execution-plan.md), including its setup and synchronization record.
