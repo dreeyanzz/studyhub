@@ -340,3 +340,13 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** Moving every card by hand (it went stale within a day); pull requests as cards too (each task would appear twice); "Auto-close issue" (dragging a card to Done would close an issue whose pull request hasn't merged).
 
 **Revisit:** If the course asks to see pull requests on the board.
+
+## D-031 · Administrator portal access
+
+**Decision:** The `admin` role is permitted access to all user portals: `/admin`, `/seeker`, and `/host`. Seekers are restricted to `/seeker`, and Hosts are restricted to `/host`.
+
+**Why:** Platform administrators require visibility across the platform to inspect seeker discovery/reservation workflows and audit host space listings and dashboards for moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2). This settles the Sprint 1 brief question and aligns with STORY-06 automated testing assumptions.
+
+**Rejected:** Restricting administrators strictly to `/admin` (which would prevent administrators from auditing seeker and host user interfaces without managing separate test accounts).
+
+**Revisit:** Post-Midterm if dedicated role impersonation or separate auditor views are introduced.

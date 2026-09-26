@@ -1,7 +1,7 @@
 # STORY-03: Multi-role authentication and route guard
 
 **Status:** draft · **Owner:** @lukedongque · **Story:** #52 · **FR:** SRS §3.5.1 ·
-**Depends on:** STORY-01, STORY-02 · **Decisions:** D-007, D-010, D-013, D-016, D-019, D-020, D-027, D-028, D-029
+**Depends on:** STORY-01, STORY-02 · **Decisions:** D-007, D-010, D-013, D-016, D-019, D-020, D-027, D-028, D-029, D-031
 
 ## 0. Scope
 
@@ -152,8 +152,8 @@ Shared between browser client and Server Actions using Zod:
 | **Admin Portal**  | `/admin`, `/admin/*`                | Redirect `/login?returnUrl=…` | Redirect `/seeker` | Redirect `/host` | Allow             |
 | **System**        | `/api/auth/callback`                | Allow                         | Allow              | Allow            | Allow             |
 
-**Decision on Administrator Access (Settling Sprint 1 Question):**  
-Administrators have access to `/admin`, `/seeker`, and `/host`. This allows platform administrators to audit seeker venue search/reservation experiences and inspect host space management portals as required by moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2), matching STORY-06 test assumptions.
+**Decision on Administrator Access (D-031, Settling Sprint 1 Question):**  
+Administrators have access to `/admin`, `/seeker`, and `/host` (D-031). This allows platform administrators to audit seeker venue search/reservation experiences and inspect host space management portals as required by moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2), matching STORY-06 test assumptions.
 
 ## 3. UI and files
 
