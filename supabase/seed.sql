@@ -58,3 +58,20 @@ where u.email like '%@example.test';
 update public.profiles
 set role = 'admin'
 where id = 'a0000000-0000-4000-8000-000000000001';
+
+-- Spaces (STORY-01), with fixed ids for pgTAP. The seed sets status directly;
+-- in the app only an Administrator changes it (STORY-14).
+--   e0000000-0000-4000-8000-000000000001  host@   verified  07:00-22:00
+--   e0000000-0000-4000-8000-000000000002  host@   pending   18:00-02:00 (after midnight)
+--   e0000000-0000-4000-8000-000000000003  host2@  verified  open 24 hours
+insert into public.spaces (id, host_id, name, description, address, opens_at, closes_at, status)
+values
+  ('e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000001',
+   'Kapihan Study Hall', 'Quiet tables, strong wifi and bottomless brewed coffee.',
+   '12 Invented Street, Lahug, Cebu City', '07:00', '22:00', 'verified'),
+  ('e0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000001',
+   'Kapihan Night Desk', 'The late-night room upstairs, for night owls.',
+   '12 Invented Street, Lahug, Cebu City', '18:00', '02:00', 'pending'),
+  ('e0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000002',
+   'Sulok Co-working', 'Open desks and two meeting pods, open all day and night.',
+   '48 Sample Avenue, IT Park, Cebu City', '00:00', '00:00', 'verified');
