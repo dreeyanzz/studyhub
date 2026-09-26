@@ -1,6 +1,6 @@
 # STORY-01: Database schemas and row-level security
 
-**Status:** approved 2026-09-26 · **Owner:** @dreeyanzz · **Story:** #50 · **FR:** SRS §3.5.1, §3.8,
+**Status:** implemented 2026-09-26 · **Owner:** @dreeyanzz · **Story:** #50 · **FR:** SRS §3.5.1, §3.8,
 FR-5.1 · **Depends on:** nothing · **Decisions:** D-007, D-013, D-017, D-019, D-027
 
 ## 0. Scope
@@ -246,4 +246,39 @@ re-verifying an edited space) are settled in D-027, and §7 gives the reasons.
 
 ## 9. After the build
 
-Fill this in when the story is done.
+Built in three PRs, in the §6 order: #90 (profiles), #91 (client factories) and #92
+(spaces). The cloud dev project has both migrations, and `db` is a required check on
+`main` (#89).
+
+**Different from the plan:**
+
+- `package.json`: lint-staged runs ESLint with `--no-warn-ignored`. ESLint ignores the
+  generated `database.types.ts` on purpose, then warns that it did, and the pre-commit
+  hook's zero-warning limit refused the commit (#90).
+- `spaces` has an index on `host_id`, which the policies filter on (#92).
+- `name` and `address` also refuse text that is only spaces, not just empty text (#92).
+- `client.ts` and `server.ts` throw a clear error when the Supabase variables are missing,
+  and have unit tests with Supabase and `cookies()` mocked (#91). There is no
+  `server-only` import: `next/headers` already fails in a client bundle.
+- A Seeker updating another user's profile would affect 0 rows even with an open update
+  policy, because the select policy already hides the row. The Administrator case is the
+  test that catches an open update policy.
+
+**Docs this story changed:** AGENTS.md (layout note, required checks), DEVELOPMENT.md (CI
+row), the testing and git guides, CONTRIBUTING.md, D-014 (required checks), and the
+ruleset export in `.github/rulesets/`.
+
+**Acceptance criteria (#50):** all checked by Adrian's agent (Claude Code) and by CI.
+
+| Criterion                                             | How it was verified                                                                      |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Migrations apply cleanly on a fresh local stack       | `npm run db:reset` locally, and the `db` CI job on #90–#92                               |
+| Sign-up makes one seeker or host profile, never admin | pgTAP `01-profiles.sql` (the trigger cases)                                              |
+| Another user's profile: 0 rows; own role unchangeable | pgTAP `01-profiles.sql`                                                                  |
+| `spaces` with RLS                                     | pgTAP `02-spaces.sql`; local REST as anonymous and `host@`                               |
+| Client files and generated types committed            | #90–#92; `npm run check` and `npm run build`                                             |
+| Seed uses `@example.test` only; admin seeded locally  | `seed.sql` review; `db push` sends migrations only, never the seed                       |
+| `db` CI job runs pgTAP and is required on `main`      | Green on #90–#92; the live ruleset read back with `checks`, `pr-title` and `db` required |
+
+Each pgTAP file was watched failing: breaking each policy, grant and the trigger turned
+its tests red, and a reset brought all 44 back.
