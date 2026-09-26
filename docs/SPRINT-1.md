@@ -148,6 +148,12 @@ STORY-01 (the database) comes first, because most other stories save or read dat
 STORY-02 (the design system) needs nothing from anyone, and everyone's pages use its
 buttons and inputs.
 
+> **Update, Sat 26 Sep: STORY-01 is done** (#90–#93). The cloud database has the
+> `profiles` and `spaces` tables and the sign-up step, the connection files are on
+> `main`, and the shared test accounts are registered there (D-028). Everything below
+> that waited for STORY-01 is ready. What you get from it is under "Ready for you" in
+> your part (section 5).
+
 ```mermaid
 flowchart LR
     S01["STORY-01 Database<br/>Adrian"] --> S03["STORY-03 Sign-up and login<br/>Luke"]
@@ -162,14 +168,14 @@ flowchart LR
     S05 --> S06
 ```
 
-| Story                                   | Owner                                    | Can start now?                                         | Waits for                                                               |
-| --------------------------------------- | ---------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------- |
-| STORY-01 Database and security rules    | Adrian                                   | Yes, all of it                                         | A teammate's approval of its design (PR #83)                            |
-| STORY-02 Design system and public pages | Maria                                    | Yes, all of it                                         | Nothing                                                                 |
-| STORY-03 Sign-up, login and route guard | Luke                                     | The design doc, form rules and guard logic, with tests | STORY-01 to sign up and log in for real; STORY-02's inputs and buttons  |
-| STORY-04 Seeker portal and profile      | James                                    | The design doc and the page layout                     | STORY-01 to save a profile; STORY-03 to know who is signed in           |
-| STORY-05 Host portal and spaces         | Adrian (design, database), James (pages) | The design doc                                         | STORY-01's `spaces` table; STORY-03 for signed-in Hosts                 |
-| STORY-06 Automated tests                | Luke                                     | The design doc                                         | STORY-03 and STORY-05 for the rules it tests; STORY-01 and 03 to log in |
+| Story                                   | Owner                                    | Can start now?                                             | Waits for                                                         |
+| --------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| STORY-01 Database and security rules    | Adrian                                   | Done (Sat 26 Sep)                                          | —                                                                 |
+| STORY-02 Design system and public pages | Maria                                    | Yes, all of it                                             | Nothing                                                           |
+| STORY-03 Sign-up, login and route guard | Luke                                     | The design doc; then all of it, against the cloud database | STORY-02's inputs and buttons (STORY-01 is ready)                 |
+| STORY-04 Seeker portal and profile      | James                                    | The design doc, the form rules and the page layout         | STORY-03 to know who is signed in (STORY-01 is ready)             |
+| STORY-05 Host portal and spaces         | Adrian (design, database), James (pages) | The design doc                                             | STORY-03 for signed-in Hosts (STORY-01's `spaces` table is ready) |
+| STORY-06 Automated tests                | Luke                                     | The design doc                                             | STORY-03 and STORY-05 for the rules it tests; STORY-03 to log in  |
 
 **While you wait,** don't sit idle. Write your design doc, build the parts that don't need
 the missing piece, or review someone's pull request.
@@ -179,33 +185,36 @@ the missing piece, or review someone's pull request.
 All four of us work at the same time from day one. Only one chain of steps has to go in
 order, because each step needs the one before it. This is the **critical path**:
 
-> STORY-01 profiles → STORY-01 connection files → cloud database updated → STORY-03
-> sign-up and login → STORY-04 and STORY-05 saving data → STORY-06 login test
+> ~~STORY-01 profiles → STORY-01 connection files → cloud database updated~~ (done Sat
+> 26 Sep) → STORY-03 sign-up and login → STORY-04 and STORY-05 saving data → STORY-06
+> login test
 
 A delay anywhere on this chain delays the demo. So its pull requests are reviewed and
-merged first, and everything else fits around it.
+merged first, and everything else fits around it. The chain now starts at STORY-03, so
+Luke's pull requests come first.
 
-| When                  | Adrian                                                                                                                             | Maria                                                                      | Luke                                                                    | James                                                                             |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| **Sat 26 Sep**        | Merge the STORY-01 design once a teammate approves it; write STORY-05's design                                                     | Write STORY-02's design                                                    | Write STORY-03's design                                                 | Write STORY-04's design                                                           |
-| **Sun 27 – Wed 30**   | STORY-01 in its three PRs: profiles, connection files, spaces. Update the cloud database after each; send the keys after the first | Tokens and building blocks first (merged by Wed 30), then the landing page | STORY-06's design; the auth form rules and role-guard logic, with tests | STORY-04's profile form rules, with tests; the `/seeker` and `/host` page layouts |
-| **Thu 1 – Fri 2 Oct** | STORY-05's Server Actions and space form rules                                                                                     | Header and footer; STORY-02 done                                           | `/login`, `/register` and `proxy.ts`; sign-up and login working on Fri  | STORY-04's profile page, saving once login works                                  |
-| **Mon 5 – Wed 7**     | Review and merge                                                                                                                   | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up; space form rule tests        | STORY-04 merged; STORY-05's pages wired to Adrian's Server Actions                |
-| **Thu 8**             | Walk through the app as each role; fix what we find                                                                                | Walk-through; the board screenshot                                         | The Playwright login test green                                         | Walk-through and fixes                                                            |
-| **Fri 9**             | Sprint review, demo and retrospective video                                                                                        | Same, together                                                             | Same, together                                                          | Same, together                                                                    |
+| When                  | Adrian                                                                                                                              | Maria                                                                      | Luke                                                                    | James                                                                             |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Sat 26 Sep**        | Merge the STORY-01 design once a teammate approves it; write STORY-05's design                                                      | Write STORY-02's design                                                    | Write STORY-03's design                                                 | Write STORY-04's design                                                           |
+| **Sun 27 – Wed 30**   | ✅ STORY-01 done early, on Sat 26 Sep (#90–#93). Send everyone their `.env.local`; STORY-05's Server Actions once its design merges | Tokens and building blocks first (merged by Wed 30), then the landing page | STORY-06's design; the auth form rules and role-guard logic, with tests | STORY-04's profile form rules, with tests; the `/seeker` and `/host` page layouts |
+| **Thu 1 – Fri 2 Oct** | STORY-05's Server Actions and space form rules                                                                                      | Header and footer; STORY-02 done                                           | `/login`, `/register` and `proxy.ts`; sign-up and login working on Fri  | STORY-04's profile page, saving once login works                                  |
+| **Mon 5 – Wed 7**     | Review and merge                                                                                                                    | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up; space form rule tests        | STORY-04 merged; STORY-05's pages wired to Adrian's Server Actions                |
+| **Thu 8**             | Walk through the app as each role; fix what we find                                                                                 | Walk-through; the board screenshot                                         | The Playwright login test green                                         | Walk-through and fixes                                                            |
+| **Fri 9**             | Sprint review, demo and retrospective video                                                                                         | Same, together                                                             | Same, together                                                          | Same, together                                                                    |
 
 **Can happen at the same time:**
 
 - all the design docs;
 - STORY-02 alongside everything, because it needs nothing;
-- STORY-01 alongside the parts of STORY-03, STORY-04 and STORY-06 that need no
-  database: form rules, guard logic, page layouts and tests.
+- STORY-05's back end alongside STORY-03 and STORY-04;
+- the parts of STORY-03, STORY-04 and STORY-06 that need no login: form rules, guard
+  logic, page layouts and tests.
 
 **Must happen in order:**
 
-- STORY-01's profiles and connection files, then STORY-03's sign-up and login;
+- ~~STORY-01's profiles and connection files~~ (done), then STORY-03's sign-up and login;
 - STORY-02's building blocks, then everyone's forms;
-- STORY-01's spaces, then STORY-05's Server Actions, then STORY-05's pages;
+- ~~STORY-01's spaces~~ (done), then STORY-05's Server Actions, then STORY-05's pages;
 - STORY-03's sign-in, then saving data in STORY-04 and STORY-05;
 - STORY-03, STORY-04 and STORY-05 merged, then STORY-06's login test.
 
@@ -220,8 +229,11 @@ Words used below:
 - **Row-Level Security (RLS):** rules inside the database that decide which rows each
   signed-in person may read or change. Even if our website has a bug, the database still
   says no.
-- **Seeded accounts:** invented test accounts loaded into the database for everyone to
-  use, like `seeker@example.test` and `host@example.test`.
+- **Seeded accounts:** invented test accounts everyone uses: `seeker@example.test`,
+  `host@example.test` and `host2@example.test`. On your machine and in CI they come
+  from `supabase/seed.sql`. On the cloud database Adrian registers them with their own
+  password, `CLOUD_DEV_ACCOUNT_PASSWORD` in your `.env.local` (D-028). The cloud
+  database never has an Administrator account (D-013).
 - **Zod schema:** the rules for a form's input, for example "a password has at least 8
   characters". The same rules run in the browser and again on the server.
 - **Server Action:** the function on the server that a form calls to save data.
@@ -248,10 +260,15 @@ Words used below:
 - the connection files, the generated types and the seeded accounts are merged, and the
   `db` check runs in CI.
 
-**Then, for the team:** migrate the shared cloud database from `main`, make sure the
-seeded Seeker and Host accounts exist there, and send each teammate the keys privately.
-Luke and James can't sign up, log in or save anything for real until this happens, so it
-is the first thing to finish.
+**Then, for the team:** push each STORY-01 migration to the cloud database from `main`,
+register the shared test accounts there with `npm run db:accounts` (D-028), and send
+each teammate their `.env.local` privately: the database address, the publishable key
+and the test accounts' password. The secret key stays with Adrian (D-029). Luke and James
+can't sign up, log in or save anything for real until this happens, so it is the first
+thing to finish.
+
+**Status, Sat 26 Sep:** STORY-01 is merged (#90–#93), and the cloud database has both
+migrations.
 
 **Needs from others:** a teammate approves the STORY-01 design (PR #83), so you can merge
 it. Its fields are already settled (D-027).
@@ -331,10 +348,24 @@ STORY-01's database rules are. If `proxy.ts` disappeared, the data must still be
 - a tampered sign-up request can't create an Administrator.
 
 **Can start now:** the design doc, the form rules and the role-guard logic, with their
-tests. None of those need the database.
+tests. None of those need the database. Once your design merges, sign-up and login can
+work against the cloud database straight away.
 
-**Waits for:** STORY-01's connection files, sign-up step and cloud keys before sign-up
-and login work for real; STORY-02's inputs and buttons for the forms.
+**Waits for:** STORY-02's inputs and buttons for the forms. STORY-01's part is ready.
+
+**Ready for you from STORY-01:**
+
+- `lib/supabase/server.ts`: `await createClient()` in Server Components, Server Actions
+  and route handlers. `lib/supabase/client.ts` is for Client Components. `proxy.ts` and
+  `lib/supabase/proxy.ts` are yours to write.
+- Sign-up sends `role` (`seeker` or `host`) and `full_name` in the user metadata
+  (`options.data`), and the database creates the profile. Any other role, `admin`
+  included, makes the sign-up fail, so show a clear error for it.
+- A signed-in user can read their own `profiles` row, `role` included. Whether the guard
+  reads the role with a query or from the session token is your design's call (STORY-01
+  design §7).
+- Email confirmation is off on the cloud database, so a new account can log in at once.
+  The test accounts are ready there (D-028).
 
 **Question for Saturday:** can an Administrator open every portal, or only `/admin`?
 STORY-06 assumes every portal. Your design doc settles it.
@@ -366,8 +397,10 @@ STORY-06 moved from James to Luke, to balance the load.
   runs in CI.
 
 **Waits for:** STORY-03 for the rules and the guard (you write those tests with STORY-03
-anyway); STORY-05 for the space form's rules; STORY-01 and STORY-03 before the Playwright
-test can log in.
+anyway); STORY-05 for the space form's rules; STORY-03 before the Playwright test can log
+in. The seeded accounts are ready: from `seed.sql` locally and in CI, and on the cloud
+database (D-028). The cloud database has no Administrator (D-013), so a Playwright case
+for the Administrator needs a local stack or CI.
 
 **How to test your tests:** break the code on purpose, check that the test goes red, then
 put the code back.
@@ -393,8 +426,19 @@ put the code back.
 **Can start now:** the design doc, and the page layout with Maria's building blocks once
 they merge.
 
-**Waits for:** STORY-01's `profiles` table to save anything; STORY-03 to know who is
-signed in.
+**Waits for:** STORY-03 to know who is signed in. STORY-01's part is ready.
+
+**Ready for you from STORY-01:**
+
+- Saving is an update of the Seeker's own `profiles` row. Only `full_name` (up to 100
+  characters) and `phone_number` (up to 20) can change. The database refuses a change to
+  `role` or `id` with error `42501`, and STORY-01's pgTAP tests already prove it.
+- The phone number's format check is yours, in STORY-04's Zod schema (STORY-01 design
+  §2).
+- The row's type is `Database['public']['Tables']['profiles']['Row']`, from
+  `lib/supabase/database.types.ts`.
+- `seeker@example.test` exists on the cloud database. Sign in with
+  `CLOUD_DEV_ACCOUNT_PASSWORD` from your `.env.local` (D-028).
 
 **Already decided:** a profile has a name and a phone number only. Study preferences come
 later, with STORY-08 (D-027).
@@ -427,8 +471,9 @@ and the Server Actions). James builds the pages and the forms.
 opening and closing time used every day. It has no price and no tags in Sprint 1: tags
 come with STORY-08, and the reservation fee with STORY-09.
 
-**Waits for:** STORY-01's `spaces` table; STORY-03 for signed-in Hosts; STORY-02's
-building blocks for the forms.
+**Waits for:** STORY-03 for signed-in Hosts; STORY-02's building blocks for the forms.
+STORY-01's `spaces` table and its rules are ready; its design doc lists the fields and
+who may change what.
 
 **How to test:**
 
@@ -438,7 +483,8 @@ building blocks for the forms.
 ## 6. Saturday 26 September, on site
 
 **First thing:** Luke or James reviews and approves the STORY-01 design (PR #83), so
-Adrian can merge it and start the critical path. After that, Adrian reviews design pull
+Adrian can merge it and start the critical path. (Done: STORY-01 was built and merged the
+same day.) After that, Adrian reviews design pull
 requests in the order that unblocks the most work: STORY-02, STORY-03, STORY-04. James
 reviews STORY-05's design, which is Adrian's own.
 
@@ -469,16 +515,16 @@ reviews STORY-05's design, which is Adrian's own.
 These are targets. If you're going to miss one, say so as soon as you know, not on the
 day.
 
-| Date       | Target                                                                                           |
-| ---------- | ------------------------------------------------------------------------------------------------ |
-| Sat 26 Sep | On-site day (section 6)                                                                          |
-| Mon 28 Sep | All six design docs merged; their tasks on the board                                             |
-| Wed 30 Sep | STORY-01 merged, the cloud database ready and the keys shared; STORY-02's building blocks merged |
-| Fri 2 Oct  | STORY-02 done; sign-up and login working in STORY-03                                             |
-| Mon 5 Oct  | STORY-03 merged                                                                                  |
-| Wed 7 Oct  | STORY-04 and STORY-05 merged                                                                     |
-| Thu 8 Oct  | STORY-06 green; a full walkthrough as each role; fix what we find; the board screenshot          |
-| Fri 9 Oct  | Sprint 1 review and demo; record the 3-minute retrospective video                                |
+| Date       | Target                                                                                                              |
+| ---------- | ------------------------------------------------------------------------------------------------------------------- |
+| Sat 26 Sep | On-site day (section 6)                                                                                             |
+| Mon 28 Sep | All six design docs merged; their tasks on the board                                                                |
+| Wed 30 Sep | ~~STORY-01 merged, the cloud database ready~~ (done Sat 26 Sep); the keys shared; STORY-02's building blocks merged |
+| Fri 2 Oct  | STORY-02 done; sign-up and login working in STORY-03                                                                |
+| Mon 5 Oct  | STORY-03 merged                                                                                                     |
+| Wed 7 Oct  | STORY-04 and STORY-05 merged                                                                                        |
+| Thu 8 Oct  | STORY-06 green; a full walkthrough as each role; fix what we find; the board screenshot                             |
+| Fri 9 Oct  | Sprint 1 review and demo; record the 3-minute retrospective video                                                   |
 
 ## 8. Rules we never break
 

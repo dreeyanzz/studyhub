@@ -154,9 +154,10 @@ Next.js guide and the Next 16 docs in `node_modules/next/dist/docs/`.
 | `seeker@example.test` | Seeker        | nothing                            |
 
 All four share one invented password, written in `seed.sql`, which passes STORY-03's
-password rules. The cloud dev project gets no seed file. Once STORY-03 lands, Adrian
-registers `host@`, `host2@` and `seeker@` there through `/register`, so they go through
-the real trigger. The Administrator account never exists in a cloud project (D-013).
+password rules. The cloud dev project gets no seed file. Adrian registers `host@`,
+`host2@` and `seeker@` there with `npm run db:accounts`, which signs up through Supabase
+Auth, so they go through the real trigger. Their password is not the seed's (D-028). The
+Administrator account never exists in a cloud project (D-013).
 
 ## 4. Security and test matrix
 
@@ -263,10 +264,15 @@ Built in three PRs, in the §6 order: #90 (profiles), #91 (client factories) and
 - A Seeker updating another user's profile would affect 0 rows even with an open update
   policy, because the select policy already hides the row. The Administrator case is the
   test that catches an open update policy.
+- The cloud test accounts are registered by `npm run db:accounts` right after the
+  migrations, with their own password, instead of through `/register` after STORY-03
+  (D-028). Teammates can log in as soon as their pages exist. Only Adrian holds the
+  secret key (D-029).
 
-**Docs this story changed:** AGENTS.md (layout note, required checks), DEVELOPMENT.md (CI
-row), the testing and git guides, CONTRIBUTING.md, D-014 (required checks), and the
-ruleset export in `.github/rulesets/`.
+**Docs this story changed:** AGENTS.md (layout note, required checks, commands),
+DEVELOPMENT.md (CI row, keys, the cloud dev project), ONBOARDING.md, the Sprint 1 brief,
+the glossary, the testing and git guides, CONTRIBUTING.md, `.env.example`, D-014
+(required checks), D-028, D-029, and the ruleset export in `.github/rulesets/`.
 
 **Acceptance criteria (#50):** all checked by Adrian's agent (Claude Code) and by CI.
 
