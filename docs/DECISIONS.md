@@ -302,3 +302,31 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** A `study_preferences` array and an `amenities` array in Sprint 1; an `hourly_rate` column (a reservation fee is not a rate, D-005); hours as free text; different hours for each weekday.
 
 **Revisit:** STORY-08 for tags and preferences, and STORY-14 for re-verifying edited spaces.
+
+## D-028 · Shared test accounts on the cloud dev project
+
+**Decision:**
+
+- The cloud dev project has the seed's invented Seeker and Host accounts: `host@`, `host2@` and `seeker@example.test`. It never has the Administrator (D-013).
+- Adrian registers them with `npm run db:accounts` as soon as the migrations are pushed, not after STORY-03. The script signs up through Supabase Auth, the same path `/register` uses, so the sign-up trigger gives each account its role. It is safe to re-run, and it checks every account's role and password.
+- Their password is `CLOUD_DEV_ACCOUNT_PASSWORD`, never the seed's. Adrian sends it privately inside `.env.local`, with the keys (D-029).
+- No spaces are seeded there. Hosts create them through STORY-05.
+
+**Why:** Teammates need known accounts to log in and test as soon as their pages exist, without waiting for `/register`. Signing up tests the real trigger instead of going around it. The seed password is public, because the repository is (D-013), so a cloud account with it is open to anyone who learns the project's address.
+
+**Rejected:** Running `seed.sql` on the cloud project (it holds the Administrator and the public password); waiting for STORY-03's `/register` (it blocks login testing for days); creating users in the Supabase dashboard (no role in the metadata, so every account would become a Seeker); reusing the seed password.
+
+**Revisit:** When the production project is created (D-017). Its demo accounts follow the same rules.
+
+## D-029 · Who holds which Supabase key
+
+**Decision:**
+
+- Every teammate's `.env.local` holds the cloud dev project's URL, its publishable key and `CLOUD_DEV_ACCOUNT_PASSWORD` (D-028). Adrian sends it privately: never in the group chat, an issue or a PR.
+- The secret key stays with Adrian. Nothing uses it yet (STORY-01 design §0). The first design that needs it for an `app/api` route handler names who else holds it.
+
+**Why:** Least privilege. The publishable key is safe to hand out, because Row-Level Security limits what it can do. The secret key bypasses RLS: every extra copy is one more place it can leak from, and a leak means rotating it for everyone.
+
+**Rejected:** One identical `.env.local` for all four of us, with the secret key in it.
+
+**Revisit:** The first design that needs `lib/supabase/admin.ts`.

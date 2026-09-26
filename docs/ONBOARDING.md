@@ -142,16 +142,25 @@ Then:
 npm run db:reset
 ```
 
-Until STORY-01 lands there are no migrations, no `supabase/tests/` and no `lib/supabase/`
-directory, so skip `npm run db:types` and `npm run db:test` for now. `db:types` would fail
-outright, because it redirects into a folder that does not exist yet. Report that plainly
-rather than as a failure.
+**Expect:** every migration applies, then `supabase/seed.sql` loads the seeded accounts.
+Then run the database policy tests, and regenerate the types:
+
+```bash
+npm run db:test
+npm run db:types
+```
+
+**Expect:** `All tests successful`, and `git status` shows no change to
+`lib/supabase/database.types.ts`. If the types file changed, report it: the committed
+types are out of date.
 
 ### 8b. Everyone else: the shared cloud dev project
 
-🛑 **Stop.** Ask the teammate to get the dev project URL and publishable key from Adrian in
-a private message, and to paste them into `.env.local` themselves. You never see or
-repeat the values. If the dev project does not exist yet, skip this step and report it.
+🛑 **Stop.** Ask the teammate to get their `.env.local` from Adrian in a private message,
+and to save it themselves (D-029). It holds the dev project URL, the publishable key and
+`CLOUD_DEV_ACCOUNT_PASSWORD`, the password of the shared test accounts `host@`, `host2@`
+and `seeker@example.test` (D-028). It never holds the secret key. You never see or repeat
+the values. If Adrian hasn't sent it yet, skip this step and report it.
 
 ### 9. Checks
 
@@ -184,17 +193,18 @@ Ask the tool: "What must a branch be named in this repository?" It should answer
 
 ## Troubleshooting
 
-| Symptom                                                 | Cause                                              | What to do                                                                                    |
-| ------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `/usr/bin/env: 'sh\r'` when committing                  | A hook file was checked out with CRLF line endings | Pull the latest `main` (its `.gitattributes` forces LF), then `git checkout -- .husky`        |
-| Commit rejected: "the subject must look like…"          | The commit-msg hook                                | Use `type(scope): summary`; see [working with git](guides/working-with-git-and-prs.md)        |
-| Commit rejected: "byte-order mark"                      | The message was written by PowerShell 5.1          | Use `git commit -m`, or Git Bash                                                              |
-| `EBADENGINE` during `npm ci`                            | Node is not version 24                             | Install Node 24 (step 3)                                                                      |
-| `ERESOLVE` during `npm ci`                              | A dependency conflict                              | 🛑 Report it. Never use `--force` or `--legacy-peer-deps`                                     |
-| `lib/supabase/database.types.ts` is unreadable (UTF-16) | Types were generated with `>` in PowerShell        | Always run `npm run db:types`, never the raw command                                          |
-| `npm run db:start` fails on ports 54321–54324           | Another Supabase stack is running                  | `npx supabase stop --all`, then try again                                                     |
-| The app loads, but every list is empty                  | `.env.local` points at a wrong or paused project   | Check the URL. Free projects pause after about a week idle; wake it in the Supabase dashboard |
-| `permission denied for table …`                         | A table has no GRANT                               | 🛑 Report it. A migration must grant that table                                               |
+| Symptom                                                             | Cause                                                  | What to do                                                                                    |
+| ------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `/usr/bin/env: 'sh\r'` when committing                              | A hook file was checked out with CRLF line endings     | Pull the latest `main` (its `.gitattributes` forces LF), then `git checkout -- .husky`        |
+| Commit rejected: "the subject must look like…"                      | The commit-msg hook                                    | Use `type(scope): summary`; see [working with git](guides/working-with-git-and-prs.md)        |
+| Commit rejected: "byte-order mark"                                  | The message was written by PowerShell 5.1              | Use `git commit -m`, or Git Bash                                                              |
+| `EBADENGINE` during `npm ci`                                        | Node is not version 24                                 | Install Node 24 (step 3)                                                                      |
+| `ERESOLVE` during `npm ci`                                          | A dependency conflict                                  | 🛑 Report it. Never use `--force` or `--legacy-peer-deps`                                     |
+| `lib/supabase/database.types.ts` is unreadable (UTF-16)             | Types were generated with `>` in PowerShell            | Always run `npm run db:types`, never the raw command                                          |
+| `npm run db:start` fails on ports 54321–54324                       | Another Supabase stack is running                      | `npx supabase stop --all`, then try again                                                     |
+| The app loads, but every list is empty                              | `.env.local` points at a wrong or paused project       | Check the URL. Free projects pause after about a week idle; wake it in the Supabase dashboard |
+| `permission denied for table …`                                     | A table has no GRANT                                   | 🛑 Report it. A migration must grant that table                                               |
+| `Invalid login credentials` for a test account on the cloud project | The cloud accounts don't use the seed password (D-028) | Sign in with `CLOUD_DEV_ACCOUNT_PASSWORD` from `.env.local`                                   |
 
 ## Report back
 
@@ -202,8 +212,7 @@ Tell the teammate, in this order:
 
 1. Which steps passed, including whether `npm run check` passed.
 2. Anything skipped or failed, and why.
-3. Any file you changed other than `.env.local`. There should be none, except
-   `lib/supabase/database.types.ts` for the database owner.
+3. Any file you changed other than `.env.local`. There should be none.
 4. What to read next: [`SPRINT-1.md`](SPRINT-1.md), [`AGENTS.md`](../AGENTS.md) and
    [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 5. What to say next: **"Start my Sprint 1 story."** That runs the story loop in
