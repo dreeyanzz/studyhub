@@ -46,21 +46,21 @@ and what the right user is prevented from doing to their own rows.
 
 ## Index
 
-| Story    | Design doc                                           | Status                 |
-| -------- | ---------------------------------------------------- | ---------------------- |
-| STORY-01 | [STORY-01-database-rls.md](STORY-01-database-rls.md) | implemented 2026-09-26 |
-| STORY-02 |                                                      | not written            |
-| STORY-03 |                                                      | not written            |
-| STORY-04 |                                                      | not written            |
-| STORY-05 |                                                      | not written            |
-| STORY-06 |                                                      | not written            |
-| STORY-07 |                                                      | not written            |
-| STORY-08 |                                                      | not written            |
-| STORY-09 |                                                      | not written            |
-| STORY-10 |                                                      | not written            |
-| STORY-11 |                                                      | not written            |
-| STORY-12 |                                                      | not written            |
-| STORY-13 |                                                      | not written            |
-| STORY-14 |                                                      | not written            |
+| Story    | Design doc                                                         | Status                 |
+| -------- | ------------------------------------------------------------------ | ---------------------- |
+| STORY-01 | [STORY-01-database-rls.md](STORY-01-database-rls.md)               | implemented 2026-09-26 |
+| STORY-02 |                                                                    | not written            |
+| STORY-03 |                                                                    | not written            |
+| STORY-04 | [STORY-04-seeker-profile-crud.md](STORY-04-seeker-profile-crud.md) | draft                  |
+| STORY-05 |                                                                    | not written            |
+| STORY-06 |                                                                    | not written            |
+| STORY-07 |                                                                    | not written            |
+| STORY-08 |                                                                    | not written            |
+| STORY-09 |                                                                    | not written            |
+| STORY-10 |                                                                    | not written            |
+| STORY-11 |                                                                    | not written            |
+| STORY-12 |                                                                    | not written            |
+| STORY-13 |                                                                    | not written            |
+| STORY-14 |                                                                    | not written            |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.
