@@ -1,9 +1,9 @@
 # The job name `checks` is a required status check on main; renaming it blocks
 # every PR until the ruleset is updated. There are no `paths:` filters on
 # purpose: a required check that never runs leaves docs-only PRs waiting.
-# The job name `db` becomes a required check too once STORY-01 merges: it
-# applies every migration and seed.sql to a fresh local stack, then runs the
-# pgTAP policy tests.
+# The job name `db` is a required check too (D-014): it applies every migration
+# and seed.sql to a fresh local stack, runs the pgTAP policy tests, and checks
+# that the committed database types match the migrations.
 name: CI
 
 on:
@@ -55,3 +55,12 @@ jobs:
           npx supabase start
           -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - run: npm run db:test
+      # Every story imports these types, so a stale file would type their code
+      # against a schema that no longer exists.
+      - name: Generated types match the migrations
+        run: |
+          npm run db:types
+          git diff --exit-code lib/supabase/database.types.ts || {
+            echo "::error file=lib/supabase/database.types.ts::Out of date. Run npm run db:types and commit the result."
+            exit 1
+          }
