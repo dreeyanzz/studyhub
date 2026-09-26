@@ -61,6 +61,53 @@ export type Database = {
         }
         Relationships: []
       }
+      spaces: {
+        Row: {
+          address: string
+          closes_at: string
+          created_at: string
+          description: string | null
+          host_id: string
+          id: string
+          name: string
+          opens_at: string
+          status: Database["public"]["Enums"]["space_status"]
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          closes_at: string
+          created_at?: string
+          description?: string | null
+          host_id?: string
+          id?: string
+          name: string
+          opens_at: string
+          status?: Database["public"]["Enums"]["space_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          closes_at?: string
+          created_at?: string
+          description?: string | null
+          host_id?: string
+          id?: string
+          name?: string
+          opens_at?: string
+          status?: Database["public"]["Enums"]["space_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spaces_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -69,6 +116,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      space_status: "pending" | "verified" | "rejected"
       user_role: "seeker" | "host" | "admin"
     }
     CompositeTypes: {
@@ -200,6 +248,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      space_status: ["pending", "verified", "rejected"],
       user_role: ["seeker", "host", "admin"],
     },
   },
