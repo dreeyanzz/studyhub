@@ -330,3 +330,13 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** One identical `.env.local` for all four of us, with the secret key in it.
 
 **Revisit:** The first design that needs `lib/supabase/admin.ts`.
+
+## D-030 · Board automation
+
+**Decision:** The project board (D-022) runs four built-in workflows: sub-issues are added automatically; anything added starts in Product Backlog; a pull request that closes an issue moves it to Code Review; closing an issue moves it to Done. Only issues are cards, never pull requests. "Pull request merged" and "Auto-close issue" stay off. The [board guide](guides/board-guide.md#automation) lists them.
+
+**Why:** Cards should follow the work without anyone remembering to move them. On 26 Sep every workflow except the sub-issue one was found off, because the columns they set no longer existed. STORY-01 and its four tasks were closed but still sat in Sprint 1 Backlog and Code Review. One card per task keeps the five course columns readable.
+
+**Rejected:** Moving every card by hand (it went stale within a day); pull requests as cards too (each task would appear twice); "Auto-close issue" (dragging a card to Done would close an issue whose pull request hasn't merged).
+
+**Revisit:** If the course asks to see pull requests on the board.
