@@ -340,3 +340,17 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** Moving every card by hand (it went stale within a day); pull requests as cards too (each task would appear twice); "Auto-close issue" (dragging a card to Done would close an issue whose pull request hasn't merged).
 
 **Revisit:** If the course asks to see pull requests on the board.
+
+## D-031 · One set of design tokens, light mode only
+
+**Decision:**
+
+- Every color, font and corner radius comes from the design tokens in `app/globals.css`. Components use token classes such as `bg-primary`, never raw hex values or a palette of their own.
+- Sprint 1 ships light mode only. There is no theme switch, and the unused neutral `.dark` block is removed.
+- The shadcn/ui controls are at least 48×48 px (SRS §3.2.2). Their smaller generated sizes are removed, so no story can pick one.
+
+**Why:** Contrast is checked once per token pair, in STORY-02's design, and every page inherits the result. A second theme would double those checks, and no requirement asks for one.
+
+**Rejected:** Colors chosen per page (contrast fixes drift apart); dark mode in Sprint 1; shadcn's default 24–36 px control sizes.
+
+**Revisit if:** A story needs dark mode. It adds a `.dark` block whose pairs pass the same checks.

@@ -138,11 +138,11 @@ In accordance with the CPEPE361 Task Decomposition Spec, every user story includ
 
 1. Configure Tailwind 4 design tokens in the `@theme` block of `app/globals.css`, ensuring WCAG 2.1 AA compliance with minimum $4.5:1$ text contrast.
 2. Add accessible shadcn/ui primitives on Base UI (`npx shadcn add`): `Button`, `Input`, `Label`, `Card`, `Badge`, `Alert`, with visible keyboard focus rings.
-3. Build responsive public navigation header with dynamic login/register state.
-4. Build landing page (`/`) showcasing StudyHub's 3 core value pillars:
-   - _Live Snap-Grid Map_ (interactive seat view preview).
-   - _Verified Amenities_ (Wi-Fi tiers, power outlets, quiet zones).
-   - _Reserve-Now Holds_ (guaranteed seat upon arrival).
+3. Build responsive public navigation header with Log in and Sign up links. Whether it shows a signed-in state is left to STORY-03's design, which owns the session.
+4. Build landing page (`/`) describing StudyHub's 3 core value pillars in words, each marked with the sprint that delivers it, with no sample inventory or working-looking controls:
+   - _Snap-Grid Seat Map_ (pick an exact seat; Sprint 2).
+   - _Verified Amenities_ (Wi-Fi tiers, power outlets, quiet zones; Sprint 2).
+   - _Reserve-Now Holds_ (guaranteed seat upon arrival; Sprint 3).
 5. Build accessible, semantic footer with platform disclaimers and navigation links.
 
 #### Acceptance Criteria:
