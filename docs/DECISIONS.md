@@ -354,3 +354,13 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** Colors chosen per page (contrast fixes drift apart); dark mode in Sprint 1; shadcn's default 24–36 px control sizes.
 
 **Revisit if:** A story needs dark mode. It adds a `.dark` block whose pairs pass the same checks.
+
+## D-032 · Administrator portal access
+
+**Decision:** The `admin` role may open every portal: `/admin`, `/seeker` and `/host`. Seekers may open only `/seeker`, and Hosts only `/host`.
+
+**Why:** Administrators verify spaces and moderate reviews and listings (SRS §3.1.5, FR-5.1, FR-5.2), which means seeing what Seekers and Hosts see. This settles the Sprint 1 brief's question and matches what STORY-06's tests assume.
+
+**Rejected:** Restricting Administrators to `/admin`, which would leave them auditing the other portals through separate test accounts.
+
+**Revisit:** If role impersonation or a separate auditor view is introduced.
