@@ -50,7 +50,7 @@ How a denial shows up depends on the operation:
 
 - Start each file with `begin; select plan(n);` and end it with `select * from finish(); rollback;`.
 - To act as a user, use `set local role authenticated` together with `set local request.jwt.claims = '{"sub": "<user id>", "role": "authenticated"}'`.
-- The seed users come from `supabase/seed.sql`, which arrives with the first migration in STORY-01, together with `supabase/tests/`.
+- The seed users come from `supabase/seed.sql`, which lists each account's fixed id at the top. Act as one by putting its id in `sub`.
 
 **Watch a new test fail once before you trust it.** Remove the policy, run the test, see
 it go red, then put the policy back.

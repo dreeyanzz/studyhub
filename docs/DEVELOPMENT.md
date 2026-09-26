@@ -28,13 +28,13 @@ project after about a week without activity, so wake it the day before any demo.
 
 ## Environments
 
-| Environment            | Database                                                         | App                   | Data                                 |
-| ---------------------- | ---------------------------------------------------------------- | --------------------- | ------------------------------------ |
-| Local (database owner) | `npm run db:start` (Docker)                                      | `npm run dev`         | `supabase/seed.sql`, invented        |
-| Local (everyone else)  | Shared cloud dev project                                         | `npm run dev`         | Shared dev data, invented            |
-| Preview                | Shared cloud dev project                                         | Vercel preview per PR | Shared dev data, invented            |
-| Production             | Production project                                               | Vercel, from `main`   | Demo data, invented; no seeded admin |
-| CI                     | A fresh local stack per run (the `db` job arrives with STORY-01) | None                  | `supabase/seed.sql`, from STORY-01   |
+| Environment            | Database                                   | App                   | Data                                 |
+| ---------------------- | ------------------------------------------ | --------------------- | ------------------------------------ |
+| Local (database owner) | `npm run db:start` (Docker)                | `npm run dev`         | `supabase/seed.sql`, invented        |
+| Local (everyone else)  | Shared cloud dev project                   | `npm run dev`         | Shared dev data, invented            |
+| Preview                | Shared cloud dev project                   | Vercel preview per PR | Shared dev data, invented            |
+| Production             | Production project                         | Vercel, from `main`   | Demo data, invented; no seeded admin |
+| CI                     | A fresh local stack per run (the `db` job) | None                  | `supabase/seed.sql`, invented        |
 
 ## Secrets
 
