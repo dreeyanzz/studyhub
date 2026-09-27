@@ -133,14 +133,14 @@ Shared between browser client and Server Actions using Zod:
    - `fullName`: string, trimmed, min 1 char, max 100 chars (`"Full name is required"` / `"Full name must not exceed 100 characters"`).
    - `email`: string, trimmed, lowercase, valid email format (`"Please enter a valid email address"`).
    - `role`: `z.enum(['seeker', 'host'], { error: 'Please select whether you are a Seeker or a Host' })` (Zod 4 syntax).
-   - `password`: string, min 8 chars (`"Password must be at least 8 characters"`), max 72 chars, must contain at least one digit (`"Password must contain at least one number"`), must contain at least one symbol/special character (`"Password must contain at least one symbol"`).
+   - `password`: string, min 8 chars (`"Password must be at least 8 characters"`), max 72 chars (`"Password must be 72 characters or fewer"`, the bcrypt limit), must contain at least one digit (`"Password must contain at least one number"`), must contain at least one symbol/special character (`"Password must contain at least one symbol"`).
    - `confirmPassword`: string.
    - Refinement: `password === confirmPassword` (`"Passwords do not match"`).
 
 2. **`loginSchema`**:
    - `email`: string, trimmed, lowercase, valid email format.
    - `password`: string, min 1 char (`"Password is required"`).
-   - `returnUrl`: optional string, validated by `sanitizeReturnUrl` (must begin with a single `/`, and must not begin with `//` or `/\` or contain a backslash, to rule out open redirects).
+   - `returnUrl`: optional string, validated by `sanitizeReturnUrl` (must begin with a single `/`, and must not begin with `//` or `/\` or contain a backslash or a control character, and must not normalize to a path beginning with `//`, to rule out open redirects). An unsafe value is dropped, not reported as an error.
 
 ### Route Access Matrix (`lib/auth/role-guard.ts`)
 
@@ -182,10 +182,10 @@ lib/
     proxy.ts                   Supabase client adapter for Next 16 Proxy (cookie get/set on NextResponse)
   auth/
     role-guard.ts              Pure route authorization decision function: evaluateRouteAccess()
-    role-guard.test.ts         Vitest unit tests for role guard matrix and returnUrl sanitization
+    role-guard.test.ts         Vitest unit tests for the role guard matrix
   validation/
     auth.ts                    Zod schemas: loginSchema, registerSchema, sanitizeReturnUrl
-    auth.test.ts               Vitest unit tests for validation rules (boundary and regex tests)
+    auth.test.ts               Vitest unit tests for validation rules and returnUrl sanitization
 ```
 
 ### Accessibility (WCAG 2.1 AA)
@@ -211,7 +211,7 @@ lib/
 | **Vitest** (`role-guard.test.ts`) | `host` requests `/seeker` or `/admin`                                                   | Redirects to `/host`                                               |
 | **Vitest** (`role-guard.test.ts`) | `admin` requests `/admin`, `/seeker`, or `/host`                                        | Access allowed for all portals                                     |
 | **Vitest** (`role-guard.test.ts`) | Signed-in user requests `/login` or `/register`                                         | Redirects to user's dashboard                                      |
-| **Vitest** (`role-guard.test.ts`) | Malicious `returnUrl` (`//evil.com`, `/\evil.com`, `https://evil.com`)                  | Sanitized to role dashboard (no open redirect)                     |
+| **Vitest** (`auth.test.ts`)       | Malicious `returnUrl` (`//evil.com`, `/\evil.com`, `/.//evil.com`, `https://evil.com`)  | Sanitized to role dashboard (no open redirect)                     |
 | **Manual**                        | Signed-in Seeker sets `role: "admin"` in their own `user_metadata`, then opens `/admin` | Still redirected to `/seeker`: the guard reads `profiles.role`     |
 | **Manual**                        | Sign up new Seeker (`test-seeker@example.test`)                                         | Profile created with role `seeker`; redirected to `/seeker`        |
 | **Manual**                        | Sign up new Host (`test-host@example.test`)                                             | Profile created with role `host`; redirected to `/host`            |
@@ -260,6 +260,10 @@ One PR per row, and every PR targets `main`:
 _(To be filled when the story is implemented)_
 
 - what turned out different from this plan, and why:
+  - `returnUrl` must also have no control character and must not normalize to a path beginning with `//`. The first version checked only the raw text, so `/.//evil.com` came back as `//evil.com`, an open redirect (#106).
+  - An unsafe `returnUrl` on `loginSchema` is dropped, not reported as an error, so a tampered link cannot block a login (#106).
+  - The 72-character password limit has its own message, which §2 did not give (#106).
+  - The `returnUrl` tests live in `auth.test.ts`, next to `sanitizeReturnUrl`, not in `role-guard.test.ts` (#106).
 - status line changed to `implemented YYYY-MM-DD`:
 - docs this story changed:
 - who verified each acceptance criterion:
