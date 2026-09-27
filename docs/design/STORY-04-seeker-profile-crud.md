@@ -131,4 +131,9 @@ None. The fields and rules are settled by D-027 and STORY-01. Zod arrives with S
 
 ## 9. After the build
 
-To be filled in when STORY-04 is done.
+**Different from the plan so far:**
+
+- The schema keeps an empty phone number as `''`; `updateProfile()` saves it as `null` (TSK-04.4). Doing it in the schema would make the form's input and output types differ (#104).
+- A phone number over 20 characters gets its own message, `"Phone number must be 20 characters or fewer"`, instead of `"Invalid phone number format"` (#104).
+
+The rest is to be filled in when STORY-04 is done.
