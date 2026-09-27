@@ -260,6 +260,10 @@ One PR per row, and every PR targets `main`:
 _(To be filled when the story is implemented)_
 
 - what turned out different from this plan, and why:
+  - `returnUrl` must also have no control character and must not normalize to a path beginning with `//`. The first version checked only the raw text, so `/.//evil.com` came back as `//evil.com`, an open redirect (#106).
+  - An unsafe `returnUrl` on `loginSchema` is dropped, not reported as an error, so a tampered link cannot block a login (#106).
+  - The 72-character password limit has its own message, which §2 did not give (#106).
+  - The `returnUrl` tests live in `auth.test.ts`, next to `sanitizeReturnUrl`, not in `role-guard.test.ts` (#106).
 - status line changed to `implemented YYYY-MM-DD`:
 - docs this story changed:
 - who verified each acceptance criterion:
