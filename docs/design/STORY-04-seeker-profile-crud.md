@@ -57,7 +57,7 @@ sequenceDiagram
 - **Tables and columns:** none new. The action updates `public.profiles.full_name` and `phone_number`. `id` and `role` cannot be changed by the user: STORY-01 grants `update` on those two columns only, so a change to `id` or `role` fails with `42501` (D-027).
 - **Zod schema in `lib/validation/profile.ts`:**
   - `full_name`: string, trimmed, 1–100 characters (`"Full name is required"`, `"Full name must be 100 characters or fewer"`).
-  - `phone_number`: optional string, trimmed, up to 20 characters, matching `/^[0-9+\-\s()]*$/` (`"Invalid phone number format"`). An empty value is saved as `null`.
+  - `phone_number`: optional string, trimmed, up to 20 characters (`"Phone number must be 20 characters or fewer"`), matching `/^[0-9+\-\s()]*$/` (`"Invalid phone number format"`). The schema passes an empty value through as `''`; `updateProfile()` saves it as `null` (TSK-04.4).
 - **RLS policies and GRANTs:** unchanged from STORY-01. A Seeker selects and updates only their own `profiles` row.
 
 ## 3. UI and files
@@ -80,17 +80,17 @@ lib/validation/
 
 ## 4. Security and test matrix
 
-| Layer  | Case                                                         | Expected                                                   |
-| ------ | ------------------------------------------------------------ | ---------------------------------------------------------- |
-| Vitest | Valid `full_name` and `phone_number`                         | Passes                                                     |
-| Vitest | Empty or whitespace-only `full_name`, or over 100 characters | Fails with the matching message                            |
-| Vitest | `phone_number` over 20 characters or with letters or symbols | Fails with `"Invalid phone number format"`                 |
-| Vitest | Empty `phone_number`                                         | Passes, and becomes `null`                                 |
-| pgTAP  | A Seeker reads their own profile                             | 1 row (already in `supabase/tests/01-profiles.sql`)        |
-| pgTAP  | A Seeker reads or updates another user's profile             | 0 rows; 0 rows affected, row unchanged (already in 01)     |
-| pgTAP  | A Seeker changes their own `role` or `id`                    | `42501` (already in 01)                                    |
-| Manual | `seeker@example.test` edits the profile, then refreshes      | The new values are still there                             |
-| Manual | 360, 768 and 1024 px; keyboard only                          | No sideways scrolling; every control reachable, focus seen |
+| Layer  | Case                                                                          | Expected                                                   |
+| ------ | ----------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Vitest | Valid `full_name` and `phone_number`, including exactly 100 and 20 characters | Passes                                                     |
+| Vitest | Empty or whitespace-only `full_name`, or over 100 characters                  | Fails with the matching message                            |
+| Vitest | `phone_number` over 20 characters or with letters or symbols                  | Fails with the matching message                            |
+| Vitest | Empty `phone_number`                                                          | Passes as `''` (the action saves it as `null`, TSK-04.4)   |
+| pgTAP  | A Seeker reads their own profile                                              | 1 row (already in `supabase/tests/01-profiles.sql`)        |
+| pgTAP  | A Seeker reads or updates another user's profile                              | 0 rows; 0 rows affected, row unchanged (already in 01)     |
+| pgTAP  | A Seeker changes their own `role` or `id`                                     | `42501` (already in 01)                                    |
+| Manual | `seeker@example.test` edits the profile, then refreshes                       | The new values are still there                             |
+| Manual | 360, 768 and 1024 px; keyboard only                                           | No sideways scrolling; every control reachable, focus seen |
 
 This story adds no table or policy, so it adds no pgTAP tests: STORY-01's tests already cover the wrong user and the forbidden writes.
 
