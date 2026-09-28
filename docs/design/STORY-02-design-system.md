@@ -1,6 +1,6 @@
 # STORY-02: Accessible design system and public shell
 
-**Status:** approved 2026-09-26 · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
+**Status:** implemented 2026-09-28 · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
 **FR:** SRS §3.2.2, §3.7.1 · **Depends on:** none · **Decisions:** D-002, D-005, D-010, D-016, D-018, D-026, D-031
 
 ## 0. Scope
@@ -127,4 +127,25 @@ Each branch starts from current `main`; each PR targets `main`.
 
 ## 9. After the build
 
-Pending implementation: record deviations, changed docs and who verified each acceptance criterion, then set the status to `implemented YYYY-MM-DD`. No implementation or acceptance checks are claimed by this draft.
+Built in two PRs, in the §6 order: #102 (tokens and primitives) and the public shell (TSK-02.2, built by Adrian's agent to help @fayeye-09).
+
+**Different from the plan:**
+
+- Badge has no link variant or anchor hover styles: badges are never links, so none can become a target smaller than 48×48 px (#102).
+- The primitives import `cn` through `@/lib/utils`, the alias in `components.json` (#102).
+- The Worq name in the header is a link home, styled as a ghost button so it meets the 48×48 px target. Header links use the ghost and outline Button styles, and footer links the `link` style, instead of hand-written `min-h-12 min-w-12` classes (TSK-02.2).
+- Classes added to `buttonVariants()` go through `cn()`, because `buttonVariants({ className })` only joins the strings, and the primitive's `text-sm` then beat `text-2xl` (TSK-02.2).
+- The benefits section has anchors for both roles, `#for-seekers` and `#for-hosts`; the header links only to `#for-hosts` (TSK-02.2).
+- The hero says Worq is being built in stages, so a visitor does not expect search or holds yet (TSK-02.2).
+
+**Docs this story changed:** AGENTS.md (`components/ui/` on `main`, #102).
+
+**Acceptance criteria (#51):** checked by Adrian's agent (Claude Code) in the browser pane on the local dev server, 2026-09-28.
+
+| Criterion                                              | How it was verified                                                                                                                                                                          |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tokens meet 4.5:1 text contrast                        | Token pairs computed in #102; on the rendered page, every text/background pair measured with the WCAG formula, the lowest 5.59:1 (muted-foreground on muted, the footer)                     |
+| Six primitives with visible keyboard focus             | #102; the focused skip link and Buttons draw a 2 px background offset and a 3 px `#215c3f` ring                                                                                              |
+| Targets at least 48×48 px                              | Every link and button on `/` measured at 360, 768 and 1024 px: none under 48×48                                                                                                              |
+| No horizontal scrolling at 360, 768 and 1024 px        | `scrollWidth - clientWidth` is 0 at each width, and no element extends past the viewport                                                                                                     |
+| Keyboard reaches every control (Tab, Shift+Tab, Enter) | The first Tab shows the skip link; Enter moves focus to `main#main-content`; Tab continues to the hero's links and Shift+Tab returns. The page has no buttons, so Space has nothing to press |
