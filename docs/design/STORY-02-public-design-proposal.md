@@ -14,31 +14,31 @@ This document makes that difference reviewable. It does not supersede the approv
 
 **Out:** real Space discovery, inventory, availability, maps, holds, payments, session-aware navigation and authentication. These remain with their owning stories.
 
-## 1. Decision needed
+## 1. Selected direction, pending Adrian review
 
-Recommended direction: use a follow-up after #116, retaining its approved scope while reviewing the photo-led design separately. Before implementation, agree whether to retain only the visual composition or also permit the prototype's illustrative filtering.
+Faith selected option A on 2026-09-28: retain the Public visual composition with noninteractive example cards. Use explanatory content in the floating panel instead of selects, search, reset or result-count controls. The proposed timing remains a follow-up after #116, subject to agreement with Adrian. This owner preference is not merged design approval.
 
-| Option                                   | Behavior                                                                                                                    | Tradeoff                                                                                                                                              |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A: visual composition only (recommended) | Photo hero, Host promotion and clearly illustrative, noninteractive cards; replace search controls with explanatory content | Keeps the approved exclusion of search behavior and avoids controls that look like real discovery                                                     |
-| B: explicitly illustrative filtering     | Two labeled selects filter four static examples; empty state, reset and result-count announcement; no network query         | Matches the current prototype more closely, but changes the approved design's explicit exclusion of functional-looking filters and invented inventory |
+| Option                                              | Behavior                                                                                                                    | Tradeoff                                                                                                                                              |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A: visual composition only (selected by Faith)      | Photo hero, Host promotion and clearly illustrative, noninteractive cards; replace search controls with explanatory content | Keeps the approved exclusion of search behavior and avoids controls that look like real discovery                                                     |
+| B: explicitly illustrative filtering (not selected) | Two labeled selects filter four static examples; empty state, reset and result-count announcement; no network query         | Matches the current prototype more closely, but changes the approved design's explicit exclusion of functional-looking filters and invented inventory |
 
-Faith requested the visual reference, but the choice between these behaviors remains open. The screenshots show option B as a prototype, not an approved requirement. Adrian and Faith should settle the option and whether it is a follow-up before a code PR is opened.
+The screenshots show the earlier option B prototype and illustrate composition only. Its selects, search button, clickable example cards, reset and result-count behavior are not part of the selected direction. Adrian still needs to review the visual scope, including the illustrative photography, and agree timing before a code PR is opened.
 
 ## 2. Flow and state
 
 For option A, the server renders the page; visitors follow section links or authentication links supplied by STORY-03. No client filtering state is needed.
 
-For option B, the public layout remains a Server Component and the example filter region owns client state. Draft type/atmosphere values become applied filters on submit; reset restores all examples. A pure matcher is tested for wildcard, individual, combined and no-match cases. No persistence, tables, schemas, policies, credentials or Server Actions participate. A cross-layer sequence diagram is unnecessary because no backend is called.
+No client filter state, matcher, reset or live result-count announcement is needed for the selected option. The existing filtering prototype stays in its local checkpoint as historical work. No persistence, tables, schemas, policies, credentials or Server Actions participate. A cross-layer sequence diagram is unnecessary because no backend is called.
 
-In either option, account creation must not be described as available while its destination is absent. Cards should not imply available seats or working reservations. If cards navigate to registration, their purpose and accessible names must make that destination clear; noninteractive examples are preferable for option A.
+Account creation must not be described as available while its destination is absent. Example cards are noninteractive content: no links, buttons or tab stops, and no implication of available seats or working reservations. Keep explicit section navigation and separate authentication links.
 
 ## 3. Proposed files and execution order
 
-1. Agree the option and timing here. Update the canonical STORY-02 design in a reviewed design change before implementation, per D-016. If #116 merges first, preserve its implementation record and define this as a follow-up; do not rewrite that history as if the prototype had shipped.
+1. Have Adrian review the selected option and agree timing here. Update the canonical STORY-02 design in a reviewed design change before implementation, per D-016. If #116 merges first, preserve its implementation record and define this as a follow-up; do not rewrite that history as if the prototype had shipped.
 2. Build from fresh main after the design is approved. Reuse the public layout/header/footer delivered by #116; do not duplicate its task or open a competing full-shell PR.
 3. Change `app/(public)/page.tsx` and route-local `discovery.css` for the approved composition. Keep shared tokens and primitives unchanged unless separately justified.
-4. Only for option B, add the example matcher and adjacent tests under `lib/public/`; keep browser-only filter state scoped to the example region.
+4. Implement the explanatory panel and noninteractive example cards as server-rendered content. Do not port the prototype's filter state, matcher, filter tests or registration links on example cards.
 5. Complete responsive, enlarged-text, focus, contrast, photo-fallback and navigation checks. Refresh screenshots from the exact implementation commit.
 6. Open one implementation PR targeting main with its approved design, evidence and AI disclosure. Adrian remains the merger.
 
@@ -53,7 +53,7 @@ No new task number or estimate is assigned until the scope and timing are agreed
 | Keyboard                            | Skip link first; Enter focuses main; Tab and Shift+Tab reach every control with visible focus; native link/button activation |
 | Targets and contrast                | At least 48×48 px; text at least 4.5:1; focus at least 3:1; measure hover/focus states                                       |
 | Photography                         | Readable token fallbacks with blocked/failed images; opaque text surfaces where needed; agree image sourcing before shipping |
-| Option B only                       | Accurate example labels, filter combinations, empty state, reset and polite result count; no real discovery requests         |
+| Static examples                     | Clearly illustrative labels; cards are not focusable or clickable; no search-like controls or real discovery requests        |
 | Integration                         | Verify auth destinations when STORY-03 lands; no claim of current account creation before then                               |
 | Repository                          | npm run check, npm run build and git diff --check pass                                                                       |
 
@@ -73,7 +73,7 @@ The prototype previously passed default-width, keyboard, filter and contrast che
 ## 6. Open questions for Adrian and Faith
 
 - Accept the photo-led direction as a follow-up to #116, or revise the current task before it lands?
-- Choose option A or approve option B as an explicit change to the current scope?
-- Confirm photography sourcing and whether example cards are noninteractive.
+- Adrian: accept Faith's selected option A, including clearly illustrative photographic content, as the revised visual scope?
+- Confirm photography sourcing. Example cards are noninteractive under the selected direction.
 
 Until those are settled and the canonical design is updated, this remains a draft. The approved STORY-02 design remains authoritative.
