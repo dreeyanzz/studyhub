@@ -124,7 +124,7 @@ Each branch starts from current `main`; each PR targets `main`.
 
 - **A signed-in header.** Whether the header shows a signed-in state, such as a link to the user's dashboard, is left to STORY-03's design, because STORY-03 owns the session. Until then everyone sees Log in and Sign up. The Sprint 1 brief asks Luke's design to settle it.
 - Authentication destinations must be rechecked when STORY-03 merges. No blocking database dependency.
-- **A new visual direction is a follow-up, not part of this story.** In review of TSK-02.2, @fayeye-09 proposed a look with a curved photo hero, a floating filter area, host promotion and photo cards. §0 and §7 rule out sample inventory and working-looking search controls, so it needs a revision of this design before any code; it fits best once search exists (STORY-08). Decided by Adrian, 2026-09-28.
+- **A new visual direction is a follow-up, not part of this story.** In review of TSK-02.2, @fayeye-09 proposed a photo-led landing page (#117). On 2026-09-28 Adrian accepted her option A: a photo hero, Host promotion, an explanatory panel instead of filters, and noninteractive example cards labelled as illustrative, with free-license stock photos. §0 and §7 rule out invented inventory, so this design is revised first, with a decision entry (D-033), and the build follows once the Sprint 1 Musts are safe.
 
 ## 9. After the build
 
