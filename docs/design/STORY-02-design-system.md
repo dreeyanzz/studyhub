@@ -1,13 +1,15 @@
 # STORY-02: Accessible design system and public shell
 
-**Status:** implemented 2026-09-28 · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
-**FR:** SRS §3.2.2, §3.7.1 · **Depends on:** none · **Decisions:** D-002, D-005, D-010, D-016, D-018, D-026, D-031
+**Status:** original shell implemented 2026-09-28; option A follow-up design pending merge · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
+**FR:** SRS §3.2.2, §3.7.1 · **Depends on:** none · **Decisions:** D-002, D-005, D-010, D-016, D-018, D-026, D-031, D-033
 
 ## 0. Scope
 
 **In:** Tailwind 4 semantic tokens; shadcn/ui Button, Input, Label, Card, Badge and Alert; Worq landing page, public header and footer. Deliver the tokens and shared components first so STORY-03, 04 and 05 can use them.
 
-**Out:** authentication, dashboards, database access, search/filter behavior, maps, availability and holds. Describe future discovery and reserve-now features in words, as coming in Sprint 2/3; do not display invented inventory or functional-looking search controls. Whether the header shows a signed-in state is STORY-03's call (§8).
+**Out:** authentication, dashboards, database access, search/filter behavior, maps, availability and holds. Describe future discovery and reserve-now features in words, as coming in Sprint 2/3; do not display invented inventory or functional-looking search controls. D-033 permits only clearly illustrative, noninteractive photographic examples in the follow-up. Whether the header shows a signed-in state is STORY-03's call (§8).
+
+**Follow-up scope (option A):** photo hero, Host promotion, an explanatory panel and four noninteractive example cards. Label them "illustrative spaces, not live listings". No links, buttons or tab stops on example cards; no search-like controls, seat counts, "open now" or availability states. CTAs lead only to `/register`, `/login` or `#how-it-works`. This is separate from completed TSK-02.2. Adrian accepted this direction in [PR #117](https://github.com/dreeyanzz/studyhub/pull/117#issuecomment-5866841931); the design change still requires review and merge.
 
 ## 1. Flow
 
@@ -20,6 +22,8 @@ No tables, enums, policies, GRANTs, Zod schemas or persistent state. No session 
 ## 3. UI and files
 
 **Look.** Forest green, warm cream and sage, with Georgia headings (falling back to `serif`) over the existing Geist body font. Light mode only: no theme switch, and the unused neutral `.dark` block in `app/globals.css` is removed (D-031). Spacing uses Tailwind's 4 px scale. Corners come from the existing `--radius` of 10 px: controls keep `rounded-lg` (10 px) and cards keep the generated `rounded-xl` (14 px).
+
+**Follow-up look:** retain the Public reference composition using the existing tokens: curved workspace-photo hero, left-aligned serif heading, floating explanatory panel, Host promotion and four clearly illustrative photo cards. Replace the prototype's selects/search/reset with explanatory text; cards are ordinary content, never navigation. Keep all text sizes in `rem` and use content-aware grids with `rem` minimum widths so enlarged text reflows rather than clips. Reuse #116's layout, header and footer. Keep the page a Server Component; no filter state or matcher is needed.
 
 Every color comes from a token (D-031). Contrast below is computed with the WCAG formula; text needs ≥4.5:1.
 
@@ -79,6 +83,18 @@ Keep `app/layout.tsx` as the shared root. Header section links use `/#how-it-wor
 
 **Copy.** Public text says Worq, never StudyHub (D-026), and uses the glossary's words: Seeker, Host, Space, hold. It never calls availability real-time or live (D-002). The footer states that payments run in sandbox mode, so no real money moves (D-005), and that each Host updates their own availability (D-002).
 
+### Follow-up photography and files
+
+Use free-license Unsplash or Pexels stock photos with no identifiable people. Verify each selected photo and its license before use. Store compressed assets in `public/images/public-landing/`; do not hotlink or copy the prototype's remote URLs into application code. Prefer WebP/AVIF sized to their rendered use, with a target of at most 250 KB per asset (document an exception if image quality requires it). Reuse images across hero/promotion/cards when appropriate. Keep token fallbacks and opaque text surfaces readable when an image fails.
+
+The implementation changes only `app/(public)/page.tsx`, route-local `app/(public)/discovery.css` if needed, local photo assets, and this document's sourcing/evidence record. Shared tokens, primitives, authentication and database code stay outside the follow-up.
+
+**Photo register:** no production photos have been selected or downloaded in this design-only change. The earlier prototype screenshots are composition references, not approved assets. Before adding any photo to the implementation PR, replace the pending row below with one row per unique image, verifying the source page, photographer, license and absence of identifiable people. Missing attribution/license records block implementation review.
+
+| Local asset                            | Original photo page URL         | Photographer | License URL and verification date | People/content check   | Size                    |
+| -------------------------------------- | ------------------------------- | ------------ | --------------------------------- | ---------------------- | ----------------------- |
+| Pending selection during the follow-up | Required before asset inclusion | Required     | Required                          | No identifiable people | Record compressed bytes |
+
 ## 4. Security and test matrix
 
 | Layer    | Case                                                                              | Expected                                                                                       |
@@ -93,6 +109,8 @@ Keep `app/layout.tsx` as the shared root. Header section links use `/#how-it-wor
 
 Do not add unit tests that only mirror static markup. Each task's PR attaches its evidence: screenshots at 360, 768 and 1024 px, the measured contrast pairs, and the keyboard path through every control.
 
+For the follow-up, test all required widths at 100%, 150% and 200% text size and with browser zoom. Inspect clipped/overlapping elements as well as document overflow. Verify examples are not focusable or clickable, CTAs reach the listed destinations, images load locally, and blocked images preserve readable content. Refresh screenshots from the exact implementation commit; prototype evidence is not acceptance evidence.
+
 ## 5. Tasks and estimates
 
 Create sub-issues only after this design is merged. Total: 5 points / 2 days.
@@ -101,6 +119,8 @@ Create sub-issues only after this design is merged. Total: 5 points / 2 days.
 | -------- | ------------------------------------------------------------------------- | ---------- | ------ | ---- | --------------- |
 | TSK-02.1 | Tokens, six primitives and accessibility checks                           | @fayeye-09 | 3      | 1    | Design merged   |
 | TSK-02.2 | Public layout, landing page, header/footer and responsive/keyboard checks | @fayeye-09 | 2      | 1    | TSK-02.1 merged |
+
+**Follow-up task (create only after this design change merges):** implement option A and its photo sourcing/accessibility evidence; owner @fayeye-09; estimate 3 points / 1.5 working days. Assign the next available TSK-02 number when creating the issue; do not reopen or replace TSK-02.2. Dependencies: this revision merged, #116 merged, and Adrian confirms Sprint 1 Musts (STORY-03/04/05) are safe. Otherwise schedule early Sprint 2. The original 5-point estimate above describes the completed baseline only.
 
 ## 6. Build order
 
@@ -111,6 +131,8 @@ Each branch starts from current `main`; each PR targets `main`.
 | 1   | `feature/STORY-02-ui-foundations` | `feat(STORY-02): add accessible ui foundations` | TSK-02.1 |
 | 2   | `feature/STORY-02-public-shell`   | `feat(STORY-02): add responsive public shell`   | TSK-02.2 |
 
+After the gates above, branch from fresh `main`, reuse the merged public shell, and open one follow-up implementation PR to `main`. Do not publish the historical filtering prototype as the implementation.
+
 ## 7. Rejected alternatives
 
 - **Per-page colors:** they duplicate tokens and make contrast corrections inconsistent (D-031).
@@ -118,13 +140,15 @@ Each branch starts from current `main`; each PR targets `main`.
 - **shadcn's default sizes:** 24–36 px controls fail the 48×48 px targets of SRS §3.2.2 (D-031).
 - **A custom mobile menu:** it adds client state without a navigation need; the links wrap instead.
 - **The Sprint 1 plan's interactive seat-map preview:** fake inventory would imply functionality owned by later stories, and D-002 rules out calling it live. This PR updates the plan to describe the pillars in words.
+- **Interactive example filters and clickable stock cards:** excluded from option A; they imply discovery or navigation beyond this follow-up. D-033 allows illustrative imagery, not invented inventory.
+- **Hotlinked stock images or fixed-pixel text:** excluded from the follow-up; assets must be local and attributed, and text must resize in `rem`.
 - **A signed-in header in this story:** STORY-02 is due before STORY-03 can say who is signed in (§8).
 
 ## 8. Open questions
 
 - **A signed-in header.** Settled in STORY-03's design §8: in Sprint 1 everyone sees Log in and Sign up, and a signed-in user who follows either is sent to their dashboard by the proxy. The public pages read no session.
 - Authentication destinations rechecked on 2026-09-28, with STORY-03 on `main`: the header's Log in link and both Sign up links open the real `/login` and `/register` pages. No blocking database dependency.
-- **A new visual direction is a follow-up, not part of this story.** In review of TSK-02.2, @fayeye-09 proposed a photo-led landing page (#117). On 2026-09-28 Adrian accepted her option A: a photo hero, Host promotion, an explanatory panel instead of filters, and noninteractive example cards labelled as illustrative, with free-license stock photos. §0 and §7 rule out invented inventory, so this design is revised first, with a decision entry (D-033), and the build follows once the Sprint 1 Musts are safe.
+- **A new visual direction is a follow-up, not part of this story.** In review of TSK-02.2, @fayeye-09 proposed a photo-led landing page (#117). On 2026-09-28 Adrian accepted her option A: a photo hero, Host promotion, an explanatory panel instead of filters, and noninteractive example cards labelled as illustrative, with free-license stock photos. This revision records that limited exception in §0, §3 and D-033. Build only after the design merges and Adrian confirms the Sprint 1 Musts are safe, or early in Sprint 2. Photo selection is an implementation gate, not a claim that the prototype assets are approved.
 
 ## 9. After the build
 
