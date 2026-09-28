@@ -266,6 +266,9 @@ _(To be filled when the story is implemented)_
   - The `returnUrl` tests live in `auth.test.ts`, next to `sanitizeReturnUrl`, not in `role-guard.test.ts` (#106).
   - `evaluateRouteAccess()` takes an optional third argument, the query string, so `/login?returnUrl=…` keeps it. It also exports `dashboardFor(role)`, so `login` and the auth callback send people to the same dashboards as the guard (TSK-03.2).
   - The guard matches on the first path segment only, so `/seekers` or `/hostel` is a public path, not a portal (TSK-03.2).
+  - `updateSession()` in `lib/supabase/proxy.ts` returns the role with `next()` and `redirect(path)`, so the page and the redirect both carry a refreshed session cookie and Supabase's `no-store` cache headers. `setAll` can run more than once per request, and only its first call carries the headers, so they are merged, not replaced (TSK-03.3).
+  - `lib/supabase/proxy.test.ts` tests the adapter with Supabase mocked, beside `client.test.ts` and `server.test.ts`; §4 listed no proxy tests (TSK-03.3).
+  - Every page now needs the two `NEXT_PUBLIC_SUPABASE_` variables, because the proxy runs on every page request. `DEVELOPMENT.md` and `ONBOARDING.md` say so (TSK-03.3).
 - status line changed to `implemented YYYY-MM-DD`:
 - docs this story changed:
 - who verified each acceptance criterion:
