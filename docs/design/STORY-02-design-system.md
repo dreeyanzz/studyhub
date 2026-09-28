@@ -1,6 +1,6 @@
 # STORY-02: Accessible design system and public shell
 
-**Status:** original shell implemented 2026-09-28; option A follow-up design pending merge · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
+**Status:** original shell implemented 2026-09-28; option A follow-up approved 2026-09-28 (#117) · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
 **FR:** SRS §3.2.2, §3.7.1 · **Depends on:** none · **Decisions:** D-002, D-005, D-010, D-016, D-018, D-026, D-031, D-033
 
 ## 0. Scope
@@ -9,7 +9,7 @@
 
 **Out:** authentication, dashboards, database access, search/filter behavior, maps, availability and holds. Describe future discovery and reserve-now features in words, as coming in Sprint 2/3; do not display invented inventory or functional-looking search controls. D-033 permits only clearly illustrative, noninteractive photographic examples in the follow-up. Whether the header shows a signed-in state is STORY-03's call (§8).
 
-**Follow-up scope (option A):** photo hero, Host promotion, an explanatory panel and four noninteractive example cards. Label them "illustrative spaces, not live listings". No links, buttons or tab stops on example cards; no search-like controls, seat counts, "open now" or availability states. CTAs lead only to `/register`, `/login` or `#how-it-works`. This is separate from completed TSK-02.2. Adrian accepted this direction in [PR #117](https://github.com/dreeyanzz/studyhub/pull/117#issuecomment-5866841931); the design change still requires review and merge.
+**Follow-up scope (option A):** photo hero, Host promotion, an explanatory panel and four noninteractive example cards. Label them "illustrative spaces, not live listings". No links, buttons or tab stops on example cards; no search-like controls, seat counts, "open now" or availability states. CTAs lead only to `/register`, `/login` or `#how-it-works`. This is separate from completed TSK-02.2. Adrian accepted this direction in [PR #117](https://github.com/dreeyanzz/studyhub/pull/117#issuecomment-5866841931); the design change merged in #117.
 
 ## 1. Flow
 
@@ -120,7 +120,7 @@ Create sub-issues only after this design is merged. Total: 5 points / 2 days.
 | TSK-02.1 | Tokens, six primitives and accessibility checks                           | @fayeye-09 | 3      | 1    | Design merged   |
 | TSK-02.2 | Public layout, landing page, header/footer and responsive/keyboard checks | @fayeye-09 | 2      | 1    | TSK-02.1 merged |
 
-**Follow-up task (create only after this design change merges):** implement option A and its photo sourcing/accessibility evidence; owner @fayeye-09; estimate 3 points / 1.5 working days. Assign the next available TSK-02 number when creating the issue; do not reopen or replace TSK-02.2. Dependencies: this revision merged, #116 merged, and Adrian confirms Sprint 1 Musts (STORY-03/04/05) are safe. Otherwise schedule early Sprint 2. The original 5-point estimate above describes the completed baseline only.
+**Follow-up task ([#121](https://github.com/dreeyanzz/studyhub/issues/121), TSK-02.3, created after this design change merged):** implement option A and its photo sourcing/accessibility evidence; owner @fayeye-09; estimate 3 points / 1.5 working days. Assign the next available TSK-02 number when creating the issue; do not reopen or replace TSK-02.2. Dependencies: this revision merged, #116 merged, and Adrian confirms Sprint 1 Musts (STORY-03/04/05) are safe. Otherwise schedule early Sprint 2. The original 5-point estimate above describes the completed baseline only.
 
 ## 6. Build order
 
