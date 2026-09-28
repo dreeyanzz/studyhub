@@ -6,20 +6,21 @@ AI tools are allowed and encouraged. Three rules come first:
    every line. The Final phase includes a code authorship check and an oral defense.
 2. **Disclose it.** Say in the PR's "AI assistance" section which tool you used and what
    for, and end the PR body with a `Co-Authored-By:` line.
-3. **Agents never merge, approve, push to `main`, force-push, or change a shared
-   database.** If a tool suggests doing one of these, stop.
+3. **Agents never merge, push to `main`, force-push, or change a shared database.** They
+   approve a pull request only when you explicitly tell them to, for that PR, after
+   reading their review (D-034). If a tool suggests doing one of these without that, stop.
 
 ## Setting up each tool
 
 Every tool reads the same rules, from [`AGENTS.md`](../../AGENTS.md).
 
-| Tool                          | How it reads `AGENTS.md`                                                                                              |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Claude Code                   | `CLAUDE.md` imports it. `.claude/settings.json` also blocks merging, approving, pushing to `main` and database pushes |
-| Gemini CLI                    | `.gemini/settings.json` lists it as a context file                                                                    |
-| Antigravity (1.20.5 or newer) | Reads it natively                                                                                                     |
-| Codex                         | Reads it natively                                                                                                     |
-| ChatGPT or another chat tool  | It cannot see the repository. Paste `AGENTS.md` at the start of the conversation, then the files you are working on   |
+| Tool                          | How it reads `AGENTS.md`                                                                                            |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Claude Code                   | `CLAUDE.md` imports it. `.claude/settings.json` also blocks merging, pushing to `main` and database pushes          |
+| Gemini CLI                    | `.gemini/settings.json` lists it as a context file                                                                  |
+| Antigravity (1.20.5 or newer) | Reads it natively                                                                                                   |
+| Codex                         | Reads it natively                                                                                                   |
+| ChatGPT or another chat tool  | It cannot see the repository. Paste `AGENTS.md` at the start of the conversation, then the files you are working on |
 
 To check that it works, ask the tool: "What must a branch be named in this repository?"
 The answer should be `feature/STORY-xx-short-desc`.
@@ -31,6 +32,9 @@ The answer should be `feature/STORY-xx-short-desc`.
 - **Check its work.** Read every diff it walks you through before you say go, and run `npm run check` yourself.
 - **Protect secrets.** Never paste keys, passwords or `.env.local` into a chat.
 - **Keep it honest.** Don't let an agent tick acceptance criteria it did not verify.
+- **Let it review, then decide.** Say "Review PR #N" and the agent checks the PR and
+  posts a full review ([the standard](reviewing-and-merging.md#ai-agents)). Read it before
+  you say "approve it": the approval is yours, under your name.
 
 ## Supabase MCP and other database tools
 
