@@ -5,7 +5,7 @@
 export default function SeekerPage() {
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold tracking-tight">Seeker Dashboard</h2>
+      <h1 className="text-xl font-bold tracking-tight">Seeker Dashboard</h1>
       <p className="text-sm text-muted-foreground">
         Welcome to your Seeker Portal dashboard.
       </p>
