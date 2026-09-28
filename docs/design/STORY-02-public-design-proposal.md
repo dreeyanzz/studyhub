@@ -1,8 +1,12 @@
 # STORY-02: Public landing-page design proposal
 
-**Status:** draft for discussion, not approved · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51) · **Related task:** [#101](https://github.com/dreeyanzz/studyhub/issues/101)
+**Status:** historical proposal; option A accepted by Adrian, canonical revision pending merge · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51) · **Related task:** [#101](https://github.com/dreeyanzz/studyhub/issues/101)
 
 **Sources:** SRS §3.2.2 and §3.7.1; D-002, D-005, D-016, D-026, D-031; [approved STORY-02 design](STORY-02-design-system.md).
+
+## Current disposition
+
+Adrian accepted option A on 2026-09-28 in [his review comment](https://github.com/dreeyanzz/studyhub/pull/117#issuecomment-5866841931). The active specification is now the revised [canonical design](STORY-02-design-system.md), with [D-033](../DECISIONS.md#d-033--illustrative-examples-on-the-public-landing-page). Its scope, sourcing and timing take precedence over the historical options and open questions below. No further option choice is pending: build only after design merge and the Sprint 1 Musts are safe, or early Sprint 2. Production photo selection remains an implementation gate.
 
 ## 0. Purpose and scope
 

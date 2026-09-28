@@ -364,3 +364,17 @@ one PR rather than leaving a submission half-restyled.
 **Rejected:** Restricting Administrators to `/admin`, which would leave them auditing the other portals through separate test accounts.
 
 **Revisit:** If role impersonation or a separate auditor view is introduced.
+
+## D-033 · Illustrative examples on the public landing page
+
+**Decision:** Allow a photo hero, Host promotion, an explanatory panel and four clearly illustrative, noninteractive example cards as a follow-up to the original STORY-02 shell. Label examples "illustrative spaces, not live listings". No card links, buttons or tab stops; no search-like controls, seat counts, "open now" or availability states. Calls to action target `/register`, `/login` or `#how-it-works`. D-002 remains unchanged: examples never represent live inventory.
+
+Use free-license Unsplash or Pexels photography with no identifiable people. Verify and record each photo's source page URL, photographer and license in the STORY-02 design; commit sensibly compressed assets rather than hotlinking. Text uses `rem` and must reflow with enlargement.
+
+**Why:** Faith's Public reference communicates the visual direction without pretending later discovery features exist. Adrian accepted option A in [PR #117](https://github.com/dreeyanzz/studyhub/pull/117#issuecomment-5866841931). This decision documents that direction for review; it does not mark the follow-up implemented.
+
+**Timing:** Merge the canonical design revision first, then create its estimated task. Build from fresh `main` after #116 and only once Adrian confirms Sprint 1 Musts (STORY-03, 04 and 05) are safe, or early Sprint 2.
+
+**Rejected:** Filtering invented examples, clickable example inventory, implied availability, hotlinked/unattributed stock, and displacing Sprint 1 Musts to ship this Should.
+
+**Revisit:** When real discovery lands in STORY-08; any real search controls follow that story's approved design.
