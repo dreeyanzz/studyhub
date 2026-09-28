@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dashboardFor, evaluateRouteAccess } from './role-guard'
+import { dashboardFor, evaluateRouteAccess, landingPathFor } from './role-guard'
 
 const allow = { type: 'allow' }
 const redirectTo = (to: string) => ({ type: 'redirect', to })
@@ -103,5 +103,41 @@ describe('dashboardFor', () => {
     expect(dashboardFor('seeker')).toBe('/seeker')
     expect(dashboardFor('host')).toBe('/host')
     expect(dashboardFor('admin')).toBe('/admin')
+  })
+})
+
+describe('landingPathFor', () => {
+  it.each([
+    ['seeker', '/seeker'],
+    ['host', '/host'],
+    ['admin', '/admin'],
+  ] as const)('sends a %s with no returnUrl to %s', (role, dashboard) => {
+    expect(landingPathFor(role)).toBe(dashboard)
+    expect(landingPathFor(role, '')).toBe(dashboard)
+  })
+
+  it('returns to a page the role may open, keeping its query string', () => {
+    expect(landingPathFor('seeker', '/seeker/profile?tab=phone')).toBe(
+      '/seeker/profile?tab=phone',
+    )
+    expect(landingPathFor('host', '/host/spaces')).toBe('/host/spaces')
+  })
+
+  it("sends a user away from another role's portal to their own dashboard", () => {
+    expect(landingPathFor('seeker', '/host/spaces')).toBe('/seeker')
+    expect(landingPathFor('host', '/admin')).toBe('/host')
+  })
+
+  it('lets an admin return to any portal (D-032)', () => {
+    expect(landingPathFor('admin', '/host/spaces')).toBe('/host/spaces')
+  })
+
+  it('never returns to /login or /register', () => {
+    expect(landingPathFor('seeker', '/login')).toBe('/seeker')
+    expect(landingPathFor('host', '/register?returnUrl=%2Fhost')).toBe('/host')
+  })
+
+  it('returns to a public page', () => {
+    expect(landingPathFor('seeker', '/')).toBe('/')
   })
 })
