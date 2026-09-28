@@ -1,6 +1,6 @@
 # STORY-03: Multi-role authentication and route guard
 
-**Status:** approved 2026-09-27 · **Owner:** @lukedongque · **Story:** #52 · **FR:** SRS §3.5.1 ·
+**Status:** implemented 2026-09-28 · **Owner:** @lukedongque · **Story:** #52 · **FR:** SRS §3.5.1 ·
 **Depends on:** STORY-01, STORY-02 · **Decisions:** D-007, D-010, D-013, D-016, D-018, D-019, D-020, D-027, D-028, D-029, D-031, D-032
 
 ## 0. Scope
@@ -251,19 +251,40 @@ One PR per row, and every PR targets `main`:
 ## 8. Open questions
 
 - None blocking. The Sprint 1 question on Administrator portal access is settled by D-032.
-- **`/admin` has no page until STORY-14.** An Administrator (local stack and CI only, D-013) who logs in is sent to `/admin` and sees a 404 until then. STORY-03 does not build an admin page.
+- **`/admin` has no page until STORY-14.** An Administrator (local stack and CI only, D-013) who logs in is sent to `/admin` and sees a 404 until then. STORY-03 does not build an admin page. Likewise `/seeker` shows a 404 until STORY-04's portal, and `/host` until STORY-05's.
+- **The public header is the same for everyone (settled in TSK-03.4).** In Sprint 1 it shows Log in and Sign up to signed-in visitors too. Following either sends a signed-in user to their dashboard, because the proxy redirects the auth pages (§2). The public pages read no session and stay static (STORY-02 §4, §8).
 - **Sign-out is owned here.** `signOut` lives in `app/(auth)/actions.ts`; the Seeker and Host portals' Log out buttons call it rather than writing their own.
 - **Zod is added here.** STORY-04 and STORY-05 schemas depend on TSK-03.1 for the package.
 
 ## 9. After the build
 
-_(To be filled when the story is implemented)_
+Built in four PRs, in the §6 order: #106 (validation), the role guard (TSK-03.2), the proxy (TSK-03.3) and the auth pages (TSK-03.4). Adrian's agent built TSK-03.2 to 03.4 to help @lukedongque keep the critical path on time.
 
 - what turned out different from this plan, and why:
   - `returnUrl` must also have no control character and must not normalize to a path beginning with `//`. The first version checked only the raw text, so `/.//evil.com` came back as `//evil.com`, an open redirect (#106).
   - An unsafe `returnUrl` on `loginSchema` is dropped, not reported as an error, so a tampered link cannot block a login (#106).
   - The 72-character password limit has its own message, which §2 did not give (#106).
   - The `returnUrl` tests live in `auth.test.ts`, next to `sanitizeReturnUrl`, not in `role-guard.test.ts` (#106).
-- status line changed to `implemented YYYY-MM-DD`:
-- docs this story changed:
-- who verified each acceptance criterion:
+  - `evaluateRouteAccess()` takes an optional third argument, the query string, so `/login?returnUrl=…` keeps it. It also exports `dashboardFor(role)`, so `login` and the auth callback send people to the same dashboards as the guard (TSK-03.2).
+  - The guard matches on the first path segment only, so `/seekers` or `/hostel` is a public path, not a portal (TSK-03.2).
+  - `updateSession()` in `lib/supabase/proxy.ts` returns the role with `next()` and `redirect(path)`, so the page and the redirect both carry a refreshed session cookie and Supabase's `no-store` cache headers. `setAll` can run more than once per request, and only its first call carries the headers, so they are merged, not replaced (TSK-03.3).
+  - `lib/supabase/proxy.test.ts` tests the adapter with Supabase mocked, beside `client.test.ts` and `server.test.ts`; §4 listed no proxy tests (TSK-03.3).
+  - Every page now needs the two `NEXT_PUBLIC_SUPABASE_` variables, because the proxy runs on every page request. `DEVELOPMENT.md` and `ONBOARDING.md` say so (TSK-03.3).
+  - Three files §3 did not list, shared by both pages: `app/(auth)/layout.tsx` (a Worq link home, then `main#main-content`), `_components/form-field.tsx` (a labelled input with its hint and first error) and `_components/use-auth-form.ts` (the browser-side Zod check, and focus on the first field in error) (TSK-03.4).
+  - "`returnUrl` if authorized, else the role dashboard" (§1) is `landingPathFor()` in `lib/auth/role-guard.ts`, pure and unit-tested, not code inside the Server Action (TSK-03.4).
+  - `signOut` uses `scope: 'local'`. Supabase's default, `'global'`, signs the user out on every device, and the team shares its test accounts. Checked both ways: with `'global'`, logging out in the browser also ended a second session for the same account; with `'local'`, only the browser's session ended (TSK-03.4).
+  - The callback sends a missing or failed code to `/login?error=link`, where the page says the link is invalid or has expired; a good code goes to the dashboard of the role in `profiles`. `register` passes the callback as `emailRedirectTo`, and if email confirmation is ever on (no session returned), the form says to check email instead of redirecting (TSK-03.4).
+  - The Seeker/Host choice is a `fieldset` with `role="radiogroup"`: ARIA supports `aria-invalid` on the group, not on each radio. Each radio is named by its title and described by its sentence (TSK-03.4).
+  - The submit button stays focusable while the request runs (Base UI's `focusableWhenDisabled`), so keyboard focus is not lost to the page (TSK-03.4).
+  - A taken email gets its own message on the email field (TSK-03.4).
+- status line changed to `implemented 2026-09-28`.
+- docs this story changed: `DEVELOPMENT.md` and `ONBOARDING.md` (every page needs the Supabase variables), and the layout note in `AGENTS.md`.
+- who verified each acceptance criterion: Adrian's agent (Claude Code), 2026-09-28, in the browser pane and with scripts against the local Supabase stack. Nothing was written to the shared cloud database.
+
+| Criterion (#52)                                                      | How it was verified                                                                                                                                                                                                                                                                                            |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/login` and `/register` (Seeker or Host) work against Supabase Auth | A new Seeker and a new Host (`@example.test`) signed up, landed on `/seeker` and `/host`, and got `profiles` rows with those roles; the seeded Seeker and Host logged in; a wrong password gave "Invalid email or password."; a taken email got its own message; the callback exchanged a real magic-link code |
+| Zod schemas validate in the browser and again on the server          | An empty submit showed every field's message with no request sent. With the browser check switched off, a form posting `role=admin` came back with the role message and created no account                                                                                                                     |
+| `proxy.ts` refreshes the session and redirects each role             | 24 scripted route checks for anonymous, Seeker, Host and admin; an expired session refreshed on pages and redirects, in dev and in a production build; `_rsc`, encoded and upper-case paths could not get past the guard (TSK-03.3)                                                                            |
+| Role-guard logic in `lib/auth/role-guard.ts` with unit tests         | `role-guard.test.ts` covers every §4 guard row and `landingPathFor()`; each test file was watched failing by breaking the code on purpose                                                                                                                                                                      |
+| A tampered sign-up cannot create an `admin`                          | The `register` action refused `role=admin` (above). A sign-up sent straight to Supabase Auth with `role: admin` was refused by the trigger ("Database error saving new user"), and no account exists. A Seeker who rewrote their own `user_metadata` to `admin` was still sent from `/admin` to `/seeker`      |

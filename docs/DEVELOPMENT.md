@@ -48,6 +48,9 @@ and is gitignored.
 | `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                         |
 | `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code. Adrian only (D-029) |
 
+`proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
+without them every page, the landing page included, fails with an error that names them.
+
 **How cloud keys are shared (D-029):**
 
 - Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the cloud dev URL, the publishable key and the test accounts' password.
