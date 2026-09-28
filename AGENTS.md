@@ -84,14 +84,14 @@ notes/                postmortems
 ```
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
-`main` today there are only `app/` (a layout, a placeholder page, and STORY-03's `(auth)/`
-pages and `api/auth/callback/`), `components/ui/` (STORY-02's six primitives),
-`proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/` (STORY-03's role guard),
-`lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the generated types),
-`lib/validation/` (the auth and profile form rules), `scripts/`, `supabase/` (config,
-migrations, tests and seed) and `docs/`. The other route groups and `app/api/` routes,
-`components/<domain>/`, `hooks/`, `lib/supabase/admin.ts`, `lib/data/` and `e2e/`
-arrive with the stories that need them.
+`main` today there are only `app/` (the root layout, STORY-02's public shell in
+`(public)/`, and STORY-03's `(auth)/` pages and `api/auth/callback/`), `components/ui/`
+(STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
+(STORY-03's role guard), `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the
+generated types), `lib/validation/` (the auth and profile form rules), `scripts/`,
+`supabase/` (config, migrations, tests and seed) and `docs/`. The other route groups and
+`app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts`,
+`lib/data/` and `e2e/` arrive with the stories that need them.
 
 ## Commands
 
