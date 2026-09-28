@@ -264,6 +264,8 @@ _(To be filled when the story is implemented)_
   - An unsafe `returnUrl` on `loginSchema` is dropped, not reported as an error, so a tampered link cannot block a login (#106).
   - The 72-character password limit has its own message, which §2 did not give (#106).
   - The `returnUrl` tests live in `auth.test.ts`, next to `sanitizeReturnUrl`, not in `role-guard.test.ts` (#106).
+  - `evaluateRouteAccess()` takes an optional third argument, the query string, so `/login?returnUrl=…` keeps it. It also exports `dashboardFor(role)`, so `login` and the auth callback send people to the same dashboards as the guard (TSK-03.2).
+  - The guard matches on the first path segment only, so `/seekers` or `/hostel` is a public path, not a portal (TSK-03.2).
 - status line changed to `implemented YYYY-MM-DD`:
 - docs this story changed:
 - who verified each acceptance criterion:
