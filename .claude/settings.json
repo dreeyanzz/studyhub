@@ -2,7 +2,6 @@
   "permissions": {
     "deny": [
       "Bash(gh pr merge:*)",
-      "Bash(gh pr review:*)",
       "Bash(gh repo edit:*)",
       "Bash(gh api repos/dreeyanzz/studyhub/pulls/*/merge:*)",
       "Bash(gh api -X PUT repos/dreeyanzz/studyhub/pulls:*)",
@@ -28,7 +27,6 @@
       "Bash(supabase link:*)",
       "Bash(npx supabase link:*)",
       "PowerShell(gh pr merge:*)",
-      "PowerShell(gh pr review:*)",
       "PowerShell(gh repo edit:*)",
       "PowerShell(gh api repos/dreeyanzz/studyhub/pulls/*/merge:*)",
       "PowerShell(gh api -X PUT repos/dreeyanzz/studyhub/pulls:*)",

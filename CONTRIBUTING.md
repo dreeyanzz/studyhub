@@ -83,7 +83,8 @@ Allowed, with rules:
 
 - You own every line and can explain it.
 - You disclose AI use in the PR.
-- AI agents never merge, approve, push to `main`, or change a shared database.
+- AI agents never merge, push to `main`, or change a shared database, and approve a PR
+  only when their person explicitly says so (D-034).
 
 See [using AI assistants](docs/guides/using-ai-assistants.md).
 

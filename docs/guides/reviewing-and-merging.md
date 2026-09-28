@@ -59,4 +59,64 @@ GitHub deletes the PR's branch automatically.
 
 ## AI agents
 
-AI agents may review and comment (`gh pr comment`). They never approve and never merge.
+AI agents review pull requests, and approve one only when their person says so (D-034).
+They never merge, and never approve a pull request they opened.
+
+### Before writing a review
+
+An agent reviews what it checked itself, not what the PR body claims:
+
+1. Read the PR, its task (the "Done when" list), its story, and every design section and
+   decision the change touches.
+2. Check out the branch (`gh pr checkout <number>`). Run `npm run check` and
+   `npm run build`, plus `npm run db:test` if SQL changed.
+3. Run the design's §4 manual checks. Anything behind a login runs against the local
+   Supabase stack with the seeded accounts, never the shared cloud project. UI changes
+   are checked at 360, 768 and 1024 px, with text at 100% and 200%, and by keyboard.
+4. Look for what the diff leaves stale: docs, the AGENTS.md layout note, design §9, and
+   the PR body itself.
+
+### What every agent review contains
+
+In plain English, in this order:
+
+1. **Verdict.** One or two sentences: what the PR does, and approve, request changes or
+   comment.
+2. **Against the task and the design.** Each "Done when" item, and each design section the
+   change implements (by § number): met or not, and how you know.
+3. **File by file.** What each changed file does, and whether it sits where
+   [AGENTS.md](../../AGENTS.md#layout) says it should.
+4. **Findings,** most serious first. Each one has:
+   - a severity: **blocking** (must change before merge), **should fix**, or **nit**;
+   - the file and line, also left as a line comment when that helps;
+   - what goes wrong, as a concrete scenario ("clicking Log out gives a 404 and leaves you
+     signed in");
+   - the fix.
+5. **Checks run.** Each command and its result, and each manual check with the account,
+   page and outcome. Write "not run", and why, for anything skipped. Never report a check
+   you did not run.
+6. **Security, accessibility and docs.** Each row of the checklist in
+   [Reviewing a pull request](#reviewing-a-pull-request), answered.
+7. **Commits you pushed.** When your person asked you to fix problems on the author's
+   branch: each commit and what it changed. The author reviews those commits, so they can
+   explain every line in the Final phase.
+8. **Disclosure,** as the last line: `_Review written with <tool>; submitted as an approval
+on <person>'s instruction._` (or `as a comment` / `as a request for changes`).
+
+### Approving
+
+The agent submits the review as an approval only when all of these hold:
+
+- its person has read the review and explicitly said to approve this pull request;
+- the required checks are green on the commit being approved;
+- no blocking finding is left;
+- the agent did not open the pull request.
+
+Otherwise it submits the review as a comment, or as a request for changes when something
+blocking remains. Pushing after an approval dismisses it, so approve last.
+
+```bash
+gh pr review <number> --comment --body-file review.md          # the default
+gh pr review <number> --request-changes --body-file review.md  # something blocking
+gh pr review <number> --approve --body-file review.md          # only on instruction
+```
