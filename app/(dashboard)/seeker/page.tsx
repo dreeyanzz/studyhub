@@ -1,14 +1,47 @@
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { ProfileForm } from './_components/profile-form'
+
 /**
- * Seeker Page component placeholder (STORY-04).
- * Will be fully expanded with profile form and preview cards in TSK-04.3 and TSK-04.5.
+ * SeekerPage component (STORY-04).
+ * Server Component fetching user profile data from Supabase Postgres profiles table
+ * and rendering ProfileForm pre-filled with the signed-in user's details.
  */
-export default function SeekerPage() {
+export default async function SeekerPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    redirect('/login')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, phone_number, role')
+    .eq('id', user.id)
+    .single()
+
+  const userProfile = {
+    full_name: profile?.full_name || 'Alex Seeker',
+    phone_number: profile?.phone_number || null,
+  }
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold tracking-tight">Seeker Dashboard</h1>
-      <p className="text-sm text-muted-foreground">
-        Welcome to your Seeker Portal dashboard.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Seeker Dashboard
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Manage your profile details and view upcoming feature updates.
+        </p>
+      </div>
+
+      <div className="max-w-2xl">
+        <ProfileForm profile={userProfile} />
+      </div>
     </div>
   )
 }
