@@ -48,8 +48,8 @@ export default function Home() {
           keep their seat maps up to date, so you know what to expect before you go.
         </p>
         <p className="max-w-2xl text-muted-foreground">
-          Worq is being built in stages. Today you can create your account; search and
-          holds arrive in the next two sprints.
+          Worq is being built in stages: accounts come first, then search in Sprint 2 and
+          holds in Sprint 3.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link href="/register" className={buttonVariants()}>
@@ -70,7 +70,9 @@ export default function Home() {
           <h2 id="how-it-works-heading" className="font-heading text-3xl font-semibold">
             How it works
           </h2>
-          <ul className="grid gap-4 md:grid-cols-3">
+          {/* Columns are sized in rem, so enlarged text drops to fewer, wider cards
+              instead of clipping them (STORY-02 design §4). */}
+          <ul className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))] gap-4">
             {pillars.map((pillar) => (
               <li key={pillar.title}>
                 <Card className="h-full">
