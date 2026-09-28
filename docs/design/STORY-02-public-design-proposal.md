@@ -1,6 +1,6 @@
 # STORY-02: Public landing-page design proposal
 
-**Status:** historical proposal; option A accepted by Adrian, canonical revision pending merge · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51) · **Related task:** [#101](https://github.com/dreeyanzz/studyhub/issues/101)
+**Status:** historical proposal; option A accepted by Adrian, canonical revision merged in #117 · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51) · **Related task:** [#101](https://github.com/dreeyanzz/studyhub/issues/101)
 
 **Sources:** SRS §3.2.2 and §3.7.1; D-002, D-005, D-016, D-026, D-031; [approved STORY-02 design](STORY-02-design-system.md).
 
