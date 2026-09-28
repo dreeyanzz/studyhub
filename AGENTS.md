@@ -165,9 +165,11 @@ These job names are a contract, because renaming one blocks every PR.
 - **You may:**
   - create branches, commit, push feature branches, open pull requests, and request reviews;
   - comment on issues and PRs;
+  - review PRs to [the agent review standard](docs/guides/reviewing-and-merging.md#ai-agents), and submit a review as an approval only when your human explicitly tells you to for that PR (D-034);
   - for your human's own stories: create the TSK issues from a merged design doc's §5 and attach them as sub-issues, edit their labels and assignees, and set their board fields and columns ([board guide](docs/guides/board-guide.md#commands-for-agents)).
 - **You may never:**
-  - merge or approve a pull request
+  - merge a pull request
+  - approve a pull request without your human's explicit instruction for that PR, or one you opened
   - push to `main` or force-push
   - run `supabase db push` or `supabase link`
   - write to a shared database
@@ -225,6 +227,23 @@ Stop only at the 🛑 points.
 
 Never build your own copy of something another story owns. For example, don't run
 `npx shadcn add` for a primitive that STORY-02 hasn't merged yet.
+
+### Reviewing a pull request
+
+When your human says **"Review PR #N"**, follow
+[the agent review standard](docs/guides/reviewing-and-merging.md#ai-agents) (D-034):
+
+1. **Check it yourself.** Read the PR, its task, its story and the design sections it
+   touches. Check out the branch, run `npm run check` and `npm run build` (and
+   `npm run db:test` for SQL), and the design's §4 manual checks against the local stack.
+2. **Explain it.** Walk your human through the PR in plain English: the verdict, each file,
+   and each finding with its severity. If they ask you to fix something on the author's
+   branch, push the fix and list it in the review for the author to check.
+3. **Post the review** in the standard's format, as a comment, or as a request for changes
+   if something blocking remains.
+4. 🛑 **Approve only on instruction.** Submit it as an approval only if your human then
+   says to approve this PR, the required checks are green, nothing blocking remains, and
+   you did not open the PR. Never merge.
 
 ## Windows: writing commit and PR text
 

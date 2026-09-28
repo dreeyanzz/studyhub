@@ -378,3 +378,19 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 **Rejected:** Filtering invented examples, clickable example inventory, implied availability, hotlinked/unattributed stock, and displacing Sprint 1 Musts to ship this Should.
 
 **Revisit:** When real discovery lands in STORY-08; any real search controls follow that story's approved design.
+
+## D-034 · AI agents review, and approve only on their human's instruction
+
+**Decision:**
+
+- An AI agent may review any pull request. Its review follows the agent review standard in [the reviewing guide](guides/reviewing-and-merging.md#ai-agents).
+- It submits that review as an approval only when its human explicitly tells it to, for that pull request, after reading the review. The required checks must be green and nothing blocking may remain. Otherwise it submits the review as a comment, or as a request for changes.
+- It never approves a pull request it opened, and it never merges.
+- Every agent review ends with a line naming the tool and the human who authorized it. An approval counts as that human's review: they own it, as they own the code they merge (D-014).
+- `.claude/settings.json` no longer blocks `gh pr review`. Merging stays blocked.
+
+**Why:** Waiting for reviews held up Sprint 1's critical path: #115, #118 and #119 merged without one. The agents already read the design, run the checks and test the pages, so they can write the review. Tying each approval to a named person's instruction keeps CPEPE361's peer review and the Final phase's authorship check honest.
+
+**Rejected:** Agents approving whenever they find nothing blocking, which would give approvals with no person behind them. Reviews only, with a person still clicking Approve, which adds a manual step once that person has read the review.
+
+**Revisit if:** The course forbids AI-submitted approvals, or an agent's approval lets a real defect through.
