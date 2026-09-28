@@ -53,3 +53,16 @@ export function evaluateRouteAccess(
   if (role === 'admin' || role === area) return { type: 'allow' }
   return { type: 'redirect', to: dashboardFor(role) }
 }
+
+/**
+ * Where to send someone who has just logged in: back to the page that sent them to
+ * /login if their role may open it, or else to their dashboard (STORY-03 design §1).
+ * `returnUrl` must already be a same-site path from sanitizeReturnUrl().
+ */
+export function landingPathFor(role: UserRole, returnUrl?: string): string {
+  if (returnUrl) {
+    const { pathname } = new URL(returnUrl, 'http://localhost')
+    if (evaluateRouteAccess(pathname, role).type === 'allow') return returnUrl
+  }
+  return dashboardFor(role)
+}
