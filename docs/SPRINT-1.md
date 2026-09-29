@@ -176,14 +176,14 @@ flowchart LR
     S05 --> S06
 ```
 
-| Story                                   | Owner                                    | Can start now?                            | Waits for                                               |
-| --------------------------------------- | ---------------------------------------- | ----------------------------------------- | ------------------------------------------------------- |
-| STORY-01 Database and security rules    | Adrian                                   | Done (Sat 26 Sep)                         | —                                                       |
-| STORY-02 Design system and public pages | Maria                                    | Done (Mon 28 Sep); TSK-02.3 follows later | —                                                       |
-| STORY-03 Sign-up, login and route guard | Luke                                     | Done (Mon 28 Sep)                         | —                                                       |
-| STORY-04 Seeker portal and profile      | James                                    | Yes, all of it                            | Nothing (STORY-01, 02 and 03 are ready)                 |
-| STORY-05 Host portal and spaces         | Adrian (design, database), James (pages) | The design doc                            | Its design doc (STORY-01, 02 and 03 are ready)          |
-| STORY-06 Automated tests                | Luke                                     | The design doc                            | STORY-05 for the space form's rules (STORY-03 is ready) |
+| Story                                   | Owner                                    | Can start now?                                                    | Waits for                                         |
+| --------------------------------------- | ---------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------- |
+| STORY-01 Database and security rules    | Adrian                                   | Done (Sat 26 Sep)                                                 | —                                                 |
+| STORY-02 Design system and public pages | Maria                                    | Done (Mon 28 Sep); TSK-02.3 follows later                         | —                                                 |
+| STORY-03 Sign-up, login and route guard | Luke                                     | Done (Mon 28 Sep)                                                 | —                                                 |
+| STORY-04 Seeker portal and profile      | James                                    | Yes, all of it                                                    | Nothing (STORY-01, 02 and 03 are ready)           |
+| STORY-05 Host portal and spaces         | Adrian (design, database), James (pages) | Yes: the design (#125) and the Space form rules (#133) are merged | James's forms wait for the Server Actions (#136)  |
+| STORY-06 Automated tests                | Luke                                     | The design doc (in review, #126)                                  | STORY-04 and STORY-05's pages, for the login test |
 
 **While you wait,** don't sit idle. Write your design doc, build the parts that don't need
 the missing piece, or review someone's pull request.
@@ -206,7 +206,7 @@ STORY-05, so James's pull requests and STORY-05's design come first.
 | **Sat 26 Sep**        | Merge the STORY-01 design once a teammate approves it; write STORY-05's design                                                      | Write STORY-02's design                                                    | Write STORY-03's design                                                 | Write STORY-04's design                                                           |
 | **Sun 27 – Wed 30**   | ✅ STORY-01 done early, on Sat 26 Sep (#90–#93). Send everyone their `.env.local`; STORY-05's Server Actions once its design merges | Tokens and building blocks first (merged by Wed 30), then the landing page | STORY-06's design; the auth form rules and role-guard logic, with tests | STORY-04's profile form rules, with tests; the `/seeker` and `/host` page layouts |
 | **Thu 1 – Fri 2 Oct** | STORY-05's Server Actions and space form rules                                                                                      | Header and footer; STORY-02 done                                           | `/login`, `/register` and `proxy.ts`; sign-up and login working on Fri  | STORY-04's profile page, saving once login works                                  |
-| **Mon 5 – Wed 7**     | Review and merge                                                                                                                    | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up; space form rule tests        | STORY-04 merged; STORY-05's pages wired to Adrian's Server Actions                |
+| **Mon 5 – Wed 7**     | Review and merge                                                                                                                    | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up                               | STORY-04 merged; STORY-05's pages wired to Adrian's Server Actions                |
 | **Thu 8**             | Walk through the app as each role; fix what we find                                                                                 | Walk-through; the board screenshot                                         | The Playwright login test green                                         | Walk-through and fixes                                                            |
 | **Fri 9**             | Sprint review, demo and retrospective video                                                                                         | Same, together                                                             | Same, together                                                          | Same, together                                                                    |
 
@@ -412,14 +412,16 @@ STORY-06 moved from James to Luke, to balance the load.
 **Done when:**
 
 - Vitest covers the sign-up and login rules (valid email, weak passwords, role values)
-  and the space form's rules (required fields);
+  and the space form's rules (required fields). The space form's tests ship with
+  STORY-05's TSK-05.1 (#133), so STORY-06 checks them rather than writing its own;
 - the role-guard tests cover anonymous users, Seekers, Hosts and Administrators on
   `/seeker`, `/host` and `/admin`;
 - `npm run check` is green on your machine and in CI;
 - a Playwright test signs in as each seeded role. Your design doc decides whether it
   runs in CI.
 
-**Waits for:** STORY-05 for the space form's rules. STORY-03 is merged, so the form rules,
+**Waits for:** STORY-04 and STORY-05's pages, for the login test. STORY-05's space form
+rules and their tests are merged (#133). STORY-03 is merged, so the form rules,
 the role guard (with its tests) and a working login are on `main`. The seeded accounts are ready: from `seed.sql` locally and in CI, and on the cloud
 database (D-028). The cloud database has no Administrator (D-013), so a Playwright case
 for the Administrator needs a local stack or CI.

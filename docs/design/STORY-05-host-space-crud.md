@@ -1,6 +1,6 @@
 # STORY-05: Host portal and Space CRUD
 
-**Status:** draft · **Owners:** @dreeyanzz (design, validation and Server Actions) with
+**Status:** approved 2026-09-28 · **Owners:** @dreeyanzz (design, validation and Server Actions) with
 @JamesNino-Mandawe (portal pages and forms) · **Story:** #54 · **FR:** FR-3.1,
 FR-5.1, SRS §3.2.2, §3.5 and §3.8 · **Depends on:** STORY-01, STORY-02 and STORY-03 ·
 **Decisions:** D-007, D-010, D-013, D-016, D-019, D-027, D-028, D-031 and D-032
