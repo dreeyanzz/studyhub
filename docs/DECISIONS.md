@@ -394,3 +394,18 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 **Rejected:** Agents approving whenever they find nothing blocking, which would give approvals with no person behind them. Reviews only, with a person still clicking Approve, which adds a manual step once that person has read the review.
 
 **Revisit if:** The course forbids AI-submitted approvals, or an agent's approval lets a real defect through.
+
+## D-035 · AI agents keep the project board current on their human's instruction
+
+**Decision:**
+
+- When its human asks, an AI agent may update any card on the project board (D-022), not only its own human's. It may move a card between columns and set its points, estimate, MoSCoW and sprint. The [board guide](guides/board-guide.md#commands-for-agents) has the commands.
+- When it moves another person's card to a new column, it leaves a one-line comment on that issue saying what moved and why, so the owner isn't surprised.
+- Done stays automatic (D-030): an agent never moves an open issue to Done. Closing the issue does that, and agents still close issues only when asked, and then only as "not planned".
+- The WIP limits and Maria's weekly check still apply.
+
+**Why:** Cards lag behind the work whenever their owner is busy. On 30 Sep, TSK-04.4 had a pushed branch while its card sat in Sprint 1 Backlog, and STORY-06 sat in Sprint 1 Backlog with its design PR in review. Adrian's agent found both while reporting status but couldn't fix them. The board is what the course screenshots.
+
+**Rejected:** Keeping "never move another person's cards" (the board goes stale, and fixing it falls to clicking by hand); agents moving cards without being asked (surprise moves on other people's work); agents dragging cards to Done (it would show unmerged work as finished, which D-030's automation exists to prevent).
+
+**Revisit if:** A card an agent moved misstates someone's work, or the course asks that only a card's owner moves it.
