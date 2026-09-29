@@ -19,14 +19,12 @@ export default async function SeekerPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, phone_number, role')
+    .select('full_name, phone_number')
     .eq('id', user.id)
-    .single()
-
-  const userProfile = {
-    full_name: profile?.full_name || 'Alex Seeker',
-    phone_number: profile?.phone_number || null,
-  }
+    .maybeSingle()
+  // Same as the header (TSK-04.2): without the Seeker's own row there is nothing to
+  // show. The form never fills in invented values, which a Save would store as theirs.
+  if (!profile) redirect('/login')
 
   return (
     <div className="space-y-6">
@@ -40,7 +38,7 @@ export default async function SeekerPage() {
       </div>
 
       <div className="max-w-2xl">
-        <ProfileForm profile={userProfile} />
+        <ProfileForm profile={profile} />
       </div>
     </div>
   )
