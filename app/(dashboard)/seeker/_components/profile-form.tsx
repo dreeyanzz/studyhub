@@ -40,6 +40,10 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   } | null>(null)
 
   const handleValidateAndSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    // Nothing is sent until TSK-04.4 wires updateProfile: a form without an action
+    // would submit the name and phone number in the page's URL.
+    e.preventDefault()
+
     // Validate with Zod schema in the browser before action submission
     const result = profileUpdateSchema.safeParse({
       full_name: fullName,
@@ -47,7 +51,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     })
 
     if (!result.success) {
-      e.preventDefault()
       const formattedErrors: { full_name?: string; phone_number?: string } = {}
       result.error.issues.forEach((issue) => {
         if (issue.path[0] === 'full_name' && !formattedErrors.full_name) {
