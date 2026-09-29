@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { profileUpdateSchema } from '@/lib/validation/profile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,6 +38,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     type: 'success' | 'error'
     message: string
   } | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
+
+  // Moves focus to the first field in error, as STORY-03's forms do.
+  useEffect(() => {
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+  }, [fieldErrors])
 
   const handleValidateAndSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     // Nothing is sent until TSK-04.4 wires updateProfile: a form without an action
@@ -75,10 +81,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">Profile Details</CardTitle>
+        <CardTitle>
+          <h2 className="text-xl font-semibold">Profile Details</h2>
+        </CardTitle>
         <CardDescription>View and update your personal information.</CardDescription>
       </CardHeader>
-      <form onSubmit={handleValidateAndSubmit}>
+      <form ref={formRef} onSubmit={handleValidateAndSubmit}>
         <CardContent className="space-y-4">
           {formStatus && (
             <Alert
