@@ -167,7 +167,8 @@ These job names are a contract, because renaming one blocks every PR.
   - create branches, commit, push feature branches, open pull requests, and request reviews;
   - comment on issues and PRs;
   - review PRs to [the agent review standard](docs/guides/reviewing-and-merging.md#ai-agents), and submit a review as an approval only when your human explicitly tells you to for that PR (D-034);
-  - for your human's own stories: create the TSK issues from a merged design doc's §5 and attach them as sub-issues, edit their labels and assignees, and set their board fields and columns ([board guide](docs/guides/board-guide.md#commands-for-agents)).
+  - for your human's own stories: create the TSK issues from a merged design doc's §5 and attach them as sub-issues, edit their labels and assignees, and set their board fields and columns ([board guide](docs/guides/board-guide.md#commands-for-agents));
+  - when your human asks, update any card on the project board, including another person's: move it between columns and set its fields. Comment on the issue when you move another person's card, and never move an open issue to Done, because closing the issue does that (D-035).
 - **You may never:**
   - merge a pull request
   - approve a pull request without your human's explicit instruction for that PR, or one you opened
