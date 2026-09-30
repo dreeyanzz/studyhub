@@ -85,11 +85,13 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/`, STORY-03's `(auth)/` pages and `api/auth/callback/`, and STORY-04's
-`(dashboard)/seeker/` portal), `components/ui/`
+`(public)/`, STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-04's
+`(dashboard)/seeker/` portal, and STORY-05's Host portal and Space actions in
+`(dashboard)/host/`),
+`components/ui/`
 (STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the
-generated types), `lib/validation/` (the auth and profile form rules), `scripts/`,
+generated types), `lib/validation/` (the auth, profile and Space form rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed) and `docs/`. The other route groups and
 `app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts`,
 `lib/data/` and `e2e/` arrive with the stories that need them.
@@ -167,7 +169,8 @@ These job names are a contract, because renaming one blocks every PR.
   - create branches, commit, push feature branches, open pull requests, and request reviews;
   - comment on issues and PRs;
   - review PRs to [the agent review standard](docs/guides/reviewing-and-merging.md#ai-agents), and submit a review as an approval only when your human explicitly tells you to for that PR (D-034);
-  - for your human's own stories: create the TSK issues from a merged design doc's §5 and attach them as sub-issues, edit their labels and assignees, and set their board fields and columns ([board guide](docs/guides/board-guide.md#commands-for-agents)).
+  - for your human's own stories: create the TSK issues from a merged design doc's §5 and attach them as sub-issues, edit their labels and assignees, and set their board fields and columns ([board guide](docs/guides/board-guide.md#commands-for-agents));
+  - when your human asks, update any card on the project board, including another person's: move it between columns and set its fields. Comment on the issue when you move another person's card, and never move an open issue to Done, because closing the issue does that (D-035).
 - **You may never:**
   - merge a pull request
   - approve a pull request without your human's explicit instruction for that PR, or one you opened

@@ -67,13 +67,14 @@ save it, which turns it back on.
 
 ## Who moves cards
 
-| Move              | Who                                  | When                                                                        |
-| ----------------- | ------------------------------------ | --------------------------------------------------------------------------- |
-| To Sprint Backlog | Adrian and Maria, at sprint planning | When stories and tasks are chosen                                           |
-| To Sprint Backlog | The assignee's agent                 | When it creates tasks from a design                                         |
-| To In Progress    | The assignee                         | When they create the branch                                                 |
-| To Code Review    | Automatic, or the author             | When the pull request opens with `Closes #N`; otherwise the author moves it |
-| To Done           | Automatic                            | When the PR merges or the issue closes                                      |
+| Move                | Who                                  | When                                                                                               |
+| ------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
+| To Sprint Backlog   | Adrian and Maria, at sprint planning | When stories and tasks are chosen                                                                  |
+| To Sprint Backlog   | The assignee's agent                 | When it creates tasks from a design                                                                |
+| To In Progress      | The assignee                         | When they create the branch                                                                        |
+| To Code Review      | Automatic, or the author             | When the pull request opens with `Closes #N`; otherwise the author moves it                        |
+| To Done             | Automatic                            | When the PR merges or the issue closes                                                             |
+| Any column but Done | Any agent, when its human asks       | When a card has fallen behind the work. On another person's card, it comments on the issue (D-035) |
 
 WIP limits: at most 4 cards In Progress and 4 in Code Review, team-wide. If a column is
 full, finish or review something before starting more.
@@ -98,8 +99,9 @@ At the end of a sprint:
 
 ## Commands for agents
 
-An agent working through the [story loop](../../AGENTS.md#the-story-loop) keeps its
-human's cards current with these commands. Editing the board needs the `project` scope
+An agent keeps the board current with these commands: its human's cards as it works
+through the [story loop](../../AGENTS.md#the-story-loop), and any card when its human asks
+(D-035). Editing the board needs the `project` scope
 on the GitHub CLI login. If a command says the scope is missing, the human runs
 `gh auth refresh -s project` themselves (it opens a browser).
 
@@ -140,8 +142,10 @@ gh project item-list 4 --owner dreeyanzz --limit 200 --format json \
 | Sprint: Sprint 1 · Sprint 2 · Sprint 3                                        | `ab8798f2` · `4cfb2471` · `4573e4ab`                           |
 
 A new task goes to Sprint 1 Backlog with its points, estimate and sprint set. After
-that, the card moves with the work, as the table in "Who moves cards" says. Never move
-another person's cards.
+that, the card moves with the work, as the table in "Who moves cards" says. When its
+human asks, an agent may also catch up any other card, including another person's
+(D-035). It then leaves a one-line comment on that issue saying what moved and why. It
+never moves an open issue to Done: closing the issue does that (D-030).
 
 **Changing sprint dates.** Editing the Sprint field's dates gives every sprint a new id
 and clears the sprint from every card. Before changing them, save each card's sprint.
