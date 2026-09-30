@@ -67,12 +67,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             ? { type: 'success', message: state.successMessage }
             : null
 
-  // Moves focus to the first field in error, as STORY-03's forms do.
+  // Moves focus to the first field in error after every failed save, as STORY-03's
+  // useAuthForm does. It depends on the error objects, not their text, so a second
+  // identical failure still moves focus.
   useEffect(() => {
-    if (activeFieldErrors.full_name || activeFieldErrors.phone_number) {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    }
-  }, [activeFieldErrors.full_name, activeFieldErrors.phone_number])
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+  }, [state, clientFieldErrors])
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     // Validate with Zod schema in the browser before action submission
@@ -170,7 +170,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             variant="default"
             size="default"
             disabled={isPending}
-            aria-disabled={isPending}
+            focusableWhenDisabled
           >
             {isPending ? 'Saving changes…' : 'Save Profile'}
           </Button>
