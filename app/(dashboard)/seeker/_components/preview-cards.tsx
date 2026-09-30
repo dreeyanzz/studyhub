@@ -23,7 +23,7 @@ export function PreviewCards() {
           Upcoming Features
         </h2>
         <p className="text-sm text-muted-foreground">
-          Explore what is coming next in future sprints for Worq seekers.
+          Explore what is coming next in future sprints for Worq Seekers.
         </p>
       </div>
 
@@ -41,7 +41,8 @@ export function PreviewCards() {
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Search by verified status, noise level, and amenity tags coming soon.
+              Search by Wi-Fi tier, power outlets, noise level and other curated tags
+              coming soon.
             </p>
           </CardContent>
         </Card>
@@ -53,13 +54,13 @@ export function PreviewCards() {
               <Badge variant="secondary">Sprint 3</Badge>
             </div>
             <CardDescription>
-              Select your exact seat unit on the space seat map and hold it instantly with
-              sandbox payment.
+              Select your exact unit on the Space&apos;s seat map and hold it instantly
+              with a sandbox reservation fee.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-muted-foreground">
-              Real-time seat availability and check-in confirmation coming soon.
+              QR booking tokens and check-in coming soon.
             </p>
           </CardContent>
         </Card>
