@@ -98,6 +98,38 @@ describe('evaluateRouteAccess: path matching', () => {
   })
 })
 
+// A Server Action is a POST to its page's own URL. A redirect would make the browser
+// post it again to /login and break the page, so it goes through (#137).
+describe('evaluateRouteAccess: requests other than page loads', () => {
+  it.each(['/seeker', '/host/spaces', '/admin'])(
+    'lets an anonymous POST to %s through to the action',
+    (path) => {
+      expect(evaluateRouteAccess(path, null, '', 'POST')).toEqual(allow)
+    },
+  )
+
+  it("lets a POST to another role's portal through: the action and RLS decide", () => {
+    expect(evaluateRouteAccess('/host', 'seeker', '', 'POST')).toEqual(allow)
+    expect(evaluateRouteAccess('/seeker', 'host', '', 'POST')).toEqual(allow)
+  })
+
+  it('lets a signed-in POST to /login through', () => {
+    expect(evaluateRouteAccess('/login', 'seeker', '', 'POST')).toEqual(allow)
+  })
+
+  it('still routes GET and HEAD', () => {
+    expect(evaluateRouteAccess('/seeker', null, '', 'GET')).toEqual(
+      redirectTo('/login?returnUrl=%2Fseeker'),
+    )
+    expect(evaluateRouteAccess('/seeker', null, '', 'HEAD')).toEqual(
+      redirectTo('/login?returnUrl=%2Fseeker'),
+    )
+    expect(evaluateRouteAccess('/host', 'seeker', '', 'HEAD')).toEqual(
+      redirectTo('/seeker'),
+    )
+  })
+})
+
 describe('dashboardFor', () => {
   it('maps each role to its portal', () => {
     expect(dashboardFor('seeker')).toBe('/seeker')

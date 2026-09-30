@@ -817,8 +817,9 @@ and James reviews them to be ready to explain them in the Final phase.
   uncontrolled FieldControl" when a failed save puts the typed values back through
   `defaultValue`. STORY-03's login and register forms log the same warning, and the
   values come back correctly in every form (#146).
-- An expired session turns a save into "This page couldn't load" (#137), as on `/seeker`.
-  The cause is in STORY-03's `proxy.ts`.
+- ~~An expired session turns a save into "This page couldn't load", as on `/seeker`.~~
+  Fixed (#137): the proxy lets Server Actions through, and the action sends the person
+  to `/login`.
 
 **Docs this story changed:** `AGENTS.md` (the layout note, #136 and #143), the design
 index and the Sprint 1 brief (at the close-out).

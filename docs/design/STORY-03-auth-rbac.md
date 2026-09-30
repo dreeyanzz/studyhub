@@ -155,6 +155,8 @@ Shared between browser client and Server Actions using Zod:
 
 **The guard reads the role from `profiles`, never from `user_metadata`.** A signed-in user can rewrite their own `user_metadata` with `auth.updateUser()`, so a role taken from there could be forged. `lib/supabase/proxy.ts` reads the `role` column of the user's own `profiles` row, which RLS lets them read and the column grants stop them from changing (STORY-01). Row-Level Security stays the security boundary either way (D-007).
 
+**Only page loads are routed.** The matrix applies to `GET` and `HEAD` requests. Any other request that reaches a page is a Server Action, a `POST` to the page's own URL, and the guard lets it through: a redirect would make the browser post it again to the new address, which breaks the page (#137). Every action checks the session itself and sends the person to `/login` when it has expired, and RLS still guards the data (D-007).
+
 **Decision on Administrator Access (D-032, Settling Sprint 1 Question):**  
 Administrators have access to `/admin`, `/seeker`, and `/host` (D-032). This allows platform administrators to audit seeker venue search/reservation experiences and inspect host space management portals as required by moderation and administrative oversight (SRS §3.1.5, FR-5.1, FR-5.2), matching STORY-06 test assumptions.
 
@@ -211,6 +213,7 @@ lib/
 | **Vitest** (`role-guard.test.ts`) | `host` requests `/seeker` or `/admin`                                                   | Redirects to `/host`                                               |
 | **Vitest** (`role-guard.test.ts`) | `admin` requests `/admin`, `/seeker`, or `/host`                                        | Access allowed for all portals                                     |
 | **Vitest** (`role-guard.test.ts`) | Signed-in user requests `/login` or `/register`                                         | Redirects to user's dashboard                                      |
+| **Vitest** (`role-guard.test.ts`) | Anyone sends a `POST` (a Server Action) to a portal or auth path                        | Allowed through to the action's own session check (#137)           |
 | **Vitest** (`auth.test.ts`)       | Malicious `returnUrl` (`//evil.com`, `/\evil.com`, `/.//evil.com`, `https://evil.com`)  | Sanitized to role dashboard (no open redirect)                     |
 | **Manual**                        | Signed-in Seeker sets `role: "admin"` in their own `user_metadata`, then opens `/admin` | Still redirected to `/seeker`: the guard reads `profiles.role`     |
 | **Manual**                        | Sign up new Seeker (`test-seeker@example.test`)                                         | Profile created with role `seeker`; redirected to `/seeker`        |
@@ -277,6 +280,7 @@ Built in four PRs, in the §6 order: #106 (validation), the role guard (TSK-03.2
   - The Seeker/Host choice is a `fieldset` with `role="radiogroup"`: ARIA supports `aria-invalid` on the group, not on each radio. Each radio is named by its title and described by its sentence (TSK-03.4).
   - The submit button stays focusable while the request runs (Base UI's `focusableWhenDisabled`), so keyboard focus is not lost to the page (TSK-03.4).
   - A taken email gets its own message on the email field (TSK-03.4).
+  - After the build, the guard routes page loads only (`GET` and `HEAD`). A Server Action's `POST` goes through to the action's own session check, because a redirect made the browser post it again to `/login` and show "This page couldn't load" (#137).
 - status line changed to `implemented 2026-09-28`.
 - docs this story changed: `DEVELOPMENT.md` and `ONBOARDING.md` (every page needs the Supabase variables), and the layout note in `AGENTS.md`.
 - who verified each acceptance criterion: Adrian's agent (Claude Code), 2026-09-28, in the browser pane and with scripts against the local Supabase stack. Nothing was written to the shared cloud database.
