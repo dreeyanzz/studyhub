@@ -61,15 +61,20 @@ export async function updateProfile(
   const dbPhoneNumber =
     phone_number && phone_number.trim().length > 0 ? phone_number.trim() : null
 
-  const { error } = await supabase
+  // Asking for the id back tells one saved row from none. An update that matches no
+  // row returns no error, so without it the form would say "saved" when nothing was
+  // (#142, the same zero-row rule as updateSpace in STORY-05 §2.6).
+  const { data: updated, error } = await supabase
     .from('profiles')
     .update({
       full_name: full_name.trim(),
       phone_number: dbPhoneNumber,
     })
     .eq('id', user.id)
+    .select('id')
+    .maybeSingle()
 
-  if (error) {
+  if (error || !updated) {
     return {
       formError: 'We could not save your profile. Please try again.',
       values,
