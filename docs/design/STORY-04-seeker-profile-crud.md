@@ -1,6 +1,6 @@
 # STORY-04: Seeker portal and profile
 
-**Status:** approved 2026-09-27 · **Owner:** @JamesNino-Mandawe · **Story:** #53 · **FR:** SRS §3.5.1, §3.8 ·
+**Status:** implemented 2026-09-30 · **Owner:** @JamesNino-Mandawe · **Story:** #53 · **FR:** SRS §3.5.1, §3.8 ·
 **Depends on:** STORY-01, STORY-02, STORY-03 · **Decisions:** D-007, D-010, D-013, D-016, D-019, D-027, D-028, D-031
 
 ## 0. Scope
@@ -131,11 +131,33 @@ None. The fields and rules are settled by D-027 and STORY-01. Zod arrives with S
 
 ## 9. After the build
 
-**Different from the plan so far:**
+Built in five PRs, in the §6 order: #104 (form rules), #122 (portal layout), #127 (profile form), #134 (saving) and #139 (preview cards and the accessibility pass). Adrian's agent pushed review fixes to #104, #122, #127 and #139 for @JamesNino-Mandawe to check.
+
+**Different from the plan:**
 
 - The schema keeps an empty phone number as `''`; `updateProfile()` saves it as `null` (TSK-04.4). Doing it in the schema would make the form's input and output types differ (#104).
 - A phone number over 20 characters gets its own message, `"Phone number must be 20 characters or fewer"`, instead of `"Invalid phone number format"` (#104).
 - TSK-04.2 adds a placeholder `page.tsx`, so `/seeker` renders before TSK-04.3 replaces it with the profile form (#122).
 - The header's badge shows the role in the user's `profiles` row, not a fixed "Seeker": an Administrator may open this portal too (D-032) (#122).
+- Without the user's own `profiles` row, `/seeker` redirects to `/login`, as the header does. The form never fills in invented values, which a Save would store as the user's (#127).
+- Every title is a heading: the form's title is an `h2` inside `CardTitle`, and the preview cards' titles are `h3`s under an "Upcoming Features" `h2` (#127, #139).
+- Keyboard focus never drops to the page. Save Profile stays focusable while it saves (Base UI's `focusableWhenDisabled`), and every failed save moves focus to the first field in error, as STORY-03's forms do (#127, #139).
+- Each preview card's title row wraps. At 360 and 768 px with text at 200%, the Card's `overflow-hidden` had clipped the Sprint 3 badge (#139).
+- The Sprint 3 card names booking tokens and check-in, not availability: availability is "host-updated", never "real-time" (D-002), and it arrives with STORY-11 in Sprint 2 (#139).
 
-The rest is to be filled in when STORY-04 is done.
+**Still open:**
+
+- `updateProfile()` doesn't check that its update changed a row. If none matches, for example because the Profile is missing, Supabase returns no error and the form says "Profile changes saved." The fix is `.select('id').maybeSingle()`, with no row treated as a save error, as STORY-05 §2.6 does for Spaces (#134's review, finding 3).
+- An expired session turns a Save into "This page couldn't load" (#137). The cause is in STORY-03's `proxy.ts`.
+
+**Docs this story changed:** `AGENTS.md` (the layout note, #122), the design index (#98, and its status at the close-out) and the Sprint 1 brief (at the close-out).
+
+**Acceptance criteria (#53):** checked by Adrian's agent (Claude Code) in the reviews of #127, #134 and #139, as `seeker@example.test` on the local Supabase stack. Nothing was written to the shared cloud database.
+
+| Criterion                                                                                  | How it was verified                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/seeker` shows the signed-in user's profile and role                                      | #127's review: the form shows the saved name and phone number, and the header shows the role badge (#122)                                                                                                                              |
+| Updating full name or phone number persists through a Server Action and survives a refresh | #134's review: a new name and phone number were still there after a reload, and the database row matched. A cleared phone number is stored as `null`                                                                                   |
+| Attempts to change the user id or role are rejected by the database                        | STORY-01's pgTAP tests in `01-profiles.sql` (`42501`). `updateProfile()` sends only `full_name` and `phone_number`                                                                                                                     |
+| Placeholder cards point to Sprint 2 (search) and Sprint 3 (reservations)                   | #139's review: the cards carry `Sprint 2` and `Sprint 3` badges and hold no tab stops                                                                                                                                                  |
+| 360, 768 and 1024 px, keyboard only (§4)                                                   | #139's review: no sideways scrolling and nothing cut off at any width, with text at 100% and 200%. The keyboard order is Log out → Full Name → Phone Number → Save Profile, and focus stays in the form through saves and failed saves |
