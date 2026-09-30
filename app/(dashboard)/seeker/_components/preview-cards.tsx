@@ -31,7 +31,9 @@ export function PreviewCards() {
         <Card className="w-full">
           <CardHeader className="space-y-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-lg font-semibold">Space Search & Map</CardTitle>
+              <CardTitle>
+                <h3 className="text-lg font-semibold">Space Search & Map</h3>
+              </CardTitle>
               <Badge variant="secondary">Sprint 2</Badge>
             </div>
             <CardDescription>
@@ -50,7 +52,9 @@ export function PreviewCards() {
         <Card className="w-full">
           <CardHeader className="space-y-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-lg font-semibold">Seat Reservations</CardTitle>
+              <CardTitle>
+                <h3 className="text-lg font-semibold">Seat Reservations</h3>
+              </CardTitle>
               <Badge variant="secondary">Sprint 3</Badge>
             </div>
             <CardDescription>
