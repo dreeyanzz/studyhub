@@ -148,7 +148,7 @@ Built in five PRs, in the §6 order: #104 (form rules), #122 (portal layout), #1
 **Still open:**
 
 - `updateProfile()` doesn't check that its update changed a row. If none matches, for example because the Profile is missing, Supabase returns no error and the form says "Profile changes saved." The fix is `.select('id').maybeSingle()`, with no row treated as a save error, as STORY-05 §2.6 does for Spaces (#134's review, finding 3).
-- An expired session turns a Save into "This page couldn't load" (#137). The cause is in STORY-03's `proxy.ts`.
+- ~~An expired session turns a Save into "This page couldn't load".~~ Fixed (#137): the proxy lets Server Actions through, and the action sends the person to `/login`.
 
 **Docs this story changed:** `AGENTS.md` (the layout note, #122), the design index (#98, and its status at the close-out) and the Sprint 1 brief (at the close-out).
 

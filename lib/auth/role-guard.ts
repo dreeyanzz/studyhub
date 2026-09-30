@@ -36,7 +36,14 @@ export function evaluateRouteAccess(
   pathname: string,
   role: UserRole | null,
   search = '',
+  method = 'GET',
 ): RouteAccess {
+  // Only page loads are routed. Any other request that reaches a page is a Server
+  // Action, a POST to that page's own URL. Redirecting it would make the browser post
+  // it again to the new address, which breaks the page (#137). Every action checks
+  // the session itself and sends the person to /login, and RLS guards the data.
+  if (method !== 'GET' && method !== 'HEAD') return { type: 'allow' }
+
   const area = areaOf(pathname)
   if (area === 'public') return { type: 'allow' }
 
