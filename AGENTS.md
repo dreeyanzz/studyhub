@@ -86,7 +86,8 @@ notes/                postmortems
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
 `(public)/`, STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-04's
-`(dashboard)/seeker/` portal, and STORY-05's Space actions in `(dashboard)/host/`),
+`(dashboard)/seeker/` portal, and STORY-05's Host portal and Space actions in
+`(dashboard)/host/`),
 `components/ui/`
 (STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the
