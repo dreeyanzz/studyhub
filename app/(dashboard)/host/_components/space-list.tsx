@@ -95,13 +95,20 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
         </dl>
       </CardContent>
       <CardFooter className="flex-wrap gap-2">
-        {/* The hidden name completes the link's accessible name, so every card's
-            "Edit" says which Space it opens (design §3.2). */}
+        {/* The hidden name completes each link's accessible name, so every card's
+            "Edit" and "Delete" say which Space they act on (design §3.2). */}
         <Link
           href={`/host/spaces/${space.id}/edit`}
           className={buttonVariants({ variant: 'outline' })}
         >
           Edit<span className="sr-only"> {space.name}</span>
+        </Link>
+        {/* Only opens the confirmation page; nothing is deleted until it is submitted. */}
+        <Link
+          href={`/host/spaces/${space.id}/delete`}
+          className={buttonVariants({ variant: 'destructive' })}
+        >
+          Delete<span className="sr-only"> {space.name}</span>
         </Link>
       </CardFooter>
     </Card>
