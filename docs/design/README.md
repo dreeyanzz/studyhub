@@ -52,7 +52,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-02 | [STORY-02-design-system.md](STORY-02-design-system.md)             | implemented 2026-09-28; follow-up (TSK-02.3) approved 2026-09-28 |
 | STORY-03 | [STORY-03-auth-rbac.md](STORY-03-auth-rbac.md)                     | implemented 2026-09-28                                           |
 | STORY-04 | [STORY-04-seeker-profile-crud.md](STORY-04-seeker-profile-crud.md) | approved 2026-09-27                                              |
-| STORY-05 | [STORY-05-host-space-crud.md](STORY-05-host-space-crud.md)         | draft                                                            |
+| STORY-05 | [STORY-05-host-space-crud.md](STORY-05-host-space-crud.md)         | approved 2026-09-28                                              |
 | STORY-06 |                                                                    | not written                                                      |
 | STORY-07 |                                                                    | not written                                                      |
 | STORY-08 |                                                                    | not written                                                      |
