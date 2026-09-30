@@ -1,8 +1,12 @@
+import Link from 'next/link'
+
 import { Badge } from '@/components/ui/badge'
+import { buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -70,7 +74,7 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
         </div>
         <CardDescription className="wrap-anywhere">{space.address}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="flex-1 space-y-3">
         {/* React escapes stored text, so a description can never run as HTML (§4.2). */}
         {space.description ? (
           <p className="wrap-anywhere whitespace-pre-line">{space.description}</p>
@@ -90,6 +94,16 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
           </div>
         </dl>
       </CardContent>
+      <CardFooter className="flex-wrap gap-2">
+        {/* The hidden name completes the link's accessible name, so every card's
+            "Edit" says which Space it opens (design §3.2). */}
+        <Link
+          href={`/host/spaces/${space.id}/edit`}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Edit<span className="sr-only"> {space.name}</span>
+        </Link>
+      </CardFooter>
     </Card>
   )
 }

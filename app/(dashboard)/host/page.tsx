@@ -2,8 +2,11 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 
+import { createSpace } from './actions'
+import { SpaceForm } from './_components/space-form'
 import { SpaceList } from './_components/space-list'
 
 export const metadata: Metadata = { title: 'Manage Spaces' }
@@ -80,6 +83,11 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
             every day.
           </p>
         </div>
+        <Card className="max-w-2xl">
+          <CardContent>
+            <SpaceForm mode="create" action={createSpace} />
+          </CardContent>
+        </Card>
       </section>
 
       <section aria-labelledby="your-spaces-heading" className="space-y-4">
