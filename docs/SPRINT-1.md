@@ -166,6 +166,11 @@ buttons and inputs.
 > their Profile on `/seeker`, edits and saves it, and sees what's coming in Sprints 2
 > and 3. STORY-06's login test now waits only for STORY-05's pages.
 
+> **Update, Wed 30 Sep: STORY-05 is done** (#125, #133, #136, #143, #144,
+> #147). A Host sees their Spaces on `/host`, and creates, edits and deletes them;
+> another Host can't touch them. Adrian's agent built James's three tasks on Adrian's
+> instruction. STORY-06's login test no longer waits for anything.
+
 ```mermaid
 flowchart LR
     S01["STORY-01 Database<br/>Adrian"] --> S03["STORY-03 Sign-up and login<br/>Luke"]
@@ -180,14 +185,14 @@ flowchart LR
     S05 --> S06
 ```
 
-| Story                                   | Owner                                    | Can start now?                            | Waits for                                           |
-| --------------------------------------- | ---------------------------------------- | ----------------------------------------- | --------------------------------------------------- |
-| STORY-01 Database and security rules    | Adrian                                   | Done (Sat 26 Sep)                         | —                                                   |
-| STORY-02 Design system and public pages | Maria                                    | Done (Mon 28 Sep); TSK-02.3 follows later | —                                                   |
-| STORY-03 Sign-up, login and route guard | Luke                                     | Done (Mon 28 Sep)                         | —                                                   |
-| STORY-04 Seeker portal and profile      | James                                    | Done (Wed 30 Sep)                         | —                                                   |
-| STORY-05 Host portal and spaces         | Adrian (design, database), James (pages) | Yes: James's pages (TSK-05.3 to 05.5)     | Nothing (Adrian's part is merged: #125, #133, #136) |
-| STORY-06 Automated tests                | Luke                                     | The design doc (in review, #126)          | STORY-05's pages, for the login test                |
+| Story                                   | Owner                                    | Can start now?                            | Waits for |
+| --------------------------------------- | ---------------------------------------- | ----------------------------------------- | --------- |
+| STORY-01 Database and security rules    | Adrian                                   | Done (Sat 26 Sep)                         | —         |
+| STORY-02 Design system and public pages | Maria                                    | Done (Mon 28 Sep); TSK-02.3 follows later | —         |
+| STORY-03 Sign-up, login and route guard | Luke                                     | Done (Mon 28 Sep)                         | —         |
+| STORY-04 Seeker portal and profile      | James                                    | Done (Wed 30 Sep)                         | —         |
+| STORY-05 Host portal and spaces         | Adrian (design, database), James (pages) | Done (Wed 30 Sep)                         | —         |
+| STORY-06 Automated tests                | Luke                                     | The design doc (in review, #126)          | —         |
 
 **While you wait,** don't sit idle. Write your design doc, build the parts that don't need
 the missing piece, or review someone's pull request.
@@ -199,20 +204,20 @@ order, because each step needs the one before it. This is the **critical path**:
 
 > ~~STORY-01 profiles → STORY-01 connection files → cloud database updated~~ (done Sat
 > 26 Sep) → ~~STORY-03 sign-up and login~~ (done Mon 28 Sep) → ~~STORY-04~~ (done
-> Wed 30 Sep) and STORY-05 saving data → STORY-06 login test
+> Wed 30 Sep) and ~~STORY-05 saving data~~ (done Wed 30 Sep) → STORY-06 login test
 
 A delay anywhere on this chain delays the demo. So its pull requests are reviewed and
-merged first, and everything else fits around it. The chain now runs through STORY-05's
-pages, so James's pull requests come first.
+merged first, and everything else fits around it. The chain now runs through STORY-06's
+login test, so Luke's pull requests come first.
 
-| When                  | Adrian                                                                                                                                    | Maria                                                                      | Luke                                                                    | James                                                                                             |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| **Sat 26 Sep**        | Merge the STORY-01 design once a teammate approves it; write STORY-05's design                                                            | Write STORY-02's design                                                    | Write STORY-03's design                                                 | Write STORY-04's design                                                                           |
-| **Sun 27 – Wed 30**   | ✅ STORY-01 done early, on Sat 26 Sep (#90–#93). Send everyone their `.env.local`; ✅ STORY-05's Server Actions, merged Wed 30 Sep (#136) | Tokens and building blocks first (merged by Wed 30), then the landing page | STORY-06's design; the auth form rules and role-guard logic, with tests | ✅ STORY-04's profile form rules (#104) and the `/seeker` layout (#122); the `/host` layout       |
-| **Thu 1 – Fri 2 Oct** | ✅ STORY-05's Server Actions and Space form rules, done early (#133, #136)                                                                | Header and footer; STORY-02 done                                           | `/login`, `/register` and `proxy.ts`; sign-up and login working on Fri  | ✅ STORY-04's profile page and saving, done early (#127, #134)                                    |
-| **Mon 5 – Wed 7**     | Review and merge                                                                                                                          | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up                               | ✅ STORY-04 merged early, on Wed 30 Sep (#139); STORY-05's pages wired to Adrian's Server Actions |
-| **Thu 8**             | Walk through the app as each role; fix what we find                                                                                       | Walk-through; the board screenshot                                         | The Playwright login test green                                         | Walk-through and fixes                                                                            |
-| **Fri 9**             | Sprint review, demo and retrospective video                                                                                               | Same, together                                                             | Same, together                                                          | Same, together                                                                                    |
+| When                  | Adrian                                                                                                                                    | Maria                                                                      | Luke                                                                    | James                                                                                                                                       |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Sat 26 Sep**        | Merge the STORY-01 design once a teammate approves it; write STORY-05's design                                                            | Write STORY-02's design                                                    | Write STORY-03's design                                                 | Write STORY-04's design                                                                                                                     |
+| **Sun 27 – Wed 30**   | ✅ STORY-01 done early, on Sat 26 Sep (#90–#93). Send everyone their `.env.local`; ✅ STORY-05's Server Actions, merged Wed 30 Sep (#136) | Tokens and building blocks first (merged by Wed 30), then the landing page | STORY-06's design; the auth form rules and role-guard logic, with tests | ✅ STORY-04's profile form rules (#104) and the `/seeker` layout (#122); ✅ the `/host` layout, built by Adrian's agent (#143)              |
+| **Thu 1 – Fri 2 Oct** | ✅ STORY-05's Server Actions and Space form rules, done early (#133, #136)                                                                | Header and footer; STORY-02 done                                           | `/login`, `/register` and `proxy.ts`; sign-up and login working on Fri  | ✅ STORY-04's profile page and saving, done early (#127, #134)                                                                              |
+| **Mon 5 – Wed 7**     | Review and merge                                                                                                                          | Review pull requests; test pages by keyboard and screen size               | STORY-03 merged on Mon; Playwright set up                               | ✅ STORY-04 merged early, on Wed 30 Sep (#139); ✅ STORY-05's pages merged early, on Wed 30 Sep, built by Adrian's agent (#143, #144, #147) |
+| **Thu 8**             | Walk through the app as each role; fix what we find                                                                                       | Walk-through; the board screenshot                                         | The Playwright login test green                                         | Walk-through and fixes                                                                                                                      |
+| **Fri 9**             | Sprint review, demo and retrospective video                                                                                               | Same, together                                                             | Same, together                                                          | Same, together                                                                                                                              |
 
 **Can happen at the same time:**
 
@@ -226,10 +231,11 @@ pages, so James's pull requests come first.
 
 - ~~STORY-01's profiles and connection files, then STORY-03's sign-up and login~~ (done);
 - ~~STORY-02's building blocks~~ (done), then everyone's forms;
-- ~~STORY-01's spaces~~ (done), then ~~STORY-05's Server Actions~~ (done), then STORY-05's
-  pages;
-- ~~STORY-03's sign-in~~ (done), then saving data in ~~STORY-04~~ (done) and STORY-05;
-- ~~STORY-03 and STORY-04~~ (done) and STORY-05 merged, then STORY-06's login test.
+- ~~STORY-01's spaces~~ (done), then ~~STORY-05's Server Actions~~ (done), then
+  ~~STORY-05's pages~~ (done);
+- ~~STORY-03's sign-in~~ (done), then saving data in ~~STORY-04~~ (done) and ~~STORY-05~~
+  (done);
+- ~~STORY-03, STORY-04 and STORY-05~~ (done) merged, then STORY-06's login test.
 
 **Same person, so one after the other:** James does STORY-04, then STORY-05's pages. Luke
 does STORY-03, then STORY-06. Adrian does STORY-01, then STORY-05's back end. If James
@@ -425,8 +431,8 @@ STORY-06 moved from James to Luke, to balance the load.
 - a Playwright test signs in as each seeded role. Your design doc decides whether it
   runs in CI.
 
-**Waits for:** STORY-05's pages, for the login test; STORY-04's are merged (#139).
-STORY-05's space form rules and their tests are merged (#133). STORY-03 is merged, so the
+**Waits for:** nothing. STORY-04's and STORY-05's pages are merged (#139, #147),
+and so are STORY-05's space form rules and their tests (#133). STORY-03 is merged, so the
 form rules, the role guard (with its tests) and a working login are on `main`. The seeded
 accounts are ready: from `seed.sql` locally and in CI, and on the cloud database (D-028).
 The cloud database has no Administrator (D-013), so a Playwright case for the
@@ -515,6 +521,12 @@ merged (Mon 28 Sep), and so is Adrian's part: the design (#125), the Space form 
 the Host portal and Space list (TSK-05.3, #130), then the create and edit forms
 (TSK-05.4, #131), then confirmed deletion (TSK-05.5, #132).
 
+**Status, Wed 30 Sep:** STORY-05 is merged: the design (#125), the Space form rules
+(#133), the Server Actions (#136), the Host portal and Space list (#143), the create and
+edit forms (#144) and confirmed deletion (#147). Adrian's agent built James's three tasks
+on Adrian's instruction. James, please review those three PRs so you can explain every
+line in the Final phase. What turned out different from the plan is in the design's §9.
+
 **How to test:**
 
 - pgTAP: another Host gets zero rows, and an unverified space isn't public.
@@ -562,7 +574,7 @@ day.
 | Wed 30 Sep | ~~STORY-01 merged, the cloud database ready~~ (done Sat 26 Sep); the keys shared; ~~STORY-02's building blocks merged~~ (done Sat 26 Sep) |
 | Fri 2 Oct  | ~~STORY-02 done; sign-up and login working in STORY-03~~ (done Mon 28 Sep)                                                                |
 | Mon 5 Oct  | ~~STORY-03 merged~~ (done Mon 28 Sep)                                                                                                     |
-| Wed 7 Oct  | ~~STORY-04~~ (done Wed 30 Sep) and STORY-05 merged                                                                                        |
+| Wed 7 Oct  | ~~STORY-04~~ (done Wed 30 Sep) and ~~STORY-05~~ (done Wed 30 Sep) merged                                                                  |
 | Thu 8 Oct  | STORY-06 green; a full walkthrough as each role; fix what we find; the board screenshot                                                   |
 | Fri 9 Oct  | Sprint 1 review and demo; record the 3-minute retrospective video                                                                         |
 
