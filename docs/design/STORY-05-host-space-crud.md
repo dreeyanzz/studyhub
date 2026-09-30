@@ -1,6 +1,6 @@
 # STORY-05: Host portal and Space CRUD
 
-**Status:** approved 2026-09-28 · **Owners:** @dreeyanzz (design, validation and Server Actions) with
+**Status:** implemented 2026-09-30 · **Owners:** @dreeyanzz (design, validation and Server Actions) with
 @JamesNino-Mandawe (portal pages and forms) · **Story:** #54 · **FR:** FR-3.1,
 FR-5.1, SRS §3.2.2, §3.5 and §3.8 · **Depends on:** STORY-01, STORY-02 and STORY-03 ·
 **Decisions:** D-007, D-010, D-013, D-016, D-019, D-027, D-028, D-031 and D-032
@@ -786,11 +786,54 @@ or changing the approach.
 
 ## 9. After the build
 
-Fill this section when the last task is complete:
+Built in five PRs, in the §6 order: #133 (form rules), #136 (Server Actions), #143 (Host
+portal and Space list), #144 (create and edit forms) and #147 (confirmed deletion).
+Adrian's agent built TSK-05.3 to TSK-05.5 for @JamesNino-Mandawe on Adrian's instruction,
+and James reviews them to be ready to explain them in the Final phase.
 
-- differences between the implemented flow and this plan, with reasons and PR numbers;
-- the status line changed to `implemented YYYY-MM-DD`;
-- every document made stale by the implementation;
-- who verified each #54 acceptance criterion and how;
-- the final `npm run check`, `npm run build` and `npm run db:test` results; and
-- the completed manual accessibility and responsive evidence.
+**Different from the plan:**
+
+- Each card's Edit and Delete links arrive with their pages, in TSK-05.4 and TSK-05.5, not
+  with the cards in TSK-05.3, so `main` never links to a page that doesn't exist yet.
+  Until TSK-05.4, the create section held only its heading and intro (#143).
+- "Last updated" is shown in Philippine time (`Asia/Manila`), because the server may run
+  in UTC. No document sets a time zone; this assumes Worq's Spaces are in the
+  Philippines, as the seeded ones are (#143).
+- Each page has its own browser title: "Manage Spaces", "Edit Space" and "Delete Space"
+  (#143, #144, #147).
+- `SpaceFormField` takes a render function, so one helper ties the label, hint and error
+  to an input or to the description's textarea (#144).
+- The edit page says that saving doesn't change the Space's Verification status (D-027)
+  (#144).
+- The delete page names the Space in its warning ("You're about to permanently delete
+  …"), under one "Delete Space" heading (#147).
+
+**Still open:**
+
+- An Administrator may open `/host` (D-032) and sees the create form, but only Hosts may
+  insert a Space, so a create attempt gets the generic "We could not create this Space"
+  message (#145). Hiding the form for Administrators could come with STORY-14.
+- In development, Base UI's Input logs "changing the default value state of an
+  uncontrolled FieldControl" when a failed save puts the typed values back through
+  `defaultValue`. STORY-03's login and register forms log the same warning, and the
+  values come back correctly in every form (#146).
+- An expired session turns a save into "This page couldn't load" (#137), as on `/seeker`.
+  The cause is in STORY-03's `proxy.ts`.
+
+**Docs this story changed:** `AGENTS.md` (the layout note, #136 and #143), the design
+index and the Sprint 1 brief (at the close-out).
+
+**Final checks:** `npm run check` (122/122 tests), `npm run build` and `npm run db:test`
+(44/44) pass with every task in place.
+
+**Acceptance criteria (#54):** checked by Adrian's agent (Claude Code) on the local
+Supabase stack as the seeded accounts, and recorded in #144 and #147. Nothing was
+written to the shared cloud database.
+
+| Criterion                                                                    | How it was verified                                                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A Host creates a Space and sees it in their list immediately                 | #144: "Timpla Study Loft" redirected to the list with the created notice, first and Pending verification, and was still there after a reload. A post without JavaScript, with a forged `host_id` and `status`, created a Pending row owned by the caller |
+| A Host edits the name, address and hours of their own Space                  | #144: every changed field showed after a reload; 18:00–02:00 read "next day" and equal times "Open 24 hours"; an edited Verified Space stayed Verified                                                                                                   |
+| A Host deletes their own Space after confirming                              | #147: loading the confirmation page, even as a prefetch, deleted nothing; Cancel kept the Space; Delete Space removed it                                                                                                                                 |
+| Another Host can't update or delete it, and an unverified Space isn't public | STORY-01's pgTAP tests in `02-spaces.sql`. In the app, host2 sees only their own Space, host@'s edit and delete pages are 404 for them, and a forged delete of host2's Space returned the generic error with the row intact                              |
+| 360, 768 and 1024 px, keyboard only (§4.5)                                   | #144 and #147: nothing scrolled sideways or was clipped, with text at 100% and 200%; every control is at least 48 px; focus moves in a logical order, and is always visible, through create, edit, cancel and delete                                     |
