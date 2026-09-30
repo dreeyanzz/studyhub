@@ -145,9 +145,9 @@ Built in five PRs, in the §6 order: #104 (form rules), #122 (portal layout), #1
 - Each preview card's title row wraps. At 360 and 768 px with text at 200%, the Card's `overflow-hidden` had clipped the Sprint 3 badge (#139).
 - The Sprint 3 card names booking tokens and check-in, not availability: availability is "host-updated", never "real-time" (D-002), and it arrives with STORY-11 in Sprint 2 (#139).
 
-**Still open:**
+**Left open at the close-out, since fixed:**
 
-- `updateProfile()` doesn't check that its update changed a row. If none matches, for example because the Profile is missing, Supabase returns no error and the form says "Profile changes saved." The fix is `.select('id').maybeSingle()`, with no row treated as a save error, as STORY-05 §2.6 does for Spaces (#134's review, finding 3).
+- ~~`updateProfile()` doesn't check that its update changed a row. If none matches, for example because the Profile is missing, Supabase returns no error and the form says "Profile changes saved."~~ Fixed (#142): the update now asks for the row back with `.select('id').maybeSingle()`, and no row is a save error, as STORY-05 §2.6 does for Spaces (#134's review, finding 3).
 - ~~An expired session turns a Save into "This page couldn't load".~~ Fixed (#137): the proxy lets Server Actions through, and the action sends the person to `/login`.
 
 **Docs this story changed:** `AGENTS.md` (the layout note, #122), the design index (#98, and its status at the close-out) and the Sprint 1 brief (at the close-out).
