@@ -53,7 +53,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-03 | [STORY-03-auth-rbac.md](STORY-03-auth-rbac.md)                     | implemented 2026-09-28                                           |
 | STORY-04 | [STORY-04-seeker-profile-crud.md](STORY-04-seeker-profile-crud.md) | implemented 2026-09-30                                           |
 | STORY-05 | [STORY-05-host-space-crud.md](STORY-05-host-space-crud.md)         | implemented 2026-09-30                                           |
-| STORY-06 | [STORY-06-testing-qa.md](STORY-06-testing-qa.md)                   | draft                                                            |
+| STORY-06 | [STORY-06-testing-qa.md](STORY-06-testing-qa.md)                   | approved 2026-09-30                                              |
 | STORY-07 |                                                                    | not written                                                      |
 | STORY-08 |                                                                    | not written                                                      |
 | STORY-09 |                                                                    | not written                                                      |
