@@ -92,9 +92,10 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 (STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the
 generated types), `lib/validation/` (the auth, profile and Space form rules), `scripts/`,
-`supabase/` (config, migrations, tests and seed) and `docs/`. The other route groups and
-`app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts`,
-`lib/data/` and `e2e/` arrive with the stories that need them.
+`supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
+test) and `docs/`. The other route groups and `app/api/` routes,
+`components/<domain>/`, `hooks/`, `lib/supabase/admin.ts` and `lib/data/` arrive with the
+stories that need them.
 
 ## Commands
 
@@ -105,9 +106,10 @@ npm install            # Node 24 (see .nvmrc)
 npm run dev            # http://localhost:3000
 npm run check          # typecheck + lint + format check + unit tests
 npm test               # unit tests only (Vitest)
+npm run test:e2e       # smoke test (Playwright, needs local stack running)
 npm run build          # production build (CI runs it too)
 npm run format         # Prettier, writes changes
-npm run db:start       # local Supabase in Docker (database owner only)
+npm run db:start       # local Supabase in Docker (database owner, and smoke test)
 npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
 npm run db:new <name>  # new migration file
