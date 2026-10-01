@@ -5,11 +5,11 @@ request.
 
 ## Three layers
 
-| Layer           | Tool       | Where                                | Run                             |
-| --------------- | ---------- | ------------------------------------ | ------------------------------- |
-| Unit            | Vitest     | Next to the code: `lib/**/x.test.ts` | `npm test`                      |
-| Database policy | pgTAP      | `supabase/tests/NN-name.sql`         | `npm run db:test` (local stack) |
-| Journey         | Playwright | `e2e/` (arrives with STORY-06)       | Added with STORY-06             |
+| Layer           | Tool       | Where                                | Run                              |
+| --------------- | ---------- | ------------------------------------ | -------------------------------- |
+| Unit            | Vitest     | Next to the code: `lib/**/x.test.ts` | `npm test`                       |
+| Database policy | pgTAP      | `supabase/tests/NN-name.sql`         | `npm run db:test` (local stack)  |
+| Journey         | Playwright | `e2e/smoke.spec.ts`                  | `npm run test:e2e` (local stack) |
 
 ## Unit tests (Vitest)
 
@@ -54,6 +54,20 @@ How a denial shows up depends on the operation:
 
 **Watch a new test fail once before you trust it.** Remove the policy, run the test, see
 it go red, then put the policy back.
+
+## Journey tests (Playwright)
+
+End-to-end browser journeys live in `e2e/`. They run against the local Supabase stack
+only (`supabase/seed.sql`) and never against the cloud database (D-013, D-028).
+
+**Running the tests:**
+
+1. Install Chromium: `npx playwright install chromium`
+2. Start and seed the local stack: `npm run db:start && npm run db:reset`
+3. Run: `npm run test:e2e`
+
+Playwright starts its own copy of the app on port 3100 so it never reuses a running
+dev server. Every assertion uses visible text, roles or URL paths, never CSS classes.
 
 ## When a whole suite fails at once
 

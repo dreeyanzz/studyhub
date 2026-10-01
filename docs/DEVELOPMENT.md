@@ -18,13 +18,14 @@ project after about a week without activity, so wake it the day before any demo.
 
 ## Tools
 
-| Tool               | Who                          | Why                              |
-| ------------------ | ---------------------------- | -------------------------------- |
-| Node 24            | Everyone                     | Pinned in `.nvmrc` and `engines` |
-| Git and GitHub CLI | Everyone                     | Branches and pull requests       |
-| Supabase CLI       | Everyone, through `npx`      | Pinned in `package.json`         |
-| Docker Desktop     | Database owner only          | The local Supabase stack         |
-| pandoc             | Whoever exports a submission | `npm run docs:docx`              |
+| Tool               | Who                          | Why                                                                          |
+| ------------------ | ---------------------------- | ---------------------------------------------------------------------------- |
+| Node 24            | Everyone                     | Pinned in `.nvmrc` and `engines`                                             |
+| Git and GitHub CLI | Everyone                     | Branches and pull requests                                                   |
+| Supabase CLI       | Everyone, through `npx`      | Pinned in `package.json`                                                     |
+| Docker Desktop     | Database owner only          | The local Supabase stack                                                     |
+| Playwright         | Whoever runs smoke tests     | Pinned in `package.json`; needs Chromium (`npx playwright install chromium`) |
+| pandoc             | Whoever exports a submission | `npm run docs:docx`                                                          |
 
 ## Environments
 
@@ -74,6 +75,16 @@ gh pr create            # then fill in the template
 
 To catch up with `main`, run `git fetch && git merge origin/main`. You never need to
 rebase or force-push.
+
+## Running the Playwright smoke test locally
+
+The smoke test (`npm run test:e2e`, STORY-06) runs against the local Supabase stack only
+(D-013, D-028) and starts its own server on port 3100. It never talks to the cloud
+database.
+
+1. Install Chromium once: `npx playwright install chromium`
+2. Ensure the local Supabase stack is running and seeded: `npm run db:start && npm run db:reset`
+3. Run the smoke test: `npm run test:e2e`
 
 ## Changing the database (database owner)
 
