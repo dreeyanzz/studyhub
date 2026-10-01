@@ -258,9 +258,24 @@ Windows PowerShell 5.1 writes files with a byte-order mark (BOM) or as UTF-16.
 - **Never** create a commit message or PR body with `Out-File`, `>` or `Set-Content`.
 - **Use one of these instead:**
   - `git commit -m`
-  - a Git Bash heredoc
+  - a Git Bash heredoc with a quoted delimiter (`<<'EOF'`)
   - `[IO.File]::WriteAllText($path, $text, [Text.UTF8Encoding]::new($false))`, followed by `git commit -F` or `gh pr create --body-file`
 - The commit-msg hook and the `pr-title` check both reject a BOM.
+
+The shell also rewrites text inside double quotes before `git` or `gh` receives it. That
+garbles commit messages, PR and issue bodies, and comments:
+
+- **PowerShell:** the backtick is the escape character, in `@"…"@` here-strings too, so
+  Markdown code loses its backticks and some letters. `` `name` `` arrives as a line break
+  followed by "ame", and `` `address` `` as a bell character followed by "ddress".
+- **Git Bash:** anything between backticks runs as a command, in a heredoc with an
+  unquoted delimiter too.
+- **Both:** `$word` becomes the value of a variable of that name, usually nothing, and
+  `$(…)` runs as a command.
+- **So pass that text** in single quotes (in PowerShell, write `''` for an apostrophe), in
+  a PowerShell here-string in single quotes (`@'…'@`, its closing `'@` at the start of a
+  line), in a Git Bash heredoc with a quoted delimiter (`<<'EOF'`), or in a file with `-F`
+  or `--body-file`.
 
 ## Documentation duties
 
