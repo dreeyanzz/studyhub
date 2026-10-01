@@ -62,9 +62,10 @@ only (`supabase/seed.sql`) and never against the cloud database (D-013, D-028).
 
 **Running the tests:**
 
-1. Install Chromium: `npx playwright install chromium`
-2. Start and seed the local stack: `npm run db:start && npm run db:reset`
-3. Run: `npm run test:e2e`
+1. Stop `npm run dev` first: Next 16 runs one dev server per project folder.
+2. Install Chromium: `npx playwright install chromium`
+3. Start and seed the local stack: `npm run db:start && npm run db:reset`
+4. Run: `npm run test:e2e`
 
 Playwright starts its own copy of the app on port 3100 so it never reuses a running
 dev server. Every assertion uses visible text, roles or URL paths, never CSS classes.

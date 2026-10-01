@@ -1,7 +1,23 @@
+import { execSync } from 'node:child_process'
+
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = 3100
-const BASE_URL = `http://127.0.0.1:${PORT}`
+// localhost, not 127.0.0.1: Next 16 blocks its dev resources (the HMR socket) for
+// any other host name unless next.config.ts lists it in allowedDevOrigins.
+const BASE_URL = `http://localhost:${PORT}`
+
+// The local stack's own URL and publishable key, from `supabase status` (STORY-06
+// design §1), so the app never gets .env.local's cloud values or a stand-in key
+// (D-013, D-028). Fails here if the stack is not running: `npm run db:start`.
+const localStack = new Map(
+  execSync('npx supabase status -o env', { encoding: 'utf8', stdio: 'pipe' })
+    .split(/\r?\n/)
+    .flatMap((line) => {
+      const match = /^(\w+)="(.*)"$/.exec(line)
+      return match?.[1] && match[2] ? [[match[1], match[2]] as const] : []
+    }),
+)
 
 /**
  * Playwright configuration for StudyHub (STORY-06).
@@ -33,13 +49,8 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 120_000,
     env: {
-      PORT: `${PORT}`,
-      // Point at the local Supabase stack (STORY-06 design §1, §3).
-      // In CI, ci.yml provides the exact local values from supabase status.
-      NEXT_PUBLIC_SUPABASE_URL:
-        process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321',
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'ci-placeholder',
+      NEXT_PUBLIC_SUPABASE_URL: localStack.get('API_URL') ?? '',
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: localStack.get('PUBLISHABLE_KEY') ?? '',
     },
   },
 })

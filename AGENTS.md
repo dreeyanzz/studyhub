@@ -109,7 +109,7 @@ npm test               # unit tests only (Vitest)
 npm run test:e2e       # smoke test (Playwright, needs local stack running)
 npm run build          # production build (CI runs it too)
 npm run format         # Prettier, writes changes
-npm run db:start       # local Supabase in Docker (database owner only)
+npm run db:start       # local Supabase in Docker (database owner, and smoke test)
 npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
 npm run db:new <name>  # new migration file

@@ -43,11 +43,15 @@ test.describe('Sign-in smoke test (STORY-06)', () => {
     await page.getByRole('button', { name: 'Log in' }).click()
 
     await expect(page).toHaveURL(/\/host$/)
-    await expect(page.getByText('Administrator')).toBeVisible()
+    await expect(
+      page.getByRole('banner').getByText('Administrator', { exact: true }),
+    ).toBeVisible()
 
     // As that Administrator, open /seeker to verify portal audit access (D-032)
     await page.goto('/seeker')
     await expect(page).toHaveURL(/\/seeker$/)
-    await expect(page.getByText('Administrator')).toBeVisible()
+    await expect(
+      page.getByRole('banner').getByText('Administrator', { exact: true }),
+    ).toBeVisible()
   })
 })

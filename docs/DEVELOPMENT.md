@@ -18,14 +18,14 @@ project after about a week without activity, so wake it the day before any demo.
 
 ## Tools
 
-| Tool               | Who                          | Why                                                                          |
-| ------------------ | ---------------------------- | ---------------------------------------------------------------------------- |
-| Node 24            | Everyone                     | Pinned in `.nvmrc` and `engines`                                             |
-| Git and GitHub CLI | Everyone                     | Branches and pull requests                                                   |
-| Supabase CLI       | Everyone, through `npx`      | Pinned in `package.json`                                                     |
-| Docker Desktop     | Database owner only          | The local Supabase stack                                                     |
-| Playwright         | Whoever runs smoke tests     | Pinned in `package.json`; needs Chromium (`npx playwright install chromium`) |
-| pandoc             | Whoever exports a submission | `npm run docs:docx`                                                          |
+| Tool               | Who                                             | Why                                                                          |
+| ------------------ | ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| Node 24            | Everyone                                        | Pinned in `.nvmrc` and `engines`                                             |
+| Git and GitHub CLI | Everyone                                        | Branches and pull requests                                                   |
+| Supabase CLI       | Everyone, through `npx`                         | Pinned in `package.json`                                                     |
+| Docker Desktop     | Database owner, and whoever runs the smoke test | The local Supabase stack                                                     |
+| Playwright         | Whoever runs smoke tests                        | Pinned in `package.json`; needs Chromium (`npx playwright install chromium`) |
+| pandoc             | Whoever exports a submission                    | `npm run docs:docx`                                                          |
 
 ## Environments
 
@@ -82,9 +82,10 @@ The smoke test (`npm run test:e2e`, STORY-06) runs against the local Supabase st
 (D-013, D-028) and starts its own server on port 3100. It never talks to the cloud
 database.
 
-1. Install Chromium once: `npx playwright install chromium`
-2. Ensure the local Supabase stack is running and seeded: `npm run db:start && npm run db:reset`
-3. Run the smoke test: `npm run test:e2e`
+1. Stop `npm run dev` first: Next 16 runs one dev server per project folder.
+2. Install Chromium once: `npx playwright install chromium`
+3. Ensure the local Supabase stack is running and seeded: `npm run db:start && npm run db:reset`
+4. Run the smoke test: `npm run test:e2e`
 
 ## Changing the database (database owner)
 
