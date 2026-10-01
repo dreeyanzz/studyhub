@@ -64,3 +64,21 @@ jobs:
             echo "::error file=lib/supabase/database.types.ts::Out of date. Run npm run db:types and commit the result."
             exit 1
           }
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Starts the local Supabase stack keeping Kong, PostgREST and Auth, which the
+      # app needs (STORY-06 design §5). Seed accounts come from supabase/seed.sql.
+      - run: >-
+          npx supabase start
+          -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
