@@ -1,0 +1,228 @@
+{
+  "matrix": [
+    {
+      "scale": 100,
+      "width": 360,
+      "scroll": 360,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 150,
+      "width": 360,
+      "scroll": 360,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 200,
+      "width": 360,
+      "scroll": 360,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 100,
+      "width": 768,
+      "scroll": 768,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 150,
+      "width": 768,
+      "scroll": 768,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 200,
+      "width": 768,
+      "scroll": 768,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 100,
+      "width": 1024,
+      "scroll": 1024,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 150,
+      "width": 1024,
+      "scroll": 1024,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 200,
+      "width": 1024,
+      "scroll": 1024,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 100,
+      "width": 1440,
+      "scroll": 1440,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 150,
+      "width": 1440,
+      "scroll": 1440,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    },
+    {
+      "scale": 200,
+      "width": 1440,
+      "scroll": 1440,
+      "clip": [],
+      "small": [],
+      "examples": 4,
+      "interactiveExamples": 0
+    }
+  ],
+  "keyboard": [
+    {
+      "name": "Skip to main content",
+      "href": "#main-content",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "Worq",
+      "href": "/",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "How it works",
+      "href": "/#how-it-works",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "For Hosts",
+      "href": "/#for-hosts",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "Log in",
+      "href": "/login",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "Sign up",
+      "href": "/register",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "Get started",
+      "href": "/register",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "How it works",
+      "href": "#how-it-works",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "Become a Host",
+      "href": "/register",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(248, 249, 243)"
+    },
+    {
+      "name": "How it works",
+      "href": "/#how-it-works",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    },
+    {
+      "name": "For Hosts",
+      "href": "/#for-hosts",
+      "ring": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgb(248, 249, 243) 0px 0px 0px 2px, rgb(33, 92, 63) 0px 0px 0px 5px, rgba(0, 0, 0, 0) 0px 0px 0px 0px",
+      "outline": "rgb(33, 92, 63)"
+    }
+  ],
+  "routes": [
+    {
+      "url": "/login",
+      "status": 200
+    },
+    {
+      "url": "/register",
+      "status": 200
+    }
+  ],
+  "images": [
+    {
+      "src": "http://localhost:3123/_next/image?url=%2Fimages%2Fpublic-landing%2Fworkspace.webp&w=640&q=75",
+      "loaded": true
+    },
+    {
+      "src": "http://localhost:3123/_next/image?url=%2Fimages%2Fpublic-landing%2Fworkspace.webp&w=384&q=75",
+      "loaded": true
+    },
+    {
+      "src": "http://localhost:3123/_next/image?url=%2Fimages%2Fpublic-landing%2Flibrary.webp&w=256&q=75",
+      "loaded": true
+    },
+    {
+      "src": "http://localhost:3123/_next/image?url=%2Fimages%2Fpublic-landing%2Fcafe.webp&w=256&q=75",
+      "loaded": true
+    },
+    {
+      "src": "http://localhost:3123/_next/image?url=%2Fimages%2Fpublic-landing%2Fworkspace.webp&w=256&q=75",
+      "loaded": true
+    },
+    {
+      "src": "http://localhost:3123/_next/image?url=%2Fimages%2Fpublic-landing%2Flibrary.webp&w=256&q=75",
+      "loaded": true
+    }
+  ],
+  "reverse": "How it works",
+  "skip": "main-content",
+  "anchor": "#how-it-works",
+  "motion": ["0s", "0s", "0s"],
+  "fallback": {
+    "width": 1024,
+    "scroll": 1024,
+    "clip": [],
+    "small": [],
+    "examples": 4,
+    "interactiveExamples": 0
+  }
+}
