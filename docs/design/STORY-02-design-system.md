@@ -178,6 +178,6 @@ Built in two PRs, in the §6 order: #102 (tokens and primitives) and the public 
 | No horizontal scrolling at 360, 768 and 1024 px        | `scrollWidth - clientWidth` is 0 at 360, 768, 1024 and 1440 px, with text at 100%, 150% and 200%; no element with `overflow: hidden` has content larger than its box, so nothing is clipped  |
 | Keyboard reaches every control (Tab, Shift+Tab, Enter) | The first Tab shows the skip link; Enter moves focus to `main#main-content`; Tab continues to the hero's links and Shift+Tab returns. The page has no buttons, so Space has nothing to press |
 
-### TSK-02.3 local implementation — 2026-10-02
+### TSK-02.3 implementation — 2026-10-02 (#161)
 
-Option A is implemented locally after Faith confirmed the execution plan. It reuses the original layout/header/footer and adds the static photo composition, explanatory panel and four noninteractive examples. Photography is local and attributed above. The old client-side filtering prototype was not ported. See [execution plan](TSK-02.3-execution-plan.md) and [fresh verification evidence](evidence/TSK-02.3/verification.md). This follow-up is not committed, published or merged; the original shell history above remains unchanged.
+Option A is implemented in #161. It reuses the original layout/header/footer and adds the static photo composition, explanatory panel and four noninteractive examples. Photography is local and attributed above. The old client-side filtering prototype was not ported. See the [verification evidence](evidence/TSK-02.3/verification.md). The original shell history above remains unchanged.

@@ -1,6 +1,6 @@
 # TSK-02.3 verification — 2026-10-02
 
-Verified locally by Codex on feature/STORY-02-illustrative-landing, based on main 3be9cd3. Implementation remains uncommitted. This evidence applies to option A, not the historical filtering prototype.
+Verified by Codex on feature/STORY-02-illustrative-landing, based on main 3be9cd3, before the work was committed as 3afd3a0 (#161). The review of #161 repeated the layout, contrast and keyboard checks on that commit. This evidence applies to option A, not the historical filtering prototype.
 
 ## Task acceptance
 
@@ -15,21 +15,21 @@ Verified locally by Codex on feature/STORY-02-illustrative-landing, based on mai
 
 ## Browser evidence
 
-Headless Microsoft Edge against the local development server, anonymous session. Matrix results: [results.json](results.json), [text-overlap.json](text-overlap.json). Screenshots are named width-textPercent.png. Loaded lazy images by scrolling them into view and waiting for decode before capture. Visually inspected desktop, mobile, enlarged-text and fallback compositions.
+Headless Microsoft Edge against the local development server, anonymous session. Matrix results: [results.json](results.json), [text-overlap.json](text-overlap.json). Screenshots are named width-textPercent.webp; they were captured as PNG and converted to WebP at quality 80 in review, to keep the repository small. Loaded lazy images by scrolling them into view and waiting for decode before capture. Visually inspected desktop, mobile, enlarged-text and fallback compositions.
 
-Actual browser zoom was tested separately from root-font resizing using chrome.tabs.setZoom in an isolated temporary browser profile. At a 1440px browser window, 150% produced a 943 CSS-px viewport/DPR 1.5; 200% produced 707 CSS px/DPR 2. Neither had document overflow or hidden clipped content. See [browser-zoom.json](browser-zoom.json) and browser-zoom-1.5.png / browser-zoom-2.png. This is a separate zoom spot-check, not a claim of every browser/OS combination.
+Actual browser zoom was tested separately from root-font resizing using chrome.tabs.setZoom in an isolated temporary browser profile. At a 1440px browser window, 150% produced a 943 CSS-px viewport/DPR 1.5; 200% produced 707 CSS px/DPR 2. Neither had document overflow or hidden clipped content. See [browser-zoom.json](browser-zoom.json) and browser-zoom-1.5.webp / browser-zoom-2.webp. This is a separate zoom spot-check, not a claim of every browser/OS combination.
 
 Keyboard path: skip link → Worq home → header How it works → For Hosts → Log in → Sign up → hero Get started → hero How it works → Become a Host → footer How it works → For Hosts. Every link shows its shared ring or solid outline. Shift+Tab reaches the footer link in reverse. Skip-link Enter focuses main-content; section-link Enter reaches #how-it-works; Space retains native link scrolling behavior. There are no action buttons to test with Space.
 
 Focus/background contrast is 7.44:1; light outline against the Host panel uses the same pair in reverse. Shared focus rings remain opaque. Default text minimum 5.32:1 is muted text on the secondary surface. Other checked pairs: body/background 11.53, muted/body 6.03, muted/muted 5.59, muted/card 6.39, secondary text/surface 8.53, primary text/surface 7.87. Primary hover measured from the browser at 4.80:1. Header/footer continue to use the already reviewed primitives.
 
-Both /login and /register return 200. Images load only from the local Next.js image endpoint, backed by repository WebP files. Blocking all image requests preserves readable copy, target sizes and layout; see images-blocked.png. Reduced-motion emulation produces 0s transitions on all page CTAs.
+Both /login and /register return 200. Images load only from the local Next.js image endpoint, backed by repository WebP files. Blocking all image requests preserves readable copy, target sizes and layout; see images-blocked.webp. Reduced-motion emulation produces 0s transitions on all page CTAs.
 
 ## Limits and task state
 
 No shared database writes or account creation. Docker is not installed/on PATH here, so an authenticated local seeded-stack comparison was not run. The page remains a static Server Component with no session/state/query imports; the existing STORY-03 proxy is unchanged. Authentication behavior and database security are not part of the issue's Done when criteria and are not certified by this review.
 
-No new unit tests mirror this static markup. Existing tests run through npm run check. SQL/policy tests are not applicable. No commit, push, PR, merge or task closure has been performed. The board is In Progress until Faith reviews the local result and authorizes publication.
+No new unit tests mirror this static markup. Existing tests run through npm run check. SQL/policy tests are not applicable.
 
 ## Code walkthrough
 
@@ -37,4 +37,4 @@ No new unit tests mirror this static markup. Existing tests run through npm run 
 - discovery.css: isolates the composition under discovery classes, uses semantic tokens and rem-based type, and lets grids reflow with their content. Text is on solid surfaces; images provide decoration without determining text contrast.
 - public/images/public-landing/: three optimized WebP photos reused across the composition, with attribution recorded in the design.
 - STORY-02-design-system.md: replaces the pending photo register with verified sources and records this follow-up separately from the original public shell.
-- TSK-02.3-execution-plan.md and this evidence folder: plan, measured results, screenshots and explicit limits for human review.
+- This evidence folder: measured results, screenshots and explicit limits for human review.
