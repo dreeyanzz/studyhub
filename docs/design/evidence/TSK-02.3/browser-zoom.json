@@ -1,0 +1,18 @@
+[
+  {
+    "scale": 1.5,
+    "width": 943,
+    "outer": 1440,
+    "dpr": 1.5,
+    "scroll": 943,
+    "clipped": 0
+  },
+  {
+    "scale": 2,
+    "width": 707,
+    "outer": 1440,
+    "dpr": 2,
+    "scroll": 707,
+    "clipped": 0
+  }
+]

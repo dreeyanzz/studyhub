@@ -89,11 +89,13 @@ Use free-license Unsplash or Pexels stock photos with no identifiable people. Ve
 
 The implementation changes only `app/(public)/page.tsx`, route-local `app/(public)/discovery.css` if needed, local photo assets, and this document's sourcing/evidence record. Shared tokens, primitives, authentication and database code stay outside the follow-up.
 
-**Photo register:** no production photos have been selected or downloaded in this design-only change. The earlier prototype screenshots are composition references, not approved assets. Before adding any photo to the implementation PR, replace the pending row below with one row per unique image, verifying the source page, photographer, license and absence of identifiable people. Missing attribution/license records block implementation review.
+**Photo register (verified 2026-10-02):** the source pages label these photos free under the [Unsplash License](https://unsplash.com/license). Each downloaded image was visually inspected: no identifiable people. Compressed WebP assets are local; the library is reused for two illustrative examples, and the workspace for hero, Host promotion and one example. No hotlinks are used.
 
-| Local asset                            | Original photo page URL         | Photographer | License URL and verification date | People/content check   | Size                    |
-| -------------------------------------- | ------------------------------- | ------------ | --------------------------------- | ---------------------- | ----------------------- |
-| Pending selection during the follow-up | Required before asset inclusion | Required     | Required                          | No identifiable people | Record compressed bytes |
+| Local asset                                 | Source / photographer                                                                                                | License verified                                             | Dimensions  | Bytes  |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ----------- | ------ |
+| public/images/public-landing/workspace.webp | [Madeline Liu](https://unsplash.com/photos/modern-empty-office-with-multiple-desks-chairs-and-computers-zF-ysAeI7XU) | [Unsplash License](https://unsplash.com/license), 2026-10-02 | 1600 × 1067 | 120160 |
+| public/images/public-landing/library.webp   | [Drew Walker](https://unsplash.com/photos/an-empty-library-with-a-lot-of-books-on-the-shelves-4h7tTTgDe7E)           | [Unsplash License](https://unsplash.com/license), 2026-10-02 | 1600 × 1067 | 70552  |
+| public/images/public-landing/cafe.webp      | [Maximilian Bungart](https://unsplash.com/photos/empty-cafe-tables-with-a-fluffy-cushion-NEwejSqaHXk)                | [Unsplash License](https://unsplash.com/license), 2026-10-02 | 1600 × 2387 | 207938 |
 
 ## 4. Security and test matrix
 
@@ -175,3 +177,7 @@ Built in two PRs, in the §6 order: #102 (tokens and primitives) and the public 
 | Targets at least 48×48 px                              | Every link and button on `/` measured at 360, 768, 1024 and 1440 px, with text at 100%, 150% and 200%: none under 48×48                                                                      |
 | No horizontal scrolling at 360, 768 and 1024 px        | `scrollWidth - clientWidth` is 0 at 360, 768, 1024 and 1440 px, with text at 100%, 150% and 200%; no element with `overflow: hidden` has content larger than its box, so nothing is clipped  |
 | Keyboard reaches every control (Tab, Shift+Tab, Enter) | The first Tab shows the skip link; Enter moves focus to `main#main-content`; Tab continues to the hero's links and Shift+Tab returns. The page has no buttons, so Space has nothing to press |
+
+### TSK-02.3 implementation — 2026-10-02 (#161)
+
+Option A is implemented in #161. It reuses the original layout/header/footer and adds the static photo composition, explanatory panel and four noninteractive examples. Photography is local and attributed above. The old client-side filtering prototype was not ported. See the [verification evidence](evidence/TSK-02.3/verification.md). The original shell history above remains unchanged.

@@ -1,0 +1,74 @@
+[
+  {
+    "width": 360,
+    "scale": 100,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 360,
+    "scale": 150,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 360,
+    "scale": 200,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 768,
+    "scale": 100,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 768,
+    "scale": 150,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 768,
+    "scale": 200,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 1024,
+    "scale": 100,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 1024,
+    "scale": 150,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 1024,
+    "scale": 200,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 1440,
+    "scale": 100,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 1440,
+    "scale": 150,
+    "collisions": [],
+    "outside": []
+  },
+  {
+    "width": 1440,
+    "scale": 200,
+    "collisions": [],
+    "outside": []
+  }
+]
