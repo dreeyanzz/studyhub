@@ -35,13 +35,25 @@ BOM.
 
 - **Short message:** `git commit -m "feat(STORY-03): add the login form"` works in any
   shell.
-- **Long message or PR body:** write it in Git Bash with a heredoc, or in your editor
-  saved as UTF-8 without BOM.
+- **Long message or PR body:** write it in Git Bash with a heredoc whose delimiter is
+  quoted (`<<'EOF'`), or in your editor saved as UTF-8 without BOM.
 - **PowerShell, if you must:**
   `[IO.File]::WriteAllText("$PWD\msg.txt", $text, [Text.UTF8Encoding]::new($false))`,
   then `git commit -F msg.txt`.
 - **Never, in PowerShell 5.1:** `$text | Out-File msg.txt`, `$text > msg.txt`, or
   `Set-Content msg.txt $text`.
+
+The shell also rewrites text inside double quotes before `git` or `gh` sees it. Plain text
+like the short message above is safe, but Markdown is not:
+
+- **PowerShell** treats the backtick as an escape character: `` `name` `` arrives as a
+  line break followed by "ame".
+- **Git Bash** runs anything between backticks as a command.
+- **Both** replace `$word` with the value of a variable, usually nothing.
+
+For a message, body or comment with backticks or `$`, use single quotes (in PowerShell,
+`''` for an apostrophe), a PowerShell here-string in single quotes (`@'…'@`), a Git Bash
+heredoc with a quoted delimiter (`<<'EOF'`), or a file.
 
 ## Opening a pull request
 
