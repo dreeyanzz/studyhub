@@ -1,6 +1,6 @@
 # STORY-06: Automated tests and QA verification
 
-**Status:** approved 2026-09-30 · **Owner:** @lukedongque · **Story:** #55 · **FR:** SRS §3.5.1 ·
+**Status:** implemented 2026-10-04 · **Owner:** @lukedongque · **Story:** #55 · **FR:** SRS §3.5.1 ·
 **Depends on:** STORY-03, STORY-04 and STORY-05 (all merged) · **Decisions:** D-013, D-014,
 D-027, D-028, D-032
 
@@ -291,9 +291,47 @@ None. The CI decision is made in §5.
 
 ## 9. After the build
 
-_Fill this in when the story is done._
+Built in two PRs, in the §6 order: #157 (TSK-06.1, the Playwright smoke test) and #160
+(TSK-06.3, the CI job). TSK-06.2 changed no code, as planned: Luke recorded its result on
+#55 on 1 Oct, and Adrian's agent re-ran it on `main` (#150). Adrian's agent reviewed both
+PRs and, on Adrian's instruction, pushed the trace upload and the job timeout to #160
+(`aa53f6d`). Luke reviews that commit to be ready to explain it in the Final phase.
 
-- what turned out different from this plan, and why
-- the status line changed to `implemented YYYY-MM-DD`
-- the docs this story changed
-- who verified each acceptance criterion
+**Different from the plan:**
+
+- `playwright.config.ts` reads the local stack's URL and publishable key from
+  `npx supabase status -o env` itself (§1), so the `e2e` job sets no values. The first
+  draft fell back to a stand-in key, which still signs in on the local stack but makes any
+  read before sign-in fail; the review of #157 changed it.
+- The Administrator's badge is checked inside the header (the `banner` landmark) for the
+  exact word. The Host portal also says "an Administrator verifies it" twice, so a
+  page-wide text search found three matches (#157).
+- The app runs at `http://localhost:3100`, not `127.0.0.1`: Next 16 blocks its dev
+  resources, such as the HMR socket, for other host names (#157).
+- `npm run test:e2e` can't run beside `npm run dev`, because Next 16 runs one dev server
+  per project folder. The run steps say to stop it first (#157).
+- When the `e2e` job fails, it uploads `test-results/`, where Playwright keeps the trace of
+  its retry, as the `playwright-traces` artifact. The job stops after 20 minutes (#160).
+
+**Still open:** nothing for this story. The `e2e` job stays a check that isn't required
+(§5); making it required is a ruleset change only Adrian makes (D-014).
+
+**Docs this story changed:** `AGENTS.md` (the Commands block and the layout note),
+`docs/DEVELOPMENT.md` (the Tools table and how to run the smoke test),
+`docs/guides/testing.md` (the Journey row and section) and
+`docs/guides/working-with-git-and-prs.md` (the CI table), in #157 and #160; the design
+index and the Sprint 1 brief at the close-out.
+
+**Final checks:** `npm run check` (128/128 tests) and `npm run build` pass on `main` at
+`ddcd608`, and so do CI's `checks`, `db` and `e2e` jobs there, with the smoke test at 3/3
+in Chromium.
+
+**Acceptance criteria (#55):** checked by Adrian's agent (Claude Code) on the local
+Supabase stack and in CI. Nothing was written to the shared cloud database.
+
+| Criterion                                                                                                        | How it was verified                                                                                                                                                                                                                                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vitest covers the auth schemas (valid email, weak passwords, role values) and the space schema (required fields) | `lib/validation/auth.test.ts` (#106) covers a valid and an invalid email; passwords that are too short, too long, or without a number or a symbol; and the `seeker`, `host`, `admin` and invalid roles. For `space.test.ts` (#133), TSK-06.2 removed each required rule (name, address, opening and closing time) and the tests went red: Luke on 1 Oct, and Adrian's agent again on `main` (#150) |
+| Role-guard tests cover anonymous, seeker, host and admin users for `/seeker`, `/host` and `/admin`               | `lib/auth/role-guard.test.ts` (TSK-03.2) has a block for each of the four, on each portal                                                                                                                                                                                                                                                                                                          |
+| `npm run check` is green locally and in CI                                                                       | Locally on `main` at `ddcd608` (128/128), and in CI's `checks` job on every pull request and on `main`                                                                                                                                                                                                                                                                                             |
+| A Playwright smoke test signs in as each seeded role                                                             | `e2e/smoke.spec.ts` (#157): 3 passed against the local stack in the review of #157, where breaking an assertion on purpose turned it red; and in CI's `e2e` job on #160 and on `main`                                                                                                                                                                                                              |

@@ -1,6 +1,6 @@
 # STORY-02: Accessible design system and public shell
 
-**Status:** original shell implemented 2026-09-28; option A follow-up approved 2026-09-28 (#117) · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
+**Status:** original shell implemented 2026-09-28; option A follow-up approved 2026-09-28 (#117) and implemented 2026-10-04 (#161) · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
 **FR:** SRS §3.2.2, §3.7.1 · **Depends on:** none · **Decisions:** D-002, D-005, D-010, D-016, D-018, D-026, D-031, D-033
 
 ## 0. Scope
