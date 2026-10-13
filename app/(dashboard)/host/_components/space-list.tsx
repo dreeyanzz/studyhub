@@ -120,7 +120,26 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
  * create section (STORY-05 design §3.2). The list is what the server read; nothing
  * here claims a change before Postgres has accepted it.
  */
-export function SpaceList({ spaces }: { spaces: SpaceListItem[] }) {
+export function SpaceList({
+  spaces,
+  canCreate,
+}: {
+  spaces: SpaceListItem[]
+  canCreate: boolean
+}) {
+  // An Administrator may open /host (D-032), owns no Spaces, and has no create form
+  // to be pointed to (#145).
+  if (spaces.length === 0 && !canCreate) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>You have no Spaces</CardTitle>
+          <CardDescription>Spaces belong to the Hosts who create them.</CardDescription>
+        </CardHeader>
+      </Card>
+    )
+  }
+
   if (spaces.length === 0) {
     return (
       <Card>
