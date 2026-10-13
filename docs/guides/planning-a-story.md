@@ -27,7 +27,7 @@ The story owner writes `docs/design/STORY-xx-short-desc.md` from
 
 What goes in it:
 
-- **Keep Sprint 1 docs to one or two pages.** The test: could someone who has never seen the code predict what it does?
+- **Keep it as short as the story allows.** The test: could someone who has never seen the code predict what it does?
 - **Name the negative tests.** The wrong user gets 0 rows; the owner's forbidden writes are rejected.
 - **If you choose between real alternatives**, add a [DECISIONS](../DECISIONS.md) entry in the same PR.
 - **If something unclear blocks you**, open a Decision issue instead of guessing.
