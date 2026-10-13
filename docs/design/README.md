@@ -11,7 +11,7 @@ approval. Fixes, chores and docs-only changes are exempt.
 - Branch: `feature/STORY-xx-design`.
 - Pull request title: `docs(STORY-xx): design <short description>`.
 - Start from [`TEMPLATE.md`](TEMPLATE.md).
-- Keep Sprint 1 docs to one or two pages.
+- Keep it as short as the story allows.
 
 **Once it is merged:**
 

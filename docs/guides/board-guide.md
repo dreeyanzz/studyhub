@@ -112,8 +112,8 @@ task form's headings.
 
 ```bash
 gh issue create --title "TSK-07.1: add the zones and units tables" \
-  --label type:task --label area:host --milestone "Sprint 2 (Prefinal)" --assignee @me \
-  --body $'### Parent story\n\n#56\n\n### What\n\n…\n\n### Done when\n\n- [ ] …\n\n### Story points (1–10)\n\n2\n\n### Estimate (working days)\n\n0.5\n\n### Area\n\nhost'
+  --label type:task --label area:db --milestone "Sprint 2 (Prefinal)" --assignee @me \
+  --body $'### Parent story\n\n#56\n\n### What\n\n…\n\n### Done when\n\n- [ ] …\n\n### Story points (1–10)\n\n3\n\n### Estimate (working days)\n\n1\n\n### Area\n\ndb'
 gh api repos/dreeyanzz/studyhub/issues/56/sub_issues \
   -F sub_issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<task number> --jq .id)"
 ```
