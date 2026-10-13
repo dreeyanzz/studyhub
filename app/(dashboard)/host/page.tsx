@@ -2,7 +2,13 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Card, CardContent } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 
 import { createSpace } from './actions'
@@ -39,6 +45,17 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
   // The layout's check does not stop this page from rendering, so the page checks
   // too. proxy.ts only routes people (D-010).
   if (!user) redirect('/login?returnUrl=%2Fhost')
+
+  // Only Hosts may insert a Space (STORY-01's insert policy), but an Administrator may
+  // open /host too (D-032). So the page reads the caller's role from their own profiles
+  // row, never user_metadata (STORY-03 design §2), and offers the create form to Hosts
+  // only (#145).
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+  const canCreate = profile?.role === 'host'
 
   // RLS decides which rows come back; host_id = user.id keeps the list to the
   // caller's own Spaces even for an Administrator, who may open /host (D-032) and
@@ -78,16 +95,31 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
           >
             Create a Space
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Give it a name, an address, an optional description, and the hours it opens
-            every day.
-          </p>
+          {canCreate ? (
+            <p className="text-sm text-muted-foreground">
+              Give it a name, an address, an optional description, and the hours it opens
+              every day.
+            </p>
+          ) : null}
         </div>
-        <Card className="max-w-2xl">
-          <CardContent>
-            <SpaceForm mode="create" action={createSpace} />
-          </CardContent>
-        </Card>
+        {canCreate ? (
+          <Card className="max-w-2xl">
+            <CardContent>
+              <SpaceForm mode="create" action={createSpace} />
+            </CardContent>
+          </Card>
+        ) : (
+          // A Card, not an Alert: the note is part of the page, not news to announce.
+          <Card className="max-w-2xl">
+            <CardHeader>
+              <CardTitle>Only Hosts create Spaces</CardTitle>
+              <CardDescription>
+                Your account can open the Host portal, but creating a Space needs a Host
+                account.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
       </section>
 
       <section aria-labelledby="your-spaces-heading" className="space-y-4">
@@ -112,7 +144,7 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
             </AlertDescription>
           </Alert>
         ) : (
-          <SpaceList spaces={spaces} />
+          <SpaceList spaces={spaces} canCreate={canCreate} />
         )}
       </section>
     </div>
