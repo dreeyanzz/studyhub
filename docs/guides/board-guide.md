@@ -2,7 +2,7 @@
 
 This guide is for Maria, who maintains the board, and for anyone who moves a card. The
 board is the GitHub Project "StudyHub", linked to this repository. Its layout is a course
-requirement (D-022).
+requirement (D-038).
 
 ## Columns (Status)
 
