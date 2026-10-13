@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { registerSchema } from '@/lib/validation/auth'
@@ -24,6 +26,10 @@ export function RegisterForm() {
     register,
   )
   const roleError = errors.role?.[0]
+  // Controlled, as in LoginForm, so a failed sign-up keeps what was typed (#146). The
+  // role radios are native inputs, which don't warn, so they keep defaultChecked.
+  const [fullName, setFullName] = useState(state.values?.fullName ?? '')
+  const [email, setEmail] = useState(state.values?.email ?? '')
 
   return (
     <form {...formProps} className="flex flex-col gap-5">
@@ -92,7 +98,8 @@ export function RegisterForm() {
         label="Full name"
         autoComplete="name"
         required
-        defaultValue={state.values?.fullName}
+        value={fullName}
+        onChange={(event) => setFullName(event.target.value)}
         errors={errors.fullName}
       />
       <FormField
@@ -101,7 +108,8 @@ export function RegisterForm() {
         type="email"
         autoComplete="email"
         required
-        defaultValue={state.values?.email}
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
         errors={errors.email}
       />
       <FormField

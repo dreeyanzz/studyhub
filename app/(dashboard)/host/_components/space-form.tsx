@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { spaceIdSchema, spaceSchema } from '@/lib/validation/space'
+import { spaceIdSchema, spaceSchema, type SpaceField } from '@/lib/validation/space'
 
 import type { SpaceFormState, SpaceFormValues } from '../actions'
 import { SpaceFormField } from './space-form-field'
@@ -38,7 +38,23 @@ export function SpaceForm(props: SpaceFormProps) {
   // What the browser check found; it replaces the server's answer until the next
   // attempt reaches the server.
   const [clientState, setClientState] = useState<SpaceFormState>()
+  // What the fields show: the saved values when editing, then what the Host types.
+  // Controlled, so a failed save keeps the typed values without changing an input's
+  // default value, which Base UI warns about (#146). A form posted without JavaScript
+  // starts from the values the action sent back.
+  const [values, setValues] = useState<SpaceFormValues>(
+    () => state.values ?? (props.mode === 'edit' ? props.initialValues : {}),
+  )
   const formRef = useRef<HTMLFormElement>(null)
+
+  // The value and change handler that tie one field to `values`.
+  function bind(field: SpaceField) {
+    return {
+      value: values[field] ?? '',
+      onChange: (event: { target: { value: string } }) =>
+        setValues((current) => ({ ...current, [field]: event.target.value })),
+    }
+  }
 
   // After every failed attempt, in the browser or on the server, focus moves to the
   // first field in error. It depends on the state objects, not their text, so a
@@ -80,8 +96,6 @@ export function SpaceForm(props: SpaceFormProps) {
     : pending
       ? undefined
       : state.formError
-  // After a failed save the form shows what the Host typed, not the saved values.
-  const values = state.values ?? (props.mode === 'edit' ? props.initialValues : {})
   const creating = props.mode === 'create'
 
   return (
@@ -104,11 +118,11 @@ export function SpaceForm(props: SpaceFormProps) {
         {(control) => (
           <Input
             {...control}
+            {...bind('name')}
             type="text"
             autoComplete="organization"
             required
             maxLength={100}
-            defaultValue={values.name}
           />
         )}
       </SpaceFormField>
@@ -116,11 +130,11 @@ export function SpaceForm(props: SpaceFormProps) {
         {(control) => (
           <Input
             {...control}
+            {...bind('address')}
             type="text"
             autoComplete="street-address"
             required
             maxLength={200}
-            defaultValue={values.address}
           />
         )}
       </SpaceFormField>
@@ -133,9 +147,9 @@ export function SpaceForm(props: SpaceFormProps) {
         {(control) => (
           <textarea
             {...control}
+            {...bind('description')}
             rows={4}
             maxLength={2000}
-            defaultValue={values.description}
             className={textareaClassName}
           />
         )}
@@ -147,9 +161,7 @@ export function SpaceForm(props: SpaceFormProps) {
           hint="The same hours apply every day."
           errors={errors.opensAt}
         >
-          {(control) => (
-            <Input {...control} type="time" required defaultValue={values.opensAt} />
-          )}
+          {(control) => <Input {...control} {...bind('opensAt')} type="time" required />}
         </SpaceFormField>
         {/* D-027: no rule compares the two times, so the hint explains both cases. */}
         <SpaceFormField
@@ -158,9 +170,7 @@ export function SpaceForm(props: SpaceFormProps) {
           hint="If you close after midnight, pick a time earlier than the opening time. For 24 hours, use the same time for both."
           errors={errors.closesAt}
         >
-          {(control) => (
-            <Input {...control} type="time" required defaultValue={values.closesAt} />
-          )}
+          {(control) => <Input {...control} {...bind('closesAt')} type="time" required />}
         </SpaceFormField>
       </div>
       <div className="flex flex-wrap gap-3">

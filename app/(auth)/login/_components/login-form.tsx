@@ -1,5 +1,7 @@
 'use client'
 
+import { useState } from 'react'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { loginSchema } from '@/lib/validation/auth'
@@ -13,6 +15,10 @@ export function LoginForm({ returnUrl }: { returnUrl: string }) {
     loginSchema,
     login,
   )
+  // Controlled, so a failed login keeps what was typed without changing the input's
+  // default value, which Base UI warns about (#146). A form posted without JavaScript
+  // starts from the email the action sent back.
+  const [email, setEmail] = useState(state.values?.email ?? '')
 
   return (
     <form {...formProps} className="flex flex-col gap-5">
@@ -28,7 +34,8 @@ export function LoginForm({ returnUrl }: { returnUrl: string }) {
         type="email"
         autoComplete="email"
         required
-        defaultValue={state.values?.email}
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
         errors={errors.email}
       />
       <FormField

@@ -813,10 +813,12 @@ and James reviews them to be ready to explain them in the Final phase.
 - An Administrator may open `/host` (D-032) and sees the create form, but only Hosts may
   insert a Space, so a create attempt gets the generic "We could not create this Space"
   message (#145). Hiding the form for Administrators could come with STORY-14.
-- In development, Base UI's Input logs "changing the default value state of an
+- ~~In development, Base UI's Input logs "changing the default value state of an
   uncontrolled FieldControl" when a failed save puts the typed values back through
   `defaultValue`. STORY-03's login and register forms log the same warning, and the
-  values come back correctly in every form (#146).
+  values come back correctly in every form (#146).~~ Fixed (#146): the fields whose
+  values come back are controlled, as in STORY-04's profile form, and
+  `e2e/form-values.spec.ts` checks that a failed save keeps them and logs nothing.
 - ~~An expired session turns a save into "This page couldn't load", as on `/seeker`.~~
   Fixed (#137): the proxy lets Server Actions through, and the action sends the person
   to `/login`.

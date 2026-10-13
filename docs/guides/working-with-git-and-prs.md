@@ -104,7 +104,7 @@ A person runs these commands, not an AI agent.
 | `checks`   | Install, typecheck, lint, format, unit tests, build                                | Yes           |
 | `pr-title` | The PR title, the branch name, and the PR body                                     | Yes           |
 | `db`       | pgTAP database policy tests on a fresh local stack, and generated types up to date | Yes           |
-| `e2e`      | Playwright sign-in smoke test on a seeded local stack (STORY-06)                   | No (Sprint 1) |
+| `e2e`      | The Playwright tests in `e2e/` on a seeded local stack (STORY-06)                  | No (Sprint 1) |
 
 All required checks must be green (`e2e` is non-blocking in Sprint 1). A PR also needs 1 approving review from a teammate (D-014).
 
