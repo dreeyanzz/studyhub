@@ -461,3 +461,47 @@ Maria maintains the board; Adrian is Project Manager.
 **Rejected:** A permanent "Sprint Backlog" column (a screenshot wouldn't say which sprint it shows); a new column for each sprint (the course allows exactly five).
 
 **Revisit if:** The course names the columns for Sprint 2 or 3 itself.
+
+## D-039 · The seat map is a 6-column grid per zone
+
+**Decision:**
+
+- Each zone of a Space's seat map is a band 6 cells wide, with as many rows as it needs. A seat or a standing desk takes one cell, and a whole room takes 2 or 3 cells in one row. Cells may stay empty, for aisles and gaps.
+- The database rejects two units on overlapping cells, with an exclusion constraint, whatever the app checks first.
+- Each change in the builder (adding, editing, moving or removing a unit, or changing a zone) saves at once through its own Server Action (D-010). There is no draft and no "Save layout" button.
+
+**Why:** Six cells of 48 px fit a 360 px screen without scrolling sideways (SRS §3.2.2), and the bands match SRS Figure 3. One grid shape lets Hosts and Seekers share one renderer, so a saved map renders the same for both (FR-3.1). Saving each change keeps the grid and the list view on the same actions, and a closed tab loses nothing.
+
+**Rejected:** Units in order with no positions (simplest, but no gaps, aisles or real layout); one floor-plan grid for the whole Space, with zones as areas on it (the most work, and a phone can't show it without zooming or scrolling sideways); editing a draft and saving the whole map at once (one large save, and the list view would need the same draft).
+
+**Revisit if:** Hosts need rows wider than 6 cells, or rooms that span rows.
+
+## D-040 · Venue photos are public
+
+**Decision:**
+
+- Venue photos live in a public Supabase Storage bucket, `space-photos`, at `<space_id>/<file name>`. Each is at most 5 MB, and JPEG, PNG or WebP.
+- Only the Host who owns the Space may upload, replace or delete its photos. Listing them follows the Space's own visibility (STORY-01).
+- Deleting a Space removes its photos first: `deleteSpace` empties the Space's folder through the Storage API, then deletes the row. Once the row is gone, no policy matches those photos, and the bucket is public.
+
+**Why:** Photos are for everyone who can see the Space (FR-1.3), and plain URLs keep STORY-11's gallery simple.
+
+**Rejected:** A private bucket with short-lived signed URLs: tighter, but more work for STORY-11, and it protects little, because the photos become public once the Space is Verified.
+
+**Accepted risk:** Anyone who has the exact URL of a Pending or Rejected Space's photo can open it. Nothing publishes those URLs.
+
+**Revisit if:** A photo ever needs to stay private, such as a document for verification.
+
+## D-041 · The Host-updated time counts only the Host's own changes
+
+**Decision:**
+
+- `units.state_updated_at` is when the Host last set or confirmed a unit's state. It is set when the Host adds the unit, and by every state change the Host makes: STORY-12's one-tap change, walk-ins included, and the check-ins and check-outs a Host records (STORY-10).
+- Changes made by the system or by a Seeker leave it alone: a hold starting or lapsing (STORY-09), and a no-show or closing-time release (STORY-10).
+- No trigger sets it. The database functions that let a Host change a state set it themselves.
+
+**Why:** "Host-updated · X min ago" (D-002) tells a Seeker how long ago the Host last vouched for the map, and the Sprint 2 Definition of Done says it shows when a Host last updated it. If a lapsed hold moved the time, a seat the Host last checked at 9:00 would read "Host-updated · 2 min ago" at 11:12. A trigger can't tell the two kinds of change apart, because a lapsed hold can be released inside the Host's own request (expiry runs on read and on write, D-011).
+
+**Rejected:** A trigger that stamps every state change (the label would overstate freshness); a trigger that stamps only when the caller is the Space's Host (wrong whenever a release runs in the Host's own request); a second timestamp for changes of any kind (nothing reads it yet).
+
+**Revisit if:** A surface needs the time of the last change of any kind.
