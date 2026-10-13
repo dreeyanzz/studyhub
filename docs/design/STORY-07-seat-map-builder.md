@@ -1,8 +1,8 @@
 # STORY-07: Snap-grid seat map builder
 
-**Status:** draft · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1, SRS §3.2.2 ·
-**Depends on:** STORY-01 and STORY-05 · **Decisions:** D-002, D-003, D-004, D-006, D-007,
-D-010, D-013, D-039 and D-040
+**Status:** approved 2026-10-14 · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1,
+SRS §3.2.2 · **Depends on:** STORY-01 and STORY-05 · **Decisions:** D-002, D-003, D-004,
+D-006, D-007, D-010, D-011, D-013, D-039, D-040 and D-041
 
 ## 0. Scope
 
@@ -16,10 +16,13 @@ D-010, D-013, D-039 and D-040
 - The Host's builder at `/host/spaces/[spaceId]/seat-map`. It adds, renames, reorders and
   deletes zones, and adds, edits, moves and removes units. Every change saves at once
   through its own Server Action (D-010, D-039).
-- A list view with every builder action, usable by keyboard alone (SRS §3.2.2).
+- A list view with every builder action, usable by keyboard alone and before JavaScript
+  loads (SRS §3.2.2).
 - One renderer for the seat map, in `components/seat-map/`, which STORY-11 and STORY-12
-  reuse, so a saved map renders the same for Hosts and Seekers (FR-3.1).
-- The `space-photos` Storage bucket and its policies, for STORY-11's uploads (D-040).
+  reuse, so a saved map renders the same for Hosts and Seekers (FR-3.1). It gets its own
+  early task, so they can build on it before the builder lands (§6).
+- The `space-photos` Storage bucket and its policies, for STORY-11's uploads, and
+  `deleteSpace` removing a Space's photos before the Space itself (D-040).
 - Seeded seat maps for the local stack and CI, the first one modelled on SRS Figure 3.
 
 **Out:**
@@ -54,8 +57,9 @@ sequenceDiagram
 ```
 
 Moving and editing work the same way. The Host selects a unit, then taps an empty cell or
-saves the unit's form. Each change is one row and one round trip, so a closed tab loses at
-most the change in flight.
+saves the unit's form. Removing a unit or deleting a zone asks first, through a
+confirmation step (§3). Each change is one round trip that writes one row (two when a zone
+moves), so a closed tab loses at most the change in flight.
 
 ## 2. Data and state
 
@@ -80,20 +84,20 @@ most the change in flight.
 
 **`units`**, the things a Seeker can hold (D-003):
 
-| Column                     | Type          | Rules                                                                                                                                                         |
-| -------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                       | `uuid` PK     | Default `gen_random_uuid()`                                                                                                                                   |
-| `space_id`                 | `uuid`        | Not null; references `spaces(id)`, on delete cascade. It repeats the zone's Space, so policies and queries need one hop, and a label can be unique in a Space |
-| `zone_id`                  | `uuid`        | Not null. `(zone_id, space_id)` references `zones(id, space_id)`, on delete cascade, so a unit's zone is always in the unit's own Space                       |
-| `unit_type`                | `unit_type`   | Not null                                                                                                                                                      |
-| `label`                    | `text`        | Not null, 1–12 characters, no spaces at either end; unique in its Space, ignoring case                                                                        |
-| `capacity`                 | `smallint`    | 1–50 for a whole room; null for a seat or a standing desk (FR-3.1)                                                                                            |
-| `grid_row`                 | `smallint`    | Not null, 0–49                                                                                                                                                |
-| `grid_col`                 | `smallint`    | Not null, 0–5                                                                                                                                                 |
-| `col_span`                 | `smallint`    | Not null, default 1. 1 for a seat or a standing desk, 2 or 3 for a whole room; `grid_col + col_span` is at most 6                                             |
-| `seat_state`               | `seat_state`  | Not null, default `available`. Never granted to Hosts in this story (STORY-12)                                                                                |
-| `state_updated_at`         | `timestamptz` | Not null, default `now()`. A trigger sets it whenever `seat_state` changes, and STORY-11's "Host-updated" label reads it (D-002)                              |
-| `created_at`, `updated_at` | `timestamptz` | As in `spaces`. `updated_at` changes with any edit, a move included                                                                                           |
+| Column                     | Type          | Rules                                                                                                                                                           |
+| -------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                       | `uuid` PK     | Default `gen_random_uuid()`                                                                                                                                     |
+| `space_id`                 | `uuid`        | Not null; references `spaces(id)`, on delete cascade. It repeats the zone's Space, so policies and queries need one hop, and a label can be unique in a Space   |
+| `zone_id`                  | `uuid`        | Not null. `(zone_id, space_id)` references `zones(id, space_id)`, on delete cascade, so a unit's zone is always in the unit's own Space                         |
+| `unit_type`                | `unit_type`   | Not null                                                                                                                                                        |
+| `label`                    | `text`        | Not null, 1–12 characters, no spaces at either end; unique in its Space, ignoring case                                                                          |
+| `capacity`                 | `smallint`    | 1–50 for a whole room; null for a seat or a standing desk (FR-3.1)                                                                                              |
+| `grid_row`                 | `smallint`    | Not null, 0–49                                                                                                                                                  |
+| `grid_col`                 | `smallint`    | Not null, 0–5                                                                                                                                                   |
+| `col_span`                 | `smallint`    | Not null, default 1. 1 for a seat or a standing desk, 2 or 3 for a whole room; `grid_col + col_span` is at most 6                                               |
+| `seat_state`               | `seat_state`  | Not null, default `available`. Never granted to Hosts in this story (STORY-12)                                                                                  |
+| `state_updated_at`         | `timestamptz` | Not null, default `now()`. When the Host last set or confirmed the state: only the Host's own changes move it (D-041). STORY-11's "Host-updated" label reads it |
+| `created_at`, `updated_at` | `timestamptz` | As in `spaces`. `updated_at` changes with any edit, a move included                                                                                             |
 
 **No overlaps.** An exclusion constraint rejects two units in the same zone and row whose
 columns overlap:
@@ -102,12 +106,13 @@ It needs the `btree_gist` extension, which the migration creates in `extensions`
 requests racing for the same cell, exactly one succeeds and the other gets `23P01`. The
 builder looks for a free cell first, but the database is the backstop.
 
-**Functions, in schema `private`:**
+**Functions, in schema `private`:** `private.set_updated_at()` (STORY-01), on both tables.
 
-- `private.set_updated_at()` (STORY-01), on both tables.
-- `private.set_state_updated_at()`, new: before an update that changes `seat_state`, it sets
-  `state_updated_at` to `now()`. It stamps every state change, whoever makes it (STORY-09,
-  STORY-10, STORY-12).
+**No trigger sets `state_updated_at`** (D-041). It records when the Host last set or
+confirmed a unit's state, and a trigger can't tell the Host's change from one the system
+makes in the same request, because a lapsed hold is released on read and on write (D-011).
+So the database functions that let a Host change a state (STORY-12's, and STORY-10's
+check-in) set it themselves, and the system's own transitions leave it alone.
 
 **Seat state.** This story only creates units. STORY-09, STORY-10 and STORY-12 add the
 other transitions of D-004.
@@ -122,7 +127,8 @@ other transitions of D-004.
 - `unitSchema`: `unitType`; `label` trimmed, 1–12 characters; `capacity` required for a
   whole room (1–50) and absent otherwise; `colSpan` 1 for a seat or a standing desk, 2 or 3
   for a whole room.
-- `cellSchema`: `row` 0–49, `col` 0–5, and `col + colSpan` at most 6.
+- `cellSchema`: `row` 0–49, `col` 0–5, and `col + colSpan` at most 6. These count from 0,
+  as the database does; only the page counts from 1 (§3).
 - `zoneIdSchema` and `unitIdSchema`: UUIDs, so a malformed id never reaches Postgres
   (STORY-05 §2.4).
 
@@ -152,7 +158,14 @@ Administrator reads every seat map, as STORY-15's review needs, and changes none
 - A photo's path starts with its Space's id: `<space_id>/<file name>`.
 - Policies on `storage.objects`, for this bucket only: insert, update and delete when the
   first folder is a Space the caller owns; select (listing) when that Space is visible to
-  the caller. A public URL needs no policy.
+  the caller. A public URL needs no policy. Each compares the folder with the Space's id
+  as text, `s.id::text = (storage.foldername(objects.name))[1]`: a cast to `uuid` would
+  make every listing fail once one object's folder isn't an id.
+- Deleting a Space removes its photos first. Once the Space's row is gone, no policy
+  matches its photos, so only the secret key could remove them, and the bucket is public.
+  So `deleteSpace` (STORY-05) empties the Space's folder through the Storage API, then
+  deletes the row. If the photos can't be removed, the Space stays, and the Host gets the
+  usual "We could not delete this Space" message.
 - Whether photos also need a table, for their order and alt text, is STORY-11's call. If
   they do, Adrian adds it with STORY-11's database task.
 
@@ -166,13 +179,14 @@ Administrator reads every seat map, as STORY-15's review needs, and changes none
 
 **What other stories build on:**
 
-| Story    | Uses                                                                                                                                                                   |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| STORY-08 | `units.unit_type`, for the "unit type" filter. Anyone may read the units of a Verified Space                                                                           |
-| STORY-09 | `units.id`, for `reservations`, and `seat_state`. Its design decides what happens when a Host deletes a unit with a hold, and whether a whole room takes one hold      |
-| STORY-11 | `getSeatMap()` and the shared renderer, on the Space profile; `state_updated_at`, for the "Host-updated" label; the `space-photos` bucket                              |
-| STORY-12 | The shared renderer, for the Host's occupancy view. Adrian adds the way a Host changes `seat_state` with STORY-12's database task; the trigger already stamps the time |
-| STORY-15 | An Administrator can read a Pending Space's seat map before approving it                                                                                               |
+| Story    | Uses                                                                                                                                                                                                                                   |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| STORY-08 | `units.unit_type`, for the "unit type" filter. Anyone may read the units of a Verified Space                                                                                                                                           |
+| STORY-09 | `units.id`, for `reservations`, and `seat_state`. Its holds, and their lapses, leave `state_updated_at` alone (D-041). Its design decides what happens when a Host deletes a unit with a hold, and whether a whole room takes one hold |
+| STORY-10 | `seat_state`, for check-in, check-out and release. The check-ins and check-outs a Host records set `state_updated_at`; no-show and closing-time releases don't (D-041)                                                                 |
+| STORY-11 | `getSeatMap()` and the shared renderer (TSK-07.4), on the Space profile; `state_updated_at`, for the "Host-updated" label; the `space-photos` bucket (TSK-07.2)                                                                        |
+| STORY-12 | The shared renderer (TSK-07.4), for the Host's occupancy view. Adrian adds the way a Host changes `seat_state` with STORY-12's database task, and it sets `state_updated_at` too (D-041)                                               |
+| STORY-15 | An Administrator can read a Pending Space's seat map before approving it                                                                                                                                                               |
 
 ## 3. UI and files
 
@@ -185,29 +199,47 @@ Administrator reads every seat map, as STORY-15's review needs, and changes none
 - The Space list on `/host` gains a "Seat map" link on each card, next to Edit and Delete.
 - `components/seat-map/seat-map-grid.tsx`: the shared renderer. It has no `'use client'`,
   so Server and Client Components can both use it. Each zone is a heading and a 6-column
-  CSS grid. The optional `renderUnit` and `renderEmptyCell` let the builder, and later
-  STORY-09 and STORY-12, add controls without changing how the map looks.
-- `components/seat-map/unit-tile.tsx`: a unit's tile. It shows the label, the seat state
-  in words (never color alone), and a whole room's capacity; a small icon tells a seat from
-  a standing desk. A label too long for its tile is cut off with an ellipsis, but its
-  accessible name never is.
+  CSS grid whose rows grow with their tallest tile. Above the zones, a legend names every
+  state and type icon in words. The optional `renderUnit` and `renderEmptyCell` let the
+  builder, and later STORY-09 and STORY-12, add controls without changing how the map
+  looks.
+- `components/seat-map/unit-tile.tsx`: a unit's tile. It shows the label, a whole room's
+  capacity ("6 people"), and two Lucide icons: one for the type (`Armchair` for a seat,
+  `PersonStanding` for a standing desk, `DoorClosed` for a whole room) and one for the seat
+  state (`Circle` for Available, `Hourglass` for Pending Payment, `Bookmark` for Reserved,
+  `User` for Occupied). Each state has its own shape, so it never rests on color alone,
+  and the legend says what each one means. The tile's accessible name says it all in
+  words: "S4, Seat, Available". A cell is about 51 px wide at 360 px, too narrow for a
+  state in words, so the words live in the legend, the accessible name and the list view.
+  A long label wraps onto more lines and the tile grows taller, so nothing is cut off.
 - `_components/seat-map-builder.tsx` (Client Component): the grid view.
   - A toolbar adds a seat, a standing desk, a whole room or a zone.
   - After the Host picks a type, the empty cells become "Place here" buttons. The new unit
     gets the next free label (S9, D5, Room C), which the Host can change.
   - Selecting a unit opens its panel: label, type, a whole room's capacity and width, Move
-    (then tap an empty cell), and Remove, with a confirmation.
+    (then tap an empty cell), and Remove, which opens the confirmation step.
 - `_components/seat-map-list.tsx`: the list view. For each zone:
-  - a heading, and the zone's actions: Rename, Move up, Move down and Delete. Delete asks
-    first, and says how many units go with the zone;
-  - a table of its units (label, type, capacity, row and column, width), each with Edit and
-    Remove;
+  - a heading, and the zone's actions: Rename, Move up, Move down and Delete. Delete opens
+    the confirmation step, which says how many units go with the zone;
+  - its units in row and column order, one block per unit rather than a table row: the
+    label, then its type, capacity, row and column, and width on a line that wraps, then
+    Edit and Remove. Blocks wrap where a table's columns can't, so the list fits 328 px
+    without scrolling sideways;
   - an "Add a unit" form whose row and column default to the first free cell.
 
   These are plain forms, so they work by keyboard alone and before JavaScript loads.
 
-- `_components/unit-form.tsx` and `_components/zone-form.tsx` (Client Components): shared
-  by both views, with `useActionState`, as in STORY-05.
+- **The confirmation step.** Remove (a unit) and Delete (a zone) are links to the same page
+  with `?remove=<unit id>` or `?delete-zone=<zone id>`, in either view. The page then shows
+  a panel, `#confirm`, in place of that unit or zone. It names what goes ("Remove S4?",
+  "Delete Quiet desks and its 8 units?"), with a button that posts the action and a Cancel
+  link back. It is a server round trip, like STORY-05's delete page, so it works by
+  keyboard and before JavaScript loads, and it needs no dialog, which STORY-02 doesn't
+  have. An id that isn't in this Space, or no longer exists, is ignored, so after the
+  removal the panel is simply gone.
+- `_components/unit-form.tsx`, `_components/zone-form.tsx` and
+  `_components/confirm-removal.tsx` (Client Components): shared by both views, with
+  `useActionState`, as in STORY-05.
 - `actions.ts`: `createZone`, `renameZone`, `moveZone`, `deleteZone`, `addUnit`,
   `updateUnit`, `moveUnit` and `removeUnit`. Each one:
   - checks the session, and sends an expired one to `/login`, as since #137;
@@ -215,6 +247,11 @@ Administrator reads every seat map, as STORY-15's review needs, and changes none
   - writes one row (`moveZone` writes two), and asks for it back, so 0 rows is an error
     (STORY-05 §2.6);
   - revalidates the page.
+
+  `createZone` puts a new zone last: the highest `position` plus one. `moveZone` gives the
+  two zones their new places by their order on the page (0, 1, 2…), not by swapping their
+  stored values, so a tie, left by a move that failed halfway or by two zones made at
+  once, is gone after the next move.
 
   Errors map to plain words: `23P01` is "That spot is taken"; `23505` is "Another unit in
   this Space is already called S4" or "This Space already has a zone called Rooms"; `23514`
@@ -224,8 +261,12 @@ Administrator reads every seat map, as STORY-15's review needs, and changes none
   returns the zones in order, each with its units by row and column. STORY-11 and STORY-12
   call it too.
 - `lib/seat-map/grid.ts`: pure rules, with no database and no React: the column count (6),
-  whether a unit fits at a cell, the first free cell, how many rows to draw, and the next
-  free label.
+  whether a unit fits at a cell, the first free cell, how many rows to draw, the next free
+  label, and a cell in words.
+- **Rows and columns count from 1 on the page** ("row 2, column 3"), and from 0 in the
+  forms' values, the Zod schemas and the database. The list view's row and column are
+  native selects whose options read from 1 and submit from 0, and `grid.ts` has the one
+  helper that turns a cell into words.
 
 **Where the files go:**
 
@@ -233,7 +274,9 @@ Administrator reads every seat map, as STORY-15's review needs, and changes none
 app/(dashboard)/host/spaces/[spaceId]/seat-map/
   page.tsx  actions.ts
   _components/  seat-map-builder.tsx  seat-map-list.tsx  unit-form.tsx  zone-form.tsx
+                confirm-removal.tsx
 app/(dashboard)/host/_components/space-list.tsx   the "Seat map" link
+app/(dashboard)/host/actions.ts                   deleteSpace removes the photos first
 components/seat-map/   seat-map-grid.tsx  unit-tile.tsx
 lib/seat-map/          grid.ts  grid.test.ts
 lib/validation/        seat-map.ts  seat-map.test.ts
@@ -253,11 +296,14 @@ The build PRs update the layout note in `AGENTS.md` as `components/seat-map/`,
   360 px screen, so the grid never scrolls sideways. That holds only if the grid sits
   directly on the page, not inside a padded Card. On larger screens it is at most 576 px
   wide.
+- At 200% text, tiles grow taller and their labels wrap. Nothing is cut off, and the icons
+  keep their size.
 - Empty cells are buttons only while the Host is placing or moving a unit, so otherwise the
   grid holds few tab stops. Each one has a name, such as "Place at row 2, column 3 in Quiet
   desks".
 - After a change, focus moves to the new or moved unit, or to its zone after a removal. An
-  `aria-live` region announces the result or the error.
+  `aria-live` region announces the result or the error. On the confirmation step, the
+  page opens at `#confirm`, and focus goes to the panel's heading.
 - The list view is the keyboard path, and it offers every action the grid does.
 - Native `select` and radio inputs, styled like STORY-02's Input, until the design system
   has a Select.
@@ -266,75 +312,94 @@ The build PRs update the layout note in `AGENTS.md` as `components/seat-map/`,
 
 pgTAP runs in `03-seat-map.sql` and `04-space-photos.sql`, against the seeded accounts.
 
-| Layer  | Case                                                                                                        | Expected                                  |
-| ------ | ----------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| pgTAP  | An anonymous visitor or a Seeker lists zones and units                                                      | Only those of Verified Spaces             |
-| pgTAP  | A Seeker inserts a zone or a unit; updates or deletes one                                                   | `42501`; 0 rows                           |
-| pgTAP  | host creates a zone, then adds, moves, relabels and removes units, in their own Pending Space               | Succeeds                                  |
-| pgTAP  | host2 reads the zones and units of host's Pending Space                                                     | 0 rows                                    |
-| pgTAP  | host2 inserts a zone into host's Space, or a unit into host's zone                                          | `42501`                                   |
-| pgTAP  | host2 updates or deletes host's zones or units                                                              | 0 rows                                    |
-| pgTAP  | An Administrator reads a Pending Space's seat map; tries to insert, update or delete                        | The rows; `42501` or 0 rows               |
-| pgTAP  | host sets `seat_state`, `state_updated_at` or `space_id` on their own unit                                  | `42501`                                   |
-| pgTAP  | host places a unit on a taken cell, or a room over one                                                      | `23P01`                                   |
-| pgTAP  | host reuses a label in the same Space, in another case                                                      | `23505`                                   |
-| pgTAP  | host saves a seat with a capacity, a room without one, a seat 2 cells wide, or a room past the sixth column | `23514`                                   |
-| pgTAP  | host moves a unit into a zone of another Space                                                              | `23503`                                   |
-| pgTAP  | `seat_state` changes; a label changes                                                                       | `state_updated_at` moves; it doesn't      |
-| pgTAP  | host uploads a photo to their own Space's folder; to host2's; a Seeker or an anonymous visitor uploads      | Succeeds; rejected; rejected              |
-| pgTAP  | host2 deletes host's photo                                                                                  | 0 rows                                    |
-| Vitest | `grid.ts`: spans, bounds, the first free cell, the next label                                               | Pure                                      |
-| Vitest | `seat-map.ts` schemas: trimming, lengths, a room's capacity, widths, bounds                                 | Pure                                      |
-| Manual | As host@, build a map in both views at 360, 768 and 1024 px, then use the list view by keyboard only        | No sideways scrolling; every action works |
-| Manual | Reload after each change                                                                                    | The map is unchanged                      |
-| Manual | host2@ and admin@ open host@'s builder URL                                                                  | Not found                                 |
+| Layer  | Case                                                                                                                        | Expected                                                        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| pgTAP  | An anonymous visitor or a Seeker lists zones and units                                                                      | Only those of Verified Spaces                                   |
+| pgTAP  | A Seeker inserts a zone or a unit; updates or deletes one                                                                   | `42501`; 0 rows                                                 |
+| pgTAP  | host creates a zone, then adds, moves, relabels and removes units, in their own Pending Space                               | Succeeds                                                        |
+| pgTAP  | host2 reads the zones and units of host's Pending Space                                                                     | 0 rows                                                          |
+| pgTAP  | host2 inserts a zone into host's Space, or a unit into host's zone                                                          | `42501`                                                         |
+| pgTAP  | host2 adds a unit to host's zone, under host2's own Space                                                                   | `23503`                                                         |
+| pgTAP  | host2 updates or deletes host's zones or units                                                                              | 0 rows                                                          |
+| pgTAP  | An Administrator reads a Pending Space's seat map; tries to insert, update or delete                                        | The rows; `42501` or 0 rows                                     |
+| pgTAP  | host sets `seat_state`, `state_updated_at` or `space_id` on their own unit, or `space_id` on their own zone                 | `42501`                                                         |
+| pgTAP  | host places a unit on a taken cell, or a room over one                                                                      | `23P01`                                                         |
+| pgTAP  | host reuses a label in the same Space, in another case                                                                      | `23505`                                                         |
+| pgTAP  | host saves a seat with a capacity, a room without one, a seat 2 cells wide, or a room past the sixth column                 | `23514`                                                         |
+| pgTAP  | host moves a unit to a free cell in a zone of another Space                                                                 | `23503`                                                         |
+| pgTAP  | The table owner changes a unit's `seat_state`, as STORY-09's functions will; a label changes                                | `state_updated_at` stays put in both                            |
+| pgTAP  | host uploads a photo to their own Space's folder; to host2's; a Seeker or an anonymous visitor uploads                      | Succeeds; rejected; rejected                                    |
+| pgTAP  | host2, a Seeker or an anonymous visitor lists the photos of host's Pending Space                                            | 0 rows                                                          |
+| pgTAP  | host moves their own photo into host2's Space's folder                                                                      | Rejected                                                        |
+| pgTAP  | host2 deletes host's photo                                                                                                  | 0 rows                                                          |
+| Vitest | `grid.ts`: spans, bounds, the first free cell, the next label, a cell in words                                              | Pure                                                            |
+| Vitest | `seat-map.ts` schemas: trimming, lengths, a room's capacity, widths, bounds                                                 | Pure                                                            |
+| Manual | As host@, build a map in both views at 360, 768 and 1024 px, at 100% and 200% text, then use the list view by keyboard only | No sideways scrolling, and no label cut off; every action works |
+| Manual | Remove a unit and delete a zone from the list view, with JavaScript off                                                     | Each asks first, then saves                                     |
+| Manual | Reload after each change                                                                                                    | The map is unchanged                                            |
+| Manual | host2@ and admin@ open host@'s builder URL                                                                                  | Not found                                                       |
+| Manual | As host@, put a photo in a Space's folder through the Storage API, then delete the Space                                    | Its folder is empty afterwards                                  |
+
+**Notes for the pgTAP files,** found while trying this design on the local stack:
+
+- A plain `delete from storage.objects` fails with `42501` from Supabase's
+  `storage.protect_delete()` trigger, whatever the policies say. The delete cases set
+  `storage.allow_delete_query` to `true` first, so they test the policy.
+- Inside a policy's `exists (select … from public.spaces s …)`, a bare `name` is the
+  Space's name, and the policy then refuses every upload. Write `objects.name`.
+- The case that moves a unit into another Space's zone aims at a free cell. On a taken
+  one, the overlap rule answers `23P01` before the foreign key answers `23503`.
 
 **Acceptance criteria (#56),** and where each is checked:
 
 - "A saved seat map persists and renders the same for a Host and a Seeker": in two halves.
-  TSK-07.5's review shows a saved map unchanged after a reload, through the shared
-  renderer. STORY-11's review shows the Seeker's profile rendering the same rows through
-  the same renderer.
+  TSK-07.6's review shows a saved map unchanged after a reload, through the shared
+  renderer (TSK-07.4). STORY-11's review shows the Seeker's profile rendering the same
+  rows through the same renderer.
 - "Every unit has a type and a label, and a whole room has a capacity": the `23514` cases
   above, and the Zod tests.
 - "Another Host gets 0 rows for a Space's zones and units, and cannot change them": the
   host2 cases above.
 - "An accessible list view offers every action the snap grid offers, by keyboard alone":
-  the manual check in TSK-07.6's review.
+  the manual checks in TSK-07.7's review.
 
 ## 5. Tasks and estimates
 
 All of them are Adrian's (D-036).
 
-| Task     | What                                                                                                                                        | Owner      | Points (1–10) | Days | Depends on         |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------- | ---- | ------------------ |
-| TSK-07.1 | The `zones` and `units` migration: enums, tables, constraints, trigger, grants and RLS; `03-seat-map.sql`; the seeded seat maps; `db:types` | @dreeyanzz | 3             | 1    | This design merged |
-| TSK-07.2 | The `space-photos` bucket and its policies; `04-space-photos.sql`                                                                           | @dreeyanzz | 1             | 0.5  | This design merged |
-| TSK-07.3 | `lib/seat-map/grid.ts` and `lib/validation/seat-map.ts`, with their Vitest tests                                                            | @dreeyanzz | 1             | 0.5  | This design merged |
-| TSK-07.4 | `getSeatMap()` and the Server Actions, with their error messages                                                                            | @dreeyanzz | 2             | 1    | TSK-07.1, TSK-07.3 |
-| TSK-07.5 | The shared renderer, the builder page and its grid view, and the "Seat map" link                                                            | @dreeyanzz | 2             | 1    | TSK-07.4           |
-| TSK-07.6 | The list view, with every action                                                                                                            | @dreeyanzz | 1             | 0.5  | TSK-07.4           |
+| Task     | What                                                                                                                               | Owner      | Points (1–10) | Days | Depends on         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------- | ---- | ------------------ |
+| TSK-07.1 | The `zones` and `units` migration: enums, tables, constraints, grants and RLS; `03-seat-map.sql`; the seeded seat maps; `db:types` | @dreeyanzz | 3             | 1    | This design merged |
+| TSK-07.2 | The `space-photos` bucket and its policies; `04-space-photos.sql`; `deleteSpace` removing a Space's photos first                   | @dreeyanzz | 1             | 0.5  | This design merged |
+| TSK-07.3 | `lib/seat-map/grid.ts` and `lib/validation/seat-map.ts`, with their Vitest tests                                                   | @dreeyanzz | 1             | 0.5  | This design merged |
+| TSK-07.4 | `getSeatMap()` and the shared renderer in `components/seat-map/`, legend included                                                  | @dreeyanzz | 1             | 0.5  | TSK-07.1, TSK-07.3 |
+| TSK-07.5 | The Server Actions, with their error messages                                                                                      | @dreeyanzz | 1             | 0.5  | TSK-07.1, TSK-07.3 |
+| TSK-07.6 | The builder page with its grid view and the confirmation step, and the "Seat map" link                                             | @dreeyanzz | 2             | 1    | TSK-07.4, TSK-07.5 |
+| TSK-07.7 | The list view, with every action                                                                                                   | @dreeyanzz | 1             | 0.5  | TSK-07.6           |
 
 That is 10 points over 4.5 days. The last half day of the story's 5 is for review fixes.
 
 ## 6. Build order
 
-One PR per row, and every PR targets `main`. Rows 1 and 2 go first, because STORY-09,
-STORY-11 and STORY-12 wait for them (Sprint 2 brief, section 3).
+One PR per row, and every PR targets `main`. Rows 1 to 4 go first, because STORY-09,
+STORY-11 and STORY-12 build on the tables, the bucket and the renderer (Sprint 2 brief,
+section 3). The renderer needs only rows 1 and 3, so Maria and James can build on it
+before the builder lands.
 
-| #   | Branch                              | PR title                                               | Contains |
-| --- | ----------------------------------- | ------------------------------------------------------ | -------- |
-| 1   | `feature/STORY-07-seat-map-tables`  | `feat(STORY-07): add the zones and units tables`       | TSK-07.1 |
-| 2   | `feature/STORY-07-photo-bucket`     | `feat(STORY-07): add the space photos bucket`          | TSK-07.2 |
-| 3   | `feature/STORY-07-seat-map-rules`   | `feat(STORY-07): add the seat map grid and form rules` | TSK-07.3 |
-| 4   | `feature/STORY-07-seat-map-actions` | `feat(STORY-07): add the seat map server actions`      | TSK-07.4 |
-| 5   | `feature/STORY-07-seat-map-builder` | `feat(STORY-07): add the seat map builder`             | TSK-07.5 |
-| 6   | `feature/STORY-07-seat-map-list`    | `feat(STORY-07): add the seat map list view`           | TSK-07.6 |
+| #   | Branch                               | PR title                                               | Contains |
+| --- | ------------------------------------ | ------------------------------------------------------ | -------- |
+| 1   | `feature/STORY-07-seat-map-tables`   | `feat(STORY-07): add the zones and units tables`       | TSK-07.1 |
+| 2   | `feature/STORY-07-photo-bucket`      | `feat(STORY-07): add the space photos bucket`          | TSK-07.2 |
+| 3   | `feature/STORY-07-seat-map-rules`    | `feat(STORY-07): add the seat map grid and form rules` | TSK-07.3 |
+| 4   | `feature/STORY-07-seat-map-renderer` | `feat(STORY-07): add the shared seat map renderer`     | TSK-07.4 |
+| 5   | `feature/STORY-07-seat-map-actions`  | `feat(STORY-07): add the seat map server actions`      | TSK-07.5 |
+| 6   | `feature/STORY-07-seat-map-builder`  | `feat(STORY-07): add the seat map builder`             | TSK-07.6 |
+| 7   | `feature/STORY-07-seat-map-list`     | `feat(STORY-07): add the seat map list view`           | TSK-07.7 |
 
 ## 7. Rejected alternatives
 
-D-039 and D-040 record the layout, saving and photo choices, and what they rejected. Within
-this design:
+D-039, D-040 and D-041 record the layout, saving, photo and "Host-updated" choices, and
+what they rejected. Within this design:
 
 - **Checking overlaps only in the app:** two requests could still race. The exclusion
   constraint is the backstop.
@@ -346,6 +411,13 @@ this design:
   STORY-12's override warning (FR-3.2), so it is designed with them.
 - **Labels unique per zone, not per Space:** a Seeker's booking names the unit, so "S4"
   must mean one unit in the Space.
+- **The seat state in words on each tile:** a cell is about 51 px wide at 360 px, and
+  "Pending Payment" needs about twice that.
+- **Cutting long labels off with an ellipsis:** at 200% text, "Window 1" and "Window 2"
+  would both read "Win…".
+- **A table for the list view:** five columns and two buttons don't fit 328 px.
+- **A dialog to confirm a removal:** STORY-02 has no Dialog, and a dialog needs
+  JavaScript, which the list view must not.
 
 ## 8. Open questions
 
