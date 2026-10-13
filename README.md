@@ -90,6 +90,7 @@ studyhub/
 - [Software Requirements Specification (SRS v2.0)](docs/course/StudyHub_SRS.md)
 - [Project Planning Worksheet (v2.0)](docs/course/StudyHub_Project_Planning_Worksheet.md)
 - [Sprint 1 Plan](docs/course/StudyHub_Sprint_1_Plan.md)
+- [Sprint 2 Plan](docs/course/StudyHub_Sprint_2_Plan.md)
 
 ---
 
