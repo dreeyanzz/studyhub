@@ -8,13 +8,13 @@ requirement (D-038).
 
 Exactly these five, in this order. The course checks them.
 
-| Status           | Means                                                                                                                     |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Product Backlog  | Stories and tasks for later sprints                                                                                       |
-| Sprint 1 Backlog | Planned for the current sprint, not started. Rename it "Sprint 2 Backlog", then "Sprint 3 Backlog", as each sprint starts |
-| In Progress      | Someone is working on it on a feature branch                                                                              |
-| Code Review      | Its pull request is open and waiting for review                                                                           |
-| Done             | Merged and verified; the issue is closed                                                                                  |
+| Status           | Means                                                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------- |
+| Product Backlog  | Stories and tasks for later sprints                                                                     |
+| Sprint 2 Backlog | Planned for the current sprint, not started. It becomes "Sprint 3 Backlog" when Sprint 3 starts (D-038) |
+| In Progress      | Someone is working on it on a feature branch                                                            |
+| Code Review      | Its pull request is open and waiting for review                                                         |
+| Done             | Merged and verified; the issue is closed                                                                |
 
 ## Fields
 
@@ -93,7 +93,9 @@ full, finish or review something before starting more.
 At the end of a sprint:
 
 1. Move unfinished items to the next sprint's backlog, or back to Product Backlog.
-2. Rename the "Sprint N Backlog" column.
+2. Rename the "Sprint N Backlog" column by editing the option's name in the Status
+   field's settings. Deleting it and adding a new one would clear the Status of every
+   card in it and give it a new id.
 3. Close the sprint's milestone.
 4. Take the board screenshot for the sprint review.
 
@@ -109,10 +111,10 @@ on the GitHub CLI login. If a command says the scope is missing, the human runs
 task form's headings.
 
 ```bash
-gh issue create --title "TSK-03.1: add the auth form rules" \
-  --label type:task --label area:auth --milestone "Sprint 1 (Midterm)" --assignee @me \
-  --body $'### Parent story\n\n#52\n\n### What\n\n…\n\n### Done when\n\n- [ ] …\n\n### Story points (1–10)\n\n2\n\n### Estimate (working days)\n\n0.5\n\n### Area\n\nauth'
-gh api repos/dreeyanzz/studyhub/issues/52/sub_issues \
+gh issue create --title "TSK-07.1: add the zones and units tables" \
+  --label type:task --label area:host --milestone "Sprint 2 (Prefinal)" --assignee @me \
+  --body $'### Parent story\n\n#56\n\n### What\n\n…\n\n### Done when\n\n- [ ] …\n\n### Story points (1–10)\n\n2\n\n### Estimate (working days)\n\n0.5\n\n### Area\n\nhost'
+gh api repos/dreeyanzz/studyhub/issues/56/sub_issues \
   -F sub_issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<task number> --jq .id)"
 ```
 
@@ -137,11 +139,11 @@ gh project item-list 4 --owner dreeyanzz --limit 200 --format json \
 
 | Option                                                                        | Id                                                             |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Status: Product Backlog · Sprint 1 Backlog · In Progress · Code Review · Done | `4e0171a5` · `84205269` · `a939e066` · `cb631dc3` · `29f6bcd9` |
+| Status: Product Backlog · Sprint 2 Backlog · In Progress · Code Review · Done | `4e0171a5` · `84205269` · `a939e066` · `cb631dc3` · `29f6bcd9` |
 | MoSCoW: Must · Should · Could · Won't                                         | `3eed1178` · `8fda412d` · `cb02434e` · `45aa925b`              |
 | Sprint: Sprint 1 · Sprint 2 · Sprint 3                                        | `ab8798f2` · `4cfb2471` · `4573e4ab`                           |
 
-A new task goes to Sprint 1 Backlog with its points, estimate and sprint set. After
+A new task goes to Sprint 2 Backlog with its points, estimate and sprint set. After
 that, the card moves with the work, as the table in "Who moves cards" says. When its
 human asks, an agent may also catch up any other card, including another person's
 (D-035). It then leaves a one-line comment on that issue saying what moved and why. It

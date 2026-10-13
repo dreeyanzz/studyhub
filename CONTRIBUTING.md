@@ -17,7 +17,7 @@ the short version of how we work.
 
 ## Course rules we never break
 
-- **Board:** a GitHub Project with exactly these columns: Product Backlog, Sprint 1 Backlog, In Progress, Code Review, Done.
+- **Board:** a GitHub Project with exactly these columns: Product Backlog, Sprint 2 Backlog (renamed each sprint, D-038), In Progress, Code Review, Done.
 - **Tasks:** every story is split into tasks with story points (1–10) and day estimates.
 - **Branch names:** `feature/STORY-xx-short-desc`.
 - **Reviews:** every pull request is reviewed before it merges.
