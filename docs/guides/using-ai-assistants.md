@@ -27,7 +27,7 @@ The answer should be `feature/STORY-xx-short-desc`.
 
 ## Working with an agent
 
-- **Let it run the story loop.** Say "Start my Sprint 1 story", and in later sessions "Continue my story". The agent follows [the story loop](../../AGENTS.md#the-story-loop): it writes the design doc first, codes only after Adrian merges it, and walks you through every change before opening a PR.
+- **Let it run the story loop.** Say "Start my Sprint 2 story", and in later sessions "Continue my story". The agent follows [the story loop](../../AGENTS.md#the-story-loop): it writes the design doc first, codes only after Adrian merges it, and walks you through every change before opening a PR.
 - **Keep the scope small:** one concern per session and per PR.
 - **Check its work.** Read every diff it walks you through before you say go, and run `npm run check` yourself.
 - **Protect secrets.** Never paste keys, passwords or `.env.local` into a chat.

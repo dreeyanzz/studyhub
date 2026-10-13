@@ -44,7 +44,7 @@ into a chat tool that cannot see the repository.
 1. This file.
 2. [`docs/README.md`](docs/README.md): the map of every document, and which one wins
    when two disagree.
-3. [`docs/SPRINT-1.md`](docs/SPRINT-1.md): the current sprint: who owns which story,
+3. [`docs/SPRINT-2.md`](docs/SPRINT-2.md): the current sprint: who owns which story,
    who waits for whom, and how each story is tested.
 4. [`docs/course/StudyHub_SRS.md`](docs/course/StudyHub_SRS.md): the requirements,
    cited as `FR-x.y`.
@@ -79,7 +79,7 @@ supabase/             config.toml, migrations/, tests/ (pgTAP), seed.sql
 e2e/                  Playwright journeys
 scripts/              repo scripts (docx export)
 docs/                 README (map), DECISIONS, GLOSSARY, ONBOARDING, DEVELOPMENT,
-                      SPRINT-1, guides/, design/, course/ (course deliverables)
+                      SPRINT-1, SPRINT-2, guides/, design/, course/ (course deliverables)
 notes/                postmortems
 ```
 
@@ -186,12 +186,12 @@ These job names are a contract, because renaming one blocks every PR.
 ### The story loop
 
 Most work here is done by an agent while a teammate prompts it. When your human says
-**"Start my Sprint 1 story"** or **"Continue my story"**, run this loop on your own.
+**"Start my Sprint 2 story"** or **"Continue my story"**, run this loop on your own.
 Stop only at the 🛑 points.
 
 1. **Find the story.** Run `git switch main && git pull`, then
    `gh issue list --assignee @me --label type:story --state open`. Read the story
-   issue, the human's section of `docs/SPRINT-1.md`, and every `FR-x.y` and `D-NNN`
+   issue, the human's section of `docs/SPRINT-2.md`, and every `FR-x.y` and `D-NNN`
    the story cites. If they have more than one story, work on the lowest-numbered one
    that isn't blocked.
 2. **Check the design gate.** Is `docs/design/STORY-xx-*.md` merged on `main`?
@@ -302,8 +302,10 @@ Every non-trivial change leaves a trace in the right place:
 ## Docs map
 
 - [`docs/README.md`](docs/README.md): map, ground-truth order, where things go
-- [`docs/SPRINT-1.md`](docs/SPRINT-1.md): the Sprint 1 brief in plain English: who
+- [`docs/SPRINT-2.md`](docs/SPRINT-2.md): the Sprint 2 brief in plain English: who
   does what, who waits for whom, how to test, and the dates
+- [`docs/SPRINT-1.md`](docs/SPRINT-1.md): the Sprint 1 brief, kept as the record of
+  how Sprint 1 ran
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): decisions and what was rejected
 - [`docs/GLOSSARY.md`](docs/GLOSSARY.md): the words to use
 - [`docs/ONBOARDING.md`](docs/ONBOARDING.md): agent-run machine setup
