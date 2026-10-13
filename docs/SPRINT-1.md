@@ -3,6 +3,10 @@
 **Sprint 1 · Saturday 26 September to Friday 9 October 2026 · Read all of it before you
 start.**
 
+> **Sprint 1 is closed.** It ended with its review and demo on Fri 9 Oct. This page stays
+> as the record of how it ran. What carried over into Sprint 2 is in the last update of
+> section 4.
+
 This page tells each of us what to do in Sprint 1, in plain English:
 
 - how to set up;
@@ -178,6 +182,14 @@ buttons and inputs.
 > page (TSK-02.3) is merged too (#161). Every Sprint 1 story is done; what's left is the
 > Thu 8 walk-through, the board screenshot and the demo.
 
+> **Update, Tue 13 Oct: Sprint 1 is closed.** We walked through the app as each role on
+> Thu 8 Oct. The sprint review, the demo and the retrospective video were on Fri 9 Oct.
+> The board screenshot (#156) wasn't submitted with the Midterm, and we're skipping it.
+> James's review of #144 and #147 (#154) is done. Two bugs found while testing STORY-05
+> carry over, and Sprint 2 starts with them: #145 (an Administrator on `/host` is offered
+> the create form, which can't work for them) and #146 (a console warning after a failed
+> save on the login, register and Space forms).
+
 ```mermaid
 flowchart LR
     S01["STORY-01 Database<br/>Adrian"] --> S03["STORY-03 Sign-up and login<br/>Luke"]
@@ -223,8 +235,8 @@ merged first, and everything else fits around it. The whole chain is done, as of
 | **Sun 27 – Wed 30**   | ✅ STORY-01 done early, on Sat 26 Sep (#90–#93). Send everyone their `.env.local`; ✅ STORY-05's Server Actions, merged Wed 30 Sep (#136) | ✅ Tokens and building blocks first (merged by Wed 30), then the landing page (the photo-led follow-up, merged Sun 4 Oct, #161) | ✅ STORY-06's design (#126); ✅ the auth form rules and role-guard logic, with tests                       | ✅ STORY-04's profile form rules (#104) and the `/seeker` layout (#122); ✅ the `/host` layout, built by Adrian's agent (#143)              |
 | **Thu 1 – Fri 2 Oct** | ✅ STORY-05's Server Actions and Space form rules, done early (#133, #136)                                                                | ✅ Header and footer; STORY-02 done early, on Mon 28 Sep (#116)                                                                 | ✅ `/login`, `/register` and `proxy.ts`; sign-up and login working, done early with STORY-03 on Mon 28 Sep | ✅ STORY-04's profile page and saving, done early (#127, #134)                                                                              |
 | **Mon 5 – Wed 7**     | Review and merge                                                                                                                          | Review pull requests; test pages by keyboard and screen size                                                                    | ✅ STORY-03 merged early, on Mon 28 Sep; ✅ Playwright set up early, on Sun 4 Oct (#157)                   | ✅ STORY-04 merged early, on Wed 30 Sep (#139); ✅ STORY-05's pages merged early, on Wed 30 Sep, built by Adrian's agent (#143, #144, #147) |
-| **Thu 8**             | Walk through the app as each role; fix what we find                                                                                       | Walk-through; the board screenshot                                                                                              | ✅ The Playwright login test green early, on Sun 4 Oct, and running in CI (#157, #160)                     | Walk-through and fixes                                                                                                                      |
-| **Fri 9**             | Sprint review, demo and retrospective video                                                                                               | Same, together                                                                                                                  | Same, together                                                                                             | Same, together                                                                                                                              |
+| **Thu 8**             | ✅ Walk through the app as each role; #145 and #146 carry over into Sprint 2                                                              | ✅ Walk-through; the board screenshot skipped (#156)                                                                            | ✅ The Playwright login test green early, on Sun 4 Oct, and running in CI (#157, #160)                     | ✅ Walk-through                                                                                                                             |
+| **Fri 9**             | ✅ Sprint review, demo and retrospective video                                                                                            | ✅ Same, together                                                                                                               | ✅ Same, together                                                                                          | ✅ Same, together                                                                                                                           |
 
 **Can happen at the same time:**
 
@@ -588,16 +600,16 @@ reviews STORY-05's design, which is Adrian's own.
 These are targets. If you're going to miss one, say so as soon as you know, not on the
 day.
 
-| Date       | Target                                                                                                                                    |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| Sat 26 Sep | On-site day (section 6)                                                                                                                   |
-| Mon 28 Sep | ~~All six design docs merged; their tasks on the board~~ (done Wed 30 Sep, STORY-06's last)                                               |
-| Wed 30 Sep | ~~STORY-01 merged, the cloud database ready~~ (done Sat 26 Sep); the keys shared; ~~STORY-02's building blocks merged~~ (done Sat 26 Sep) |
-| Fri 2 Oct  | ~~STORY-02 done; sign-up and login working in STORY-03~~ (done Mon 28 Sep)                                                                |
-| Mon 5 Oct  | ~~STORY-03 merged~~ (done Mon 28 Sep)                                                                                                     |
-| Wed 7 Oct  | ~~STORY-04~~ (done Wed 30 Sep) and ~~STORY-05~~ (done Wed 30 Sep) merged                                                                  |
-| Thu 8 Oct  | ~~STORY-06 green~~ (done Sun 4 Oct); a full walkthrough as each role; fix what we find; the board screenshot                              |
-| Fri 9 Oct  | Sprint 1 review and demo; record the 3-minute retrospective video                                                                         |
+| Date       | Target                                                                                                                                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sat 26 Sep | On-site day (section 6)                                                                                                                                                          |
+| Mon 28 Sep | ~~All six design docs merged; their tasks on the board~~ (done Wed 30 Sep, STORY-06's last)                                                                                      |
+| Wed 30 Sep | ~~STORY-01 merged, the cloud database ready~~ (done Sat 26 Sep); the keys shared; ~~STORY-02's building blocks merged~~ (done Sat 26 Sep)                                        |
+| Fri 2 Oct  | ~~STORY-02 done; sign-up and login working in STORY-03~~ (done Mon 28 Sep)                                                                                                       |
+| Mon 5 Oct  | ~~STORY-03 merged~~ (done Mon 28 Sep)                                                                                                                                            |
+| Wed 7 Oct  | ~~STORY-04~~ (done Wed 30 Sep) and ~~STORY-05~~ (done Wed 30 Sep) merged                                                                                                         |
+| Thu 8 Oct  | ~~STORY-06 green~~ (done Sun 4 Oct); ~~a full walkthrough as each role~~ (done); fix what we find (#145 and #146 carry over into Sprint 2); the board screenshot (skipped, #156) |
+| Fri 9 Oct  | ~~Sprint 1 review and demo; record the 3-minute retrospective video~~ (done)                                                                                                     |
 
 ## 8. Rules we never break
 

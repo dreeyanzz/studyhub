@@ -242,6 +242,8 @@ Each upgrade is its own `build(deps)` PR.
 
 ## D-022 · Tracking
 
+**Superseded by D-038**, which renames the second column each sprint.
+
 **Decision:**
 
 - A GitHub Project with exactly the course columns: Product Backlog, Sprint 1 Backlog, In Progress, Code Review, Done.
@@ -409,3 +411,53 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 **Rejected:** Keeping "never move another person's cards" (the board goes stale, and fixing it falls to clicking by hand); agents moving cards without being asked (surprise moves on other people's work); agents dragging cards to Done (it would show unmerged work as finished, which D-030's automation exists to prevent).
 
 **Revisit if:** A card an agent moved misstates someone's work, or the course asks that only a card's owner moves it.
+
+## D-036 · Sprint 2 builds every Must Have
+
+**Decision:**
+
+- Sprint 2 (Saturday 10 to Friday 23 October) holds every Must Have story, 55 points: STORY-07, STORY-08, STORY-09, STORY-10, STORY-11, STORY-12 and STORY-15 (D-037).
+- STORY-09 (holds and sandbox payments) and STORY-10 (QR check-in and release) move in from Sprint 3. Adrian builds all of STORY-09, alongside STORY-07.
+- As in Sprint 1, Adrian, the database owner, writes every migration, policy and pgTAP test, including the database half of STORY-08, STORY-10 and STORY-15.
+- There is no cut line. If the critical path (STORY-07, then STORY-09, then STORY-10) slips, the Sprint 2 review decides what carries over.
+- Sprint 3 keeps the Should Haves (STORY-13, STORY-14), any carry-over, and the preparation for Week 12.
+
+**Why:** Adrian wants most of the application's core features in place at the Prefinal. The SRS measures the product by one journey, from finding a venue to holding a seat (SRS §3.2.1), and the drafts finished it only in Sprint 3. Sprint 1 delivered 44 points, five days early.
+
+**Rejected:** The Sprint 2 draft's scope, discovery and the seat map only (34 points; no Seeker could hold a seat at the Prefinal); the booking journey without check-in (about 47 points); a cut line moving STORY-10 to Sprint 3 if STORY-09's hold wasn't merged by Monday 19 October; splitting STORY-09 between Adrian and Luke; Luke writing STORY-08's and STORY-10's migrations himself.
+
+**Revisit:** At the Sprint 2 review, against what actually merged.
+
+## D-037 · An Administrator makes a Space public
+
+**Decision:**
+
+- A new Space stays Pending until an Administrator approves it on `/admin`; a rejected Space stays hidden (FR-5.1). This is STORY-15 (#166), in Sprint 2: James builds the page and its actions, and Adrian adds the policy.
+- Only an Administrator may change `spaces.status`, through a policy and a grant for that column alone. Hosts and Seekers are never granted it (STORY-01).
+- Rejection reasons, and sending an edited Space back to Pending (D-027), wait for STORY-14 or later.
+
+**Why:** Search (STORY-08) shows only Verified Spaces, and the verification queue was planned for Sprint 3 (STORY-14). Without an approval step, a Host's new Space could never go public during the Prefinal demo.
+
+**Rejected:** Seeding Verified Spaces for the demo (a new Space would never go public, so FR-5.1 would only be faked); keeping verification in STORY-14 and letting that story span two sprints.
+
+**Revisit:** STORY-14's design, for rejection reasons and re-verification.
+
+## D-038 · Tracking
+
+Supersedes D-022, which named the second column "Sprint 1 Backlog" for good.
+
+**Decision:**
+
+- A GitHub Project with the course's five columns: Product Backlog, Sprint N Backlog, In Progress, Code Review, Done.
+- The second column is renamed when each sprint starts: "Sprint 2 Backlog" now, then "Sprint 3 Backlog", as the [board guide](guides/board-guide.md) already says.
+- Each story is a STORY-xx parent issue, with TSK sub-issues for its tasks.
+- Estimates use points (1–10) and days.
+- WIP limits: In Progress ≤ 4, Code Review ≤ 4.
+
+Maria maintains the board; Adrian is Project Manager.
+
+**Why:** The course screenshots the board each sprint, and its second column should name the sprint it shows. The board guide said to rename it while D-022 still named it "Sprint 1 Backlog", and the Sprint 2 draft asked which one wins (its §8.2).
+
+**Rejected:** A permanent "Sprint Backlog" column (a screenshot wouldn't say which sprint it shows); a new column for each sprint (the course allows exactly five).
+
+**Revisit if:** The course names the columns for Sprint 2 or 3 itself.

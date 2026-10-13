@@ -29,6 +29,8 @@ test.describe('Sign-in smoke test (STORY-06)', () => {
     await expect(
       page.getByRole('heading', { level: 1, name: 'Manage Spaces' }),
     ).toBeVisible()
+    // Only Hosts are offered the create form (#145).
+    await expect(page.getByRole('button', { name: 'Create Space' })).toBeVisible()
   })
 
   test('Administrator signs in and audits Host and Seeker portals (D-032)', async ({
@@ -46,6 +48,10 @@ test.describe('Sign-in smoke test (STORY-06)', () => {
     await expect(
       page.getByRole('banner').getByText('Administrator', { exact: true }),
     ).toBeVisible()
+    // Only Hosts may insert a Space, so an Administrator gets a note instead of the
+    // create form (#145).
+    await expect(page.getByText('Only Hosts create Spaces')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Create Space' })).toHaveCount(0)
 
     // As that Administrator, open /seeker to verify portal audit access (D-032)
     await page.goto('/seeker')

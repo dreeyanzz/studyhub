@@ -391,9 +391,12 @@ The page is ordered for a useful mobile and keyboard flow:
 1. One `h1`: `Manage Spaces`.
 2. A short explanation that new Spaces start Pending verification and are not public.
 3. An allow-listed success `Alert` with `role="status"`, when applicable.
-4. A `Create a Space` section containing the create form.
+4. A `Create a Space` section containing the create form. Only Hosts may insert a
+   Space, so anyone else who may open `/host`, in practice an Administrator (D-032),
+   sees the note "Only Hosts create Spaces" in its place (#145).
 5. A `Your Spaces` section with the count and list.
-6. An empty-state `Card` when the list has no rows.
+6. An empty-state `Card` when the list has no rows. For anyone but a Host it reads "You
+   have no Spaces" and doesn't point to the create section (#145).
 
 Each Space card shows:
 
@@ -810,9 +813,10 @@ and James reviews them to be ready to explain them in the Final phase.
 
 **Still open:**
 
-- An Administrator may open `/host` (D-032) and sees the create form, but only Hosts may
-  insert a Space, so a create attempt gets the generic "We could not create this Space"
-  message (#145). Hiding the form for Administrators could come with STORY-14.
+- ~~An Administrator may open `/host` (D-032) and sees the create form, but only Hosts
+  may insert a Space, so a create attempt gets the generic "We could not create this
+  Space" message (#145).~~ Fixed (#145): `/host` offers the create form to Hosts only,
+  and anyone else sees "Only Hosts create Spaces" in its place.
 - ~~In development, Base UI's Input logs "changing the default value state of an
   uncontrolled FieldControl" when a failed save puts the typed values back through
   `defaultValue`. STORY-03's login and register forms log the same warning, and the
