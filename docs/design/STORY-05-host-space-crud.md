@@ -811,7 +811,7 @@ and James reviews them to be ready to explain them in the Final phase.
 - The delete page names the Space in its warning ("You're about to permanently delete
   …"), under one "Delete Space" heading (#147).
 
-**Still open:**
+**Left open at the close-out, since fixed:**
 
 - ~~An Administrator may open `/host` (D-032) and sees the create form, but only Hosts
   may insert a Space, so a create attempt gets the generic "We could not create this
