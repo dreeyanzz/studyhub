@@ -49,8 +49,7 @@ That's every Must Have in the SRS: 55 points, more than Sprint 1's 44. There is 
 line. If we fall behind, the Sprint 2 review decides what carries over to Sprint 3, which
 keeps reviews and the rest of the administration console.
 
-Sprint 1's two open bugs come first: #145 and #146. Both fixes are in review (#164,
-#165).
+Sprint 1's two open bugs came first, and both are fixed: #145 by #164, and #146 by #165.
 
 ## 1. Plan first, then build
 
