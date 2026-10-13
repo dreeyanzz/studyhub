@@ -258,7 +258,7 @@ STORY-14 keeps moderation and payment records in Sprint 3.
    it.
 3. The availability view: Available units per zone, and the read-only seat map.
 4. A "Host-updated · X min ago" label wherever availability appears, from the unit's
-   `updated_at` (D-002), never the words "real-time" or "live" (Glossary).
+   `state_updated_at` (D-002, D-041), never the words "real-time" or "live" (Glossary).
 5. The Seeker's accessible list view of units and their states (SRS §3.2.2), sharing
    STORY-07's component. STORY-09 adds the hold action to an Available unit, in both the
    seat map and the list view.
@@ -288,8 +288,8 @@ STORY-14 keeps moderation and payment records in Sprint 3.
 
 1. The Host's seat map view with one-tap state control: Available, Reserved, Occupied,
    and no other state (D-004).
-2. A Server Action for the state change, stamping `updated_at` so the Seeker-facing
-   freshness label stays honest.
+2. A Server Action for the state change, stamping `state_updated_at` (D-041) so the
+   Seeker-facing freshness label stays honest.
 3. Walk-in marking: a Host sets Occupied with no reservation in the system.
 4. A confirmation before overriding a unit that a Seeker has reserved. STORY-10 adds the
    remaining wait window to the same view.
