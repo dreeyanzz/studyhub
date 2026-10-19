@@ -1,13 +1,13 @@
-# Requests Adrian's review automatically on every pull request, and Maria's on the
-# files that decide what users see, because Maria owns the user experience
-# (docs/DECISIONS.md, D-042).
+# Requests Adrian's review automatically on every pull request, and Maria's on
+# design docs and on the files that decide what users see, because Maria owns
+# the user experience (docs/DECISIONS.md, D-042).
 #
 # Do NOT turn on "Require review from Code Owners" in the rulesets. Adrian owns
 # every path, and nobody can approve their own pull request, so Adrian's pull
 # requests could never merge. Ruleset A is where review requirements live: one
 # approving review (D-014).
 #
-# The last matching line wins, so the UI lines repeat @dreeyanzz.
+# The last matching line wins, so the lines below repeat @dreeyanzz.
 * @dreeyanzz
 
 /app/**/*.tsx @dreeyanzz @fayeye-09
@@ -16,3 +16,4 @@
 /components/ @dreeyanzz @fayeye-09
 /hooks/ @dreeyanzz @fayeye-09
 /public/ @dreeyanzz @fayeye-09
+/docs/design/ @dreeyanzz @fayeye-09
