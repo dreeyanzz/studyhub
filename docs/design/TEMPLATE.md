@@ -18,8 +18,10 @@ any section that genuinely does not apply, and say why.
 story uses, and say which of its arrows or steps this story builds. Don't draw a shared
 flow again here, and never change one: that is a pull request to the flow doc.
 
-**This story's own part:** a sequence diagram of its main path, across every layer
-involved.
+**This story's own part:** a diagram of its main path, across every layer involved. A
+sequence diagram, like the one below, fits most stories. Use another kind when it answers
+the question better, such as a state diagram or an entity-relationship diagram
+([which diagram](../flows/README.md#which-diagram), D-044).
 
 ```mermaid
 sequenceDiagram
