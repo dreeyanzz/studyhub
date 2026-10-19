@@ -16,15 +16,11 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | Host setup journey           | Swimlane | Maria    | Adrian        | not written |
 | Seeker journey               | Swimlane | Maria    | Adrian, Luke  | not written |
 
-Approvals follow D-042: Maria approves what a flow says users see, do and are told, Luke
-what it says about security, and Adrian what it says about data and money. Adrian merges.
-Each flow's pull request also asks for a review from the owner of every story that waits
-for it. James, who turns the journeys into Playwright tests, reviews both of them.
-
-The pull request that adds a flow links it in the table above. Its status there, and in
-its own status line, is `draft`; `approved YYYY-MM-DD`, set in the pull request that
-merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; or
-`superseded by <flow>`.
+[Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
+and "Approved by" columns. The pull request that adds a flow links it in the table above.
+Its status there, and in its own status line, is `draft`; `approved YYYY-MM-DD`, set in
+the pull request that merges it; `implemented YYYY-MM-DD`, once every test it names
+passes on `main`; or `superseded by <flow>`.
 
 ### What each flow covers
 
@@ -33,10 +29,10 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
   what makes it: a hold, a confirmed sandbox payment, a lapsed payment window, a
   check-in, a no-show, a check-out, closing time, and a Host's tap, including on a unit
   a Seeker has paid for. How a lapse takes effect on read and on write, since nothing
-  runs on a schedule (D-011). Where the payment window, the wait window's bounds and the fee are
-  kept. Closing time for a Space that closes after midnight or never closes (D-027). What
-  deleting a unit with a hold does. What moves the Host-updated time (D-002). The record
-  of a completed visit that a review needs (D-009).
+  runs on a schedule (D-011). Where the payment window, the wait window's bounds and the
+  fee are kept. Closing time for a Space that closes after midnight or never closes
+  (D-027). What deleting a unit with a hold does. What moves the Host-updated time
+  (D-002). The record of a completed visit that a review needs (D-009).
 - **Space verification.** A Space's verification status, Pending, Verified or Rejected
   (FR-5.1): who changes it (D-037), what each status shows Hosts, Seekers and
   Administrators, and what a Host's edit does to it (D-027).
@@ -73,7 +69,28 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 | STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, Space verification, sandbox payment confirmation       |
 
 If your story needs a shared flow that isn't listed here, ask Adrian before you write its
-design. Adrian decides whether it gets a doc, and D-042 decides who draws it.
+design. Adrian decides whether it gets a doc, and the next section says who draws it.
+
+## Who draws and approves a flow
+
+Each of us owns an area (D-042). A flow is drawn by the owner of the area it is mostly
+about:
+
+| Area                            | Owner  | Draws                                         |
+| ------------------------------- | ------ | --------------------------------------------- |
+| What users see, do and are told | Maria  | Journeys: one person's steps across stories   |
+| Data and money                  | Adrian | Flows about states, records, timers and fees  |
+| Security                        | Luke   | Flows about tokens, signatures and signing in |
+
+The owners of the other areas a flow touches approve it, so a flow can need more than one
+approval: Maria approves what it says users see, do and are told, Luke what it says about
+security, and Adrian what it says about data and money. If they disagree, Adrian decides
+as Project Manager, and Adrian merges every flow. That is how the table at the top was
+filled in: the reservation lifecycle is about states, so Adrian draws it, and Maria
+approves what it shows Seekers and Hosts.
+
+Each flow's pull request also asks for a review from the owner of every story that waits
+for it. James, who turns the journeys into Playwright tests, reviews both of them.
 
 ## When a flow gets its own doc
 
@@ -94,13 +111,19 @@ builds, such as the tags shown on a Space profile, waits for that story's design
 ## Which diagram
 
 The diagram follows the question the flow answers. It is drawn in Mermaid, which GitHub
-renders, so a pull request shows each changed line of it.
+renders, so a pull request shows each changed line of it. Most flows need one of these
+three:
 
 | The question                                                        | Diagram          | In Mermaid                                       |
 | ------------------------------------------------------------------- | ---------------- | ------------------------------------------------ |
 | What states can it be in, and what moves it from one to the next?   | State diagram    | `stateDiagram-v2`                                |
 | Who calls whom, in what order, and what if a call fails or repeats? | Sequence diagram | `sequenceDiagram`, with an `alt` for each branch |
 | Who does what, in what order, across people and stories?            | Swimlane         | `flowchart`, with one `subgraph` per lane        |
+
+These three are the usual ones, not the only ones allowed (D-044). When another kind
+answers the question better, use it: an entity-relationship diagram (`erDiagram`) for how
+records relate, say, or a plain `flowchart` for a decision with several branches. It still
+names its tests, as the next section says.
 
 A flow answers one question. When one arrow of a state diagram needs a sequence of its
 own, like a confirmed sandbox payment, that sequence is its own flow, and each links the
@@ -117,6 +140,8 @@ other.
   that covers it.
 - **Swimlane.** Every path through it names the Playwright test in `e2e/` that walks it,
   or the manual check that covers it. James writes those tests.
+- **Any other kind.** Each thing it shows, such as a relationship between two records or
+  one branch of a decision, names the test or the manual check that proves it.
 
 A test is named before it exists. The story that builds an arrow or a branch writes its
 test in the pull request that builds it, and the pull request that adds a flow's last
