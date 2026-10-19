@@ -464,6 +464,8 @@ Maria maintains the board; Adrian is Project Manager.
 
 ## D-039 · The seat map is a 6-column grid per zone
 
+**Withdrawn by D-043**, with STORY-07's design. A new design may propose it again.
+
 **Decision:**
 
 - Each zone of a Space's seat map is a band 6 cells wide, with as many rows as it needs. A seat or a standing desk takes one cell, and a whole room takes 2 or 3 cells in one row. Cells may stay empty, for aisles and gaps.
@@ -477,6 +479,8 @@ Maria maintains the board; Adrian is Project Manager.
 **Revisit if:** Hosts need rows wider than 6 cells, or rooms that span rows.
 
 ## D-040 · Venue photos are public
+
+**Withdrawn by D-043**, with STORY-07's design. A new design may propose it again.
 
 **Decision:**
 
@@ -493,6 +497,8 @@ Maria maintains the board; Adrian is Project Manager.
 **Revisit if:** A photo ever needs to stay private, such as a document for verification.
 
 ## D-041 · The Host-updated time counts only the Host's own changes
+
+**Withdrawn by D-043**, with STORY-07's design. A new design may propose it again.
 
 **Decision:**
 
@@ -520,3 +526,16 @@ Maria maintains the board; Adrian is Project Manager.
 **Rejected:** Each story's owner deciding its own screens (four people, four styles); Maria deciding everything a user meets, rules included (Row-Level Security and the payment check meet users too, and neither is UX); Maria's approval on every code pull request (the build would queue behind one reviewer); a UX review after the build (changes cost more by then).
 
 **Revisit if:** Maria's reviews start to hold up the critical path.
+
+## D-043 · Sprint 2's story designs start again
+
+**Decision:**
+
+- Sprint 2's story work starts again from its plan. STORY-07's design (#169) is withdrawn, so no Sprint 2 story has an approved design, and each one goes through its design doc again (D-016).
+- D-039, D-040 and D-041 are withdrawn with it. A new design may propose any of them again.
+- What set up Sprint 2 stays: its plan and brief, D-036, D-037, D-038 and D-042. So do the Sprint 1 bug fixes merged during Sprint 2 (#164, #165).
+- D-042's note on STORY-07's earlier design no longer applies: the new design gets Maria's review like every other.
+
+**Why:** The flows that cross stories, such as a reservation from its hold to its check-in, were not decided before the stories were designed, and Sprint 2's designs depend on each other. STORY-07's design had already fixed choices that belong to the stories it feeds: D-041 decided what moves the Host-updated time before STORY-11 or STORY-12 had a design.
+
+**Rejected:** Keeping STORY-07's design and designing the other stories around it (its choices would bind stories designed later); deleting the withdrawn entries (this log is append-only).

@@ -230,9 +230,9 @@ list view, so agree its shape with Adrian in your design doc.
 
 **Every story's user experience (D-042).** You decide what users see, do and are told in
 every Sprint 2 story, not only yours. Review the user steps and the UI in each design doc
-with screens before Adrian merges it. STORY-07's was approved before this rule, so review
-its builder before that task starts. Where a screen shows a rule someone else owns, such
-as how long a Seeker has to pay, you propose it and the rule's owner confirms it.
+with screens before Adrian merges it, STORY-07's included (D-043). Where a screen shows a
+rule someone else owns, such as how long a Seeker has to pay, you propose it and the
+rule's owner confirms it.
 
 **How to test:** `npm run check`; by hand at 360, 768 and 1024 px, and with the keyboard
 only.
