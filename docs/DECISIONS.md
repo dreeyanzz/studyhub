@@ -505,3 +505,18 @@ Maria maintains the board; Adrian is Project Manager.
 **Rejected:** A trigger that stamps every state change (the label would overstate freshness); a trigger that stamps only when the caller is the Space's Host (wrong whenever a release runs in the Host's own request); a second timestamp for changes of any kind (nothing reads it yet).
 
 **Revisit if:** A surface needs the time of the last change of any kind.
+
+## D-042 · Maria owns the user experience
+
+**Decision:**
+
+- Maria decides the user experience of every story: what users see, do and are told. That covers screens and the order of steps, wording, empty, loading and error states, accessibility, the design system, and journeys that cross stories, such as a Seeker going from search to a hold.
+- What the system allows, stores and enforces stays with the owner of the rule: Adrian for data and money, Luke for security. Where the two meet, both approve, and the design doc or D-entry names both. For example, Maria proposes how long a Seeker has to pay, and Adrian confirms how long a held unit can stay unavailable to everyone else. If they disagree, Adrian decides as Project Manager.
+- A design doc for a story with screens needs Maria's approving review of the user's steps (§1) and the UI (§3) before Adrian merges it, unless Maria wrote it. STORY-07's design was approved before this entry, so Maria reviews its builder before that task starts; its tables don't wait.
+- GitHub asks for Maria's review on code pull requests that change UI files (`.github/CODEOWNERS`), but the approval Maria must give is on the design. Everyone still builds and owns their own pages.
+
+**Why:** Maria leads the design system (STORY-02, D-031) and set the landing page's direction (D-033). Every Sprint 2 story has screens, and one owner keeps them consistent. It also evens out Sprint 2, where Maria has 8 points and Adrian 25. Rules stay with their owners, so nobody has to defend a choice outside their own area in the Final phase.
+
+**Rejected:** Each story's owner deciding its own screens (four people, four styles); Maria deciding everything a user meets, rules included (Row-Level Security and the payment check meet users too, and neither is UX); Maria's approval on every code pull request (the build would queue behind one reviewer); a UX review after the build (changes cost more by then).
+
+**Revisit if:** Maria's reviews start to hold up the critical path.

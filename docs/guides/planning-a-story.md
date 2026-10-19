@@ -32,8 +32,9 @@ What goes in it:
 - **If you choose between real alternatives**, add a [DECISIONS](../DECISIONS.md) entry in the same PR.
 - **If something unclear blocks you**, open a Decision issue instead of guessing.
 
-Adrian merging the design PR is the approval. After that, remove the `needs-design`
-label from the story.
+Adrian merging the design PR is the approval. If the story has screens, ask Maria to
+review it too: Maria decides what users see, do and are told, and Adrian merges once Maria
+approves (D-042). After that, remove the `needs-design` label from the story.
 
 ## 3. Tasks
 

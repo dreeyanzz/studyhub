@@ -143,7 +143,7 @@ example, expiry checked in the query itself, with Supabase `pg_cron` for clean-u
 | Area                                      | Owner  |
 | ----------------------------------------- | ------ |
 | Database, migrations, RLS, CI, merging    | Adrian |
-| Design system, UI primitives, the board   | Maria  |
+| User experience, design system, the board | Maria  |
 | Authentication, sessions, the route guard | Luke   |
 | The automated test suite (STORY-06)       | Luke   |
 | Portal shells, QA                         | James  |

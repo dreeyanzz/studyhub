@@ -46,6 +46,9 @@ sequenceDiagram
 
 ## 3. UI and files
 
+- **User experience** (Maria decides, D-042): each screen and the order of steps, the
+  wording, and the empty, loading and error states. Unless Maria wrote this doc, Maria
+  approves this section and the user's steps in §1.
 - **Routes and components.** Mark each as a Server Component or a Client Component.
 - **Where the files go:**
 
