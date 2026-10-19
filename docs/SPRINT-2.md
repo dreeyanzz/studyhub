@@ -26,7 +26,7 @@ issue or with [`AGENTS.md`](../AGENTS.md), ask Adrian, and one of them gets fixe
 4. **Build in small pull requests, with tests.** Run `npm run check` before every push.
 5. **Own your code.** Your AI tool helps, but the Final phase checks that each of us can
    explain our own work.
-6. **Stuck or unsure? Ask Adrian.** Don't guess.
+6. **Stuck or unsure? Ask Adrian, or Maria about anything users see.** Don't guess.
 
 ## What we are building this sprint
 
@@ -58,7 +58,7 @@ design doc, Adrian merges it, tasks on the board, one small pull request per tas
 its tests, review, and Adrian merges. Tell your AI tool **"Start my Sprint 2 story."** It
 follows [the story loop](../AGENTS.md#the-story-loop).
 
-Two things are new this sprint:
+Three things are new this sprint:
 
 - **Design docs are due Wednesday 14 October**, because the build window is short.
   STORY-07's comes first: three stories read its tables.
@@ -66,6 +66,10 @@ Two things are new this sprint:
   tests (D-036). If your story needs a table, a column or a policy, say exactly what in
   your design doc, and Adrian builds it in its own pull request. Don't write migrations
   yourself.
+- **Maria decides what users see, do and are told**, in every story (D-042). If your
+  story has screens, ask Maria to review your design doc too: Adrian merges it once Maria
+  approves its user steps and UI. What the system allows and stores stays with Adrian,
+  and security with Luke.
 
 ## 2. When to ask Adrian
 
@@ -79,6 +83,8 @@ Ask early. A question now costs minutes; a wrong guess costs days. Ask when:
 - you're waiting on someone and have nothing else useful to do;
 - you've been stuck for about an hour;
 - anything involves keys, passwords, the shared database, or the payment gateway.
+
+Questions about what users see, do or are told go to Maria instead (D-042).
 
 Ask in the group chat, or comment on your story's issue so the answer stays with the story.
 
@@ -203,9 +209,9 @@ Build the QR code, the scan page and the token rules first, against sample data.
 **How to test:** Vitest for the filter query and the token rules. By hand, on the local
 stack: search and filter as a Seeker, then check in a test reservation as a Host.
 
-### Maria: STORY-11, the Space profile (#76)
+### Maria: STORY-11, and every story's user experience
 
-**In plain English.** The page a Seeker opens from the map: the Space's photos, its
+**STORY-11, the Space profile (#76).** The page a Seeker opens from the map: the Space's photos, its
 curated tags and its Host's custom tags (shown differently, and never as filters), its
 hours, and which units are open right now, as the seat map and as an accessible list.
 Wherever availability appears, a label says "Host-updated · X min ago", never "real-time"
@@ -221,6 +227,12 @@ components, with sample data.
 
 **Others need from you:** STORY-09 adds a "hold this unit" action to your seat map and
 list view, so agree its shape with Adrian in your design doc.
+
+**Every story's user experience (D-042).** You decide what users see, do and are told in
+every Sprint 2 story, not only yours. Review the user steps and the UI in each design doc
+with screens before Adrian merges it. STORY-07's was approved before this rule, so review
+its builder before that task starts. Where a screen shows a rule someone else owns, such
+as how long a Seeker has to pay, you propose it and the rule's owner confirms it.
 
 **How to test:** `npm run check`; by hand at 360, 768 and 1024 px, and with the keyboard
 only.

@@ -22,7 +22,7 @@ Worq (technical codename: StudyHub, D-026) is a web app for finding a study or c
 **Team:**
 
 - Adrian Seth Tabotabo: Project Manager, the only merger, backend and database.
-- Maria Faith Antigua: design system; maintains the board.
+- Maria Faith Antigua: design system and user experience (D-042); maintains the board.
 - Luke Miguel Dongque: auth and security.
 - James Niño Mandawe: portal shells and QA.
 
@@ -200,7 +200,8 @@ Stop only at the 🛑 points.
    - **No doc yet:** write it from `docs/design/TEMPLATE.md` on `feature/STORY-xx-design`.
      Read the design docs of the stories it depends on first. Open the PR (title
      `docs(STORY-xx): design <summary>`, first body line `Refs #<story>`, reviewer
-     `dreeyanzz`). 🛑 Stop: no code until Adrian merges it.
+     `dreeyanzz`, plus `fayeye-09` if the story has screens, D-042). 🛑 Stop: no code
+     until Adrian merges it.
    - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
    - **Merged:** go on.
 3. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
@@ -223,7 +224,7 @@ Stop only at the 🛑 points.
    Adrian's own PRs, from a teammate), and move the task's card to Code Review.
    🛑 Stop until the PR merges or your human asks for the next task.
 
-**Stop and ask** (your human asks Adrian) when:
+**Stop and ask** (your human asks Adrian, or Maria about what users see, D-042) when:
 
 - the story or its design is unclear;
 - the work needs another story's files, a table or policy that doesn't exist yet

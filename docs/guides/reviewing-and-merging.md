@@ -48,6 +48,7 @@ settled. After pushing changes, request the review again.
    - it has 1 approving review from a peer
    - every thread is resolved
    - for story work, the design doc is merged
+   - for a design doc with screens, Maria has approved it (D-042)
 2. **Read the squash commit title and message** in the merge box. They are what stays on `main`, and you can fix the wording there. The `Co-Authored-By:` line must stay last.
 3. **Merge.** Tick "Merge without waiting for requirements to be met (bypass rules)" and choose "Squash and merge".
    - The bypass skips only the rule that stops teammates from merging. The approval and the checks still apply.

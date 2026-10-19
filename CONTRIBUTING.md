@@ -11,7 +11,7 @@ the short version of how we work.
 | Member               | Role                                                 | GitHub               |
 | -------------------- | ---------------------------------------------------- | -------------------- |
 | Adrian Seth Tabotabo | Project Manager · the only merger · backend and data | `@dreeyanzz`         |
-| Maria Faith Antigua  | Frontend design system · maintains the board         | `@fayeye-09`         |
+| Maria Faith Antigua  | UX and design system · maintains the board           | `@fayeye-09`         |
 | Luke Miguel Dongque  | Auth and security                                    | `@lukedongque`       |
 | James Niño Mandawe   | Portal shells and QA                                 | `@JamesNino-Mandawe` |
 
@@ -35,7 +35,8 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 1. **Story.** Work starts from a STORY-xx issue on the board.
 2. **Design.** The story owner writes `docs/design/STORY-xx-*.md`
    ([planning a story](docs/guides/planning-a-story.md)). Adrian merging it is the
-   approval. No code before that.
+   approval, after Maria approves it if the story has screens (D-042). No code before
+   that.
 3. **Tasks.** The design's task table becomes TSK sub-issues with points and days.
 4. **Branch.** From an up-to-date `main`: `git switch -c feature/STORY-xx-short-desc`.
 5. **Build.** Small commits, tests alongside the code, and `npm run check` before you

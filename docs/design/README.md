@@ -1,7 +1,8 @@
 # Design docs
 
 **No code for a story until its design doc is merged** (D-016). Adrian's merge is the
-approval. Fixes, chores and docs-only changes are exempt.
+approval, after Maria's for a story with screens (D-042). Fixes, chores and docs-only
+changes are exempt.
 
 ## Who writes it, and when
 
@@ -10,6 +11,8 @@ approval. Fixes, chores and docs-only changes are exempt.
 - The story owner writes it at the start of the story.
 - Branch: `feature/STORY-xx-design`.
 - Pull request title: `docs(STORY-xx): design <short description>`.
+- Reviewers: Adrian, plus Maria if the story has screens. Maria approves the user's steps
+  in §1 and the UI in §3 (D-042).
 - Start from [`TEMPLATE.md`](TEMPLATE.md).
 - Keep it as short as the story allows.
 
