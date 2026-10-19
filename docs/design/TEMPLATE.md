@@ -1,7 +1,7 @@
 # STORY-xx: title
 
 **Status:** draft · **Owner:** @handle · **Story:** #NN · **FR:** FR-x.y ·
-**Depends on:** STORY-xx · **Decisions:** D-NNN
+**Depends on:** STORY-xx · **Flows:** [name](../flows/name.md) · **Decisions:** D-NNN
 
 Copy this file to `docs/design/STORY-xx-short-desc.md`. Delete these instructions and
 any section that genuinely does not apply, and say why.
@@ -14,7 +14,12 @@ any section that genuinely does not apply, and say why.
 
 ## 1. Flow
 
-A sequence diagram of the main path, across every layer involved.
+**Shared flows** (D-044): link each flow in [`docs/flows/`](../flows/README.md) that this
+story uses, and say which of its arrows or steps this story builds. Don't draw a shared
+flow again here, and never change one: that is a pull request to the flow doc.
+
+**This story's own part:** a sequence diagram of its main path, across every layer
+involved.
 
 ```mermaid
 sequenceDiagram
@@ -35,7 +40,8 @@ sequenceDiagram
 - **Tables and columns** (new or changed), with types, constraints and defaults. Use
   [GLOSSARY](../GLOSSARY.md) names.
 - **Enums.**
-- **State transitions:**
+- **State transitions** this story adds. Link the ones a shared flow already draws
+  instead of copying them:
 
   | From | Event | To  | Precondition | Who |
   | ---- | ----- | --- | ------------ | --- |
@@ -89,8 +95,9 @@ One PR per row, and every PR targets `main`.
 
 ## 7. Rejected alternatives
 
-- **An option you considered:** why it was not chosen. If the choice matters beyond this
-  story, add it to [DECISIONS](../DECISIONS.md) too.
+- **An option you considered:** why it was not chosen. If another story builds on the
+  choice, it is costly to reverse once data exists, or a reasonable teammate would have
+  chosen differently, add it to [DECISIONS](../DECISIONS.md) too (D-044).
 
 ## 8. Open questions
 

@@ -58,6 +58,7 @@ studyhub/
     ├── ONBOARDING.md             # Machine setup, written for an AI agent to run
     ├── DEVELOPMENT.md            # Accounts, environments, secrets, the daily loop
     ├── guides/                   # Planning a story, git and PRs, reviewing, testing, AI, board
+    ├── flows/                    # The flows several stories share, drawn before their designs
     ├── design/                   # One design doc per story, plus the template
     └── course/                   # Course deliverables (.md is the source; .docx is generated)
         ├── StudyHub_SRS.md / .docx
@@ -83,6 +84,7 @@ studyhub/
 
 - [docs/DECISIONS.md](docs/DECISIONS.md) — every decision, and what it rejected
 - [docs/GLOSSARY.md](docs/GLOSSARY.md) — the words to use in code, UI and docs
+- [docs/flows/](docs/flows/README.md) — the flows several stories share, merged before the designs that use them
 - [docs/design/](docs/design/) — one design doc per story, merged before its code starts
 
 **Course deliverables**

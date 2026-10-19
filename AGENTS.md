@@ -51,8 +51,9 @@ into a chat tool that cannot see the repository.
 5. [`docs/DECISIONS.md`](docs/DECISIONS.md): what is already decided and what was
    rejected, cited as `D-NNN`.
 6. [`docs/GLOSSARY.md`](docs/GLOSSARY.md): the words to use.
-7. The story's design doc in [`docs/design/`](docs/design/).
-8. The issue you were given.
+7. The shared flows the story uses, in [`docs/flows/`](docs/flows/README.md) (D-044).
+8. The story's design doc in [`docs/design/`](docs/design/).
+9. The issue you were given.
 
 ## How the app fits together
 
@@ -79,7 +80,8 @@ supabase/             config.toml, migrations/, tests/ (pgTAP), seed.sql
 e2e/                  Playwright journeys
 scripts/              repo scripts (docx export)
 docs/                 README (map), DECISIONS, GLOSSARY, ONBOARDING, DEVELOPMENT,
-                      SPRINT-1, SPRINT-2, guides/, design/, course/ (course deliverables)
+                      SPRINT-1, SPRINT-2, guides/, flows/ (shared flows), design/,
+                      course/ (course deliverables)
 notes/                postmortems
 ```
 
@@ -134,8 +136,9 @@ These job names are a contract, because renaming one blocks every PR.
 2. **Vague request: stop.** Say what is unclear, give 2–3 concrete options with a
    recommendation, and wait. If the answer shapes other work, open a `decision-needed`
    issue.
-3. **Plan gate.** No code for a story until its design doc is merged (D-016). Before
-   changing code, write your plan and get it confirmed.
+3. **Plan gate.** No code for a story until its design doc is merged (D-016), and no
+   design doc until the shared flows it uses are merged (D-044). Before changing code,
+   write your plan and get it confirmed.
 4. **Small changes.** One concern per PR.
 5. **Tests ride along.** A feature and its tests land together. Every table or policy
    change ships with negative tests for both questions: the wrong user gets **zero
@@ -159,7 +162,7 @@ These job names are a contract, because renaming one blocks every PR.
   - **Reviews:** 1 approving review required (D-014). Adrian approves teammates' PRs; a teammate approves Adrian's.
 - **Branch:** `feature/STORY-xx-short-desc`. The course requires it.
   - Several small branches per story are fine.
-  - A fix uses the story it fixes; repo chores use STORY-00.
+  - A fix uses the story it fixes; repo chores and shared flows use STORY-00 (D-044).
 - **Commits on your branch:** `type(scope): subject`. Types: `feat fix docs style refactor perf test build ci chore revert`. The commit-msg hook checks this.
 - **PR title:** `type(STORY-xx): summary`, with the summary starting in lowercase.
 - **PR body:** fill in the template. It becomes the commit on `main`. Put `Closes #<task>` on the first line (and `Refs #<story>`).
@@ -194,32 +197,46 @@ Stop only at the 🛑 points.
    issue, the human's section of `docs/SPRINT-2.md`, and every `FR-x.y` and `D-NNN`
    the story cites. If they have more than one story, work on the lowest-numbered one
    that isn't blocked.
-2. **Check the design gate.** Is `docs/design/STORY-xx-*.md` merged on `main`?
+2. **Flows first.** [`docs/flows/README.md`](docs/flows/README.md) lists the shared
+   flows, who draws each, and which story designs wait for them (D-044).
+   - **Your human draws a flow that has no PR yet:** it comes before any story design.
+     If it builds on another flow that isn't merged, 🛑 tell your human which.
+     Otherwise draw it as that page says, on `feature/STORY-00-flow-<short-name>`, and
+     open the PR (title `docs(STORY-00): draw the <name> flow`, `Refs #<story>` for each
+     story that waits for it, and the reviewers that page names). 🛑 Stop until it
+     merges.
+   - **Your human's flow PR is open:** answer its review comments, then 🛑 wait for the
+     merge.
+   - **The story's design waits for someone else's flow that isn't merged:** 🛑 tell
+     your human which flow, and who draws it. Review its PR meanwhile.
+   - **Every flow the story's design waits for is merged, or its design is:** go on.
+3. **Check the design gate.** Is `docs/design/STORY-xx-*.md` merged on `main`?
    - **No doc yet, and the sprint brief names someone else as its author** (for example,
      Adrian writes STORY-05's): 🛑 tell your human to wait for it.
    - **No doc yet:** write it from `docs/design/TEMPLATE.md` on `feature/STORY-xx-design`.
-     Read the design docs of the stories it depends on first. Open the PR (title
+     Read the flows it uses and the design docs of the stories it depends on first. Its
+     §1 links each flow and draws only this story's part. Open the PR (title
      `docs(STORY-xx): design <summary>`, first body line `Refs #<story>`, reviewer
      `dreeyanzz`, plus `fayeye-09` if the story has screens, D-042). 🛑 Stop: no code
      until Adrian merges it.
    - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
    - **Merged:** go on.
-3. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
+4. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
    §5, then remove `needs-design` from the story.
-4. **Pick the next task** in the design's §6 build order whose dependencies are merged
+5. **Pick the next task** in the design's §6 build order whose dependencies are merged
    on `main`. 🛑 If every remaining task is blocked, tell your human what it waits for
    and who owns that.
-5. **Build it** on `feature/STORY-xx-short-desc`, branched from a fresh `main`. Move its
+6. **Build it** on `feature/STORY-xx-short-desc`, branched from a fresh `main`. Move its
    card to In Progress. Touch only the files the design names. Before writing Next.js
    code, read the relevant guide in `node_modules/next/dist/docs/`. Tests go in with
    the code.
-6. **Verify.** Run `npm run check`, plus `npm run db:test` if you changed SQL, plus the
+7. **Verify.** Run `npm run check`, plus `npm run db:test` if you changed SQL, plus the
    manual checks in the design's §4. Fix until everything passes. Never report a check
    you did not run.
-7. **Explain it.** Walk your human through the diff in plain English: what each file
+8. **Explain it.** Walk your human through the diff in plain English: what each file
    does, and why. They must be able to defend every line in the Final phase.
    🛑 Wait for their go-ahead.
-8. **Open the PR.** Fill in the template: first line `Closes #<task>`, then
+9. **Open the PR.** Fill in the template: first line `Closes #<task>`, then
    `Refs #<story>`, and the AI assistance section. Request review from `dreeyanzz` (on
    Adrian's own PRs, from a teammate), and move the task's card to Code Review.
    🛑 Stop until the PR merges or your human asks for the next task.
@@ -229,7 +246,8 @@ Stop only at the 🛑 points.
 - the story or its design is unclear;
 - the work needs another story's files, a table or policy that doesn't exist yet
   (tables and policies belong to Adrian's stories), or a change to a decision;
-- the approved design turns out to be wrong;
+- the story needs a shared flow that has no doc in `docs/flows/` yet (D-044);
+- the approved design, or a merged flow, turns out to be wrong;
 - the same step has failed twice.
 
 Never build your own copy of something another story owns. For example, don't run
@@ -240,9 +258,10 @@ Never build your own copy of something another story owns. For example, don't ru
 When your human says **"Review PR #N"**, follow
 [the agent review standard](docs/guides/reviewing-and-merging.md#ai-agents) (D-034):
 
-1. **Check it yourself.** Read the PR, its task, its story and the design sections it
-   touches. Check out the branch, run `npm run check` and `npm run build` (and
-   `npm run db:test` for SQL), and the design's §4 manual checks against the local stack.
+1. **Check it yourself.** Read the PR, its task, its story, and the flows and design
+   sections it touches. Check out the branch, run `npm run check` and `npm run build`
+   (and `npm run db:test` for SQL), and the design's §4 manual checks against the local
+   stack.
 2. **Explain it.** Walk your human through the PR in plain English: the verdict, each file,
    and each finding with its severity. If they ask you to fix something on the author's
    branch, push the fix and list it in the review for the author to check.
@@ -282,15 +301,16 @@ garbles commit messages, PR and issue bodies, and comments:
 
 Every non-trivial change leaves a trace in the right place:
 
-| What happened                              | Where it goes                           |
-| ------------------------------------------ | --------------------------------------- |
-| Ordinary work                              | The PR body (it becomes the commit)     |
-| A decision between real alternatives       | A new entry in `docs/DECISIONS.md`      |
-| A story's design                           | `docs/design/STORY-xx-*.md`             |
-| Something broke or cost real debugging     | A postmortem in `notes/`                |
-| A new term, or a word used two ways        | `docs/GLOSSARY.md`                      |
-| An open question                           | A `decision-needed` issue               |
-| A new script, command or environment value | The Commands block and `DEVELOPMENT.md` |
+| What happened                                                                           | Where it goes                              |
+| --------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Ordinary work                                                                           | The PR body (it becomes the commit)        |
+| A decision that another story builds on, is costly to reverse, or had real alternatives | A new entry in `docs/DECISIONS.md` (D-044) |
+| A flow that several stories share                                                       | `docs/flows/<name>.md` (D-044)             |
+| A story's design                                                                        | `docs/design/STORY-xx-*.md`                |
+| Something broke or cost real debugging                                                  | A postmortem in `notes/`                   |
+| A new term, or a word used two ways                                                     | `docs/GLOSSARY.md`                         |
+| An open question                                                                        | A `decision-needed` issue                  |
+| A new script, command or environment value                                              | The Commands block and `DEVELOPMENT.md`    |
 
 ## AI credit
 
@@ -314,6 +334,8 @@ Every non-trivial change leaves a trace in the right place:
   loop
 - [`docs/guides/`](docs/guides/): planning a story, git and PRs, reviewing and merging,
   testing, AI assistants, postmortems, the board
+- [`docs/flows/`](docs/flows/README.md): the flows several stories share, drawn before
+  the designs that use them (D-044)
 - [`docs/design/`](docs/design/): one design doc per story, plus the template
 - [`docs/course/`](docs/course/): SRS, planning worksheet, sprint plans, board snapshots
 - [`notes/`](notes/): postmortems

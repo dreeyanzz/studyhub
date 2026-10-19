@@ -21,8 +21,9 @@ issue or with [`AGENTS.md`](../AGENTS.md), ask Adrian, and one of them gets fixe
 
 1. **Update your machine:** `git switch main && git pull`, then `npm install`.
 2. **Read your part** (section 4) and who waits for whom (section 3).
-3. **Write your story's design doc first, by Wednesday 14 October.** No code until Adrian
-   merges it (D-016).
+3. **Flows first, then your design doc, then code.** If you draw a shared flow, draw it
+   first (section 1). Write your story's design doc once the flows it uses are merged
+   (D-044), and write no code until Adrian merges the design (D-016).
 4. **Build in small pull requests, with tests.** Run `npm run check` before every push.
 5. **Own your code.** Your AI tool helps, but the Final phase checks that each of us can
    explain our own work.
@@ -53,15 +54,19 @@ Sprint 1's two open bugs came first, and both are fixed: #145 by #164, and #146 
 
 ## 1. Plan first, then build
 
-The path is the same as in Sprint 1 (section 2 of the [Sprint 1 brief](SPRINT-1.md)):
-design doc, Adrian merges it, tasks on the board, one small pull request per task with
-its tests, review, and Adrian merges. Tell your AI tool **"Start my Sprint 2 story."** It
-follows [the story loop](../AGENTS.md#the-story-loop).
+The path is the same as in Sprint 1 (section 2 of the [Sprint 1 brief](SPRINT-1.md)),
+with one step in front: the shared flows, then the design doc, Adrian merges it, tasks on
+the board, one small pull request per task with its tests, review, and Adrian merges.
+Tell your AI tool **"Start my Sprint 2 story."** It follows
+[the story loop](../AGENTS.md#the-story-loop).
 
 Three things are new this sprint:
 
-- **Design docs are due Wednesday 14 October**, because the build window is short.
-  STORY-07's comes first: three stories read its tables.
+- **Shared flows come first** (D-044). Sprint 2's stories change the same seats from
+  several sides: a hold, a payment, a check-in, a Host's tap, a timer running out. So the
+  flows they share are drawn once, in [`docs/flows/`](flows/README.md), and merged before
+  the story designs that use them. Your design links them and draws only your story's
+  part. The reservation lifecycle comes first, because five designs wait for it.
 - **Adrian writes every database change**, as in Sprint 1: migrations, policies and pgTAP
   tests (D-036). If your story needs a table, a column or a policy, say exactly what in
   your design doc, and Adrian builds it in its own pull request. Don't write migrations
@@ -71,12 +76,27 @@ Three things are new this sprint:
   approves its user steps and UI. What the system allows and stores stays with Adrian,
   and security with Luke.
 
+Who draws which flow, and who approves it (D-044). The [flows index](flows/README.md)
+lists what each one covers, which designs wait for it, and how far it has got.
+
+| Flow                         | Drawn by | Approved by   |
+| ---------------------------- | -------- | ------------- |
+| Reservation lifecycle        | Adrian   | Maria         |
+| Space verification           | Adrian   | Maria         |
+| Sandbox payment confirmation | Adrian   | Luke          |
+| Check-in                     | Luke     | Adrian, Maria |
+| Host setup journey           | Maria    | Adrian        |
+| Seeker journey               | Maria    | Adrian, Luke  |
+
+James turns Maria's two journeys into Playwright tests.
+
 ## 2. When to ask Adrian
 
 Ask early. A question now costs minutes; a wrong guess costs days. Ask when:
 
 - you don't understand what your story is asking for;
 - your story needs a table, a column or a policy that isn't in a merged migration yet;
+- your story needs a shared flow that has no doc in [`docs/flows/`](flows/README.md) yet;
 - your work would change another person's files, or a decision in
   [`DECISIONS.md`](DECISIONS.md);
 - your plan needs to change after it was approved;
@@ -90,10 +110,12 @@ Ask in the group chat, or comment on your story's issue so the answer stays with
 
 ## 3. Who waits for whom
 
-STORY-07, the seat map, comes first, because STORY-09, STORY-11 and STORY-12 read its
-tables. The longest chain is the **critical path**: STORY-07's tables, then STORY-09's hold
-and payment, then STORY-10's check-in. A delay anywhere on it delays the demo, so its pull
-requests are reviewed and merged first.
+Before any of this, each story's design waits for the shared flows it uses (section 1).
+Then STORY-07, the seat map, comes first, because STORY-09, STORY-11 and STORY-12 read its
+tables. The longest chain is the **critical path**: the reservation lifecycle flow, then
+STORY-07's design and tables, then STORY-09's hold and payment, then STORY-10's check-in.
+A delay anywhere on it delays the demo, so its pull requests are reviewed and merged
+first.
 
 ```mermaid
 flowchart LR
@@ -117,19 +139,23 @@ flowchart LR
 | STORY-09 Holds and sandbox payment (#58) | Adrian                                     | STORY-07's tables; STORY-11's seat map, where a Seeker picks a unit            |
 | STORY-10 QR check-in and release (#59)   | Luke; Adrian writes its database functions | STORY-09's reservations; STORY-12's seat map view, for the Host's wait windows |
 
-**While you wait,** don't sit idle: write your design doc, build what doesn't need the
-missing piece (page layouts, form rules, components with sample data, tests), or review
-someone's pull request.
+**While you wait,** don't sit idle: review the flows your story waits for, write your
+design doc once they're merged, build what doesn't need the missing piece (page layouts,
+form rules, components with sample data, tests), or review someone's pull request.
 
 ### What runs when
 
-| When                | Adrian                                                                              | Luke                                                 | Maria                                     | James                                             |
-| ------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------- | ------------------------------------------------- |
-| **Tue 13 – Wed 14** | STORY-07's design first, then STORY-09's; review the others                         | STORY-08's and STORY-10's designs                    | STORY-11's design                         | STORY-12's and STORY-15's designs                 |
-| **Thu 15 – Fri 16** | STORY-07's tables and RLS; then STORY-08's tag tables and STORY-15's policy         | STORY-08's map and search                            | STORY-11's layout and photo gallery       | STORY-15's `/admin` page; STORY-12's layout       |
-| **Sat 17 – Tue 20** | STORY-07's builder; STORY-09's hold and payment; then STORY-10's database functions | STORY-08's filters; STORY-10's QR code and scan page | STORY-11's availability view and seat map | STORY-12's one-tap states and walk-ins            |
-| **Wed 21 – Thu 22** | Wire it together; review and merge                                                  | STORY-10 on STORY-09's reservations                  | Responsive and keyboard checks            | The Playwright journey; walk-through as each role |
-| **Fri 23**          | Sprint 2 review and Prefinal demo                                                   | Same, together                                       | Same, together                            | Same, together                                    |
+Each step starts as soon as what it needs is merged. In step 1, each of us also reviews
+the flows our stories wait for, and approves the ones section 1 says.
+
+| Step                    | Adrian                                                                                        | Luke                                                   | Maria                                         | James                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ | --------------------------------------------- | ------------------------------------------------------------------ |
+| **1. Flows**            | The reservation lifecycle first, then Space verification and the sandbox payment confirmation | The check-in, once the reservation lifecycle is merged | The Host setup journey and the Seeker journey | Review the flows STORY-12 and STORY-15 wait for, and both journeys |
+| **2. Designs**          | STORY-07's design first, then STORY-09's; review the others                                   | STORY-08's and STORY-10's designs                      | STORY-11's design                             | STORY-12's and STORY-15's designs                                  |
+| **3. Tables first**     | STORY-07's tables and RLS; then STORY-08's tag tables and STORY-15's policy                   | STORY-08's map and search                              | STORY-11's layout and photo gallery           | STORY-15's `/admin` page; STORY-12's layout                        |
+| **4. Build**            | STORY-07's builder; STORY-09's hold and payment; then STORY-10's database functions           | STORY-08's filters; STORY-10's QR code and scan page   | STORY-11's availability view and seat map     | STORY-12's one-tap states and walk-ins                             |
+| **5. Wire it together** | Wire it together; review and merge                                                            | STORY-10 on STORY-09's reservations                    | Responsive and keyboard checks                | The Playwright journeys; walk-through as each role                 |
+| **Fri 23 Oct**          | Sprint 2 review and Prefinal demo                                                             | Same, together                                         | Same, together                                | Same, together                                                     |
 
 ## 4. Your part
 
@@ -148,6 +174,10 @@ Words used below (the [glossary](GLOSSARY.md) has them all):
   never touch Worq (D-005).
 
 ### Adrian: STORY-07, STORY-09, and every database change
+
+**Your flows, first (D-044).** The reservation lifecycle, which five designs wait for;
+then the Space verification status, and the sandbox payment confirmation, which Luke
+approves. You also approve Maria's two journeys and Luke's check-in.
 
 **STORY-07, the seat map builder (#56).** The `zones` and `units` tables with their RLS,
 the Host's snap-grid builder with an accessible list view, and the bucket for venue
@@ -168,7 +198,8 @@ Seekers holding the same unit at the same moment get exactly one success.
 
 **First thing:** choose the gateway (PayMongo or Stripe, D-005) and set up its test
 account and keys, because that takes time. The design also settles the two timers, the
-fee, and whether a whole room takes one hold.
+fee, and whether a whole room takes one hold, except where other stories build on the
+answer: the reservation lifecycle settles those parts first (D-044).
 
 **The database half of the others' stories:** STORY-08's tag tables, STORY-15's
 verification policy, and STORY-10's check-in, check-out and release functions. Each goes
@@ -181,6 +212,11 @@ a real concurrency test: two holds at the same moment.
 
 ### Luke: STORY-08 and STORY-10
 
+**Your flow, first (D-044).** The check-in: what the QR code holds, why it works only
+once, and what happens at the wrong Space. Draw it once the reservation lifecycle is
+merged; Adrian and Maria approve it. You also approve the sandbox payment confirmation,
+and the signed-out part of Maria's Seeker journey.
+
 **STORY-08, map discovery and filters (#57).** A Leaflet map of OpenStreetMap tiles with
 Space pins and a list beside it. Search by a typed place or campus name, or by the
 device's location. A filter panel for the seven curated criteria (Wi-Fi, outlets, noise,
@@ -192,7 +228,7 @@ name, price tier and distance, and links to its profile; filters combine with AN
 Space that isn't Verified never shows up; custom tags are never offered as filters.
 
 **Waits for:** nothing for the map and the search. The filters need Adrian's tag tables,
-so say in your design exactly what you need, by Wednesday.
+so say in your design exactly what you need.
 
 **STORY-10, QR check-in and release (#59).** The Seeker's dashboard shows their booking
 token as a QR code. The Host scans it, or types it, and the unit becomes Occupied.
@@ -211,6 +247,11 @@ stack: search and filter as a Seeker, then check in a test reservation as a Host
 
 ### Maria: STORY-11, and every story's user experience
 
+**Your flows, first (D-044).** Two journeys, drawn as swimlanes: a Host setting up a
+Space, from its details to an Administrator's approval; and a Seeker going from search to
+a hold, including what a signed-out visitor gets when they try to hold a unit. Adrian
+approves both, and Luke the signed-out part. James turns them into Playwright tests.
+
 **STORY-11, the Space profile (#76).** The page a Seeker opens from the map: the Space's photos, its
 curated tags and its Host's custom tags (shown differently, and never as filters), its
 hours, and which units are open right now, as the seat map and as an accessible list.
@@ -226,13 +267,15 @@ scrolling sideways.
 components, with sample data.
 
 **Others need from you:** STORY-09 adds a "hold this unit" action to your seat map and
-list view, so agree its shape with Adrian in your design doc.
+list view, so agree its shape with Adrian: the Seeker journey settles the steps, and your
+design doc the control.
 
 **Every story's user experience (D-042).** You decide what users see, do and are told in
 every Sprint 2 story, not only yours. Review the user steps and the UI in each design doc
 with screens before Adrian merges it, STORY-07's included (D-043). Where a screen shows a
 rule someone else owns, such as how long a Seeker has to pay, you propose it and the
-rule's owner confirms it.
+rule's owner confirms it. You also approve what the reservation lifecycle, the Space
+verification flow and the check-in say users see and are told (D-044).
 
 **How to test:** `npm run check`; by hand at 360, 768 and 1024 px, and with the keyboard
 only.
@@ -258,9 +301,12 @@ reach Seekers; only an Administrator can open `/admin`.
 
 **Waits for:** Adrian's policy, for saving. The page and its layout can start right away.
 
-**Sprint 2 QA.** Grow the Playwright tests into the Prefinal demo's journey as the stories
-land: an Administrator approves a Space, then a Seeker finds it, opens it, and picks a
-seat. Before Friday's review, check every merged story against the Definition of Done.
+**Sprint 2 QA.** Turn Maria's two journeys into Playwright tests (D-044), and grow them as
+the stories land: a Host sets up a Space and an Administrator approves it, then a Seeker
+finds it, opens it, and picks a seat. Review both journeys before they merge, so that
+every path in them can be tested, and the flows your stories wait for: the reservation
+lifecycle (STORY-12) and the Space verification flow (STORY-15). Before Friday's review,
+check every merged story against the Definition of Done.
 
 **How to test:** `npm run test:e2e` against the local stack. By hand, locally, as
 `host@example.test` and `admin@example.test`.
@@ -270,14 +316,14 @@ seat. Before Friday's review, check every merged story against the Definition of
 These are targets. If you're going to miss one, say so as soon as you know, not on the
 day.
 
-| Date       | Target                                                                               |
-| ---------- | ------------------------------------------------------------------------------------ |
-| Tue 13 Oct | Sprint 2 plan merged; STORY-07's design open                                         |
-| Wed 14 Oct | Every design doc open; STORY-07's and STORY-09's merged                              |
-| Fri 16 Oct | STORY-07's tables merged; STORY-08's tag tables and STORY-15's policy merged         |
-| Tue 20 Oct | STORY-09's hold and payment merged; STORY-08, STORY-11, STORY-12 and STORY-15 merged |
-| Thu 22 Oct | STORY-10 merged; a full walk-through as each role; fix what we find                  |
-| Fri 23 Oct | Sprint 2 review and Prefinal demo                                                    |
+| Date       | Target                                                                     |
+| ---------- | -------------------------------------------------------------------------- |
+| Tue 13 Oct | Sprint 2 plan merged                                                       |
+| Tue 20 Oct | Story designs start again (D-043), after the shared flows they use (D-044) |
+| Fri 23 Oct | Sprint 2 review and Prefinal demo                                          |
+
+In between, the work runs in the order of the steps in section 3: flows, designs, tables
+first, the build, then wiring it together, ending with a full walk-through as each role.
 
 ## 6. Rules we never break
 

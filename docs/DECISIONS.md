@@ -1,6 +1,6 @@
 # Decisions
 
-One log of every decision that had real alternatives.
+One log of every decision that another story builds on, that is costly to reverse, or that had real alternatives (D-044).
 
 **Format.** Each entry says what was decided, why, what was rejected, and when to revisit it, in about 15 lines or fewer.
 
@@ -539,3 +539,22 @@ Maria maintains the board; Adrian is Project Manager.
 **Why:** The flows that cross stories, such as a reservation from its hold to its check-in, were not decided before the stories were designed, and Sprint 2's designs depend on each other. STORY-07's design had already fixed choices that belong to the stories it feeds: D-041 decided what moves the Host-updated time before STORY-11 or STORY-12 had a design.
 
 **Rejected:** Keeping STORY-07's design and designing the other stories around it (its choices would bind stories designed later); deleting the withdrawn entries (this log is append-only).
+
+## D-044 · Shared flows are decided before the story designs that use them
+
+**Decision:**
+
+- A flow that crosses stories gets its own doc in `docs/flows/`, drawn in Mermaid, and it is merged before any story design that uses it is written. This extends D-016. The design links the flow in its §1 and draws only its own part. It never re-decides a shared flow: changing one is a pull request to the flow doc. A flow's branch and pull request use STORY-00, because it serves several stories (D-023).
+- A flow crosses stories when two or more stories build or read it. It gets its own doc only if, as well, two or more stories change the same state (such as the seat state), one person's steps run through two or more stories, a caller from outside the app takes part (D-010), or a timer changes a state (D-004, D-011). Any other flow stays in its story's design, and a story that only reads what another story builds waits for that story's design.
+- Who draws each flow follows D-042, and the owners of what a flow decides approve it. Adrian draws the reservation lifecycle (the seat state and the reservation's own states), the Space verification status, and the sandbox payment confirmation, which Luke approves for security. Maria draws two journeys: a Host setting up a Space, and a Seeker going from search to a hold, including what a signed-out visitor gets when they try to hold a unit. Luke draws the check-in. James turns Maria's journeys into Playwright tests. The [flows index](flows/README.md) lists each flow's approvers, the story designs that wait for it, and its status.
+- The diagram follows the question: a state diagram for the states something can be in, a sequence diagram for who calls whom in what order, and a swimlane for who does what.
+- Every diagram names its tests. Each arrow of a state diagram names what makes it, such as a database function, and the pgTAP test that proves it. Each branch of a sequence diagram, and each path through a swimlane, names its test or its manual check.
+- A choice made in a flow or a design also gets its own entry in this log when another story builds on it, when it is costly to reverse once data exists, or when a reasonable teammate would have chosen differently.
+
+**Why:** Three stories change the seat state (STORY-09, STORY-10 and STORY-12), a fourth shows it (STORY-11), and a fifth creates the units (STORY-07). Designed one story at a time, the first design decided for the others, as D-041 did for the Host-updated time (D-043). A shared flow decided once, before the designs, gives every story the same answer and one place to change it. Each flow is drawn by the owner of what it decides (D-042). A test named for every arrow makes the diagram the checklist the build is reviewed against, so the code can't drift from it unnoticed. "A decision between real alternatives" fits almost any choice; the three tests say which ones this log needs.
+
+**Rejected:** Deciding a shared flow in the first story design that touches it (what D-043 undid); one design doc for all of Sprint 2 (seven stories behind one review); Adrian drawing every flow (D-042 gives the journeys to Maria and security to Luke); a doc for every flow (most flows belong to one story, and its design already draws them); diagrams as images, like `docs/course/diagrams/` (a pull request can't show what changed in one); writing a story design alongside a flow it uses, on assumptions about that flow (how STORY-07's design got ahead of the stories it feeds).
+
+**Consequence:** D-004 and the Sprint 2 plan (§8) leave several questions to STORY-09's design, such as the lengths of the two timers, the fee and the gateway. Where another story builds on an answer, the flow that covers it settles it, and STORY-09's design links it. The plan stays as baselined (D-043).
+
+**Revisit if:** A merged flow keeps changing while its stories are built, or most flows turn out to serve one story.
