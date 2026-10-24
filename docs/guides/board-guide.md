@@ -163,9 +163,23 @@ human asks, an agent may also catch up any other card, including another person'
 (D-035). It then leaves a one-line comment on that issue saying what moved and why. It
 never moves an open issue to Done: closing the issue does that (D-030).
 
-**Changing sprint dates.** Editing the Sprint field's dates gives every sprint a new id
-and clears the sprint from every card. Before changing them, save each card's sprint.
-Afterwards, set it again on every card, and update the ids above.
+**Changing sprint dates.** Send every sprint again with its id, its title and its dates.
+With the ids, the ids above stay and every card keeps its sprint. Without them, every
+sprint gets a new id and every card loses its sprint. A duration counts days, the start
+day included. This is the change D-045 made: Sprint 2 ends on 1 December, and Sprint 3's
+two weeks from 2 December hold its place until it is planned.
+
+```bash
+gh api graphql -f query='mutation { updateProjectV2Field(input: {
+  fieldId: "PVTIF_lAHOCUJgA84BjmvkzhiabdE"
+  iterationConfiguration: { startDate: "2026-09-26", duration: 14, iterations: [
+    { id: "ab8798f2", title: "Sprint 1", startDate: "2026-09-26", duration: 14 }
+    { id: "4cfb2471", title: "Sprint 2", startDate: "2026-10-10", duration: 53 }
+    { id: "4573e4ab", title: "Sprint 3", startDate: "2026-12-02", duration: 14 } ] }
+}) { projectV2Field { ... on ProjectV2IterationField { id } } } }'
+```
+
+Save every card's sprint first anyway, and check afterwards that each card still has it.
 
 ## The course screenshot
 
