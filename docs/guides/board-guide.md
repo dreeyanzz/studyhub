@@ -18,18 +18,22 @@ Exactly these five, in this order. The course checks them.
 
 ## Fields
 
-| Field           | Values                                              |
-| --------------- | --------------------------------------------------- |
-| Status          | The five columns above                              |
-| Sprint          | Iteration: Sprint 1, 2 and 3, two weeks each        |
-| Points          | 1–10                                                |
-| Estimate (days) | Working days                                        |
-| MoSCoW          | Must, Should, Could, Won't                          |
-| Parent issue    | The STORY that a task belongs to (a built-in field) |
+| Field           | Values                                                            |
+| --------------- | ----------------------------------------------------------------- |
+| Status          | The five columns above                                            |
+| Sprint          | Iteration: Sprint 1, 2 and 3. Sprint 2 ends on 1 December (D-045) |
+| Points          | 1–10                                                              |
+| Estimate (days) | Working days                                                      |
+| MoSCoW          | Must, Should, Could, Won't                                        |
+| Parent issue    | The STORY that a task belongs to (a built-in field)               |
 
 The issue forms apply `type:story` and `type:task` automatically. Add the `moscow:*` and
 `area:*` labels by hand to match the dropdown answers in the issue body, and set the
 sprint milestone.
+
+Each shared flow has an issue too (D-044), labelled `type:docs` and `area:docs`, in the
+sprint's milestone and backlog, assigned to whoever draws it, with no points or estimate.
+The [flows index](../flows/README.md) lists them.
 
 ## Views
 
@@ -87,6 +91,8 @@ full, finish or review something before starting more.
 - Stories whose design doc has merged no longer have `needs-design`, and they have their
   TSK sub-issues.
 - Blocked items have the `blocked` label and a comment saying what they are waiting on.
+  A story waiting for a shared flow is marked as blocked by the flow's issue instead
+  (D-044).
 
 ## Sprint rollover
 
@@ -106,6 +112,14 @@ through the [story loop](../../AGENTS.md#the-story-loop), and any card when its 
 (D-035). Editing the board needs the `project` scope
 on the GitHub CLI login. If a command says the scope is missing, the human runs
 `gh auth refresh -s project` themselves (it opens a browser).
+
+**Mark an issue as blocked by a shared flow's issue** (D-044), or remove the mark with
+`-X DELETE` and the flow issue's id at the end of the path.
+
+```bash
+gh api -X POST repos/dreeyanzz/studyhub/issues/<story>/dependencies/blocked_by \
+  -F issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<flow issue> --jq .id)"
+```
 
 **Create a task from a design's §5 and attach it to its story.** The body repeats the
 task form's headings.
@@ -149,9 +163,23 @@ human asks, an agent may also catch up any other card, including another person'
 (D-035). It then leaves a one-line comment on that issue saying what moved and why. It
 never moves an open issue to Done: closing the issue does that (D-030).
 
-**Changing sprint dates.** Editing the Sprint field's dates gives every sprint a new id
-and clears the sprint from every card. Before changing them, save each card's sprint.
-Afterwards, set it again on every card, and update the ids above.
+**Changing sprint dates.** Send every sprint again with its id, its title and its dates.
+With the ids, the ids above stay and every card keeps its sprint. Without them, every
+sprint gets a new id and every card loses its sprint. A duration counts days, the start
+day included. This is the change D-045 made: Sprint 2 ends on 1 December, and Sprint 3's
+two weeks from 2 December hold its place until it is planned.
+
+```bash
+gh api graphql -f query='mutation { updateProjectV2Field(input: {
+  fieldId: "PVTIF_lAHOCUJgA84BjmvkzhiabdE"
+  iterationConfiguration: { startDate: "2026-09-26", duration: 14, iterations: [
+    { id: "ab8798f2", title: "Sprint 1", startDate: "2026-09-26", duration: 14 }
+    { id: "4cfb2471", title: "Sprint 2", startDate: "2026-10-10", duration: 53 }
+    { id: "4573e4ab", title: "Sprint 3", startDate: "2026-12-02", duration: 14 } ] }
+}) { projectV2Field { ... on ProjectV2IterationField { id } } } }'
+```
+
+Save every card's sprint first anyway, and check afterwards that each card still has it.
 
 ## The course screenshot
 

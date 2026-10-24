@@ -217,6 +217,7 @@ Tell the teammate, in this order:
 4. What to read next: [`SPRINT-2.md`](SPRINT-2.md), [`AGENTS.md`](../AGENTS.md) and
    [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 5. What to say next: **"Start my Sprint 2 story."** That runs the story loop in
-   `AGENTS.md`: the design doc first, and code only after Adrian merges it.
+   `AGENTS.md`: the shared flows and the design doc first, and code only after Adrian
+   merges them.
 
 Then stop. Do not start a task unless the teammate gives you one.

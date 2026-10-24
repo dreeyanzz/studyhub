@@ -7,6 +7,7 @@ The course requires this format, and the `pr-title` check enforces it.
 
 - A fix uses the story whose code it fixes.
 - A repository chore uses STORY-00.
+- A shared flow uses STORY-00 too, because it serves several stories (D-044).
 
 Start every branch from an up-to-date `main`:
 

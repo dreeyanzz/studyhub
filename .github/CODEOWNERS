@@ -1,6 +1,6 @@
 # Requests Adrian's review automatically on every pull request, and Maria's on
-# design docs and on the files that decide what users see, because Maria owns
-# the user experience (docs/DECISIONS.md, D-042).
+# design docs, shared flows and the files that decide what users see, because
+# Maria owns the user experience (docs/DECISIONS.md, D-042, D-044).
 #
 # Do NOT turn on "Require review from Code Owners" in the rulesets. Adrian owns
 # every path, and nobody can approve their own pull request, so Adrian's pull
@@ -17,3 +17,4 @@
 /hooks/ @dreeyanzz @fayeye-09
 /public/ @dreeyanzz @fayeye-09
 /docs/design/ @dreeyanzz @fayeye-09
+/docs/flows/ @dreeyanzz @fayeye-09

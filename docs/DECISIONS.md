@@ -1,6 +1,6 @@
 # Decisions
 
-One log of every decision that had real alternatives.
+One log of every decision that another story builds on, that is costly to reverse, or that a reasonable teammate would have chosen differently (D-044).
 
 **Format.** Each entry says what was decided, why, what was rejected, and when to revisit it, in about 15 lines or fewer.
 
@@ -414,6 +414,8 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 
 ## D-036 · Sprint 2 builds every Must Have
 
+**Dates moved by D-045**, which ends Sprint 2 on Tuesday 1 December.
+
 **Decision:**
 
 - Sprint 2 (Saturday 10 to Friday 23 October) holds every Must Have story, 55 points: STORY-07, STORY-08, STORY-09, STORY-10, STORY-11, STORY-12 and STORY-15 (D-037).
@@ -539,3 +541,36 @@ Maria maintains the board; Adrian is Project Manager.
 **Why:** The flows that cross stories, such as a reservation from its hold to its check-in, were not decided before the stories were designed, and Sprint 2's designs depend on each other. STORY-07's design had already fixed choices that belong to the stories it feeds: D-041 decided what moves the Host-updated time before STORY-11 or STORY-12 had a design.
 
 **Rejected:** Keeping STORY-07's design and designing the other stories around it (its choices would bind stories designed later); deleting the withdrawn entries (this log is append-only).
+
+## D-044 · Shared flows are decided before the story designs that use them
+
+**Decision:**
+
+- A flow that crosses stories gets its own doc in `docs/flows/`, drawn in Mermaid, and it is merged before any story design that uses it is written. This extends D-016. The design links the flow in its §1 and draws only its own part. It never re-decides a shared flow: changing one is a pull request to the flow doc. A flow's branch and pull request use STORY-00, because it serves several stories (D-023).
+- A flow crosses stories when two or more stories build or read it. It gets its own doc only if, as well, two or more stories change the same state (such as the seat state), one person's steps run through two or more stories, a caller from outside the app takes part (D-010), or a timer changes a state (D-004, D-011). Any other flow stays in its story's design, and a story that only reads what another story builds waits for that story's design.
+- Who draws a flow follows D-042: Maria draws journeys, Adrian draws flows about data and money, and Luke draws flows about security. The owners of the other areas a flow touches approve it, and Adrian settles a disagreement as Project Manager. The [flows index](flows/README.md) names each flow, who draws and approves it, what it waits for, which story designs wait for it, and its status. Changing any of those is a pull request to the index, not a new entry here.
+- The diagram follows the question: usually a state diagram, a sequence diagram or a swimlane, but any kind that answers the question better may be used, in a flow or in the part a story design draws itself.
+- Every diagram names its tests. Each arrow of a state diagram names what makes it, such as a database function, and the pgTAP test that proves it. Everything else a diagram shows names its test or its manual check.
+- A choice made in a flow or a design also gets its own entry in this log when another story builds on it, when it is costly to reverse once data exists, or when a reasonable teammate would have chosen differently.
+
+**Why:** Three stories change the seat state (STORY-09, STORY-10 and STORY-12), a fourth shows it (STORY-11), and a fifth creates the units (STORY-07). Designed one story at a time, the first design decided for the others, as D-041 did for the Host-updated time (D-043). A shared flow decided once, before the designs, gives every story the same answer and one place to change it. Each flow is drawn by the owner of what it decides (D-042). A test named for every arrow makes the diagram the checklist the build is reviewed against, so the code can't drift from it unnoticed. "A decision between real alternatives" fits almost any choice; the three tests say which ones this log needs.
+
+**Rejected:** Deciding a shared flow in the first story design that touches it (what D-043 undid); one design doc for all of Sprint 2 (seven stories behind one review); Adrian drawing every flow (D-042 gives the journeys to Maria and security to Luke); a doc for every flow (most flows belong to one story, and its design already draws them); diagrams as images, like `docs/course/diagrams/` (a pull request can't show what changed in one); writing a story design alongside a flow it uses, on assumptions about that flow (how STORY-07's design got ahead of the stories it feeds).
+
+**Consequence:** D-004 and the Sprint 2 plan (§8) leave several questions to STORY-09's design, such as the lengths of the two timers, the fee and the gateway. Where another story builds on an answer, the flow that covers it settles it, and STORY-09's design links it. The plan stays as baselined (D-043).
+
+**Revisit if:** A merged flow keeps changing while its stories are built, or most flows turn out to serve one story.
+
+## D-045 · Sprint 2 ends on Tuesday 1 December
+
+**Decision:**
+
+- Sprint 2 runs from Saturday 10 October to Tuesday 1 December 2026, and its review and the Prefinal demo are on its last day. This moves only D-036's end date: Sprint 2 still holds every Must Have, 55 points.
+- Sprint 3 starts after Sprint 2 ends. Its dates are set when it is planned, at the Sprint 2 review.
+- The Sprint 2 plan stays as baselined (D-043). The Sprint 2 brief and the board's Sprint field change to match this entry.
+
+**Why:** D-043 restarted every Sprint 2 story design on 20 October, and D-044 puts the shared flows before them, so no Sprint 2 story had a design by 23 October. A later deadline keeps D-036's scope, so the Prefinal demo still shows the whole booking journey.
+
+**Rejected:** Keeping 23 October and carrying every unfinished story over to Sprint 3, as D-036 allows when the critical path slips (the Prefinal demo would show none of the booking journey); a smaller Sprint 2 (D-036 rejected the smaller drafts).
+
+**Revisit if:** The critical path can't be merged by 1 December.
