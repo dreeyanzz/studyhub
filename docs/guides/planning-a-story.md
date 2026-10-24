@@ -36,7 +36,7 @@ What goes in it:
 
 - **Keep it as short as the story allows.** The test: could someone who has never seen the code predict what it does?
 - **Name the negative tests.** The wrong user gets 0 rows; the owner's forbidden writes are rejected.
-- **Add a [DECISIONS](../DECISIONS.md) entry in the same PR** for a choice that another story builds on, that is costly to reverse once data exists, or that a reasonable teammate would have made differently (D-044).
+- **Add a [DECISIONS](../DECISIONS.md) entry in the same PR** for a choice that another story builds on, that is costly to reverse once data exists, or that a reasonable teammate would have chosen differently (D-044).
 - **If something unclear blocks you**, open a Decision issue instead of guessing.
 
 Adrian merging the design PR is the approval. If the story has screens, ask Maria to

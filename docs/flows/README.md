@@ -7,20 +7,30 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 
 ## The flows
 
-| Flow                         | Diagram  | Drawn by | Approved by   | Status      |
-| ---------------------------- | -------- | -------- | ------------- | ----------- |
-| Reservation lifecycle        | State    | Adrian   | Maria         | not written |
-| Space verification           | State    | Adrian   | Maria         | not written |
-| Sandbox payment confirmation | Sequence | Adrian   | Luke          | not written |
-| Check-in                     | Sequence | Luke     | Adrian, Maria | not written |
-| Host setup journey           | Swimlane | Maria    | Adrian        | not written |
-| Seeker journey               | Swimlane | Maria    | Adrian, Luke  | not written |
+| Flow                         | Issue | Diagram  | Drawn by | Approved by   | Waits for             | Status      |
+| ---------------------------- | ----- | -------- | -------- | ------------- | --------------------- | ----------- |
+| Reservation lifecycle        | #173  | State    | Adrian   | Maria         | No other flow         | not written |
+| Space verification           | #174  | State    | Adrian   | Maria         | No other flow         | not written |
+| Sandbox payment confirmation | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | not written |
+| Check-in                     | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | not written |
+| Host setup journey           | #177  | Swimlane | Maria    | Adrian        | No other flow         | not written |
+| Seeker journey               | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | not written |
 
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
-and "Approved by" columns. The pull request that adds a flow links it in the table above.
-Its status there, and in its own status line, is `draft`; `approved YYYY-MM-DD`, set in
-the pull request that merges it; `implemented YYYY-MM-DD`, once every test it names
-passes on `main`; or `superseded by <flow>`.
+and "Approved by" columns. "Waits for" names the flows that must merge before a flow is
+drawn. A flow that uses another flow's states without waiting for it, as both journeys
+do, links that flow as [one fact, one place](#writing-a-flow-doc) says.
+
+Each flow has an issue on the board, assigned to whoever draws it, with no points. The
+pull request that draws the flow closes it. Each story whose design waits for a flow, and
+each flow that waits for another, is marked as blocked by that flow's issue, so its issue
+shows the flows it waits for. A pull request that changes "Waits for", or the table of
+story designs below, changes those marks too.
+
+The pull request that adds a flow links it in the table above. Its status there, and in
+its own status line, is `draft`; `approved YYYY-MM-DD`, set in the pull request that
+merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; or
+`superseded by <flow>`.
 
 ### What each flow covers
 
@@ -28,11 +38,13 @@ passes on `main`; or `superseded by <flow>`.
   the sandbox payment record's status (SRS §3.8). Every move between them, and who or
   what makes it: a hold, a confirmed sandbox payment, a lapsed payment window, a
   check-in, a no-show, a check-out, closing time, and a Host's tap, including on a unit
-  a Seeker has paid for. How a lapse takes effect on read and on write, since nothing
-  runs on a schedule (D-011). Where the payment window, the wait window's bounds and the
-  fee are kept. Closing time for a Space that closes after midnight or never closes
-  (D-027). What deleting a unit with a hold does. What moves the Host-updated time
-  (D-002). The record of a completed visit that a review needs (D-009).
+  a Seeker has paid for. Whether a whole room with a capacity takes one hold (FR-2.1,
+  and §8 of the [Sprint 2 plan](../course/StudyHub_Sprint_2_Plan.md)). How a lapse takes
+  effect on read and on write, since expiry can't depend on cron, which runs at most once
+  a day on Vercel's Hobby plan (D-011). Where the payment window, the wait window's
+  bounds and the fee are kept. Closing time for a Space that closes after midnight or
+  never closes (D-027). What deleting a unit with a hold does. What moves the
+  Host-updated time (D-002). The record of a completed visit that a review needs (D-009).
 - **Space verification.** A Space's verification status, Pending, Verified or Rejected
   (FR-5.1): who changes it (D-037), what each status shows Hosts, Seekers and
   Administrators, and what a Host's edit does to it (D-027).
@@ -40,12 +52,11 @@ passes on `main`; or `superseded by <flow>`.
   unit: the gateway calling a route in `app/api/` (D-010), the signature check, a
   message that comes twice, comes after the payment window has lapsed, or reports a
   failed payment, and the Seeker's return from the checkout. It makes one of the
-  reservation lifecycle's moves, so it is drawn once that flow is merged.
+  reservation lifecycle's moves.
 - **Check-in.** From a Seeker's QR code to an Occupied unit: what the booking token
   holds, how the Host scans or types it, why it works only once, what happens at the
   wrong Space or after the wait window, and what the Host and the Seeker are told. It
-  makes one of the reservation lifecycle's moves, so it is drawn once that flow is
-  merged.
+  makes one of the reservation lifecycle's moves.
 - **Host setup journey.** A Host from a new Space to a public one: its details
   (STORY-05), the seat map (STORY-07), tags (STORY-08), photos (STORY-11), and an
   Administrator's approval (STORY-15).
@@ -87,7 +98,9 @@ approval: Maria approves what it says users see, do and are told, Luke what it s
 security, and Adrian what it says about data and money. If they disagree, Adrian decides
 as Project Manager, and Adrian merges every flow. That is how the table at the top was
 filled in: the reservation lifecycle is about states, so Adrian draws it, and Maria
-approves what it shows Seekers and Hosts.
+approves what it shows Seekers and Hosts. The sandbox payment confirmation is about money,
+so Adrian draws it; Luke approves its signature check, and Maria what the Seeker sees when
+they come back from the checkout.
 
 Each flow's pull request also asks for a review from the owner of every story that waits
 for it. James, who turns the journeys into Playwright tests, reviews both of them.
@@ -152,10 +165,11 @@ test sets the flow's status to `implemented`.
 - **File:** `docs/flows/<short-name>.md`, for example `reservation-lifecycle.md`.
 - **Branch:** `feature/STORY-00-flow-<short-name>`. A flow serves several stories, so it
   uses STORY-00, like other planning that crosses stories.
-- **Pull request:** title `docs(STORY-00): draw the <name> flow`, and `Refs #<story>` for
-  every story whose design waits for it. Request reviews from its approvers, from the
-  owner of every story that waits for it, and from James for a journey. Everyone's GitHub
-  handle is in [CONTRIBUTING.md](../../CONTRIBUTING.md#team).
+- **Pull request:** title `docs(STORY-00): draw the <name> flow`, `Closes #<its issue>` as
+  the first line of the body, and `Refs #<story>` for every story whose design waits for
+  it. Request reviews from its approvers, from the owner of every story that waits for
+  it, and from James for a journey. Everyone's GitHub handle is in
+  [CONTRIBUTING.md](../../CONTRIBUTING.md#team).
 - **Status line**, at the top, as in a design doc:
 
   ```
@@ -169,8 +183,9 @@ test sets the flow's status to `implemented`.
   a `decision-needed` issue.
 - **Words:** the [glossary's](../GLOSSARY.md), for people, states and labels, with states
   named as in code: `pending_payment`.
-- **One fact, one place.** A flow that uses another flow's states links to it instead of
-  drawing them again, as a story design does.
+- **One fact, one place.** A flow that uses another flow's states links to that flow
+  instead of drawing them again, as a story design does. If that flow isn't merged yet,
+  the later of the two pull requests adds the link.
 
 ## Changing a flow after it merges
 

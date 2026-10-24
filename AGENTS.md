@@ -198,13 +198,15 @@ Stop only at the 🛑 points.
    the story cites. If they have more than one story, work on the lowest-numbered one
    that isn't blocked.
 2. **Flows first.** [`docs/flows/README.md`](docs/flows/README.md) lists the shared
-   flows, who draws each, and which story designs wait for them (D-044).
-   - **Your human draws a flow that has no PR yet:** it comes before any story design.
-     If it builds on another flow that isn't merged, 🛑 tell your human which.
-     Otherwise draw it as that page says, on `feature/STORY-00-flow-<short-name>`, and
-     open the PR (title `docs(STORY-00): draw the <name> flow`, `Refs #<story>` for each
-     story that waits for it, and the reviewers that page names). 🛑 Stop until it
-     merges.
+   flows, who draws each, what each waits for, and which story designs wait for them
+   (D-044).
+   - **Your human draws a flow that has no PR yet:** if the index says it waits for a
+     flow that isn't merged, tell your human which, and skip it. Otherwise draw it
+     before the story designs that wait for it, as that page says, on
+     `feature/STORY-00-flow-<short-name>`. Open the PR with the title
+     `docs(STORY-00): draw the <name> flow`, `Closes #<its issue>` as the first body
+     line, `Refs #<story>` for each story that waits for it, and the reviewers that page
+     names. 🛑 Stop until it merges.
    - **Your human's flow PR is open:** answer its review comments, then 🛑 wait for the
      merge.
    - **The story's design waits for someone else's flow that isn't merged:** 🛑 tell
@@ -301,16 +303,16 @@ garbles commit messages, PR and issue bodies, and comments:
 
 Every non-trivial change leaves a trace in the right place:
 
-| What happened                                                                           | Where it goes                              |
-| --------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Ordinary work                                                                           | The PR body (it becomes the commit)        |
-| A decision that another story builds on, is costly to reverse, or had real alternatives | A new entry in `docs/DECISIONS.md` (D-044) |
-| A flow that several stories share                                                       | `docs/flows/<name>.md` (D-044)             |
-| A story's design                                                                        | `docs/design/STORY-xx-*.md`                |
-| Something broke or cost real debugging                                                  | A postmortem in `notes/`                   |
-| A new term, or a word used two ways                                                     | `docs/GLOSSARY.md`                         |
-| An open question                                                                        | A `decision-needed` issue                  |
-| A new script, command or environment value                                              | The Commands block and `DEVELOPMENT.md`    |
+| What happened                                                                                                                   | Where it goes                              |
+| ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Ordinary work                                                                                                                   | The PR body (it becomes the commit)        |
+| A decision that another story builds on, that is costly to reverse, or that a reasonable teammate would have chosen differently | A new entry in `docs/DECISIONS.md` (D-044) |
+| A flow that several stories share                                                                                               | `docs/flows/<name>.md` (D-044)             |
+| A story's design                                                                                                                | `docs/design/STORY-xx-*.md`                |
+| Something broke or cost real debugging                                                                                          | A postmortem in `notes/`                   |
+| A new term, or a word used two ways                                                                                             | `docs/GLOSSARY.md`                         |
+| An open question                                                                                                                | A `decision-needed` issue                  |
+| A new script, command or environment value                                                                                      | The Commands block and `DEVELOPMENT.md`    |
 
 ## AI credit
 

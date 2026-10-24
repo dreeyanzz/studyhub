@@ -22,8 +22,8 @@ issue or with [`AGENTS.md`](../AGENTS.md), ask Adrian, and one of them gets fixe
 1. **Update your machine:** `git switch main && git pull`, then `npm install`.
 2. **Read your part** (section 4) and who waits for whom (section 3).
 3. **Flows first, then your design doc, then code.** If you draw a shared flow, draw it
-   first (section 1). Write your story's design doc once the flows it uses are merged
-   (D-044), and write no code until Adrian merges the design (D-016).
+   first (section 4 says which are yours). Write your story's design doc once the flows
+   it uses are merged (D-044), and write no code until Adrian merges the design (D-016).
 4. **Build in small pull requests, with tests.** Run `npm run check` before every push.
 5. **Own your code.** Your AI tool helps, but the Final phase checks that each of us can
    explain our own work.
@@ -76,19 +76,9 @@ Three things are new this sprint:
   approves its user steps and UI. What the system allows and stores stays with Adrian,
   and security with Luke.
 
-Who draws which flow, and who approves it (D-044). The [flows index](flows/README.md)
-lists what each one covers, which designs wait for it, and how far it has got.
-
-| Flow                         | Drawn by | Approved by   |
-| ---------------------------- | -------- | ------------- |
-| Reservation lifecycle        | Adrian   | Maria         |
-| Space verification           | Adrian   | Maria         |
-| Sandbox payment confirmation | Adrian   | Luke          |
-| Check-in                     | Luke     | Adrian, Maria |
-| Host setup journey           | Maria    | Adrian        |
-| Seeker journey               | Maria    | Adrian, Luke  |
-
-James turns Maria's two journeys into Playwright tests.
+The [flows index](flows/README.md) says who draws and approves each flow, what it covers,
+what it waits for, which designs wait for it, and how far it has got (D-044). Section 4
+says which flows are yours.
 
 ## 2. When to ask Adrian
 
@@ -150,7 +140,7 @@ form rules, components with sample data, tests), or review someone's pull reques
 ### What runs when
 
 Each step starts as soon as what it needs is merged. In step 1, each of us also reviews
-the flows our stories wait for, and approves the ones section 1 says.
+the flows our stories wait for, and approves the ones the flows index names.
 
 | Step                    | Adrian                                                                                        | Luke                                                   | Maria                                                 | James                                                              |
 | ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------ |
@@ -181,7 +171,7 @@ Words used below (the [glossary](GLOSSARY.md) has them all):
 
 **Your flows, first (D-044).** The reservation lifecycle, which five designs wait for;
 then the Space verification status, and the sandbox payment confirmation, which Luke
-approves. You also approve Maria's two journeys and Luke's check-in.
+and Maria approve. You also approve Maria's two journeys and Luke's check-in.
 
 **STORY-07, the seat map builder (#56).** The `zones` and `units` tables with their RLS,
 the Host's snap-grid builder with an accessible list view, and the bucket for venue
@@ -279,7 +269,8 @@ every Sprint 2 story, not only yours. Review the user steps and the UI in each d
 with screens before Adrian merges it, STORY-07's included (D-043). Where a screen shows a
 rule someone else owns, such as how long a Seeker has to pay, you propose it and the
 rule's owner confirms it. You also approve what the reservation lifecycle, the Space
-verification flow and the check-in say users see and are told (D-044).
+verification flow, the sandbox payment confirmation and the check-in say users see and
+are told (D-044).
 
 **How to test:** `npm run check`; by hand at 360, 768 and 1024 px, and with the keyboard
 only.

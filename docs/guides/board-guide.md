@@ -31,6 +31,10 @@ The issue forms apply `type:story` and `type:task` automatically. Add the `mosco
 `area:*` labels by hand to match the dropdown answers in the issue body, and set the
 sprint milestone.
 
+Each shared flow has an issue too (D-044), labelled `type:docs` and `area:docs`, in the
+sprint's milestone and backlog, assigned to whoever draws it, with no points or estimate.
+The [flows index](../flows/README.md) lists them.
+
 ## Views
 
 - **Story board:** a board by Status, filtered to `label:"type:story"`. Use this view for
@@ -87,6 +91,8 @@ full, finish or review something before starting more.
 - Stories whose design doc has merged no longer have `needs-design`, and they have their
   TSK sub-issues.
 - Blocked items have the `blocked` label and a comment saying what they are waiting on.
+  A story waiting for a shared flow is marked as blocked by the flow's issue instead
+  (D-044).
 
 ## Sprint rollover
 
@@ -106,6 +112,14 @@ through the [story loop](../../AGENTS.md#the-story-loop), and any card when its 
 (D-035). Editing the board needs the `project` scope
 on the GitHub CLI login. If a command says the scope is missing, the human runs
 `gh auth refresh -s project` themselves (it opens a browser).
+
+**Mark an issue as blocked by a shared flow's issue** (D-044), or remove the mark with
+`-X DELETE` and the flow issue's id at the end of the path.
+
+```bash
+gh api -X POST repos/dreeyanzz/studyhub/issues/<story>/dependencies/blocked_by \
+  -F issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<flow issue> --jq .id)"
+```
 
 **Create a task from a design's §5 and attach it to its story.** The body repeats the
 task form's headings.

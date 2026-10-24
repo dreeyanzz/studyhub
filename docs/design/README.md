@@ -2,7 +2,8 @@
 
 **No code for a story until its design doc is merged** (D-016), and **no design doc until
 the shared flows it uses are merged** (D-044). Adrian's merge is the approval, after
-Maria's for a story with screens (D-042). Fixes, chores and docs-only changes are exempt.
+Maria's for a story with screens (D-042). Fixes, chores and docs-only changes don't need
+a design doc.
 
 ## Who writes it, and when
 

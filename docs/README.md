@@ -25,7 +25,7 @@ When two documents disagree, the higher one wins and the lower one gets a fix PR
 
 | Document                           | What it is for                                                                  |
 | ---------------------------------- | ------------------------------------------------------------------------------- |
-| [`DECISIONS.md`](DECISIONS.md)     | Every decision that had alternatives, and what was rejected                     |
+| [`DECISIONS.md`](DECISIONS.md)     | Each decision that needs an entry (D-044), and what it rejected                 |
 | [`GLOSSARY.md`](GLOSSARY.md)       | The words to use in code, UI and docs                                           |
 | [`ONBOARDING.md`](ONBOARDING.md)   | Machine setup, written for an AI agent to run                                   |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Accounts, environments, secrets, the daily loop, changing the database          |
@@ -49,13 +49,13 @@ When two documents disagree, the higher one wins and the lower one gets a fix PR
 
 ## Where does it go?
 
-| What happened                                                                           | Where it goes                                         |
-| --------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| Ordinary work                                                                           | The PR body (it becomes the commit on `main`)         |
-| A decision that another story builds on, is costly to reverse, or had real alternatives | A new entry in [`DECISIONS.md`](DECISIONS.md) (D-044) |
-| A flow that several stories share                                                       | `flows/<name>.md` (D-044)                             |
-| A story's design                                                                        | `design/STORY-xx-*.md`                                |
-| Something broke or cost real debugging                                                  | A postmortem in [`../notes/`](../notes/)              |
-| A new term, or a word used two ways                                                     | [`GLOSSARY.md`](GLOSSARY.md)                          |
-| An open question                                                                        | A `decision-needed` issue                             |
-| A new script, command or environment value                                              | `AGENTS.md` Commands and `DEVELOPMENT.md`             |
+| What happened                                                                                                                   | Where it goes                                         |
+| ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Ordinary work                                                                                                                   | The PR body (it becomes the commit on `main`)         |
+| A decision that another story builds on, that is costly to reverse, or that a reasonable teammate would have chosen differently | A new entry in [`DECISIONS.md`](DECISIONS.md) (D-044) |
+| A flow that several stories share                                                                                               | `flows/<name>.md` (D-044)                             |
+| A story's design                                                                                                                | `design/STORY-xx-*.md`                                |
+| Something broke or cost real debugging                                                                                          | A postmortem in [`../notes/`](../notes/)              |
+| A new term, or a word used two ways                                                                                             | [`GLOSSARY.md`](GLOSSARY.md)                          |
+| An open question                                                                                                                | A `decision-needed` issue                             |
+| A new script, command or environment value                                                                                      | `AGENTS.md` Commands and `DEVELOPMENT.md`             |
