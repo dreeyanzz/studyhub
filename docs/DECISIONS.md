@@ -414,6 +414,8 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 
 ## D-036 · Sprint 2 builds every Must Have
 
+**Dates moved by D-045**, which ends Sprint 2 on Tuesday 1 December.
+
 **Decision:**
 
 - Sprint 2 (Saturday 10 to Friday 23 October) holds every Must Have story, 55 points: STORY-07, STORY-08, STORY-09, STORY-10, STORY-11, STORY-12 and STORY-15 (D-037).
@@ -558,3 +560,17 @@ Maria maintains the board; Adrian is Project Manager.
 **Consequence:** D-004 and the Sprint 2 plan (§8) leave several questions to STORY-09's design, such as the lengths of the two timers, the fee and the gateway. Where another story builds on an answer, the flow that covers it settles it, and STORY-09's design links it. The plan stays as baselined (D-043).
 
 **Revisit if:** A merged flow keeps changing while its stories are built, or most flows turn out to serve one story.
+
+## D-045 · Sprint 2 ends on Tuesday 1 December
+
+**Decision:**
+
+- Sprint 2 runs from Saturday 10 October to Tuesday 1 December 2026, and its review and the Prefinal demo are on its last day. This moves only D-036's end date: Sprint 2 still holds every Must Have, 55 points.
+- Sprint 3 starts after Sprint 2 ends. Its dates are set when it is planned, at the Sprint 2 review.
+- The Sprint 2 plan stays as baselined (D-043). The Sprint 2 brief and the board's Sprint field change to match this entry.
+
+**Why:** D-043 restarted every Sprint 2 story design on 20 October, and D-044 puts the shared flows before them, so no Sprint 2 story had a design by 23 October. A later deadline keeps D-036's scope, so the Prefinal demo still shows the whole booking journey.
+
+**Rejected:** Keeping 23 October and carrying every unfinished story over to Sprint 3, as D-036 allows when the critical path slips (the Prefinal demo would show none of the booking journey); a smaller Sprint 2 (D-036 rejected the smaller drafts).
+
+**Revisit if:** The critical path can't be merged by 1 December.

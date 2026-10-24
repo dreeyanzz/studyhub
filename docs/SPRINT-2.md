@@ -1,6 +1,7 @@
 # Sprint 2 brief
 
-**Sprint 2 · Saturday 10 to Friday 23 October 2026 · Read all of it before you start.**
+**Sprint 2 · Saturday 10 October to Tuesday 1 December 2026 (D-045) · Read all of it
+before you start.**
 
 This page tells each of us what to do in Sprint 2, in plain English:
 
@@ -32,8 +33,8 @@ issue or with [`AGENTS.md`](../AGENTS.md), ask Adrian, and one of them gets fixe
 ## What we are building this sprint
 
 Sprint 1 was the walking skeleton. Sprint 2 builds the **booking journey**, the heart of
-Worq, from start to finish (D-036). By Friday 23 October, anyone watching our Prefinal demo
-should see this:
+Worq, from start to finish (D-036). By Tuesday 1 December, anyone watching our Prefinal
+demo should see this:
 
 1. A Host lays out their Space on a snap grid: zones, seats, standing desks and whole
    rooms.
@@ -149,7 +150,7 @@ the flows our stories wait for, and approves the ones the flows index names.
 | **3. Tables first**     | STORY-07's tables and RLS; then STORY-08's tag tables and STORY-15's policy                   | STORY-08's map and search                              | STORY-11's layout and photo gallery                   | STORY-15's `/admin` page; STORY-12's layout                        |
 | **4. Build**            | STORY-07's builder; STORY-09's hold and payment; then STORY-10's database functions           | STORY-08's filters; STORY-10's QR code and scan page   | STORY-11's availability view and seat map             | STORY-12's one-tap states and walk-ins                             |
 | **5. Wire it together** | Wire it together; review and merge                                                            | STORY-10 on STORY-09's reservations                    | Responsive and keyboard checks                        | The Playwright journeys; walk-through as each role                 |
-| **Fri 23 Oct**          | Sprint 2 review and Prefinal demo                                                             | Same, together                                         | Same, together                                        | Same, together                                                     |
+| **Tue 1 Dec**           | Sprint 2 review and Prefinal demo                                                             | Same, together                                         | Same, together                                        | Same, together                                                     |
 
 ## 4. Your part
 
@@ -300,8 +301,8 @@ reach Seekers; only an Administrator can open `/admin`.
 the stories land: a Host sets up a Space and an Administrator approves it, then a Seeker
 finds it, opens it, and picks a seat. Review both journeys before they merge, so that
 every path in them can be tested, and the flows your stories wait for: the reservation
-lifecycle (STORY-12) and the Space verification flow (STORY-15). Before Friday's review,
-check every merged story against the Definition of Done.
+lifecycle (STORY-12) and the Space verification flow (STORY-15). Before the Sprint 2
+review, check every merged story against the Definition of Done.
 
 **How to test:** `npm run test:e2e` against the local stack. By hand, locally, as
 `host@example.test` and `admin@example.test`.
@@ -315,7 +316,7 @@ day.
 | ---------- | -------------------------------------------------------------------------- |
 | Tue 13 Oct | Sprint 2 plan merged                                                       |
 | Tue 20 Oct | Story designs start again (D-043), after the shared flows they use (D-044) |
-| Fri 23 Oct | Sprint 2 review and Prefinal demo                                          |
+| Tue 1 Dec  | Sprint 2 review and Prefinal demo (D-045)                                  |
 
 In between, the work runs in the order of the steps in section 3: flows, designs, tables
 first, the build, then wiring it together, ending with a full walk-through as each role.

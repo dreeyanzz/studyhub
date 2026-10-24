@@ -18,14 +18,14 @@ Exactly these five, in this order. The course checks them.
 
 ## Fields
 
-| Field           | Values                                              |
-| --------------- | --------------------------------------------------- |
-| Status          | The five columns above                              |
-| Sprint          | Iteration: Sprint 1, 2 and 3, two weeks each        |
-| Points          | 1–10                                                |
-| Estimate (days) | Working days                                        |
-| MoSCoW          | Must, Should, Could, Won't                          |
-| Parent issue    | The STORY that a task belongs to (a built-in field) |
+| Field           | Values                                                            |
+| --------------- | ----------------------------------------------------------------- |
+| Status          | The five columns above                                            |
+| Sprint          | Iteration: Sprint 1, 2 and 3. Sprint 2 ends on 1 December (D-045) |
+| Points          | 1–10                                                              |
+| Estimate (days) | Working days                                                      |
+| MoSCoW          | Must, Should, Could, Won't                                        |
+| Parent issue    | The STORY that a task belongs to (a built-in field)               |
 
 The issue forms apply `type:story` and `type:task` automatically. Add the `moscow:*` and
 `area:*` labels by hand to match the dropdown answers in the issue body, and set the
