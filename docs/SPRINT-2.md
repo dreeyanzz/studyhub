@@ -191,10 +191,10 @@ unit in Pending Payment isn't offered to anyone else, and comes back when the pa
 window lapses; a confirmed payment gives exactly one Reserved unit and one token; two
 Seekers holding the same unit at the same moment get exactly one success.
 
-**First thing:** choose the gateway (PayMongo or Stripe, D-005) and set up its test
-account and keys, because that takes time. The design also settles the two timers, the
-fee, and whether a whole room takes one hold, except where other stories build on the
-answer: the reservation lifecycle settles those parts first (D-044).
+**First thing:** set up the PayMongo test account and keys (D-056), because that takes
+time. The design then sets the length of the payment window, the wait window's limits and
+the fee (D-049). The reservation lifecycle settled the rest first, such as a whole room
+taking one hold (D-044).
 
 **The database half of the others' stories:** STORY-08's tag tables, STORY-15's
 verification policy, and STORY-10's check-in, check-out and release functions. Each goes
