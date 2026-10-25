@@ -33,18 +33,21 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 ## How work flows
 
 1. **Story.** Work starts from a STORY-xx issue on the board.
-2. **Design.** The story owner writes `docs/design/STORY-xx-*.md`
+2. **Shared flows.** A flow that several stories share is drawn first, by its owner, in
+   [`docs/flows/`](docs/flows/README.md) (D-044). A story's design waits for the flows it
+   uses.
+3. **Design.** The story owner writes `docs/design/STORY-xx-*.md`
    ([planning a story](docs/guides/planning-a-story.md)). Adrian merging it is the
    approval, after Maria approves it if the story has screens (D-042). No code before
    that.
-3. **Tasks.** The design's task table becomes TSK sub-issues with points and days.
-4. **Branch.** From an up-to-date `main`: `git switch -c feature/STORY-xx-short-desc`.
-5. **Build.** Small commits, tests alongside the code, and `npm run check` before you
+4. **Tasks.** The design's task table becomes TSK sub-issues with points and days.
+5. **Branch.** From an up-to-date `main`: `git switch -c feature/STORY-xx-short-desc`.
+6. **Build.** Small commits, tests alongside the code, and `npm run check` before you
    push ([git and PRs](docs/guides/working-with-git-and-prs.md),
    [testing](docs/guides/testing.md)).
-6. **Pull request.** Fill in the template, and ask for a review
+7. **Pull request.** Fill in the template, and ask for a review
    ([reviewing and merging](docs/guides/reviewing-and-merging.md)).
-7. **Merge.** Adrian squash-merges it. The issue closes, and the card moves to Done.
+8. **Merge.** Adrian squash-merges it. The issue closes, and the card moves to Done.
 
 ## Formats
 

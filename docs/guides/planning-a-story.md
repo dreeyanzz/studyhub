@@ -1,7 +1,7 @@
 # Planning a story
 
 From a STORY issue to Done. The rule behind it: no code for a story until its design doc
-is merged (D-016).
+is merged (D-016), and no design doc until the shared flows it uses are merged (D-044).
 
 ## 1. The story issue
 
@@ -19,7 +19,14 @@ Maria keeps it on the board.
 
 ## 2. The design doc
 
-The story owner writes `docs/design/STORY-xx-short-desc.md` from
+**First, the shared flows.** A flow that several stories share, such as a reservation
+from its hold to its check-in, is drawn and merged first, in
+[`docs/flows/`](../flows/README.md) (D-044). Its index says which flows each story's
+design waits for, and who draws each one. Read every flow your story uses: your design
+links it in §1 and draws only your story's part. If your story needs a shared flow that
+has no doc yet, ask Adrian before you write your design.
+
+Then the story owner writes `docs/design/STORY-xx-short-desc.md` from
 [`docs/design/TEMPLATE.md`](../design/TEMPLATE.md):
 
 - **Branch:** `feature/STORY-xx-design`
@@ -29,7 +36,7 @@ What goes in it:
 
 - **Keep it as short as the story allows.** The test: could someone who has never seen the code predict what it does?
 - **Name the negative tests.** The wrong user gets 0 rows; the owner's forbidden writes are rejected.
-- **If you choose between real alternatives**, add a [DECISIONS](../DECISIONS.md) entry in the same PR.
+- **Add a [DECISIONS](../DECISIONS.md) entry in the same PR** for a choice that another story builds on, that is costly to reverse once data exists, or that a reasonable teammate would have chosen differently (D-044).
 - **If something unclear blocks you**, open a Decision issue instead of guessing.
 
 Adrian merging the design PR is the approval. If the story has screens, ask Maria to

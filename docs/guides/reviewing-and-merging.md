@@ -48,7 +48,10 @@ settled. After pushing changes, request the review again.
    - it has 1 approving review from a peer
    - every thread is resolved
    - for story work, the design doc is merged
+   - for a design doc, the shared flows it uses are merged (D-044)
    - for a design doc with screens, Maria has approved it (D-042)
+   - for a flow doc, the approvers the [flows index](../flows/README.md) names have
+     approved it (D-044)
 2. **Read the squash commit title and message** in the merge box. They are what stays on `main`, and you can fix the wording there. The `Co-Authored-By:` line must stay last.
 3. **Merge.** Tick "Merge without waiting for requirements to be met (bypass rules)" and choose "Squash and merge".
    - The bypass skips only the rule that stops teammates from merging. The approval and the checks still apply.
@@ -67,8 +70,8 @@ They never merge, and never approve a pull request they opened.
 
 An agent reviews what it checked itself, not what the PR body claims:
 
-1. Read the PR, its task (the "Done when" list), its story, and every design section and
-   decision the change touches.
+1. Read the PR, its task (the "Done when" list), its story, and every flow, design
+   section and decision the change touches.
 2. Check out the branch (`gh pr checkout <number>`). Run `npm run check` and
    `npm run build`, plus `npm run db:test` if SQL changed.
 3. Run the design's §4 manual checks. Anything behind a login runs against the local

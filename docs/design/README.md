@@ -1,14 +1,18 @@
 # Design docs
 
-**No code for a story until its design doc is merged** (D-016). Adrian's merge is the
-approval, after Maria's for a story with screens (D-042). Fixes, chores and docs-only
-changes are exempt.
+**No code for a story until its design doc is merged** (D-016), and **no design doc until
+the shared flows it uses are merged** (D-044). Adrian's merge is the approval, after
+Maria's for a story with screens (D-042). Fixes, chores and docs-only changes don't need
+a design doc.
 
 ## Who writes it, and when
 
 **Writing it:**
 
-- The story owner writes it at the start of the story.
+- The story owner writes it once every shared flow the story uses is merged. The
+  [flows index](../flows/README.md) lists them.
+- Its §1 links each of those flows and draws only this story's part. It never changes a
+  shared flow: that is a pull request to the flow doc.
 - Branch: `feature/STORY-xx-design`.
 - Pull request title: `docs(STORY-xx): design <short description>`.
 - Reviewers: Adrian, plus Maria if the story has screens. Maria approves the user's steps
@@ -46,6 +50,7 @@ and what the right user is prevented from doing to their own rows.
 
 - **A small correction found while building:** edit the doc in the same PR as the code, and record it in §9.
 - **A change of approach:** a new PR to the design doc, approved like the first one.
+- **A change to a shared flow:** a PR to its flow doc in [`../flows/`](../flows/README.md), never an edit inside a design (D-044).
 
 ## Index
 
