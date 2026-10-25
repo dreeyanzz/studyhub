@@ -89,6 +89,7 @@ says what each kind of denial looks like.
 | N6  | Edit a Host's Space as an Administrator (D-053)                                              | STORY-01's update policy matches the Space's Host only        | `space-verification`: "an Administrator updating a Host's space affects 0 rows"                                                                                                                                                                                               |
 | N7  | Read a Pending or Rejected Space, unless they are its Host or an Administrator (D-055)       | STORY-01's select policy                                      | `02-spaces`: "an anonymous visitor lists verified spaces only", "a Seeker lists verified spaces only" and "another Host sees neither the first Host's pending spaces nor the new one"; `space-verification`: "a Seeker and a signed-out visitor cannot read a Rejected Space" |
 | N8  | Find a Pending or Rejected Space in search, its own Host and Administrators included (D-055) | STORY-08's search, which filters `status = 'verified'` itself | Named by STORY-08's design: "search returns only Verified Spaces, even to their Host and to an Administrator"                                                                                                                                                                 |
+| N9  | Decide a Space that changed after the Administrator read it (D-053)                          | `set_space_status` compares the `updated_at` they saw         | `space-verification`: "an Administrator cannot decide a Space that changed since they read it"                                                                                                                                                                                |
 
 The reservation lifecycle (PR #180) stops three more: holding a unit in a Space that isn't
 Verified (its N4), seeing the units of a Pending or Rejected Space (its N19), and deleting
@@ -98,10 +99,15 @@ a Space with an active hold (its N17).
 
 `public.set_space_status` (D-053), which Adrian writes for STORY-15 (D-036):
 
-- It takes a Space's id and the status to give it, and runs as `security definer` with an
-  empty `search_path`. `authenticated` may run it, and `anon` may not.
+- It takes a Space's id, the status to give it, and the `updated_at` the Administrator
+  saw. It runs as `security definer` with an empty `search_path`. `authenticated` may run
+  it, and `anon` may not.
 - It refuses anyone who isn't an Administrator with `42501`, the same error a missing
   grant gives, so every denial looks alike.
+- It refuses if the Space has changed since the Administrator read it, so an approval
+  covers the version they saw (D-053). A Host's edit after the decision still keeps the
+  status (D-027). STORY-15's page passes `updated_at` on exactly as the database returned
+  it: a JavaScript `Date` drops its microseconds, and the comparison would always fail.
 - It moves a Space only from `pending`, to `verified` or `rejected` (D-054). It refuses
   anything else: a Space that isn't Pending or doesn't exist, or `pending` as the new
   status. Its update matches Pending rows only, so when two Administrators decide one
@@ -140,9 +146,9 @@ the Host's side, and STORY-15's design the queue.
 
 Each choice has its entry in [DECISIONS](../DECISIONS.md), with what it rejected:
 
-- **D-053:** a Space's status changes only through `public.set_space_status`, and no role
-  is granted the column. It replaces D-037's policy and grant, which would have let a Host
-  verify their own Space.
+- **D-053:** a Space's status changes only through `public.set_space_status`, no role is
+  granted the column, and an Administrator decides only the version they read. It replaces
+  D-037's policy and grant, which would have let a Host verify their own Space.
 - **D-054:** an Administrator decides a Space from the moment it's created, with or
   without units, and in Sprint 2 the decision is final.
 - **D-055:** only a Verified Space is public. Search filters `status = 'verified'` itself,

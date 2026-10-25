@@ -586,10 +586,11 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 - `public.set_space_status`, a `security definer` function that STORY-15 adds, is the only way to change `spaces.status`. It refuses anyone who isn't an Administrator with `42501`, and makes only the moves the [Space verification flow](flows/space-verification.md) draws (D-054).
 - No role is granted `spaces.status`, Administrators included, so a direct write still fails with `42501` (STORY-01).
 - `authenticated` may run the function, and `anon` may not. STORY-15's Server Actions call it (D-010).
+- The function also takes the `updated_at` the Administrator saw, and refuses if the Space has changed since. So an approval covers the version they read, though the Host may still edit it afterwards (D-027).
 
 **Why:** A grant goes to a database role, and Seekers, Hosts and Administrators are all `authenticated`. So D-037's grant on the column would reach Hosts too, and the Hosts' own update policy would then let a Host verify their own Space. An Administrator's policy can't take that back, because Postgres lets an update through when any one policy allows it. A function checks the person's role (`private.has_role`), as the reservation lifecycle's functions do for holds (D-047).
 
-**Rejected:** D-037's policy and grant (above); the grant plus an Administrator's update policy and a trigger that refuses everyone else (three pieces, and the policy would also let Administrators edit every Host's details); a database role for Administrators, set in their sign-in token by an auth hook (the most moving parts, and every policy would need checking against the new role).
+**Rejected:** D-037's policy and grant (above); the grant plus an Administrator's update policy and a trigger that refuses everyone else (three pieces, and the policy would also let Administrators edit every Host's details); a database role for Administrators, set in their sign-in token by an auth hook (the most moving parts, and every policy would need checking against the new role); deciding whatever the Space holds when the click arrives (a Host's edit made during the review would be approved unseen).
 
 **Revisit if:** Administrators need to edit a Space's details (FR-5.2, STORY-14).
 
