@@ -45,5 +45,8 @@ export default defineConfig([
     'lib/supabase/database.types.ts',
     'docs/course/**',
     'supabase/**',
+    // Claude Code's session worktrees: full checkouts of other branches, each with its
+    // own .next output. Git ignores them, but ESLint doesn't read .gitignore.
+    '.claude/worktrees/**',
   ]),
 ])
