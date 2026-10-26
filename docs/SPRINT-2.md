@@ -128,7 +128,7 @@ flowchart LR
 | ---------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
 | STORY-07 Seat map builder (#56)          | Adrian                                     | No other story; it goes first                                                  |
 | STORY-08 Map and filters (#57)           | Luke; Adrian writes its tag tables         | No other story for the map; Adrian's tag tables for the filters                |
-| STORY-15 Space verification (#166)       | James; Adrian writes its policy            | No other story for the page; Adrian's policy for saving                        |
+| STORY-15 Space verification (#166)       | James; Adrian writes its function          | No other story for the page; Adrian's function for saving                      |
 | STORY-11 Space profile (#76)             | Maria                                      | STORY-07's tables and photo bucket                                             |
 | STORY-12 Host occupancy (#77)            | James                                      | STORY-07's tables and Server Actions                                           |
 | STORY-09 Holds and sandbox payment (#58) | Adrian                                     | STORY-07's tables; STORY-11's seat map, where a Seeker picks a unit            |
@@ -147,7 +147,7 @@ the flows our stories wait for, and approves the ones the flows index names.
 | ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------ |
 | **1. Flows**            | The reservation lifecycle first, then Space verification and the sandbox payment confirmation | The check-in, once the reservation lifecycle is merged | The Host setup journey first, then the Seeker journey | Review the flows STORY-12 and STORY-15 wait for, and both journeys |
 | **2. Designs**          | STORY-07's design first, then STORY-09's; review the others                                   | STORY-08's and STORY-10's designs                      | STORY-11's design                                     | STORY-12's and STORY-15's designs                                  |
-| **3. Tables first**     | STORY-07's tables and RLS; then STORY-08's tag tables and STORY-15's policy                   | STORY-08's map and search                              | STORY-11's layout and photo gallery                   | STORY-15's `/admin` page; STORY-12's layout                        |
+| **3. Tables first**     | STORY-07's tables and RLS; then STORY-08's tag tables and STORY-15's function                 | STORY-08's map and search                              | STORY-11's layout and photo gallery                   | STORY-15's `/admin` page; STORY-12's layout                        |
 | **4. Build**            | STORY-07's builder; STORY-09's hold and payment; then STORY-10's database functions           | STORY-08's filters; STORY-10's QR code and scan page   | STORY-11's availability view and seat map             | STORY-12's one-tap states and walk-ins                             |
 | **5. Wire it together** | Wire it together; review and merge                                                            | STORY-10 on STORY-09's reservations                    | Responsive and keyboard checks                        | The Playwright journeys; walk-through as each role                 |
 | **Tue 1 Dec**           | Sprint 2 review and Prefinal demo                                                             | Same, together                                         | Same, together                                        | Same, together                                                     |
@@ -197,7 +197,7 @@ the fee (D-049). The reservation lifecycle settled the rest first, such as a who
 taking one hold (D-044).
 
 **The database half of the others' stories:** STORY-08's tag tables, STORY-15's
-verification policy, and STORY-10's check-in, check-out and release functions. Each goes
+verification function, and STORY-10's check-in, check-out and release functions. Each goes
 in its own pull request with its pgTAP tests, as early as you can, because the others
 wait for them.
 
@@ -290,12 +290,13 @@ can be marked Occupied with no reservation; another Host can't change your units
 
 **STORY-15, Space verification (#166).** The `/admin` page: every Pending Space, with
 Approve and Reject buttons. Approving makes it public; rejecting keeps it hidden (D-037).
-Adrian writes the policy that lets only an Administrator change a Space's status.
+Adrian writes the function that lets only an Administrator change a Space's status
+(D-053), and the [Space verification flow](flows/space-verification.md) draws its moves.
 
 **Done when:** an Administrator approves or rejects a Pending Space; only Verified Spaces
 reach Seekers; only an Administrator can open `/admin`.
 
-**Waits for:** Adrian's policy, for saving. The page and its layout don't wait for it.
+**Waits for:** Adrian's function, for saving. The page and its layout don't wait for it.
 
 **Sprint 2 QA.** Turn Maria's two journeys into Playwright tests (D-044), and grow them as
 the stories land: a Host sets up a Space and an Administrator approves it, then a Seeker

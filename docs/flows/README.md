@@ -10,7 +10,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | Flow                                              | Issue | Diagram  | Drawn by | Approved by   | Waits for             | Status      |
 | ------------------------------------------------- | ----- | -------- | -------- | ------------- | --------------------- | ----------- |
 | [Reservation lifecycle](reservation-lifecycle.md) | #173  | State    | Adrian   | Maria         | No other flow         | draft       |
-| Space verification                                | #174  | State    | Adrian   | Maria         | No other flow         | not written |
+| [Space verification](space-verification.md)       | #174  | State    | Adrian   | Maria         | No other flow         | draft       |
 | Sandbox payment confirmation                      | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | not written |
 | Check-in                                          | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | not written |
 | Host setup journey                                | #177  | Swimlane | Maria    | Adrian        | No other flow         | not written |
