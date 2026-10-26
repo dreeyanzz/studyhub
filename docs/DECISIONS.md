@@ -432,6 +432,8 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 
 ## D-037 · An Administrator makes a Space public
 
+**Second bullet replaced by D-053**: a function changes `spaces.status`, not a policy and a grant.
+
 **Decision:**
 
 - A new Space stays Pending until an Administrator approves it on `/admin`; a rejected Space stays hidden (FR-5.1). This is STORY-15 (#166), in Sprint 2: James builds the page and its actions, and Adrian adds the policy.
@@ -574,3 +576,50 @@ Maria maintains the board; Adrian is Project Manager.
 **Rejected:** Keeping 23 October and carrying every unfinished story over to Sprint 3, as D-036 allows when the critical path slips (the Prefinal demo would show none of the booking journey); a smaller Sprint 2 (D-036 rejected the smaller drafts).
 
 **Revisit if:** The critical path can't be merged by 1 December.
+
+## D-053 · A Space's status changes only through `set_space_status`
+
+Replaces D-037's second bullet. D-037's other bullets stand.
+
+**Decision:**
+
+- `public.set_space_status`, a `security definer` function that STORY-15 adds, is the only way to change `spaces.status`. It refuses anyone who isn't an Administrator with `42501`, and makes only the moves the [Space verification flow](flows/space-verification.md) draws (D-054).
+- No role is granted `spaces.status`, Administrators included, so a direct write still fails with `42501` (STORY-01).
+- `authenticated` may run the function, and `anon` may not. STORY-15's Server Actions call it (D-010).
+- The function also takes the `updated_at` the Administrator saw, and refuses if the Space has changed since. So an approval covers the version they read, though the Host may still edit it afterwards (D-027).
+
+**Why:** A grant goes to a database role, and Seekers, Hosts and Administrators are all `authenticated`. So D-037's grant on the column would reach Hosts too, and the Hosts' own update policy would then let a Host verify their own Space. An Administrator's policy can't take that back, because Postgres lets an update through when any one policy allows it. A function checks the person's role (`private.has_role`), as the reservation lifecycle's functions do for holds (D-047).
+
+**Rejected:** D-037's policy and grant (above); the grant plus an Administrator's update policy and a trigger that refuses everyone else (three pieces, and the policy would also let Administrators edit every Host's details); a database role for Administrators, set in their sign-in token by an auth hook (the most moving parts, and every policy would need checking against the new role); deciding whatever the Space holds when the click arrives (a Host's edit made during the review would be approved unseen).
+
+**Revisit if:** Administrators need to edit a Space's details (FR-5.2, STORY-14).
+
+## D-054 · In Sprint 2, an Administrator decides only Pending Spaces
+
+**Decision:**
+
+- A Space is in the verification queue from the moment it's created (D-037), with or without units. An Administrator approves it, which makes it Verified, or rejects it, which makes it Rejected (STORY-15).
+- In Sprint 2 the decision is final: a Verified or Rejected Space never moves again. Its Host can still delete it (STORY-05), unless it has an active hold (D-052).
+- STORY-14's design may add taking a Verified Space down, a second review of a Rejected one, rejection reasons, and sending an edited Space back to Pending (D-027, D-037), each by a pull request to the Space verification flow. Taking a Space down must also say what happens to its active holds.
+
+**Why:** These are the two moves STORY-15's acceptance criteria name. FR-5.1 asks a person to judge a Space, so approval needs no checklist, and an approved Space with no units has nothing to hold. While no Space leaves Verified, every Space with a hold is Verified, because a hold needs one. So verification never has to end a hold.
+
+**Rejected:** approving only a Space that has a unit (a rule in place of the Administrator's judgment); a `draft` status the Host submits from (a fourth status the SRS doesn't have); an Administrator taking a Verified Space down while it has no active hold, or reversing a rejection (an undo, but a bigger `/admin` in Sprint 2); the Host asking for a second review (it breaks D-037's "only an Administrator", and without a reason the Host doesn't know what to fix); taking a Space down at any time and cancelling its holds (a new move for the reservation lifecycle).
+
+**Accepted risk:** A decision made by mistake can't be undone in Sprint 2. A Space rejected by mistake can only be deleted and created again, which loses its seat map.
+
+**Revisit:** STORY-14's design.
+
+## D-055 · Only a Verified Space is public, and a hidden one reads as not found
+
+**Decision:**
+
+- Only its Host and Administrators can read a Pending or Rejected Space (STORY-01). Seekers, other Hosts and signed-out visitors get zero rows, for the Space and, through the reservation lifecycle, for its units.
+- Search (STORY-08) filters `status = 'verified'` itself, because RLS also returns a Host's own Pending Spaces to them, and every Space to an Administrator.
+- A link to a hidden Space gets the same not-found page as a Space that doesn't exist (STORY-11), so nobody else learns that it exists.
+
+**Why:** FR-5.1 keeps an unverified venue out of public search. With RLS alone, an Administrator's map would show the whole verification queue. A "not public yet" page could only come from a function that admits the Space exists, to anyone with its link.
+
+**Rejected:** Search relying on RLS alone; a "not public yet" page for hidden Spaces.
+
+**Revisit if:** A Seeker with a hold needs to see a Space that has left Verified, once STORY-14 lets one leave it.
