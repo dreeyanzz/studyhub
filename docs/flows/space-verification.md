@@ -19,9 +19,9 @@ each status shows signed-out visitors, Seekers, Hosts and Administrators.
 
 It leaves these to others:
 
-- **The reservation lifecycle** (#173, drawn in PR #180): holds. A Seeker can hold a unit
-  only in a Verified Space (its R1 and N4), and only its Host and Administrators see the
-  units of a Pending or Rejected Space (its N19).
+- **The [reservation lifecycle](reservation-lifecycle.md)** (#173): holds. A Seeker can
+  hold a unit only in a Verified Space (its R1 and N4), and only its Host and
+  Administrators see the units of a Pending or Rejected Space (its N19).
 - **The Host setup journey** (#177): the Host's steps from a new Space to a public one,
   and what they are told on the way (D-042).
 - **STORY-15's design:** the `/admin` page: what the verification queue shows for each
@@ -91,9 +91,9 @@ says what each kind of denial looks like.
 | N8  | Find a Pending or Rejected Space in search, its own Host and Administrators included (D-055) | STORY-08's search, which filters `status = 'verified'` itself | Named by STORY-08's design: "search returns only Verified Spaces, even to their Host and to an Administrator"                                                                                                                                                                 |
 | N9  | Decide a Space that changed after the Administrator read it (D-053)                          | `set_space_status` compares the `updated_at` they saw         | `space-verification`: "an Administrator cannot decide a Space that changed since they read it"                                                                                                                                                                                |
 
-The reservation lifecycle (PR #180) stops three more: holding a unit in a Space that isn't
-Verified (its N4), seeing the units of a Pending or Rejected Space (its N19), and deleting
-a Space with an active hold (its N17).
+The [reservation lifecycle](reservation-lifecycle.md#moves-nobody-may-make) stops three
+more: holding a unit in a Space that isn't Verified (its N4), seeing the units of a
+Pending or Rejected Space (its N19), and deleting a Space with an active hold (its N17).
 
 ## The function
 
