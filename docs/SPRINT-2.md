@@ -120,6 +120,7 @@ flowchart LR
     S11 --> S09
     S09 --> S10["STORY-10 QR check-in<br/>Luke and Adrian"]
     S12 --> S10
+    S09 -. overrides .-> S12
     S08["STORY-08 Map and filters<br/>Luke and Adrian"]
     S15["STORY-15 Space verification<br/>James and Adrian"]
 ```
@@ -286,7 +287,8 @@ stays honest.
 **Done when:** a Host's change shows on the Seeker's side within one refresh; a walk-in
 can be marked Occupied with no reservation; another Host can't change your units.
 
-**Waits for:** STORY-07's tables and actions. Build the view with sample data first.
+**Waits for:** STORY-07's tables and actions, and STORY-09's reservations for overriding a
+hold. Build the view with sample data first.
 
 **STORY-15, Space verification (#166).** The `/admin` page: every Pending Space, with
 Approve and Reject buttons. Approving makes it public; rejecting keeps it hidden (D-037).

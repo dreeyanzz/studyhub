@@ -243,17 +243,17 @@ components/ui/
 
 ## 5. Tasks and estimates
 
-These rows become the story's TSK sub-issues once this doc is merged. Total points: 14 (Adrian: 6 pts; James: 8 pts for story + 2 pts Sprint 2 QA tracked in plan):
+These rows become the story's TSK sub-issues once this doc is merged. Total points: 16 (Adrian: 6 pts; James: 8 pts for story + 2 pts Sprint 2 QA tracked in plan):
 
-| Task         | What                                                                                                                     | Owner              | Points (1–10) | Days | Depends on                         |
-| :----------- | :----------------------------------------------------------------------------------------------------------------------- | :----------------- | :------------ | :--- | :--------------------------------- |
-| **TSK-12.1** | `public.set_unit_state` for Host-set states (H2, N12, N13, N24), pgTAP tests, and `db:types` regenerated                 | @dreeyanzz         | 3             | 1    | STORY-07 tables                    |
-| **TSK-12.2** | Zod 4 schema and pure override logic with Vitest unit tests                                                              | @JamesNino-Mandawe | 1             | 0.5  | —                                  |
-| **TSK-12.3** | Server Action `setUnitStateAction` calling `set_unit_state` with error mapping                                           | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.1, TSK-12.2                 |
-| **TSK-12.4** | `public.set_unit_state` override part (R5, R9, R11, N14, N21) and pgTAP tests                                            | @dreeyanzz         | 3             | 1    | STORY-09 reservations and payments |
-| **TSK-12.5** | Occupancy screen: reuses STORY-07 seat map, accessible list view, and one-tap pills                                      | @JamesNino-Mandawe | 3             | 1.5  | TSK-12.3, STORY-07 seat map        |
-| **TSK-12.6** | Override warning dialog (adds the `AlertDialog` primitive) with status-specific consequences and conflict alert handling | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.4, TSK-12.5                 |
-| **TSK-12.7** | Sprint 2 QA: Seeker and Host Playwright journey tests and Definition of Done verification                                | @JamesNino-Mandawe | 2             | 1    | TSK-12.6, Maria's journeys         |
+| Task         | What                                                                                                                     | Owner              | Points (1–10) | Days | Depends on                                   |
+| :----------- | :----------------------------------------------------------------------------------------------------------------------- | :----------------- | :------------ | :--- | :------------------------------------------- |
+| **TSK-12.1** | `public.set_unit_state` for Host-set states (H2, N12, N13, N24), pgTAP tests, and `db:types` regenerated                 | @dreeyanzz         | 3             | 1    | STORY-07 tables                              |
+| **TSK-12.2** | Zod 4 schema and pure override logic with Vitest unit tests                                                              | @JamesNino-Mandawe | 1             | 0.5  | —                                            |
+| **TSK-12.3** | Server Action `setUnitStateAction` calling `set_unit_state` with error mapping                                           | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.1, TSK-12.2                           |
+| **TSK-12.4** | `public.set_unit_state` override part (R5, R9, R11, N14, N21) and pgTAP tests                                            | @dreeyanzz         | 3             | 1    | TSK-12.1, STORY-09 reservations and payments |
+| **TSK-12.5** | Occupancy screen: reuses STORY-07 seat map, accessible list view, and one-tap pills                                      | @JamesNino-Mandawe | 3             | 1.5  | TSK-12.3, STORY-07 seat map                  |
+| **TSK-12.6** | Override warning dialog (adds the `AlertDialog` primitive) with status-specific consequences and conflict alert handling | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.4, TSK-12.5                           |
+| **TSK-12.7** | Sprint 2 QA: Seeker and Host Playwright journey tests and Definition of Done verification                                | @JamesNino-Mandawe | 2             | 1    | TSK-12.6, Maria's journeys                   |
 
 _(Note: James's STORY-12 build tasks TSK-12.2, 12.3, 12.5, 12.6 total exactly 8 story points, matching issue #77. TSK-12.7 tracks the 2-point Sprint 2 QA allocation from the baselined Sprint 2 plan.)_
 
