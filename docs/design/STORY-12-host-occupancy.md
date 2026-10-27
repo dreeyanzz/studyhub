@@ -35,7 +35,7 @@ This story implements the Host-driven moves defined in the [Reservation lifecycl
 - **Move H2:** Any state → `available`, `reserved`, or `occupied`. A Host taps the unit (walk-ins included). With an active hold, only allowed when the call names the hold they saw. Stamps `units.host_updated_at` (D-051).
 - **Move R5:** `pending_payment` → `cancelled`. Host override cancels an unpaid hold. Payment remains `pending`.
 - **Move R9:** `reserved` → `cancelled`. Host override cancels a paid reservation. Payment stays `paid` until an Administrator refunds it in sandbox (P1, STORY-14, D-005, D-050).
-- **Move R11:** `occupied` → `completed`. Host tap on an occupied unit ends the visit. Payment stays `paid`, preserving the Seeker's right to review (D-009).
+- **Move R11:** `occupied` → `completed`. Host tap on an occupied unit ends the visit. Ending it `completed` keeps the Seeker's right to review the visit (D-009). Payment stays `paid`.
 
 ### This story's own part
 
@@ -61,16 +61,16 @@ sequenceDiagram
     SA->>DB: select public.set_unit_state(unit_id, new_state, expected_id, expected_status)
 
     alt Caller does not own Space (N13)
-        DB-->>SA: P0001 refusal [Test: occupancy - a Host cannot change another Host's unit]
+        DB-->>SA: 42501 refusal [Test: occupancy - a Host cannot change another Host's unit]
         SA-->>B: Error alert: "Space may no longer exist or you may not have access"
     else Unit held but call named no hold (N14)
-        DB-->>SA: P0001 refusal [Test: occupancy - a Host's tap on a held unit changes nothing unless it names the hold]
-        SA-->>B: Error alert: "This unit was just booked online. Please review the hold."
+        DB-->>SA: P0001 refusal, hint hold_not_named [Test: occupancy - a Host's tap on a held unit changes nothing unless it names the hold]
+        SA-->>B: Error alert: "A Seeker has just held this unit. Please review the hold."
     else Hold status changed or lapsed since Host looked (N21)
-        DB-->>SA: P0001 refusal [Test: occupancy - a Host's override is refused once the hold has changed]
+        DB-->>SA: P0001 refusal, hint hold_changed [Test: occupancy - a Host's override is refused once the hold has changed]
         SA-->>B: Error alert: "Hold status has changed. Please refresh."
     else Success (H2, R5, R9, or R11)
-        DB-->>SA: Updated units.host_state & units.host_updated_at = now() [Test: occupancy - a Host sets their unit's state]
+        DB-->>SA: Updated units.host_state & units.host_updated_at = now() [Tests: occupancy - a Host sets their unit's state, and the R5, R9 and R11 override tests in §4]
         SA-->>B: revalidatePath() + success
         B-->>H: Unit state updates & timestamp shows "Just now"
     end
@@ -104,11 +104,12 @@ create or replace function public.set_unit_state(
 ```
 
 - **Grants (D-047, N24):** execute revoked from `public`, `anon`, and `authenticated`; granted to `authenticated`.
-- **Security Definer:** runs with `set search_path = ''`. Checks that `auth.uid()` matches `spaces.host_id` of the Space containing the unit; raises `P0001` if unauthorized (N13). A signed-out visitor cannot call the function (`42501`, N24), and a signed-in Seeker is refused by the Space owner check (`P0001`, N13).
-- **Locking order (D-047):** locks rows in strict order: unit row first (`for update`), then active reservation, then payment. If a hold commits concurrently after the Host looked, the call names no hold and is refused as `N14` (`P0001`).
+- **Security Definer:** runs with `set search_path = ''`. Checks that `auth.uid()` matches `spaces.host_id` of the Space containing the unit; raises `42501` if not, as `set_space_status` does for anyone who isn't an Administrator (D-053), and the same for a unit that doesn't exist, so the two read alike (N13). A signed-out visitor cannot call the function (`42501` from the missing grant, N24), and a signed-in Seeker is refused by the Space owner check (`42501`, N13).
+- **Locking order (D-047):** locks rows in strict order: unit row first (`for update`), then active reservation, then payment. If a hold commits concurrently after the Host looked, the call names no hold and is refused as N14: `P0001` with the hint `hold_not_named`.
 - **Lapse step first (D-047):** records any lapses on the unit before evaluating or updating state.
-- **Optimistic lock check (D-050, N21):** if the unit has an active hold, requires `p_expected_reservation_id` and `p_expected_reservation_status`. If the hold status changed between view and tap (or lapsed in the meantime), raises `P0001` (N21).
-- **Target state check (D-004, N12):** rejects any attempt to set `pending_payment` with check constraint error.
+- **Optimistic lock check (D-050, N21):** if the unit has an active hold, requires `p_expected_reservation_id` and `p_expected_reservation_status`. If the hold status changed between view and tap (or lapsed in the meantime), raises `P0001` with the hint `hold_changed` (N21).
+- **Target state check (D-004, N12):** rejects any attempt to set `pending_payment` with the check constraint's error, `23514`.
+- **Telling refusals apart:** the action reads the error's `code` and `hint` (Supabase passes both on), never its message text: `42501` is N13, `P0001` with `hold_not_named` is N14, and `P0001` with `hold_changed` is N21.
 
 ### State transitions
 
@@ -179,7 +180,11 @@ export type SetUnitStateInput = z.infer<typeof setUnitStateSchema>
       - For `reserved`: _"The student has already paid for this reservation. Overriding it will cancel their booking and leave the fee paid for an administrator refund (Move R9). Proceed?"_
       - For `occupied`: _"A student is currently checked in at this unit. Setting this state will end their visit as completed (Move R11). Proceed?"_
     - Actions: `[Cancel]` (aborts with no changes), `[Confirm Override]` (destructive action, disabled while submitting).
-  - **Error handling:** Conflict errors (N14, N21) render an inline `Alert` (`role="alert"`) informing the Host of the change and offering a one-click refresh button.
+  - **Error handling:** each refusal (§2) renders an inline `Alert` (`role="alert"`). N14 and N21 also offer a one-click refresh button:
+    - `42501` (N13): _"Space may no longer exist or you may not have access."_
+    - `P0001`, `hold_not_named` (N14): _"A Seeker has just held this unit. Please review the hold."_
+    - `P0001`, `hold_changed` (N21): _"Hold status has changed. Please refresh."_
+    - Anything else, a lost connection included: _"We could not save that change. Check your connection and try again."_
 
 ### Routes and components
 
@@ -222,12 +227,12 @@ lib/occupancy/
 | **pgTAP**  | Space's Host overrides a paid reservation naming the hold seen (Move R9)           | Hold transitions to `cancelled`, payment stays `paid` for refund            |
 | **pgTAP**  | Space's Host sets state on occupied unit naming the hold seen (Move R11)           | Visit transitions to `completed`, payment stays `paid`                      |
 | **pgTAP**  | Signed-out visitor reads `unit_states` after Host state change                     | Returns updated state and Host-updated time within one read                 |
-| **pgTAP**  | Host attempts to set state to `pending_payment` (Negative N12)                     | Check constraint rejects write                                              |
-| **pgTAP**  | Host attempts to update a unit in a Space owned by another Host (Negative N13)     | Refused with `P0001` error                                                  |
-| **pgTAP**  | Tap on held unit without expected reservation ID (Negative N14)                    | Refused with `P0001` error, unit unchanged                                  |
-| **pgTAP**  | Override attempted when hold status changed concurrently (Negative N21)            | Refused with `P0001` error, unit unchanged                                  |
+| **pgTAP**  | Host attempts to set state to `pending_payment` (Negative N12)                     | Check constraint rejects write (`23514`), unit unchanged                    |
+| **pgTAP**  | Host attempts to update a unit in a Space owned by another Host (Negative N13)     | Refused with `42501`, unit unchanged                                        |
+| **pgTAP**  | Tap on held unit without expected reservation ID (Negative N14)                    | Refused with `P0001`, hint `hold_not_named`; hold and unit unchanged        |
+| **pgTAP**  | Override attempted when hold status changed concurrently (Negative N21)            | Refused with `P0001`, hint `hold_changed`; hold and unit unchanged          |
 | **pgTAP**  | Signed-out visitor calls `public.set_unit_state` (Negative N24)                    | Permission denied (`42501`)                                                 |
-| **pgTAP**  | Authenticated Seeker calls `public.set_unit_state` (Negative N24 / N13)            | Refused with `P0001` owner check                                            |
+| **pgTAP**  | Authenticated Seeker calls `public.set_unit_state` (Negative N24 / N13)            | Refused with `42501` by the owner check, unit unchanged                     |
 | **Manual** | Host taps "Occupied" for walk-in on `/host/spaces/[spaceId]/occupancy`             | State changes immediately, badge updates to "Just now"                      |
 | **Manual** | Host triggers override on pending, reserved, and occupied units                    | Dialog displays status-specific consequence; cancel aborts, confirm updates |
 | **Manual** | Responsive check at 360 px, 768 px, 1024 px; text zoom at 200%; keyboard-only pass | Layout stacks cleanly; no sideways scroll; focus visible                    |
