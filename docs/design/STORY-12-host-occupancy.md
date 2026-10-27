@@ -2,7 +2,7 @@
 
 **Status:** draft · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
 **Depends on:** STORY-05, STORY-07, STORY-09 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md) ·
-**Decisions:** D-002, D-004, D-010, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-050, D-051, D-052
+**Decisions:** D-002, D-004, D-010, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-050, D-051, D-052, D-057
 
 ## 0. Scope
 
@@ -12,7 +12,7 @@
 - **One-tap state controls:** quick buttons/pills on each unit allowing the Host to set its state to `Available`, `Reserved`, or `Occupied` with a single tap (FR-3.2, D-004).
 - **Walk-in customer handling:** setting an Available unit to `Occupied` directly with no online reservation record in the database.
 - **Host-updated timestamp display:** showing freshness per unit ("Updated · X min ago") and at the page header ("Most recent update · X min ago") reflecting `units.host_updated_at` (D-002, D-051). Relative time is calculated client-side after load to avoid SSR hydration mismatch.
-- **Active hold override protection:** if a Host taps a unit that currently holds an active online reservation (`pending_payment`, `reserved`, or `occupied`), an accessible confirmation modal warns the Host with status-specific consequences before proceeding (D-050). The call passes the expected reservation ID and status seen by the Host to prevent race conditions (N21).
+- **Active hold override protection:** if a Host taps a unit that currently holds an active online reservation (`pending_payment`, `reserved`, or `occupied`), an accessible confirmation modal warns the Host with status-specific consequences before proceeding (D-050). The call passes the expected reservation ID and status seen by the Host, as `unit_states` gave them (D-057), to prevent race conditions (N21).
 - **Server Action** (`app/(dashboard)/host/spaces/[spaceId]/occupancy/actions.ts`): `setUnitStateAction` validates inputs with Zod 4, calls Postgres function `public.set_unit_state(...)`, maps database refusals to user messages, and triggers page revalidation.
 - **Zod validation schema** (`lib/validation/occupancy.ts`): validates `unitId`, target state, and requires both `expectedReservationId` and `expectedReservationStatus` together when overriding.
 - **Pure logic helper** (`lib/occupancy/override.ts`): determines which units require an override warning and provides the status-specific dialog copy with co-located Vitest unit tests.
@@ -85,6 +85,10 @@ This story builds on the columns established in the [Reservation lifecycle flow]
 - `units.host_state`: text check constraint `host_state in ('available', 'reserved', 'occupied')`. Defaults to `'available'`. Never `'pending_payment'` (D-004, D-046, N12).
 - `units.host_updated_at`: `timestamptz not null default now()`. Updated on every tap that sets a unit's state (D-051).
 - Closing time rule (D-048): When a Space's closing time passes in Asia/Manila, closing time resets a Host-set Reserved or Occupied state to Available without moving `units.host_updated_at` (Move H3).
+
+### Reading the units (D-047, D-057)
+
+The page reads `public.unit_states(space_id)`, never the tables. To the Space's Host it returns each unit's seat state and `host_updated_at`, and each held unit's `reservation_id` ([reading a state](../flows/reservation-lifecycle.md#reading-a-state), added by #185). A unit with a `reservation_id` has an active hold: a tap on it opens the warning dialog, and the call sends that `reservation_id` as `expectedReservationId` and the seat state shown as `expectedReservationStatus`. A unit without one has no hold, so the call sends neither. A seat state of Reserved or Occupied alone can't tell the two apart, because a Host's own tap can set it too.
 
 ### Database function (D-036, D-047)
 
@@ -268,7 +272,7 @@ One PR per row, and every PR targets `main`:
 
 ## 8. Open questions
 
-- **Reservation ID availability on `unit_states`:** `public.unit_states` in the merged Reservation lifecycle flow currently returns seat state, Host-updated time, and `wait_window_ends_at` to the Space's Host. To allow the occupancy page to prompt the Host with active hold details and pass `expectedReservationId` without querying private `reservations` directly (N6, D-047), Adrian will update the flow so that `unit_states` also returns `reservation_id` (or `null` when there is no active hold) to the Space's Host only.
+- **Reservation ID on `unit_states`:** settled by #185 (D-057). `unit_states` gives the Space's Host each held unit's `reservation_id`, and `null` everywhere else, so the page can tell a hold from a Host-set state and name it without reading `reservations` (N6, D-047). §2 relies on it, so this design merges after #185.
 - **Seat map component exports from STORY-07:** TSK-12.5 waits for STORY-07's design to name the seat map component export and its container layout.
 
 ## 9. After the build
