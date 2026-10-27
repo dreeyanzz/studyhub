@@ -132,10 +132,9 @@ export const unitStateEnum = z.enum(['available', 'reserved', 'occupied'], {
 
 export const setUnitStateSchema = z
   .object({
-    unitId: z.string().uuid({ error: 'Invalid unit ID' }),
+    unitId: z.uuid({ error: 'Invalid unit ID' }),
     state: unitStateEnum,
     expectedReservationId: z
-      .string()
       .uuid({ error: 'Invalid reservation ID' })
       .optional()
       .nullable(),
@@ -151,7 +150,7 @@ export const setUnitStateSchema = z
       (data.expectedReservationId == null && data.expectedReservationStatus == null) ||
       (data.expectedReservationId != null && data.expectedReservationStatus != null),
     {
-      message: 'Expected reservation ID and status must be provided together',
+      error: 'Expected reservation ID and status must be provided together',
       path: ['expectedReservationId'],
     },
   )
