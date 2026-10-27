@@ -7,14 +7,14 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 
 ## The flows
 
-| Flow                                        | Issue | Diagram  | Drawn by | Approved by   | Waits for             | Status      |
-| ------------------------------------------- | ----- | -------- | -------- | ------------- | --------------------- | ----------- |
-| Reservation lifecycle                       | #173  | State    | Adrian   | Maria         | No other flow         | not written |
-| [Space verification](space-verification.md) | #174  | State    | Adrian   | Maria         | No other flow         | draft       |
-| Sandbox payment confirmation                | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | not written |
-| Check-in                                    | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | not written |
-| Host setup journey                          | #177  | Swimlane | Maria    | Adrian        | No other flow         | not written |
-| Seeker journey                              | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | not written |
+| Flow                                              | Issue | Diagram  | Drawn by | Approved by   | Waits for             | Status      |
+| ------------------------------------------------- | ----- | -------- | -------- | ------------- | --------------------- | ----------- |
+| [Reservation lifecycle](reservation-lifecycle.md) | #173  | State    | Adrian   | Maria         | No other flow         | draft       |
+| [Space verification](space-verification.md)       | #174  | State    | Adrian   | Maria         | No other flow         | draft       |
+| Sandbox payment confirmation                      | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | not written |
+| Check-in                                          | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | not written |
+| Host setup journey                                | #177  | Swimlane | Maria    | Adrian        | No other flow         | not written |
+| Seeker journey                                    | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | not written |
 
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
 and "Approved by" columns. "Waits for" names the flows that must merge before a flow is
