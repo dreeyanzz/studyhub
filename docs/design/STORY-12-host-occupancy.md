@@ -118,7 +118,7 @@ This story implements the Host's state transitions defined in [Reservation lifec
 - Direct Host taps (Move H2): `available` ↔ `occupied`, `available` ↔ `reserved`, and `reserved` ↔ `occupied`.
 - Overrides on active holds naming what the Host saw (D-050):
   - On `pending_payment`: cancels unpaid hold, payment stays `pending` (Move R5).
-  - On `reserved`: cancels paid hold, payment stays `paid` for admin refund (Move R9).
+  - On `reserved`: cancels paid hold, payment stays `paid` for an Administrator's refund (Move R9).
   - On `occupied`: ends checked-in visit `completed`, payment stays `paid` (Move R11).
 
 ### Zod schemas (`lib/validation/occupancy.ts`)
@@ -194,7 +194,8 @@ app/(dashboard)/host/spaces/[spaceId]/occupancy/
   loading.tsx                           Server Component: the loading state
   actions.ts                            Server Action: setUnitStateAction()
   _components/
-    occupancy-header.tsx                Server Component: title, breadcrumbs, latest update badge
+    occupancy-header.tsx                Server Component: title, link back, latest update badge (through relative-time.tsx)
+    relative-time.tsx                   Client Component: "X min ago", worked out after load, for the header and each unit card
     occupancy-view.tsx                  Client Component: state holder for view toggle
     occupancy-list.tsx                  Client Component: accessible table view of all units
     unit-control-card.tsx               Client Component: individual unit display with one-tap state pills
