@@ -130,7 +130,7 @@ flowchart LR
 | STORY-08 Map and filters (#57)           | Luke; Adrian writes its tag tables         | No other story for the map; Adrian's tag tables for the filters                |
 | STORY-15 Space verification (#166)       | James; Adrian writes its function          | No other story for the page; Adrian's function for saving                      |
 | STORY-11 Space profile (#76)             | Maria                                      | STORY-07's tables and photo bucket                                             |
-| STORY-12 Host occupancy (#77)            | James                                      | STORY-07's tables and Server Actions                                           |
+| STORY-12 Host occupancy (#77)            | James                                      | STORY-07's tables and Server Actions; STORY-09's reservations for overrides    |
 | STORY-09 Holds and sandbox payment (#58) | Adrian                                     | STORY-07's tables; STORY-11's seat map, where a Seeker picks a unit            |
 | STORY-10 QR check-in and release (#59)   | Luke; Adrian writes its database functions | STORY-09's reservations; STORY-12's seat map view, for the Host's wait windows |
 
