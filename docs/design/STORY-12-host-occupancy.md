@@ -1,4 +1,4 @@
-# STORY-12: Host live occupancy control
+# STORY-12: Host occupancy control
 
 **Status:** draft · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
 **Depends on:** STORY-05, STORY-07, STORY-09 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md) ·
@@ -163,21 +163,22 @@ export type SetUnitStateInput = z.infer<typeof setUnitStateSchema>
 ### User Experience (Maria decides, D-042)
 
 - **Occupancy Management Page (`/host/spaces/[spaceId]/occupancy`):**
-  - **Header:** Space title, breadcrumb back to `/host/spaces/[spaceId]`, occupancy counter (e.g. "14 / 20 units occupied"), and header freshness badge ("Most recent update · 2 min ago").
-  - **View Toggle:** Segmented button to switch between **Seat Map View** (spatial layout reusing STORY-07's seat map) and **List View** (accessible tabular list).
-  - **Unit Card:** Displays unit label (e.g., "Desk A-12"), unit type, per-unit freshness label ("Updated · 2 min ago"), and current seat state badge using design tokens (D-031):
+  - **Header:** Space title, a link back to the Host's Spaces at `/host` (STORY-05 has no page at `/host/spaces/[spaceId]`), occupancy counter (e.g. "14 / 20 units occupied"), and header freshness badge ("Most recent update · 2 min ago").
+  - **View Toggle:** two `Button`s with `aria-pressed` switch between **Seat Map View** (spatial layout reusing STORY-07's seat map) and **List View** (accessible tabular list). `components/ui/` has no segmented control, and two buttons need none.
+  - **Unit Card:** Displays unit label (e.g., "Desk A-12"), unit type, per-unit freshness label ("Updated · 2 min ago"), and current seat state badge in its seat-state color. The colors come from four seat-state token pairs that Maria picks (D-031, D-042, §8); the colors below are proposals:
     - `Available`: green badge / border (`CheckCircle` icon).
     - `Reserved`: blue badge / border (`Clock` icon). Leaves room for STORY-10's wait window countdown.
     - `Occupied`: orange/amber badge / border (`User` icon).
-    - `Pending Payment`: purple badge (read-only indicator with hold notice; Host may tap to override with warning).
+    - `Pending Payment`: purple badge with a hold notice. No button sets it, but the Host may tap another state to override the hold, after the warning.
   - **Action Pills:** 3 buttons on each unit: `[Available]`, `[Reserved]`, `[Occupied]`. Active state is a solid filled pill; inactive states are outlines. All buttons meet 48×48 px touch targets (D-031). Buttons are disabled while an update action is pending.
   - **Empty State:** If the Space has no zones or units yet, renders a descriptive empty state card directing the Host to the Seat Map builder (STORY-07): _"No units found. Set up your seat map first to manage occupancy."_
+  - **Loading State:** while `unit_states` loads, `loading.tsx` shows the header and a placeholder where the seat map goes.
   - **Override Warning Dialog:** If the unit has an active hold, clicking a state opens a shadcn `AlertDialog`:
     - Title: _"Override active reservation?"_
     - Description by status:
-      - For `pending_payment`: _"This unit currently has an unpaid hold. Overriding it will cancel the student's hold. Proceed?"_
-      - For `reserved`: _"The student has already paid for this reservation. Overriding it will cancel their booking and leave the fee paid for an administrator refund (Move R9). Proceed?"_
-      - For `occupied`: _"A student is currently checked in at this unit. Setting this state will end their visit as completed (Move R11). Proceed?"_
+      - For `pending_payment` (R5): _"This unit currently has an unpaid hold. Overriding it will cancel the Seeker's hold. Proceed?"_
+      - For `reserved` (R9): _"The Seeker has already paid for this hold. Overriding it will cancel their hold, and their fee stays paid until an Administrator refunds it. Proceed?"_
+      - For `occupied` (R11): _"A Seeker is currently checked in at this unit. Setting this state will end their visit. Proceed?"_
     - Actions: `[Cancel]` (aborts with no changes), `[Confirm Override]` (destructive action, disabled while submitting).
   - **Error handling:** each refusal (§2) renders an inline `Alert` (`role="alert"`). N14 and N21 also offer a one-click refresh button:
     - `42501` (N13): _"Space may no longer exist or you may not have access."_
@@ -190,6 +191,7 @@ export type SetUnitStateInput = z.infer<typeof setUnitStateSchema>
 ```
 app/(dashboard)/host/spaces/[spaceId]/occupancy/
   page.tsx                              Server Component: checks auth, loads space & units with unit_states
+  loading.tsx                           Server Component: the loading state
   actions.ts                            Server Action: setUnitStateAction()
   _components/
     occupancy-header.tsx                Server Component: title, breadcrumbs, latest update badge
@@ -203,13 +205,15 @@ lib/validation/
 lib/occupancy/
   override.ts                           Pure logic: determines override requirement & dialog copy
   override.test.ts                      Vitest tests for override logic
+components/ui/
+  alert-dialog.tsx                      New primitive, added with `npx shadcn add alert-dialog`; its buttons sized 48×48 px (D-031)
 ```
 
 ### Accessibility
 
 - **Touch targets:** All state buttons and pills meet the minimum 48×48 px touch target requirement (D-031).
 - **Accessible List View:** Complete keyboard-navigable table alternative to the spatial grid, ensuring full accessibility for screen readers and keyboard-only users.
-- **Color Contrast & Indicators:** States do not rely on color alone; each badge includes distinct text and iconography. Contrast ratio exceeds 4.5:1 using baselined theme tokens.
+- **Color Contrast & Indicators:** States do not rely on color alone; each badge includes distinct text and iconography. Each seat-state token pair is checked at 4.5:1 when it is added (D-031).
 - **Dialog focus trap:** Uses shadcn `AlertDialog` with accessible focus trapping, escape key dismissal, and explicit ARIA labels.
 - **Responsive design:** Flexible layouts supporting 360 px, 768 px, and 1024 px viewports without horizontal scrolling, and supports text zoom up to 200%.
 
@@ -241,15 +245,15 @@ lib/occupancy/
 
 These rows become the story's TSK sub-issues once this doc is merged. Total points: 14 (Adrian: 6 pts; James: 8 pts for story + 2 pts Sprint 2 QA tracked in plan):
 
-| Task         | What                                                                                                     | Owner              | Points (1–10) | Days | Depends on                         |
-| :----------- | :------------------------------------------------------------------------------------------------------- | :----------------- | :------------ | :--- | :--------------------------------- |
-| **TSK-12.1** | `public.set_unit_state` for Host-set states (H2, N12, N13, N24), pgTAP tests, and `db:types` regenerated | @dreeyanzz         | 3             | 1    | STORY-07 tables                    |
-| **TSK-12.2** | Zod 4 schema and pure override logic with Vitest unit tests                                              | @JamesNino-Mandawe | 1             | 0.5  | —                                  |
-| **TSK-12.3** | Server Action `setUnitStateAction` calling `set_unit_state` with error mapping                           | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.1, TSK-12.2                 |
-| **TSK-12.4** | `public.set_unit_state` override part (R5, R9, R11, N14, N21) and pgTAP tests                            | @dreeyanzz         | 3             | 1    | STORY-09 reservations and payments |
-| **TSK-12.5** | Occupancy screen: reuses STORY-07 seat map, accessible list view, and one-tap pills                      | @JamesNino-Mandawe | 3             | 1.5  | TSK-12.3, STORY-07 seat map        |
-| **TSK-12.6** | Override warning dialog with status-specific consequences and conflict alert handling                    | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.4, TSK-12.5                 |
-| **TSK-12.7** | Sprint 2 QA: Seeker and Host Playwright journey tests and Definition of Done verification                | @JamesNino-Mandawe | 2             | 1    | TSK-12.6, Maria's journeys         |
+| Task         | What                                                                                                                     | Owner              | Points (1–10) | Days | Depends on                         |
+| :----------- | :----------------------------------------------------------------------------------------------------------------------- | :----------------- | :------------ | :--- | :--------------------------------- |
+| **TSK-12.1** | `public.set_unit_state` for Host-set states (H2, N12, N13, N24), pgTAP tests, and `db:types` regenerated                 | @dreeyanzz         | 3             | 1    | STORY-07 tables                    |
+| **TSK-12.2** | Zod 4 schema and pure override logic with Vitest unit tests                                                              | @JamesNino-Mandawe | 1             | 0.5  | —                                  |
+| **TSK-12.3** | Server Action `setUnitStateAction` calling `set_unit_state` with error mapping                                           | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.1, TSK-12.2                 |
+| **TSK-12.4** | `public.set_unit_state` override part (R5, R9, R11, N14, N21) and pgTAP tests                                            | @dreeyanzz         | 3             | 1    | STORY-09 reservations and payments |
+| **TSK-12.5** | Occupancy screen: reuses STORY-07 seat map, accessible list view, and one-tap pills                                      | @JamesNino-Mandawe | 3             | 1.5  | TSK-12.3, STORY-07 seat map        |
+| **TSK-12.6** | Override warning dialog (adds the `AlertDialog` primitive) with status-specific consequences and conflict alert handling | @JamesNino-Mandawe | 2             | 0.5  | TSK-12.4, TSK-12.5                 |
+| **TSK-12.7** | Sprint 2 QA: Seeker and Host Playwright journey tests and Definition of Done verification                                | @JamesNino-Mandawe | 2             | 1    | TSK-12.6, Maria's journeys         |
 
 _(Note: James's STORY-12 build tasks TSK-12.2, 12.3, 12.5, 12.6 total exactly 8 story points, matching issue #77. TSK-12.7 tracks the 2-point Sprint 2 QA allocation from the baselined Sprint 2 plan.)_
 
@@ -278,6 +282,8 @@ One PR per row, and every PR targets `main`:
 
 - **Reservation ID on `unit_states`:** settled by #185 (D-057). `unit_states` gives the Space's Host each held unit's `reservation_id`, and `null` everywhere else, so the page can tell a hold from a Host-set state and name it without reading `reservations` (N6, D-047). §2 relies on it, so this design merges after #185.
 - **Seat map component exports from STORY-07:** TSK-12.5 waits for STORY-07's design to name the seat map component export and its container layout.
+- **Seat-state colors (Maria, D-031, D-042):** `app/globals.css` has no seat-state tokens yet. Maria picks the four token pairs and checks each at 4.5:1. STORY-11's availability view shows the same four seat states, so the two stories share them: whichever builds its view first adds them.
+- **The wording in §3** is proposed here, and Maria approves it (D-042).
 
 ## 9. After the build
 
