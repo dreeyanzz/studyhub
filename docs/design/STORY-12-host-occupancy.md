@@ -170,8 +170,8 @@ export type SetUnitStateInput = z.infer<typeof setUnitStateSchema>
     - `Reserved`: blue badge / border (`Clock` icon). Leaves room for STORY-10's wait window countdown.
     - `Occupied`: orange/amber badge / border (`User` icon).
     - `Pending Payment`: purple badge with a hold notice. No button sets it, but the Host may tap another state to override the hold, after the warning.
-  - **Action Pills:** 3 buttons on each unit: `[Available]`, `[Reserved]`, `[Occupied]`. Active state is a solid filled pill; inactive states are outlines. All buttons meet 48×48 px touch targets (D-031). Buttons are disabled while an update action is pending. **Same-state tap:** Tapping the button matching the unit's currently displayed state (e.g., tapping `[Reserved]` on an already-Reserved unit, whether Seeker-held or Host-set) is a no-op: it remains visually selected, triggers no network request or Server Action, and never opens the override dialog. Only tapping a different target state initiates a transition or override.
-  - **List View:** Table includes columns for Unit, Type, State (with the "Seeker hold" badge when held), Host-updated freshness, and Action Pills. Same-state taps are also no-ops here.
+  - **Action Pills:** 3 buttons on each unit: `[Available]`, `[Reserved]`, `[Occupied]`. Active state is a solid filled pill; inactive states are outlines. All buttons meet 48×48 px touch targets (D-031). Buttons are disabled while an update action is pending. **Same-state tap:** For a unit with an active Seeker hold (`reservation_id` is present), tapping the currently active state button is a no-op: it remains visually selected, triggers no network request or Server Action, and never opens the override dialog (Maria's UX requirement). For a Host-set unit (`reservation_id` is null, such as a walk-in), tapping the currently active state calls `setUnitStateAction` with the same state without opening a dialog; this updates `units.host_updated_at` to `now()` so the Host can re-vouch for current occupancy (Move H2, D-051).
+  - **List View:** Table includes columns for Unit, Type, State (with the "Seeker hold" badge when held), Host-updated freshness, and Action Pills. Same-state tap behavior matches the unit cards: no-op for Seeker-held units, and timestamp re-vouch for Host-set units.
   - **Empty State:** If the Space has no zones or units yet, renders a descriptive empty state card directing the Host to the Seat Map builder (STORY-07): _"No units found. Set up your seat map first to manage occupancy."_
   - **Loading State:** while `unit_states` loads, `loading.tsx` shows the header and a placeholder where the seat map goes.
   - **Override Warning Dialog:** If the unit has an active hold and the Host taps a different state, clicking that state opens a shadcn `AlertDialog`:
@@ -221,29 +221,30 @@ components/ui/
 
 ## 4. Security and test matrix
 
-| Layer      | Case                                                                               | Expected Result                                                                        |
-| :--------- | :--------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------- |
-| **Vitest** | Valid state (`available`, `reserved`, `occupied`) and unit UUID                    | Schema parses successfully                                                             |
-| **Vitest** | Invalid state (e.g., `pending_payment`, empty, or typo)                            | Validation fails with custom error message                                             |
-| **Vitest** | Half-named override (reservation ID without status or vice-versa)                  | Validation fails with pairing error                                                    |
-| **Vitest** | Pure logic: override message helper and refusal error mapping                      | Returns status-specific consequence with target state; maps error hints to UI messages |
-| **pgTAP**  | Space's Host sets unit state to `occupied` (Move H2)                               | State updates, `units.host_updated_at` moves to `now()`                                |
-| **pgTAP**  | Space's Host overrides an unpaid hold naming the hold seen (Move R5)               | Hold transitions to `cancelled`, payment stays `pending`                               |
-| **pgTAP**  | Space's Host overrides a paid reservation naming the hold seen (Move R9)           | Hold transitions to `cancelled`, payment stays `paid` for refund                       |
-| **pgTAP**  | Space's Host sets state on occupied unit naming the hold seen (Move R11)           | Visit transitions to `completed`, payment stays `paid`                                 |
-| **pgTAP**  | Signed-out visitor reads `unit_states` after Host state change                     | Returns updated state and Host-updated time within one read                            |
-| **pgTAP**  | Host attempts to set state to `pending_payment` (Negative N12)                     | Check constraint rejects write (`23514`), unit unchanged                               |
-| **pgTAP**  | Host attempts to update a unit in a Space owned by another Host (Negative N13)     | Refused with `42501`, unit unchanged                                                   |
-| **pgTAP**  | Tap on held unit without expected reservation ID (Negative N14)                    | Refused with `P0001`, hint `hold_not_named`; hold and unit unchanged                   |
-| **pgTAP**  | Override attempted when hold status changed concurrently (Negative N21)            | Refused with `P0001`, hint `hold_changed`; hold and unit unchanged                     |
-| **pgTAP**  | Signed-out visitor calls `public.set_unit_state` (Negative N24)                    | Permission denied (`42501`)                                                            |
-| **pgTAP**  | Authenticated Seeker calls `public.set_unit_state` (Negative N24 / N13)            | Refused with `42501` by the owner check, unit unchanged                                |
-| **Manual** | Host taps "Occupied" for walk-in on `/host/spaces/[spaceId]/occupancy`             | State changes immediately, badge updates to "Just now"                                 |
-| **Manual** | Host triggers override on pending, reserved, and occupied units                    | Dialog displays status-specific consequence; cancel aborts, confirm updates            |
-| **Manual** | Host triggers override after hold status changes concurrently (second tab)         | Action maps error hint to inline alert: "Hold status has changed. Please refresh."     |
-| **Manual** | Host taps the currently active state button on a unit (e.g. Reserved on Reserved)  | No-op: no Server Action invoked, no warning dialog opened, state unchanged             |
-| **Manual** | Responsive check at 360 px, 768 px, 1024 px; text zoom at 200%; keyboard-only pass | Layout stacks cleanly; no sideways scroll; focus visible                               |
-| **Manual** | When STORY-11 Space profile exists: Seeker views space                             | Shows the unit as Occupied within one refresh                                          |
+| Layer      | Case                                                                               | Expected Result                                                                                                                   |
+| :--------- | :--------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| **Vitest** | Valid state (`available`, `reserved`, `occupied`) and unit UUID                    | Schema parses successfully                                                                                                        |
+| **Vitest** | Invalid state (e.g., `pending_payment`, empty, or typo)                            | Validation fails with custom error message                                                                                        |
+| **Vitest** | Half-named override (reservation ID without status or vice-versa)                  | Validation fails with pairing error                                                                                               |
+| **Vitest** | Pure logic: override message helper and refusal error mapping                      | Returns status-specific consequence with target state; maps error hints to UI messages                                            |
+| **pgTAP**  | Space's Host sets unit state to `occupied` (Move H2)                               | State updates, `units.host_updated_at` moves to `now()`                                                                           |
+| **pgTAP**  | Space's Host overrides an unpaid hold naming the hold seen (Move R5)               | Hold transitions to `cancelled`, payment stays `pending`                                                                          |
+| **pgTAP**  | Space's Host overrides a paid reservation naming the hold seen (Move R9)           | Hold transitions to `cancelled`, payment stays `paid` for refund                                                                  |
+| **pgTAP**  | Space's Host sets state on occupied unit naming the hold seen (Move R11)           | Visit transitions to `completed`, payment stays `paid`                                                                            |
+| **pgTAP**  | Signed-out visitor reads `unit_states` after Host state change                     | Returns updated state and Host-updated time within one read                                                                       |
+| **pgTAP**  | Host attempts to set state to `pending_payment` (Negative N12)                     | Check constraint rejects write (`23514`), unit unchanged                                                                          |
+| **pgTAP**  | Host attempts to update a unit in a Space owned by another Host (Negative N13)     | Refused with `42501`, unit unchanged                                                                                              |
+| **pgTAP**  | Tap on held unit without expected reservation ID (Negative N14)                    | Refused with `P0001`, hint `hold_not_named`; hold and unit unchanged                                                              |
+| **pgTAP**  | Override attempted when hold status changed concurrently (Negative N21)            | Refused with `P0001`, hint `hold_changed`; hold and unit unchanged                                                                |
+| **pgTAP**  | Signed-out visitor calls `public.set_unit_state` (Negative N24)                    | Permission denied (`42501`)                                                                                                       |
+| **pgTAP**  | Authenticated Seeker calls `public.set_unit_state` (Negative N24 / N13)            | Refused with `42501` by the owner check, unit unchanged                                                                           |
+| **Manual** | Host taps "Occupied" for walk-in on `/host/spaces/[spaceId]/occupancy`             | State changes immediately, badge updates to "Just now"                                                                            |
+| **Manual** | Host triggers override on pending, reserved, and occupied units                    | Dialog displays status-specific consequence; cancel aborts, confirm updates                                                       |
+| **Manual** | Host triggers override after hold status changes concurrently (second tab)         | Action maps error hint to inline alert: "Hold status has changed. Please refresh."                                                |
+| **Manual** | Host taps the currently active state button on a Seeker-held unit                  | No-op: no Server Action invoked, no warning dialog opened, state unchanged                                                        |
+| **Manual** | Host taps the currently active state button on a Host-set unit (e.g. walk-in)      | Calls setUnitStateAction with same state, no dialog opened; freshness badge updates to "Host-updated · just now" (Move H2, D-051) |
+| **Manual** | Responsive check at 360 px, 768 px, 1024 px; text zoom at 200%; keyboard-only pass | Layout stacks cleanly; no sideways scroll; focus visible                                                                          |
+| **Manual** | When STORY-11 Space profile exists: Seeker views space                             | Shows the unit as Occupied within one refresh                                                                                     |
 
 ## 5. Tasks and estimates
 
