@@ -623,3 +623,28 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Rejected:** Search relying on RLS alone; a "not public yet" page for hidden Spaces.
 
 **Revisit if:** A Seeker with a hold needs to see a Space that has left Verified, once STORY-14 lets one leave it.
+
+## D-057 · Booking token format and QR encoding
+
+**Decision:**
+
+- When a sandbox payment is confirmed (R2), the reservation receives an unguessable 12-character alphanumeric booking token stored in `reservations.booking_token` (FR-2.3).
+- The token uses a Crockford-like base32 alphabet that excludes ambiguous characters (`0`, `O`, `1`, `I`, `l`), providing over 60 bits of entropy.
+- The Seeker dashboard (`/seeker`) renders the token as an SVG QR code containing an HTTPS URL: `https://<domain>/api/check-in?token=<booking_token>&space=<space_id>`. Directly underneath the QR code, the token is displayed as three hyphen-separated groups (e.g. `ABC-DEF-GHJ`) for manual entry.
+- The [check-in flow](flows/check-in.md) draws the full sequence.
+
+**Why:** Direct device cameras (standard iOS/Android camera apps) can scan the QR code to open the check-in URL, while noisy, low-light, or camera-damaged setups can use the 12-character manual input without ambiguity. The token carries no PII or sensitive payment details.
+
+**Rejected:** Raw UUIDs (unwieldy for manual typing), proprietary barcode schemes, and encoding seeker personal data or reservation IDs directly in the payload.
+
+## D-058 · Space-scoped check-in and error isolation
+
+**Decision:**
+
+- Check-in requires both the booking token and the `space_id` (`public.check_in(p_token, p_space_id)`).
+- The function checks that the caller is the authenticated Host of `p_space_id`, and that the reservation's unit belongs to `p_space_id`.
+- If a Seeker presents a token at the wrong Space, the check-in fails with a clear message naming the mismatch, and the reservation remains untouched in its `reserved` state so the Seeker can still travel to the correct venue before their wait window ends.
+
+**Why:** It blocks accidental or fraudulent cross-venue token consumption. A Host cannot claim another venue's reservation, and an honest Seeker who arrives at the wrong branch or building does not lose their reservation or fee.
+
+**Rejected:** Global unscoped check-in (where a Host simply inputs a token and claims whatever reservation matches across the entire database).
