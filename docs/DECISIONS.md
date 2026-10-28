@@ -750,3 +750,17 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Rejected:** Stripe (by most accounts not open to Philippine businesses); leaving the choice to STORY-09's design (the payment confirmation flow, drawn before it, needs the gateway).
 
 **Revisit if:** PayMongo's test mode can't do what the payment confirmation flow or STORY-09 needs.
+
+## D-057 · The Space's Host sees which reservation holds each unit
+
+**Decision:**
+
+- `public.unit_states` also returns each held unit's `reservation_id` to the Space's Host, and `null` to everyone else and for a unit with no hold. STORY-09 adds it along with holds, and STORY-12's occupancy view reads it ([reservation lifecycle](flows/reservation-lifecycle.md#reading-a-state)).
+- The Host's view shows a unit with a `reservation_id` as a Seeker's hold, warns before a tap on it (FR-3.2), and passes `set_unit_state` that `reservation_id` and the seat state it saw (D-050).
+- Nobody else gets it, and nobody gets the Seeker or the booking token behind a hold (N18, N25).
+
+**Why:** A tap that ends a hold must name it (D-050), and the Host's view had no way to: `unit_states` returned states and times only, and no grant lets the app read `reservations` (D-047). A seat state of Reserved or Occupied also reads the same whether a Seeker's hold or the Host's own tap set it, so the view couldn't tell when to warn. A reservation's id says nothing about its Seeker, and the Host already sees the hold's state.
+
+**Rejected:** a separate function that lists a Space's holds for its Host (a second read of the same rows, with its own lapse step and grant); naming the hold by its status alone (a hold that ends and a new one with the same status, between the Host's look and their tap, would be overridden unseen, which is why D-050 rejected a yes-or-no flag); returning the `reservation_id` to everyone (nobody else needs it).
+
+**Revisit if:** An Administrator needs to act on holds (STORY-14).

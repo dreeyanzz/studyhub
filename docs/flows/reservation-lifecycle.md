@@ -3,7 +3,7 @@
 **Status:** draft · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
 **Stories:** STORY-07, STORY-09, STORY-10, STORY-11, STORY-12, STORY-13, STORY-14 ·
 **Decisions:** D-002, D-004, D-005, D-008, D-009, D-010, D-011, D-027, D-046 to D-052,
-D-056
+D-056, D-057
 
 This flow follows a hold from the moment a Seeker holds a unit until the unit is Available
 again, and says what makes each move. Three records take part: the unit's Host-set state,
@@ -114,7 +114,9 @@ stateDiagram-v2
 ```
 
 While the unit has an active hold, a tap first ends that hold, and only when the call names
-the hold the Host saw and confirmed (R5, R9, R11, D-050).
+the hold the Host saw and confirmed (R5, R9, R11, D-050). The Host's view learns which hold
+that is from `unit_states`, which gives the Space's Host each held unit's `reservation_id`
+(D-057).
 
 ## Every move, and its test
 
@@ -148,7 +150,9 @@ A move changes a reservation and its payment in one transaction.
 ends a hold, take the reservation and the status the person saw, and refuse if either has
 changed since (N21). So a Seeker who cancels just as their payment is confirmed is asked
 again, instead of losing the fee to R8 when they meant R4. And a Host's override can't
-cancel a hold that was paid, or end a visit that began, after they looked.
+cancel a hold that was paid, or end a visit that began, after they looked. A Seeker's view
+gets the reservation to name from the function STORY-09's design names for their own
+reservation, and a Host's view from `unit_states` (D-057).
 
 **A double tap makes one hold.** When a Seeker asks again for the unit they already hold,
 `hold_unit` returns that hold unchanged. When two calls race to the unique index, the
@@ -187,13 +191,14 @@ says what each kind of denial looks like.
 | N15 | Write a unit's Host-set state or Host-updated time directly                                                     | No grant on either column                                                            | `seat-map`: "a Host cannot write a unit's state or Host-updated time directly"                                                                                                                                        |
 | N16 | Move the Host-updated time with anything but a new unit or a tap (D-051)                                        | Only `set_unit_state` writes it                                                      | `holds`: "a hold and its lapse leave the Host-updated time alone"; `check-in-release`: "a check-in, a check-out and closing time leave the Host-updated time alone"                                                   |
 | N17 | Delete a unit, a zone or a Space that has an active hold (D-052)                                                | `before delete` triggers on `units`, `zones` and `spaces`                            | `holds`: "a Host cannot delete a unit, a zone or a Space with an active hold"                                                                                                                                         |
-| N18 | Learn from `unit_states` who holds a unit, or its booking token                                                 | `unit_states` returns states only                                                    | `holds`: "unit_states shows another Seeker's hold as a state, without the Seeker or the token"                                                                                                                        |
+| N18 | Learn from `unit_states` who holds a unit, or its booking token                                                 | `unit_states` never returns a hold's Seeker or token                                 | `holds`: "unit_states shows another Seeker's hold as a state, without the Seeker or the token"                                                                                                                        |
 | N19 | See the units of a Space they may not see                                                                       | `unit_states` checks the Space first                                                 | `seat-map`: "unit_states returns 0 rows for a Pending Space, except to its Host and Administrators"                                                                                                                   |
 | N20 | See when a wait window ends, unless they are the Space's Host                                                   | `unit_states`                                                                        | `check-in-release`: "only the Space's Host sees when a wait window ends"                                                                                                                                              |
 | N21 | Cancel or override a hold that has changed since they saw it (D-050)                                            | `cancel_hold` and `set_unit_state` compare the reservation and status the call names | `holds`: "a Seeker's cancel is refused once their hold has changed"; `occupancy`: "a Host's override is refused once the hold has changed"                                                                            |
 | N22 | Change a Space's hours so that an active hold ends early or is cut short (D-048)                                | A `before update` trigger on `spaces`, which locks the Space's units first           | `holds`: "a Host cannot change a Space's hours to cut into a pending or reserved hold"; `check-in-release`: "a Host cannot change a Space's hours to end a visit early"                                               |
 | N23 | Change the label, type, capacity or place of a unit with an active hold (D-052)                                 | A `before update` trigger on `units`                                                 | `holds`: "a Host cannot change a held unit's label, type, capacity or place"                                                                                                                                          |
 | N24 | Call a function they aren't granted (D-047)                                                                     | The grants in [who may call each function](#who-may-call-each-function)              | Each story's file, for its own functions: "a signed-out visitor cannot call (the function)"                                                                                                                           |
+| N25 | See which reservation holds a unit, unless they are the Space's Host (D-057)                                    | `unit_states`                                                                        | `holds`: "only the Space's Host sees which reservation holds a unit"                                                                                                                                                  |
 
 ## Reading a state
 
@@ -204,9 +209,13 @@ straight from the tables:
   to anyone who may see the Space: everyone, signed-out visitors included, for a Verified
   Space, and only its Host and Administrators for a Pending or Rejected one. Anyone else
   gets zero rows. Only the Space's Host also gets each Reserved unit's
-  `wait_window_ends_at` (FR-3.3). Nobody gets the Seeker or the booking token behind a
-  hold. STORY-07 creates it with Host-set states only, STORY-09 adds holds, and STORY-10
-  adds the wait windows. STORY-11 and STORY-12 read it.
+  `wait_window_ends_at` (FR-3.3), and each held unit's `reservation_id` (D-057). Both are
+  `null` for anyone else, and where the unit has no such hold. A seat state of Reserved or
+  Occupied reads the same whether a hold or the Host's own tap set it, so the Host's view
+  tells the two apart by the `reservation_id`, which is also what a tap that ends the hold
+  names (R5, R9, R11). Nobody gets the Seeker or the booking token behind a hold. STORY-07
+  creates it with Host-set states only, STORY-09 adds holds and their `reservation_id`,
+  and STORY-10 adds the wait windows. STORY-11 and STORY-12 read it.
 - **A Seeker's own reservation**, with its payment status and booking token, comes from a
   function that STORY-09's design names. STORY-09's confirmation and STORY-10's dashboard
   read it.
@@ -379,6 +388,8 @@ Each choice has its entry in [DECISIONS](../DECISIONS.md), with what it rejected
 - **D-052:** a unit with an active hold can't be deleted or changed, nor can its zone or
   Space be deleted, and a visit outlives its unit.
 - **D-056:** the sandbox gateway is PayMongo's hosted checkout.
+- **D-057:** only the Space's Host sees which reservation holds each unit, so their view
+  can warn before a tap ends a hold, and name the hold it ends.
 
 ## Open questions
 
