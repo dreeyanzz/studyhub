@@ -1,6 +1,6 @@
 # STORY-12: Host occupancy control
 
-**Status:** draft · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
+**Status:** approved 2026-10-29 · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
 **Depends on:** STORY-05, STORY-07, STORY-09 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md) ·
 **Decisions:** D-002, D-004, D-010, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-050, D-051, D-052, D-057
 
