@@ -14,7 +14,7 @@ This journey follows a Seeker from discovery to a paid hold and its booking toke
 - Seeing the Reserved unit and booking token on the Seeker dashboard (STORY-10).
 - The signed-out visitor's sign-in or registration path when they try to hold a unit.
 
-This flow links, but does not redraw, the merged [reservation lifecycle](reservation-lifecycle.md). The sandbox payment confirmation (#175) and check-in (#176) are separate shared flows whose issues are open and whose documents are not written yet. They own the gateway details and the check-in rules respectively; the later flow PRs should add links between the documents once both exist. This journey ends when the Seeker has the booking token.
+This flow links, but does not redraw, the merged [reservation lifecycle](reservation-lifecycle.md) or [Space verification flow](space-verification.md), which owns verification status and visibility rules. The sandbox payment confirmation (#175) and check-in (#176) are separate shared flows whose issues are open and whose documents are not written yet. They own the gateway details and the check-in rules respectively; the later flow PRs should add links between the documents once both exist. This journey ends when the Seeker has the booking token.
 
 ## Journey
 
