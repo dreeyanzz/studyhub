@@ -165,5 +165,3 @@ The lifecycle’s pgTAP tests prove reservation and payment rules, including the
 - **Cancellation after payment:** a Seeker cancelling a paid Reserved hold from the dashboard follows R8 in the reservation lifecycle; the fee is forfeited. This happens after the journey endpoint.
 - **Race outcomes:** if a cancel races with payment confirmation or a Host override, N21’s expected-status check decides which operation succeeds. STORY-09’s screen design names the refreshed outcome and its check.
 
-
-
