@@ -14,7 +14,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | Sandbox payment confirmation                      | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | not written |
 | Check-in                                          | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | not written |
 | Host setup journey                                | #177  | Swimlane | Maria    | Adrian        | No other flow         | not written |
-| [Seeker journey](seeker-journey.md)              | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | draft       |
+| [Seeker journey](seeker-journey.md)               | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | draft       |
 
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
 and "Approved by" columns. "Waits for" names the flows that must merge before a flow is
@@ -193,3 +193,4 @@ Open a pull request to the flow doc, approved like the first one. It updates the
 designs it makes stale in the same pull request (AGENTS.md rule 7). If code already
 follows the old flow, it says what has to change, and each change is a fix under its
 story. A story design never changes a flow on its own.
+
