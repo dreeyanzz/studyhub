@@ -193,4 +193,3 @@ Open a pull request to the flow doc, approved like the first one. It updates the
 designs it makes stale in the same pull request (AGENTS.md rule 7). If code already
 follows the old flow, it says what has to change, and each change is a fix under its
 story. A story design never changes a flow on its own.
-
