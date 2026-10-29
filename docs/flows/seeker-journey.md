@@ -116,4 +116,3 @@ The lifecycle's pgTAP tests prove data and state rules, including `holds`: “a 
 ## Open decision
 
 - [#186](https://github.com/dreeyanzz/studyhub/issues/186): whether to preserve and revalidate the selected unit after authentication or return the Seeker to the profile to choose again. The flow does not treat either path as approved until this decision is settled.
-
