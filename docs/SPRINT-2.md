@@ -120,6 +120,7 @@ flowchart LR
     S11 --> S09
     S09 --> S10["STORY-10 QR check-in<br/>Luke and Adrian"]
     S12 --> S10
+    S09 -. overrides .-> S12
     S08["STORY-08 Map and filters<br/>Luke and Adrian"]
     S15["STORY-15 Space verification<br/>James and Adrian"]
 ```
@@ -130,7 +131,7 @@ flowchart LR
 | STORY-08 Map and filters (#57)           | Luke; Adrian writes its tag tables         | No other story for the map; Adrian's tag tables for the filters                |
 | STORY-15 Space verification (#166)       | James; Adrian writes its function          | No other story for the page; Adrian's function for saving                      |
 | STORY-11 Space profile (#76)             | Maria                                      | STORY-07's tables and photo bucket                                             |
-| STORY-12 Host occupancy (#77)            | James                                      | STORY-07's tables and Server Actions                                           |
+| STORY-12 Host occupancy (#77)            | James                                      | STORY-07's tables and Server Actions; STORY-09's reservations for overrides    |
 | STORY-09 Holds and sandbox payment (#58) | Adrian                                     | STORY-07's tables; STORY-11's seat map, where a Seeker picks a unit            |
 | STORY-10 QR check-in and release (#59)   | Luke; Adrian writes its database functions | STORY-09's reservations; STORY-12's seat map view, for the Host's wait windows |
 
@@ -286,7 +287,8 @@ stays honest.
 **Done when:** a Host's change shows on the Seeker's side within one refresh; a walk-in
 can be marked Occupied with no reservation; another Host can't change your units.
 
-**Waits for:** STORY-07's tables and actions. Build the view with sample data first.
+**Waits for:** STORY-07's tables and actions, and STORY-09's reservations for overriding a
+hold. Build the view with sample data first.
 
 **STORY-15, Space verification (#166).** The `/admin` page: every Pending Space, with
 Approve and Reject buttons. Approving makes it public; rejecting keeps it hidden (D-037).
