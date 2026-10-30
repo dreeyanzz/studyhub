@@ -27,6 +27,7 @@
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:accounts": "node --env-file=.env.local scripts/register-cloud-accounts.mjs",
     "docs:docx": "node scripts/export-docx.mjs",
+    "tasks:create": "node scripts/create-story-tasks.mjs",
     "prepare": "husky"
   },
   "dependencies": {

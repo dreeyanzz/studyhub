@@ -121,8 +121,16 @@ gh api -X POST repos/dreeyanzz/studyhub/issues/<story>/dependencies/blocked_by \
   -F issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<flow issue> --jq .id)"
 ```
 
-**Create a task from a design's §5 and attach it to its story.** The body repeats the
-task form's headings.
+**Create a story's tasks from a merged design's §5.** Once the design doc is on `main`
+(D-016), one command creates every `TSK-xx.N` row, attaches each as a sub-issue, sets its
+board fields below, and removes `needs-design` from the story (safe to re-run; add
+`--dry-run` to preview):
+
+```bash
+npm run tasks:create -- docs/design/STORY-07-seat-map-builder.md
+```
+
+To create and attach a single task by hand instead, repeat the task form's headings:
 
 ```bash
 gh issue create --title "TSK-07.1: add the zones and units tables" \

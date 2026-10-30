@@ -43,12 +43,12 @@ studyhub/
 ├── components/                   # shadcn/ui primitives and shared components (from STORY-02)
 ├── lib/                          # supabase/ clients, validation/ Zod schemas, utils; tests alongside
 ├── supabase/                     # config.toml, migrations/, tests/ (pgTAP) and seed.sql
-├── scripts/                      # Repo scripts (docx export, cloud dev test accounts)
+├── scripts/                      # Repo scripts (docx export, cloud accounts, story tasks)
 ├── notes/                        # Postmortems, and the template for them
 ├── .github/                      # PR template, issue forms, CI, PR title check, ruleset snapshots
 ├── .husky/                       # commit-msg and pre-commit hooks
 ├── .env.example                  # Copy to .env.local (gitignored)
-├── package.json                  # Scripts: dev, check, build, db:*, docs:docx
+├── package.json                  # Scripts: dev, check, build, db:*, docs:docx, tasks:create
 ├── .gitattributes                # LF line endings for text files; binary file rules
 ├── .editorconfig                 # Editor defaults (UTF-8 without BOM, LF, 2 spaces)
 └── docs/

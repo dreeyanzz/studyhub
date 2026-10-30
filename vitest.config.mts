@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
 
-// Unit tests sit next to the code they test: lib/**/x.ts + lib/**/x.test.ts.
+// Unit tests sit next to the code they test: lib/**/x.ts + lib/**/x.test.ts and scripts/*.test.mjs.
 // Database policy tests are pgTAP (supabase/tests), and journeys are Playwright (e2e/).
 export default defineConfig({
   resolve: {
@@ -9,6 +9,6 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['lib/**/*.test.ts'],
+    include: ['lib/**/*.test.ts', 'scripts/**/*.test.mjs'],
   },
 })

@@ -78,7 +78,7 @@ lib/data/             server-only query helpers
 lib/<domain>/         pure logic: no database, no session, no React; tests next to it
 supabase/             config.toml, migrations/, tests/ (pgTAP), seed.sql
 e2e/                  Playwright journeys
-scripts/              repo scripts (docx export)
+scripts/              repo scripts (docx export, cloud accounts, story tasks)
 docs/                 README (map), DECISIONS, GLOSSARY, ONBOARDING, DEVELOPMENT,
                       SPRINT-1, SPRINT-2, guides/, flows/ (shared flows), design/,
                       course/ (course deliverables)
@@ -119,6 +119,7 @@ npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028)
 npm run docs:docx      # regenerate the course .docx files (needs pandoc)
 npm run docs:docx -- <filter>  # only documents whose filename contains <filter>
+npm run tasks:create -- <doc>  # create a merged design's §5 TSK sub-issues and board cards
 ```
 
 Required CI checks on `main`:
@@ -223,8 +224,10 @@ Stop only at the 🛑 points.
      until Adrian merges it.
    - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
    - **Merged:** go on.
-4. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
-   §5, then remove `needs-design` from the story.
+4. **Tasks.** If the story has no TSK sub-issues yet, run
+   `npm run tasks:create -- docs/design/STORY-xx-*.md` (preview with `--dry-run`) to
+   create one per row of the design's §5, attach them as sub-issues, set their board
+   fields, and remove `needs-design` from the story.
 5. **Pick the next task** in the design's §6 build order whose dependencies are merged
    on `main`. 🛑 If every remaining task is blocked, tell your human what it waits for
    and who owns that.

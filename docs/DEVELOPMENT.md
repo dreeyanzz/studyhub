@@ -76,6 +76,21 @@ gh pr create            # then fill in the template
 To catch up with `main`, run `git fetch && git merge origin/main`. You never need to
 rebase or force-push.
 
+## Creating tasks from a merged design
+
+Once a story's design doc in `docs/design/` is merged onto `main` (D-016), generate its
+§5 TSK sub-issues, attach them to the story, set their Project 4 board fields (Status,
+Points, Estimate, MoSCoW and Sprint), and remove `needs-design` in one step:
+
+```bash
+npm run tasks:create -- docs/design/STORY-xx-short-desc.md --dry-run
+npm run tasks:create -- docs/design/STORY-xx-short-desc.md
+```
+
+- Needs `gh` authenticated with the `project` scope (`gh auth refresh -s project`).
+- Refuses to create GitHub issues unless the design file is already on `main` (`--dry-run` works on unmerged branches so you can preview §5 and §6 before opening the design PR).
+- Safe to re-run: existing `TSK-xx.N` issues are matched by ID, attached if missing, and cards already past Product Backlog keep their current Status.
+
 ## Running the Playwright tests locally
 
 The Playwright tests (`npm run test:e2e`: STORY-06's smoke test, and the form-values test

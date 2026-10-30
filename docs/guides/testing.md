@@ -5,11 +5,11 @@ request.
 
 ## Three layers
 
-| Layer           | Tool       | Where                                | Run                              |
-| --------------- | ---------- | ------------------------------------ | -------------------------------- |
-| Unit            | Vitest     | Next to the code: `lib/**/x.test.ts` | `npm test`                       |
-| Database policy | pgTAP      | `supabase/tests/NN-name.sql`         | `npm run db:test` (local stack)  |
-| Journey         | Playwright | `e2e/*.spec.ts`                      | `npm run test:e2e` (local stack) |
+| Layer           | Tool       | Where                                                      | Run                              |
+| --------------- | ---------- | ---------------------------------------------------------- | -------------------------------- |
+| Unit            | Vitest     | Next to the code: `lib/**/x.test.ts`, `scripts/*.test.mjs` | `npm test`                       |
+| Database policy | pgTAP      | `supabase/tests/NN-name.sql`                               | `npm run db:test` (local stack)  |
+| Journey         | Playwright | `e2e/*.spec.ts`                                            | `npm run test:e2e` (local stack) |
 
 ## Unit tests (Vitest)
 
