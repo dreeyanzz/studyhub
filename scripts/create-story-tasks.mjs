@@ -21,9 +21,9 @@ export const DEFAULT_REPO = 'dreeyanzz/studyhub'
 export const PROJECT_ID = 'PVT_kwHOCUJgA84Bjmvk'
 export const PROJECT_NUMBER = 4
 export const PROJECT_OWNER = 'dreeyanzz'
-export const DEFAULT_MILESTONE = 'Sprint 2 (Prefinal)'
 
 export const FIELD_STATUS = 'PVTSSF_lAHOCUJgA84BjmvkzhiabXo'
+export const OPTION_STATUS_PRODUCT_BACKLOG = '4e0171a5'
 // Renamed in place across sprints ("Sprint 2 Backlog" -> "Sprint 3 Backlog")
 // so its option ID stays constant (docs/guides/board-guide.md, D-038).
 export const OPTION_STATUS_SPRINT_BACKLOG = '84205269'
@@ -57,6 +57,21 @@ export const VALID_AREAS = new Set([
   'ci',
   'docs',
 ])
+
+const MAX_GITHUB_TITLE_LENGTH = 256
+
+export class StoryContextValidationError extends Error {
+  constructor(message, options) {
+    super(message, options)
+    this.name = 'StoryContextValidationError'
+  }
+}
+
+export function formatTaskId(storyPart, taskPart) {
+  const storyNum = String(parseInt(storyPart, 10)).padStart(2, '0')
+  const taskNum = String(parseInt(taskPart, 10))
+  return `TSK-${storyNum}.${taskNum}`
+}
 
 const TEAM_ALIASES = new Map([
   ['adrian', 'dreeyanzz'],
@@ -167,11 +182,16 @@ export function splitMarkdownTableRow(line) {
 }
 
 function isSeparatorRow(cells) {
-  return cells.length > 0 && cells.every((c) => /^:?-{2,}:?$/.test(c))
+  return cells.length > 0 && cells.every((c) => /^:?-+:?$/.test(c))
 }
 
 function stripInlineFormatting(text) {
-  return text.replace(/^[*`\s]+|[*`\s]+$/g, '').trim()
+  let result = (text ?? '').trim()
+  const linkMatch = result.match(/^\[([^\]]+)\]\([^)]+\)$/)
+  if (linkMatch) {
+    result = linkMatch[1].trim()
+  }
+  return result.replace(/^[*_`~\s]+|[*_`~\s]+$/g, '').trim()
 }
 
 export function resolveAssignee(rawOwner, taskId = 'task') {
@@ -235,10 +255,10 @@ function parseCompletionCriteria(s5Text) {
 
     if (!trimmed.startsWith('|')) {
       const headingMatch = trimmed.match(
-        /^(?:#{3,4}\s+|\*\*)?(TSK-\d+\.\d+)\b[^|\n]*?(?:is\s+)?done\s+when[:*\s]*$/i,
+        /^(?:[-*]\s+|#{3,6}\s+)?[*`_]*TSK-(\d+)\.(\d+)[*`_]*\b[^|\n]*?(?:is\s+)?done\s+when[:*`_\s]*$/i,
       )
       if (headingMatch) {
-        currentTaskId = headingMatch[1].toUpperCase()
+        currentTaskId = formatTaskId(headingMatch[1], headingMatch[2])
         sawBulletForCurrent = false
         if (!criteria.has(currentTaskId)) {
           criteria.set(currentTaskId, [])
@@ -308,6 +328,94 @@ function parseMarkdownTables(sectionText) {
   return tables
 }
 
+function resolveSection5Columns(headers) {
+  const lowerHeaders = headers.map((h) => stripInlineFormatting(h).toLowerCase())
+  const claimed = new Set()
+
+  const claimHeader = (predicate) => {
+    const idx = lowerHeaders.findIndex((h, i) => !claimed.has(i) && predicate(h))
+    if (idx !== -1) {
+      claimed.add(idx)
+    }
+    return idx
+  }
+
+  const matched = {
+    task: claimHeader((h) => h === 'task' || h === 'id' || h === 'task id'),
+    what: claimHeader(
+      (h) =>
+        h === 'what' || h === 'description' || h === 'summary' || h === 'deliverable',
+    ),
+    owner: claimHeader((h) => h === 'owner' || h === 'assignee' || h === 'who'),
+    points: claimHeader((h) => h.includes('point') || h === 'pts' || h === 'sp'),
+    days: claimHeader((h) => h.includes('day') || h.startsWith('estimate')),
+    dependsOn: claimHeader(
+      (h) => h.startsWith('depend') || h === 'blocked by' || h === 'waits for',
+    ),
+    area: claimHeader((h) => h === 'area' || h === 'domain'),
+    moscow: claimHeader((h) => h === 'moscow' || h === 'priority'),
+  }
+
+  const fallbackIfUnclaimed = (idx, fallback, label) => {
+    if (idx !== -1) return idx
+    if (fallback < lowerHeaders.length && !claimed.has(fallback)) {
+      claimed.add(fallback)
+      return fallback
+    }
+    throw new Error(`Could not find required "${label}" column in Section 5 task table.`)
+  }
+
+  return {
+    task: fallbackIfUnclaimed(matched.task, 0, 'Task'),
+    what: fallbackIfUnclaimed(matched.what, 1, 'What'),
+    owner: fallbackIfUnclaimed(matched.owner, 2, 'Owner'),
+    points: fallbackIfUnclaimed(matched.points, 3, 'Points'),
+    days: fallbackIfUnclaimed(matched.days, 4, 'Days'),
+    // Optional columns never fall back to hardcoded positions so omitting
+    // "Depends on" never collides with "Area", "MoSCoW", or custom columns.
+    dependsOn: matched.dependsOn,
+    area: matched.area,
+    moscow: matched.moscow,
+  }
+}
+
+function resolveSection6Columns(headers) {
+  const lowerHeaders = headers.map((h) => stripInlineFormatting(h).toLowerCase())
+  const claimed = new Set()
+
+  const claimHeader = (predicate) => {
+    const idx = lowerHeaders.findIndex((h, i) => !claimed.has(i) && predicate(h))
+    if (idx !== -1) {
+      claimed.add(idx)
+    }
+    return idx
+  }
+
+  const branch = claimHeader((h) => h.includes('branch'))
+  const step = claimHeader(
+    (h) =>
+      h === '#' ||
+      h === 'no' ||
+      h === 'no.' ||
+      h === 'pr' ||
+      h === 'step' ||
+      h === 'order',
+  )
+  const prTitle = claimHeader((h) => h.includes('title') || h === 'commit')
+  const scopeCol = claimHeader(
+    (h) =>
+      h.includes('contain') ||
+      h.includes('scope') ||
+      h.includes('deliver') ||
+      h.includes('files') ||
+      h.includes('notes') ||
+      h === 'what',
+  )
+  const contains = scopeCol !== -1 ? scopeCol : claimHeader((h) => h.includes('task'))
+
+  return { step, branch, prTitle, contains }
+}
+
 export function parseDesignMarkdown(rawContent) {
   if (typeof rawContent !== 'string' || rawContent.trim().length === 0) {
     throw new Error('Design document is empty.')
@@ -321,17 +429,23 @@ export function parseDesignMarkdown(rawContent) {
       'Could not find a concrete "# STORY-NN: <title>" heading in design document.',
     )
   }
-  const storyCode = storyHeadingMatch[1].toUpperCase()
   const storyNumDigits = parseInt(storyHeadingMatch[2], 10)
+  const storyCode = `STORY-${String(storyNumDigits).padStart(2, '0')}`
   const storyTitle = (storyHeadingMatch[3] ?? '').trim()
 
-  const storyIssueMatch = content.match(/\*\*Story:\*\*\s*(?:\[\s*)?#(\d+)\b/)
-  if (!storyIssueMatch || parseInt(storyIssueMatch[1], 10) <= 0) {
+  const firstH2Idx = content.search(/\n##\s+/)
+  const headerBlock = firstH2Idx !== -1 ? content.slice(0, firstH2Idx) : content
+  const storyIssuePattern =
+    /\*\*Story(?:\s+issue)?(?::\*\*|\*\*:)\s*(?:\[[^\]]*?#(\d+)\b[^\]]*\]|#(\d+)\b)/i
+  const storyIssueMatch =
+    headerBlock.match(storyIssuePattern) ?? content.match(storyIssuePattern)
+  const rawStoryNumber = storyIssueMatch?.[1] ?? storyIssueMatch?.[2] ?? ''
+  if (!rawStoryNumber || parseInt(rawStoryNumber, 10) <= 0) {
     throw new Error('Could not find "**Story:** #<number>" in design document header.')
   }
-  const storyNumber = storyIssueMatch[1]
+  const storyNumber = rawStoryNumber
 
-  const s5Match = content.match(/(?:^|\n)## 5\.[^\n]*\n([\s\S]*?)(?=\n## \d+\.|$)/)
+  const s5Match = content.match(/(?:^|\n)##\s+5\.?[^\n]*\n([\s\S]*?)(?=\n##\s+(?!#)|$)/)
   if (!s5Match) {
     throw new Error(
       'Could not find Section 5 ("## 5. Tasks and estimates") in design document.',
@@ -341,30 +455,16 @@ export function parseDesignMarkdown(rawContent) {
 
   const s5Tables = parseMarkdownTables(s5Text)
   const taskTable = s5Tables.find((t) =>
-    t.headers.some((h) => stripInlineFormatting(h).toLowerCase() === 'task'),
+    t.headers.some((h) => {
+      const cleaned = stripInlineFormatting(h).toLowerCase()
+      return cleaned === 'task' || cleaned === 'task id' || cleaned === 'id'
+    }),
   )
   if (!taskTable) {
     throw new Error('Could not find a task table in Section 5.')
   }
 
-  const lowerHeaders = taskTable.headers.map((h) =>
-    stripInlineFormatting(h).toLowerCase(),
-  )
-  const findCol = (predicate, fallback) => {
-    const idx = lowerHeaders.findIndex(predicate)
-    return idx !== -1 ? idx : fallback
-  }
-
-  const colIdx = {
-    task: findCol((h) => h === 'task', 0),
-    what: findCol((h) => h === 'what', 1),
-    owner: findCol((h) => h === 'owner' || h === 'assignee', 2),
-    points: findCol((h) => h.startsWith('points'), 3),
-    days: findCol((h) => h.startsWith('days') || h.startsWith('estimate'), 4),
-    dependsOn: findCol((h) => h.startsWith('depends'), 5),
-    area: findCol((h) => h === 'area', -1),
-    moscow: findCol((h) => h === 'moscow', -1),
-  }
+  const colIdx = resolveSection5Columns(taskTable.headers)
 
   const seenTaskIds = new Set()
   const taskRows = []
@@ -378,8 +478,8 @@ export function parseDesignMarkdown(rawContent) {
       throw new Error(`Invalid task ID "${rawTask}" in Section 5 (expected TSK-NN.M).`)
     }
 
-    const taskId = `TSK-${idMatch[1]}.${idMatch[2]}`
     const taskStoryNum = parseInt(idMatch[1], 10)
+    const taskId = formatTaskId(idMatch[1], idMatch[2])
     if (taskStoryNum !== storyNumDigits) {
       throw new Error(
         `Task ID "${taskId}" in Section 5 does not match document story ${storyCode}.`,
@@ -420,7 +520,8 @@ export function parseDesignMarkdown(rawContent) {
       throw new Error(`Task ${taskId} day estimate ${daysRaw} must be greater than 0.`)
     }
 
-    const rawDepends = (cols[colIdx.dependsOn] ?? '').trim()
+    const rawDepends =
+      colIdx.dependsOn !== -1 ? (cols[colIdx.dependsOn] ?? '').trim() : ''
     const dependsOn = NO_DEPENDENCY_VALUES.has(
       stripInlineFormatting(rawDepends).toLowerCase(),
     )
@@ -451,7 +552,7 @@ export function parseDesignMarkdown(rawContent) {
 
   const completionCriteria = parseCompletionCriteria(s5Text)
 
-  const s6Match = content.match(/(?:^|\n)## 6\.[^\n]*\n([\s\S]*?)(?=\n## \d+\.|$)/)
+  const s6Match = content.match(/(?:^|\n)##\s+6\.?[^\n]*\n([\s\S]*?)(?=\n##\s+(?!#)|$)/)
   const buildOrderRows = []
   if (s6Match) {
     const s6Tables = parseMarkdownTables(s6Match[1])
@@ -459,16 +560,22 @@ export function parseDesignMarkdown(rawContent) {
       t.headers.some((h) => stripInlineFormatting(h).toLowerCase().includes('branch')),
     )
     if (buildTable) {
+      const s6Col = resolveSection6Columns(buildTable.headers)
       for (const cols of buildTable.rows) {
-        if (cols.length < 3) continue
-        const step = stripInlineFormatting(cols[0] ?? '')
-        const branch = stripInlineFormatting(cols[1] ?? '')
-        const prTitle = stripInlineFormatting(cols[2] ?? '')
-        const contains = (cols[3] ?? '').trim()
+        if (s6Col.branch === -1) continue
+        const branch = stripInlineFormatting(cols[s6Col.branch] ?? '')
+        if (!branch) continue
+        const step =
+          s6Col.step !== -1 ? stripInlineFormatting(cols[s6Col.step] ?? '') : ''
+        const prTitle =
+          s6Col.prTitle !== -1 ? stripInlineFormatting(cols[s6Col.prTitle] ?? '') : ''
+        const contains = s6Col.contains !== -1 ? (cols[s6Col.contains] ?? '').trim() : ''
         const rowJoin = cols.join(' ')
         const mentionedTaskIds = Array.from(
           new Set(
-            (rowJoin.match(/\bTSK-\d+\.\d+\b/gi) ?? []).map((id) => id.toUpperCase()),
+            Array.from(rowJoin.matchAll(/\bTSK-(\d+)\.(\d+)\b/gi), (m) =>
+              formatTaskId(m[1], m[2]),
+            ),
           ),
         )
         buildOrderRows.push({
@@ -525,16 +632,18 @@ export function inferTaskArea(task, buildInfo, defaultArea) {
     .join(' ')
     .toLowerCase()
 
-  // Check if the task specifically owns SQL, migrations, RLS, pgTAP or db:types.
-  // Note: Server Action tasks often say "calling set_unit_state", so only treat
-  // `public.<fn>` or schema artifacts as `db` when not a Server Action / UI task,
-  // or when pgTAP / migration / RLS / db:types is explicitly part of the task.
+  // Check if the task specifically owns SQL, migrations, RLS policies, pgTAP or db:types.
+  // Server Action and lib/data/ tasks often mention "calling public.set_unit_state" or
+  // "RLS decides / RLS hides unverified rows" without owning migrations or policies.
+  const isAppLayerConsumer = /\b(?:server actions?|lib\/data\/)\b/.test(combined)
   if (
-    /\b(?:pgtap|db:types|db:test|migration|migrations|row-level security|rls)\b/.test(
+    /\b(?:pgtap|db:types|db:test|migration|migrations|row-level security)\b/.test(
       combined,
     ) ||
+    /\brls\s+polic(?:y|ies)\b/.test(combined) ||
     /\bsupabase\/(?:migrations|tests)\b/.test(combined) ||
-    (/\bpublic\.[a-z_]+\b/.test(combined) && !/\bserver action\b/.test(combined))
+    /\b\d{2}-[a-z0-9-]+\.sql\b/.test(combined) ||
+    (/\b(?:rls|public\.[a-z_]+)\b/.test(combined) && !isAppLayerConsumer)
   ) {
     return 'db'
   }
@@ -557,6 +666,19 @@ function ensurePeriod(sentence) {
   return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`
 }
 
+function capIssueTitle(taskId, summary) {
+  const prefix = `${taskId}: `
+  const full = `${prefix}${summary}`
+  if (full.length <= MAX_GITHUB_TITLE_LENGTH) {
+    return full
+  }
+  const maxSummaryLen = MAX_GITHUB_TITLE_LENGTH - prefix.length - 1
+  const sliced = summary.slice(0, maxSummaryLen)
+  const lastSpace = sliced.lastIndexOf(' ')
+  const cleanSlice = (lastSpace > 40 ? sliced.slice(0, lastSpace) : sliced).trimEnd()
+  return `${prefix}${cleanSlice}…`
+}
+
 function buildDefaultDoneWhen(task, buildInfo, area, storyCode, designFileName) {
   const items = [task.what.replace(/\.$/, '').trim()]
 
@@ -576,7 +698,7 @@ function buildDefaultDoneWhen(task, buildInfo, area, storyCode, designFileName) 
   items.push(`Tests and checks in ${docRef} pass, including \`npm run check\``)
 
   const lowerWhat = task.what.toLowerCase()
-  if (area === 'db' || /\b(?:pgtap|db:test|rls|migration)\b/.test(lowerWhat)) {
+  if (area === 'db' || /\b(?:pgtap|db:test|migration)\b/.test(lowerWhat)) {
     items.push('`npm run db:test` passes (including negative tests)')
   }
   if (/\bdb:types\b/.test(lowerWhat)) {
@@ -630,7 +752,7 @@ export function deriveTasks(parsedDoc, options = {}) {
       }
     }
 
-    const title = `${task.taskId}: ${summary}`
+    const title = capIssueTitle(task.taskId, summary)
     const area = inferTaskArea(task, buildInfo, defaultArea)
 
     let moscowKey = task.explicitMoscow ?? defaultMoscow
@@ -704,8 +826,8 @@ ${area}
 
 export function extractLeadingTaskId(issueTitle) {
   if (typeof issueTitle !== 'string') return null
-  const match = issueTitle.trim().match(/^(TSK-\d+\.\d+)(?=$|[:\s—–-])/i)
-  return match ? match[1].toUpperCase() : null
+  const match = issueTitle.trim().match(/^TSK-(\d+)\.(\d+)(?=$|[:\s—–-])/i)
+  return match ? formatTaskId(match[1], match[2]) : null
 }
 
 function defaultRunGh(args, options = {}) {
@@ -733,10 +855,24 @@ function defaultRunGh(args, options = {}) {
   }
 }
 
-function defaultIsMergedOnMain(filePath) {
-  const canonicalPath = existsSync(filePath)
-    ? realpathSync.native(filePath)
-    : resolve(filePath)
+function gitRefExists(cwd, ref) {
+  try {
+    execFileSync('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], {
+      cwd,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
+export function defaultIsMergedOnMain(filePath) {
+  if (!existsSync(filePath)) {
+    return false
+  }
+
+  const canonicalPath = realpathSync.native(filePath)
   const cwd = dirname(canonicalPath)
 
   let repoRoot
@@ -758,19 +894,29 @@ function defaultIsMergedOnMain(filePath) {
     return false
   }
 
-  for (const ref of ['origin/main', 'main']) {
-    try {
-      execFileSync('git', ['cat-file', '-e', `${ref}:${relPath}`], {
-        cwd: canonicalRoot,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      })
-      return true
-    } catch {
-      // Try next ref.
-    }
+  // Prefer origin/main whenever it exists so an accidental unpushed commit on
+  // local main cannot bypass D-016; fall back to local main only in clones or
+  // test repositories that have no origin/main tracking ref.
+  let targetRef = null
+  if (gitRefExists(canonicalRoot, 'origin/main')) {
+    targetRef = 'origin/main'
+  } else if (gitRefExists(canonicalRoot, 'main')) {
+    targetRef = 'main'
+  } else {
+    return false
   }
 
-  return false
+  try {
+    const mergedContent = execFileSync('git', ['show', `${targetRef}:${relPath}`], {
+      cwd: canonicalRoot,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+    const localContent = readFileSync(canonicalPath, 'utf-8')
+    return mergedContent.replace(/\r\n/g, '\n') === localContent.replace(/\r\n/g, '\n')
+  } catch {
+    return false
+  }
 }
 
 export function resolveSprintIterationId(storyProjectItem, milestoneTitle) {
@@ -786,7 +932,7 @@ export function resolveSprintIterationId(storyProjectItem, milestoneTitle) {
       }
     }
   }
-  return SPRINT_ITERATIONS[2]
+  return null
 }
 
 export function selectDefaultAreaFromLabels(labelNames, storyTitle = '') {
@@ -804,8 +950,48 @@ export function selectDefaultAreaFromLabels(labelNames, storyTitle = '') {
   return areas.find((a) => a !== 'db' && a !== 'ci') ?? areas[0]
 }
 
+function isMatchingRepoIssueItem(item, repo) {
+  if (typeof item?.content?.number !== 'number') return false
+  if (item.content.type && item.content.type !== 'Issue') return false
+  if (item.content.repository && item.content.repository !== repo) return false
+  return true
+}
+
+function validateStoryIssueJson(storyJson, { storyNumber, storyCode, repo }) {
+  if (storyJson?.pull_request) {
+    throw new StoryContextValidationError(
+      `#${storyNumber} in ${repo} is a pull request, not a story issue. Check "**Story:** #..." in the design document header.`,
+    )
+  }
+
+  const docStoryDigits = storyCode.match(/\d+/)
+  const expectedStoryNum = docStoryDigits ? parseInt(docStoryDigits[0], 10) : NaN
+  const issueTitle = String(storyJson?.title ?? '')
+  const issueStoryMatch = issueTitle.match(/\bSTORY-(\d+)\b/i)
+
+  if (!issueStoryMatch || parseInt(issueStoryMatch[1], 10) !== expectedStoryNum) {
+    throw new StoryContextValidationError(
+      `Design document is for ${storyCode}, but GitHub issue #${storyNumber} is "${issueTitle}". Check "**Story:** #..." in the design document header.`,
+    )
+  }
+}
+
 function fetchStoryContext({ storyNumber, storyCode, repo, runGh }) {
-  const storyJson = JSON.parse(runGh(['api', `repos/${repo}/issues/${storyNumber}`]))
+  let storyJson
+  try {
+    storyJson = JSON.parse(runGh(['api', `repos/${repo}/issues/${storyNumber}`]))
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (/\b404\b|Not Found/i.test(msg)) {
+      throw new StoryContextValidationError(
+        `Story issue #${storyNumber} was not found in ${repo}. Check "**Story:** #..." in the design document header.`,
+        { cause: err },
+      )
+    }
+    throw err
+  }
+
+  validateStoryIssueJson(storyJson, { storyNumber, storyCode, repo })
 
   const labelNames = Array.isArray(storyJson.labels)
     ? storyJson.labels.map((l) => (typeof l === 'string' ? l : l?.name)).filter(Boolean)
@@ -819,7 +1005,7 @@ function fetchStoryContext({ storyNumber, storyCode, repo, runGh }) {
     rawMoscowKey && Object.hasOwn(MOSCOW_CONFIG, rawMoscowKey) ? rawMoscowKey : null
 
   const hasNeedsDesign = labelNames.includes('needs-design')
-  const milestoneTitle = storyJson.milestone?.title ?? DEFAULT_MILESTONE
+  const milestoneTitle = storyJson.milestone?.title ?? null
 
   const subIssuesJson = JSON.parse(
     runGh(['api', `repos/${repo}/issues/${storyNumber}/sub_issues?per_page=100`]),
@@ -837,7 +1023,7 @@ function fetchStoryContext({ storyNumber, storyCode, repo, runGh }) {
         number: sub.number,
         id: sub.id ?? null,
         url: sub.html_url ?? `https://github.com/${repo}/issues/${sub.number}`,
-        state: sub.state ?? 'open',
+        state: String(sub.state ?? 'open').toLowerCase(),
         attached: true,
       })
     }
@@ -868,16 +1054,17 @@ function fetchStoryContext({ storyNumber, storyCode, repo, runGh }) {
     if (typeof issue?.number !== 'number') continue
     const taskId = extractLeadingTaskId(issue.title)
     if (!taskId) continue
+    const normalizedIssueState = String(issue.state ?? 'open').toLowerCase()
     const existing = existingIssuesByTaskId.get(taskId)
     if (existing?.attached) continue
-    if (existing && existing.state === 'open' && issue.state !== 'open') {
+    if (existing && existing.state === 'open' && normalizedIssueState !== 'open') {
       continue
     }
     existingIssuesByTaskId.set(taskId, {
       number: issue.number,
       id: null,
       url: issue.url ?? `https://github.com/${repo}/issues/${issue.number}`,
-      state: issue.state ?? 'open',
+      state: normalizedIssueState,
       attached: attachedSubIssueNumbers.has(issue.number),
     })
   }
@@ -898,14 +1085,14 @@ function fetchStoryContext({ storyNumber, storyCode, repo, runGh }) {
 
   const projectItemsByIssueNumber = new Map()
   for (const item of Array.isArray(projectListJson?.items) ? projectListJson.items : []) {
-    const num = item?.content?.number
-    if (typeof num === 'number') {
-      projectItemsByIssueNumber.set(num, item)
+    if (isMatchingRepoIssueItem(item, repo)) {
+      projectItemsByIssueNumber.set(item.content.number, item)
     }
   }
 
   const storyProjectItem =
     projectItemsByIssueNumber.get(parseInt(storyNumber, 10)) ?? null
+  const storyBoardStatus = storyProjectItem?.status ?? null
   const sprintIterationId = resolveSprintIterationId(storyProjectItem, milestoneTitle)
 
   return {
@@ -913,6 +1100,7 @@ function fetchStoryContext({ storyNumber, storyCode, repo, runGh }) {
     defaultMoscow,
     hasNeedsDesign,
     milestoneTitle,
+    storyBoardStatus,
     sprintIterationId,
     attachedSubIssueNumbers,
     existingIssuesByTaskId,
@@ -934,13 +1122,14 @@ export function syncStoryTasks(filePath, options = {}) {
     throw new Error(`Design document not found: ${resolvedPath}`)
   }
 
-  const rawContent = readFileSync(resolvedPath, 'utf-8')
+  const canonicalFilePath = realpathSync.native(resolvedPath)
+  const rawContent = readFileSync(canonicalFilePath, 'utf-8')
   const parsed = parseDesignMarkdown(rawContent)
-  const designFileName = basename(resolvedPath)
+  const designFileName = basename(canonicalFilePath)
 
-  if (!isDryRun && !isMergedOnMain(resolvedPath)) {
+  if (!isDryRun && !isMergedOnMain(canonicalFilePath)) {
     throw new Error(
-      `Refusing to create GitHub issues because "${designFileName}" is not merged on main yet (D-016). Merge the design PR and run "git pull" first, or pass --dry-run to preview.`,
+      `Refusing to create GitHub issues because "${designFileName}" is not merged on main yet (D-016), or has unmerged local edits. Merge the design PR and run "git pull" first, or pass --dry-run to preview.`,
     )
   }
 
@@ -953,7 +1142,10 @@ export function syncStoryTasks(filePath, options = {}) {
         repo,
         runGh,
       })
-    } catch {
+    } catch (err) {
+      if (err instanceof StoryContextValidationError) {
+        throw err
+      }
       logger.log(
         `(Offline preview: could not query GitHub for #${parsed.storyNumber}; using document defaults.)`,
       )
@@ -967,17 +1159,32 @@ export function syncStoryTasks(filePath, options = {}) {
     })
   }
 
+  const anyRowMentionsTaskId = parsed.buildOrderRows.some(
+    (r) => r.mentionedTaskIds.length > 0,
+  )
+  if (
+    parsed.buildOrderRows.length > 0 &&
+    !anyRowMentionsTaskId &&
+    parsed.buildOrderRows.length !== parsed.tasks.length
+  ) {
+    const warn = typeof logger.warn === 'function' ? logger.warn.bind(logger) : logger.log
+    warn(
+      `Warning: Section 6 has ${parsed.buildOrderRows.length} build-order rows without explicit TSK IDs while Section 5 has ${parsed.tasks.length} tasks; omitting branch annotations to avoid positional mismatch.`,
+    )
+  }
+
   const tasksWithDetails = deriveTasks(parsed, {
     defaultArea: context?.defaultArea ?? undefined,
     defaultMoscow: context?.defaultMoscow ?? undefined,
     designFileName,
   })
 
-  const milestoneTitle = context?.milestoneTitle ?? DEFAULT_MILESTONE
-  const sprintIterationId = context?.sprintIterationId ?? SPRINT_ITERATIONS[2]
+  const milestoneTitle = context?.milestoneTitle ?? null
+  const sprintIterationId = context?.sprintIterationId ?? null
+  const storyInProductBacklog = context?.storyBoardStatus === 'Product Backlog'
 
   logger.log(
-    `Story: ${parsed.storyCode} (#${parsed.storyNumber}) — ${tasksWithDetails.length} tasks in §5 (Milestone: ${milestoneTitle})`,
+    `Story: ${parsed.storyCode} (#${parsed.storyNumber}) — ${tasksWithDetails.length} tasks in §5 (Milestone: ${milestoneTitle ?? 'none'})`,
   )
 
   if (isDryRun) {
@@ -1013,6 +1220,7 @@ export function syncStoryTasks(filePath, options = {}) {
   for (const t of tasksWithDetails) {
     logger.log(`\n------------------------------------------------------------`)
     const existing = context.existingIssuesByTaskId.get(t.taskId)
+    const taskState = existing?.state ?? 'open'
     let issueNum
     let issueUrl
     let issueDatabaseId = existing?.id ?? null
@@ -1107,7 +1315,7 @@ export function syncStoryTasks(filePath, options = {}) {
           'json',
         ])
         const found = (JSON.parse(listResult).items ?? []).find(
-          (i) => i?.content?.number === issueNum,
+          (i) => isMatchingRepoIssueItem(i, repo) && i.content.number === issueNum,
         )
         if (!found) {
           throw new Error(
@@ -1119,20 +1327,40 @@ export function syncStoryTasks(filePath, options = {}) {
       }
     }
 
-    // Preserve Status if the card has already moved past Product Backlog.
-    if (!existingCard?.status || existingCard.status === 'Product Backlog') {
-      runGh([
-        'project',
-        'item-edit',
-        '--project-id',
-        PROJECT_ID,
-        '--id',
-        itemId,
-        '--field-id',
-        FIELD_STATUS,
-        '--single-select-option-id',
-        OPTION_STATUS_SPRINT_BACKLOG,
-      ])
+    // Preserve Status for closed tasks and cards already past Product Backlog.
+    // If the parent story itself is in Product Backlog (scheduled for a future
+    // sprint, e.g. Sprint 3 stories during Sprint 2), keep new tasks in Product
+    // Backlog rather than pushing them into the active Sprint Backlog column.
+    if (taskState !== 'closed') {
+      if (storyInProductBacklog) {
+        if (!existingCard?.status) {
+          runGh([
+            'project',
+            'item-edit',
+            '--project-id',
+            PROJECT_ID,
+            '--id',
+            itemId,
+            '--field-id',
+            FIELD_STATUS,
+            '--single-select-option-id',
+            OPTION_STATUS_PRODUCT_BACKLOG,
+          ])
+        }
+      } else if (!existingCard?.status || existingCard.status === 'Product Backlog') {
+        runGh([
+          'project',
+          'item-edit',
+          '--project-id',
+          PROJECT_ID,
+          '--id',
+          itemId,
+          '--field-id',
+          FIELD_STATUS,
+          '--single-select-option-id',
+          OPTION_STATUS_SPRINT_BACKLOG,
+        ])
+      }
     }
 
     if (existingCard?.points !== t.points) {
@@ -1180,7 +1408,7 @@ export function syncStoryTasks(filePath, options = {}) {
       ])
     }
 
-    if (existingCard?.sprint?.iterationId !== sprintIterationId) {
+    if (sprintIterationId && existingCard?.sprint?.iterationId !== sprintIterationId) {
       runGh([
         'project',
         'item-edit',
@@ -1236,10 +1464,18 @@ function main() {
   syncStoryTasks(fileArg, { isDryRun })
 }
 
-const isMain =
-  Boolean(process.argv[1]) && resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+function isExecutedDirectly() {
+  if (!process.argv[1]) return false
+  const selfPath = fileURLToPath(import.meta.url)
+  const argPath = resolve(process.argv[1])
+  if (argPath === selfPath) return true
+  if (existsSync(argPath) && existsSync(selfPath)) {
+    return realpathSync.native(argPath) === realpathSync.native(selfPath)
+  }
+  return false
+}
 
-if (isMain) {
+if (isExecutedDirectly()) {
   try {
     main()
   } catch (err) {

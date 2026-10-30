@@ -1,9 +1,11 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  defaultIsMergedOnMain,
   deriveTasks,
   extractLeadingTaskId,
   FIELD_ESTIMATE,
@@ -11,7 +13,9 @@ import {
   FIELD_POINTS,
   FIELD_SPRINT,
   FIELD_STATUS,
+  inferTaskArea,
   MOSCOW_CONFIG,
+  OPTION_STATUS_PRODUCT_BACKLOG,
   OPTION_STATUS_SPRINT_BACKLOG,
   parseCliArgs,
   parseDesignMarkdown,
@@ -20,6 +24,7 @@ import {
   selectDefaultAreaFromLabels,
   SPRINT_ITERATIONS,
   splitMarkdownTableRow,
+  StoryContextValidationError,
   syncStoryTasks,
 } from './create-story-tasks.mjs'
 
@@ -348,13 +353,105 @@ ${row}
     expect(tasks[0].buildInfo?.branch).toBe('feature/STORY-08-filters')
     expect(tasks[1].buildInfo?.branch).toBe('feature/STORY-08-filters')
   })
+
+  it('handles 1-hyphen GFM separators, alternate §5/§6 column layouts, omitted Depends on, non-padded TSK IDs, and unnumbered H2s', () => {
+    const doc = `# STORY-8: Map discovery
+**Story**: #57
+## 5. Tasks and estimates
+| ID | Summary | Assignee | Story points | Working days | Area |
+| - | :- | -: | :-: | - | - |
+| TSK-8.1 | Add \`04-space-tags.sql\` pgTAP tests | [@dreeyanzz](https://github.com/dreeyanzz) | 2 | 0.5 | db |
+| TSK-8.2 | Add discovery query helper in \`lib/data/discovery.ts\` (RLS hides unverified rows) | Maria | 3 | 1 |  |
+
+- \`TSK-8.1\` is done when:
+  - \`npm run db:test\` passes with negative tests
+
+## 6. Build order
+| # | Task | Branch | PR title | Scope |
+| - | - | - | - | - |
+| 1 | TSK-8.1 | \`feature/STORY-08-tags-test\` | \`test(STORY-08): add space tags pgtap tests\` | \`supabase/tests/04-space-tags.sql\` |
+| 2 | TSK-8.2 | \`feature/STORY-08-discovery-query\` | \`feat(STORY-08): add discovery query helper\` | \`lib/data/discovery.ts\` |
+
+## Appendix
+Extra notes outside Section 6 with a table:
+| Branch | Notes |
+| - | - |
+| \`feature/ignored\` | Should not be parsed as Section 6 |
+`
+    const parsed = parseDesignMarkdown(doc)
+    expect(parsed.storyCode).toBe('STORY-08')
+    expect(parsed.storyNumber).toBe('57')
+    expect(parsed.buildOrderRows).toHaveLength(2)
+
+    const tasks = deriveTasks(parsed, { defaultArea: 'seeker' })
+    expect(tasks).toHaveLength(2)
+    expect(tasks[0].taskId).toBe('TSK-08.1')
+    expect(tasks[0].owner).toBe('dreeyanzz')
+    expect(tasks[0].area).toBe('db')
+    expect(tasks[0].dependsOn).toBeNull()
+    expect(tasks[0].body).toContain('No dependencies.')
+    expect(tasks[0].body).not.toContain('Depends on db')
+    expect(tasks[0].body).toContain('- [ ] `npm run db:test` passes with negative tests')
+
+    // TSK-08.2 mentions RLS in passing inside a lib/data/ helper, so it stays seeker.
+    expect(tasks[1].taskId).toBe('TSK-08.2')
+    expect(tasks[1].area).toBe('seeker')
+    expect(tasks[1].body).toContain(
+      'Branch `feature/STORY-08-discovery-query` (design §6, row 2).',
+    )
+    expect(tasks[1].body).toContain('Scope matches design §6 (`lib/data/discovery.ts`)')
+  })
+
+  it('supports 3-column §6 tables without a step number column and caps >256-char issue titles', () => {
+    const longWhat = `Implement ${'comprehensive seat map discovery filter state synchronization '.repeat(6)}end-to-end`
+    const doc = `# STORY-08: Map discovery
+**Story:** #57
+## 5. Tasks and estimates
+| Task | What | Owner | Points | Days |
+| --- | --- | --- | --- | --- |
+| TSK-08.1 | ${longWhat} | @fayeye-09 | 3 | 1 |
+## 6. Build order
+| Branch | PR title | Contains |
+| --- | --- | --- |
+| \`feature/STORY-08-sync\` |  | \`components/discovery/\` |
+`
+    const [task] = deriveTasks(parseDesignMarkdown(doc))
+    expect(task.title.length).toBeLessThanOrEqual(256)
+    expect(task.title.endsWith('…')).toBe(true)
+    expect(task.body).toContain('Branch `feature/STORY-08-sync` (design §6).')
+  })
 })
 
 describe('helper functions for GitHub matching and board metadata', () => {
-  it('distinguishes TSK-12.1 from TSK-12.10 in issue titles', () => {
+  it('distinguishes TSK-12.1 from TSK-12.10 and normalizes non-padded TSK-8.1 in issue titles', () => {
     expect(extractLeadingTaskId('TSK-12.1: add function')).toBe('TSK-12.1')
     expect(extractLeadingTaskId('TSK-12.10: add extra test')).toBe('TSK-12.10')
+    expect(extractLeadingTaskId('TSK-8.1: add map shell')).toBe('TSK-08.1')
     expect(extractLeadingTaskId('STORY-12: Host occupancy')).toBeNull()
+  })
+
+  it('keeps Server Action and lib/data/ tasks in their domain area when they mention RLS in passing', () => {
+    expect(
+      inferTaskArea(
+        {
+          what: 'Add verifySpaceAction and hideReviewAction Server Actions; RLS decides who may update',
+          explicitArea: null,
+        },
+        null,
+        'admin',
+      ),
+    ).toBe('admin')
+
+    expect(
+      inferTaskArea(
+        {
+          what: 'Add `04-space-photos.sql` negative policy test suite',
+          explicitArea: null,
+        },
+        null,
+        'host',
+      ),
+    ).toBe('db')
   })
 
   it('prefers domain area over cross-cutting db/ci when a story has multiple area labels', () => {
@@ -368,7 +465,7 @@ describe('helper functions for GitHub matching and board metadata', () => {
     expect(selectDefaultAreaFromLabels(['type:story'])).toBeNull()
   })
 
-  it('resolves Sprint iteration ID from Project 4 card or milestone title', () => {
+  it('resolves Sprint iteration ID from Project 4 card or milestone title, or null when unset', () => {
     expect(
       resolveSprintIterationId(
         { sprint: { iterationId: 'custom-id' } },
@@ -379,7 +476,66 @@ describe('helper functions for GitHub matching and board metadata', () => {
     expect(resolveSprintIterationId(null, 'Sprint 1 (Midterm)')).toBe(
       SPRINT_ITERATIONS[1],
     )
-    expect(resolveSprintIterationId(null, null)).toBe(SPRINT_ITERATIONS[2])
+    expect(resolveSprintIterationId(null, null)).toBeNull()
+  })
+})
+
+describe('defaultIsMergedOnMain (D-016 design gate)', () => {
+  function initTempGitRepo() {
+    const repoDir = mkdtempSync(join(tmpdir(), 'studyhub-git-gate-'))
+    tempDirs.push(repoDir)
+    const runGit = (args) =>
+      execFileSync(
+        'git',
+        [
+          '-c',
+          'user.name=Test',
+          '-c',
+          'user.email=test@example.test',
+          '-c',
+          'commit.gpgsign=false',
+          ...args,
+        ],
+        { cwd: repoDir, stdio: ['pipe', 'pipe', 'pipe'] },
+      )
+    runGit(['init', '-b', 'main'])
+    return { repoDir, runGit }
+  }
+
+  it('verifies file content matches main and blocks unmerged local edits or unpushed local main commits when origin/main exists', () => {
+    const { repoDir, runGit } = initTempGitRepo()
+    const designDir = join(repoDir, 'docs', 'design')
+    mkdirSync(designDir, { recursive: true })
+
+    const readmePath = join(repoDir, 'README.md')
+    writeFileSync(readmePath, '# temp\n', 'utf-8')
+    runGit(['add', 'README.md'])
+    runGit(['commit', '-m', 'chore: initial commit'])
+
+    // Simulate origin/main pointing at initial commit (before the design doc lands).
+    runGit(['update-ref', 'refs/remotes/origin/main', 'HEAD'])
+
+    const docPath = join(designDir, 'STORY-08-map.md')
+    const approvedText = '# STORY-08: Map\n**Story:** #57\n'
+    writeFileSync(docPath, approvedText, 'utf-8')
+
+    // Untracked local file -> false.
+    expect(defaultIsMergedOnMain(docPath)).toBe(false)
+
+    // Committed only to local main while origin/main does not have it yet -> false!
+    runGit(['add', 'docs/design/STORY-08-map.md'])
+    runGit(['commit', '-m', 'docs: local unpushed commit on main'])
+    expect(defaultIsMergedOnMain(docPath)).toBe(false)
+
+    // Advance origin/main to include the merged design commit -> true (including CRLF working copy).
+    runGit(['update-ref', 'refs/remotes/origin/main', 'HEAD'])
+    expect(defaultIsMergedOnMain(docPath)).toBe(true)
+    writeFileSync(docPath, approvedText.replace(/\n/g, '\r\n'), 'utf-8')
+    expect(defaultIsMergedOnMain(docPath)).toBe(true)
+
+    // Unmerged local edit to an already-merged design doc -> false (D-016)!
+    writeFileSync(docPath, `${approvedText}\n| TSK-08.99 | Unapproved task |\n`, 'utf-8')
+    expect(defaultIsMergedOnMain(docPath)).toBe(false)
   })
 })
 
@@ -689,6 +845,294 @@ describe('syncStoryTasks orchestration', () => {
           a.includes(FIELD_MOSCOW),
       ),
     ).toBe(false)
+  })
+
+  it('handles uppercase OPEN/CLOSED states from gh issue list and never moves closed tasks back to Sprint Backlog', () => {
+    const filePath = writeTempMarkdown(sampleDoc, 'STORY-13-reviews.md')
+    const calls = []
+
+    const runGh = vi.fn((args) => {
+      calls.push(args)
+      const cmd = args.join(' ')
+
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/78') {
+        return JSON.stringify({
+          number: 78,
+          title: 'STORY-13: Community reviews and ratings',
+          labels: [
+            { name: 'type:story' },
+            { name: 'area:ui' },
+            { name: 'moscow:should' },
+          ],
+          milestone: { title: 'Sprint 3 (Final)' },
+        })
+      }
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/78/sub_issues?per_page=100') {
+        // TSK-13.2 (#202) is already attached and closed.
+        return JSON.stringify([
+          {
+            number: 202,
+            id: 900202,
+            title: 'TSK-13.2: add review form and rating summary',
+            state: 'closed',
+          },
+        ])
+      }
+      if (args[0] === 'issue' && args[1] === 'list') {
+        // Real `gh issue list --json state` outputs uppercase GraphQL enum values, newest first.
+        // Newer open #210 must NOT be overwritten by older closed duplicate #205!
+        return JSON.stringify([
+          {
+            number: 210,
+            title: 'TSK-13.1: add reviews table and rls policies',
+            url: 'https://github.com/dreeyanzz/studyhub/issues/210',
+            state: 'OPEN',
+          },
+          {
+            number: 205,
+            title: 'TSK-13.1: add reviews table and rls policies (closed duplicate)',
+            url: 'https://github.com/dreeyanzz/studyhub/issues/205',
+            state: 'CLOSED',
+          },
+        ])
+      }
+      if (args[0] === 'project' && args[1] === 'item-list') {
+        return JSON.stringify({
+          items: [
+            {
+              id: 'PVTI_story78',
+              content: { number: 78, type: 'Issue', repository: 'dreeyanzz/studyhub' },
+              status: 'Sprint 2 Backlog',
+              sprint: { iterationId: SPRINT_ITERATIONS[3] },
+            },
+            {
+              id: 'PVTI_other_repo_collision',
+              content: { number: 210, type: 'Issue', repository: 'dreeyanzz/other-repo' },
+              status: 'Done',
+            },
+            {
+              id: 'PVTI_task210',
+              content: { number: 210, type: 'Issue', repository: 'dreeyanzz/studyhub' },
+              status: 'Product Backlog',
+              points: 3,
+              'estimate (days)': 1,
+              moSCoW: 'Should',
+              sprint: { iterationId: SPRINT_ITERATIONS[3] },
+            },
+            {
+              id: 'PVTI_task202_closed',
+              content: { number: 202, type: 'Issue', repository: 'dreeyanzz/studyhub' },
+              status: 'Product Backlog',
+              points: 3,
+              'estimate (days)': 1,
+              moSCoW: 'Should',
+              sprint: { iterationId: SPRINT_ITERATIONS[3] },
+            },
+          ],
+        })
+      }
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/210 --jq .id') {
+        return '900210'
+      }
+      if (
+        cmd ===
+        'api -X POST repos/dreeyanzz/studyhub/issues/78/sub_issues -F sub_issue_id=900210'
+      ) {
+        return '{}'
+      }
+      if (args[0] === 'project' && args[1] === 'item-edit') {
+        return ''
+      }
+      throw new Error(`Unexpected gh command: ${cmd}`)
+    })
+
+    const result = syncStoryTasks(filePath, {
+      isDryRun: false,
+      isMergedOnMain: () => true,
+      runGh,
+      logger: silentLogger,
+    })
+
+    // Kept open #210 (not closed duplicate #205) and closed #202.
+    expect(result.reusedIssues).toEqual([210, 202])
+
+    // Only open #210 moved to Sprint Backlog; closed #202 was NOT moved back to Sprint Backlog.
+    const statusEdits = calls.filter(
+      (a) => a[0] === 'project' && a[1] === 'item-edit' && a.includes(FIELD_STATUS),
+    )
+    expect(statusEdits).toHaveLength(1)
+    expect(statusEdits[0]).toContain('PVTI_task210')
+  })
+
+  it('rejects PR numbers, mismatched story issues, and 404 story issues in both live and online --dry-run modes', () => {
+    const filePath = writeTempMarkdown(sampleDoc, 'STORY-13-reviews.md')
+
+    // 1. Story issue number actually points to a Pull Request.
+    const prRunGh = vi.fn(() =>
+      JSON.stringify({
+        number: 78,
+        title: 'STORY-13: Community reviews',
+        pull_request: { url: 'https://api.github.com/repos/dreeyanzz/studyhub/pulls/78' },
+      }),
+    )
+    expect(() =>
+      syncStoryTasks(filePath, {
+        isDryRun: true,
+        runGh: prRunGh,
+        logger: silentLogger,
+      }),
+    ).toThrow(StoryContextValidationError)
+    expect(() =>
+      syncStoryTasks(filePath, {
+        isDryRun: false,
+        isMergedOnMain: () => true,
+        runGh: prRunGh,
+        logger: silentLogger,
+      }),
+    ).toThrow(/is a pull request/)
+
+    // 2. Story issue belongs to a different STORY-NN (e.g. copy-paste typo).
+    const mismatchRunGh = vi.fn(() =>
+      JSON.stringify({
+        number: 78,
+        title: 'STORY-12: Host live seat map occupancy',
+        labels: [],
+      }),
+    )
+    expect(() =>
+      syncStoryTasks(filePath, {
+        isDryRun: true,
+        runGh: mismatchRunGh,
+        logger: silentLogger,
+      }),
+    ).toThrow(/Design document is for STORY-13, but GitHub issue #78 is "STORY-12/)
+
+    // 3. Story issue returns HTTP 404 Not Found (must NOT be swallowed as offline preview).
+    const notFoundRunGh = vi.fn(() => {
+      throw new Error('gh api failed: gh: Not Found (HTTP 404)')
+    })
+    expect(() =>
+      syncStoryTasks(filePath, {
+        isDryRun: true,
+        runGh: notFoundRunGh,
+        logger: silentLogger,
+      }),
+    ).toThrow(/Story issue #78 was not found/)
+  })
+
+  it('keeps future-sprint Product Backlog story tasks in Product Backlog and omits milestone and Sprint when unset', () => {
+    const filePath = writeTempMarkdown(sampleDoc, 'STORY-13-reviews.md')
+    const calls = []
+
+    const runGh = vi.fn((args, options) => {
+      calls.push({ args, options })
+      const cmd = args.join(' ')
+
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/78') {
+        return JSON.stringify({
+          number: 78,
+          title: 'STORY-13: Community reviews and ratings',
+          labels: [{ name: 'type:story' }, { name: 'area:ui' }],
+          milestone: null,
+        })
+      }
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/78/sub_issues?per_page=100') {
+        return JSON.stringify([])
+      }
+      if (args[0] === 'issue' && args[1] === 'list') {
+        return JSON.stringify([])
+      }
+      if (args[0] === 'project' && args[1] === 'item-list') {
+        return JSON.stringify({
+          items: [
+            {
+              id: 'PVTI_story78',
+              content: { number: 78, type: 'Issue' },
+              status: 'Product Backlog',
+            },
+          ],
+        })
+      }
+      if (args[0] === 'issue' && args[1] === 'create') {
+        const title = args[args.indexOf('--title') + 1]
+        return title.startsWith('TSK-13.1:')
+          ? 'https://github.com/dreeyanzz/studyhub/issues/301'
+          : 'https://github.com/dreeyanzz/studyhub/issues/302'
+      }
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/301 --jq .id') return '900301'
+      if (cmd === 'api repos/dreeyanzz/studyhub/issues/302 --jq .id') return '900302'
+      if (cmd.includes('/sub_issues')) return '{}'
+      if (args[0] === 'project' && args[1] === 'item-add') {
+        return args.includes('https://github.com/dreeyanzz/studyhub/issues/301')
+          ? JSON.stringify({ id: 'PVTI_task301' })
+          : JSON.stringify({ id: 'PVTI_task302' })
+      }
+      if (args[0] === 'project' && args[1] === 'item-edit') return ''
+      throw new Error(`Unexpected gh command: ${cmd}`)
+    })
+
+    syncStoryTasks(filePath, {
+      isDryRun: false,
+      isMergedOnMain: () => true,
+      runGh,
+      logger: silentLogger,
+    })
+
+    const createCalls = calls.filter(
+      (c) => c.args[0] === 'issue' && c.args[1] === 'create',
+    )
+    expect(createCalls).toHaveLength(2)
+    expect(createCalls[0].args).not.toContain('--milestone')
+
+    const statusEdits = calls.filter(
+      (c) =>
+        c.args[0] === 'project' &&
+        c.args[1] === 'item-edit' &&
+        c.args.includes(FIELD_STATUS),
+    )
+    expect(statusEdits).toHaveLength(2)
+    expect(statusEdits[0].args).toContain(OPTION_STATUS_PRODUCT_BACKLOG)
+    expect(statusEdits[0].args).not.toContain(OPTION_STATUS_SPRINT_BACKLOG)
+
+    const sprintEdits = calls.filter(
+      (c) =>
+        c.args[0] === 'project' &&
+        c.args[1] === 'item-edit' &&
+        c.args.includes(FIELD_SPRINT),
+    )
+    expect(sprintEdits).toHaveLength(0)
+  })
+
+  it('logs a warning when §6 build-order rows omit TSK IDs and have a different count from §5 tasks', () => {
+    const mismatchedDoc = `# STORY-08: Map discovery
+**Story:** #57
+## 5. Tasks and estimates
+| Task | What | Owner | Points | Days |
+| --- | --- | --- | --- | --- |
+| TSK-08.1 | Add tag schema | @dreeyanzz | 2 | 0.5 |
+| TSK-08.2 | Add discovery query | @dreeyanzz | 2 | 0.5 |
+| TSK-08.3 | Manual QA verification | @JamesNino-Mandawe | 1 | 0.5 |
+## 6. Build order
+| # | Branch | PR title | Contains |
+| --- | --- | --- | --- |
+| 1 | \`feature/STORY-08-schema\` | \`feat(STORY-08): add tag schema\` | \`lib/validation/\` |
+| 2 | \`feature/STORY-08-query\` | \`feat(STORY-08): add discovery query\` | \`lib/data/\` |
+`
+    const filePath = writeTempMarkdown(mismatchedDoc, 'STORY-08-mismatch.md')
+    const warn = vi.fn()
+
+    const result = syncStoryTasks(filePath, {
+      isDryRun: true,
+      runGh: () => {
+        throw new Error('offline')
+      },
+      logger: { log: () => {}, warn },
+    })
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/omitting branch annotations to avoid positional mismatch/),
+    )
+    expect(result.tasks.every((t) => t.buildInfo === null)).toBe(true)
   })
 
   it('throws a clear error when the design file path does not exist', () => {
