@@ -31,7 +31,7 @@ It leaves these to others:
   the R6 move (`reserved` → `occupied`) and R7 (`reserved` → `no_show`).
 - **The [Seeker journey](seeker-journey.md)** (#178): the Seeker's path from search to hold, and navigating to
   their `/seeker` dashboard to display their token (D-042).
-- **The Host setup journey** (#177): the Host's onboarding and managing their Space.
+- **The [Host setup journey](host-setup-journey.md)** (#177): the Host's onboarding and managing their Space.
 - **STORY-10's design:** the visual layout of the Seeker's QR code card on `/seeker`, the
   Host's camera viewfinder interface on `/host/spaces/[spaceId]/check-in`, the manual token entry dialog, and the live wait-window
   countdown timers on the Host's seat map (FR-3.3).
