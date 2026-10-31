@@ -34,8 +34,8 @@ It leaves these to others:
   a payment after the payment window has lapsed (P2) is a real case there (D-056).
 - **The check-in flow** (#176): what the booking token holds, how the Host scans or types
   it, why it works once, and what happens at the wrong Space. It makes R6.
-- **The Host setup and Seeker journeys** (#177, #178): the screens and steps around these
-  moves, and what users are told (D-042).
+- **The [Host setup journey](host-setup-journey.md) and [Seeker journey](seeker-journey.md)**
+  (#177, #178): the screens and steps around these moves, and what users are told (D-042).
 - **STORY-09's design:** the length of the payment window, the wait window's system
   limits, the fee, the tables' other columns, and the concurrency test (D-049). The gateway
   is PayMongo (D-056).
