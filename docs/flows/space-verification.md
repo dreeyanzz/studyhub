@@ -124,8 +124,9 @@ allows, by a pull request to this flow.
 ## What each status shows
 
 Seekers and signed-out visitors see the same thing, and so does a Host looking at another
-Host's Space. Maria words what each person is told (D-042): the [Host setup
-journey](host-setup-journey.md) draws the Host's side, and STORY-15's design the queue.
+Host's Space. Maria words what each person is told (D-042): the
+[Host setup journey](host-setup-journey.md) draws the Host's side, and STORY-15's design
+the queue.
 
 | Status     | Seekers and signed-out visitors                                                                                           | The Space's Host                                                                                                                           | Administrators                                                                                                                          |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
