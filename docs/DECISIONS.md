@@ -57,6 +57,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-005 · Prepaid reservation fee, sandbox only
 
+**Gateway chosen by D-056**, which picks PayMongo.
+
 **Decision:**
 
 - A hold is guaranteed by a reservation fee, paid through a gateway's hosted checkout in test mode (PayMongo or Stripe).
@@ -504,6 +506,8 @@ Maria maintains the board; Adrian is Project Manager.
 
 **Withdrawn by D-043**, with STORY-07's design. A new design may propose it again.
 
+**Proposed again as D-051**, by the reservation lifecycle flow (D-044).
+
 **Decision:**
 
 - `units.state_updated_at` is when the Host last set or confirmed a unit's state. It is set when the Host adds the unit, and by every state change the Host makes: STORY-12's one-tap change, walk-ins included, and the check-ins and check-outs a Host records (STORY-10).
@@ -577,6 +581,115 @@ Maria maintains the board; Adrian is Project Manager.
 
 **Revisit if:** The critical path can't be merged by 1 December.
 
+## D-046 · A unit's seat state is worked out, never stored
+
+**Decision:**
+
+- A unit's seat state (D-004) is worked out each time it is read: the status of its active hold if it has one, or else the state its Host last set. No column stores it.
+- A unit stores only its Host-set state, `units.host_state` (Available, Reserved or Occupied, never Pending Payment), and the Host-updated time (D-051).
+- A reservation's status is `pending_payment`, `reserved` or `occupied` while it is a hold, and `expired`, `no_show`, `completed` or `cancelled` once it ends. A payment's status is one of the SRS's four: `pending`, `paid`, `forfeited` or `refunded` (SRS §3.8). An unpaid hold that ends leaves its payment `pending`.
+- The [reservation lifecycle](flows/reservation-lifecycle.md) draws every move between them.
+
+**Why:** A hold lives only in `reservations`, so a unit and its hold can never disagree. Holds never write the unit's row, which keeps the Host-updated time honest (D-051). The SRS outranks a flow, so the payment keeps the SRS's statuses.
+
+**Rejected:** A `units.state` column that every function keeps in step with `reservations` (two copies of one fact, and reads would still need the lapse rule); a fifth payment status, `expired`, for an unpaid hold (not in the SRS, and no money moved).
+
+**Revisit if:** Working the seat state out on every read becomes too slow.
+
+## D-047 · Lapses are recorded first, by every database function
+
+**Decision:**
+
+- No scheduled job ends a hold (D-011). Every database function that reads or changes holds first records the lapses on the units it touches: a lapsed payment window ends a hold `expired`, a lapsed wait window ends it `no_show` with the fee forfeited, and closing time ends visits and resets Host-set states (D-048).
+- So nothing reads a hold, a payment or a seat state straight from the tables. Seekers, Hosts and the app read them through these functions, and `anon` and `authenticated` get no grant on `reservations` or `payments`.
+- Every function that changes a hold locks rows in one order: units, then reservations, then payments. The lapse step looks for lapses without a lock, and locks only the units it has something to record on, in id order, checking again once they are locked. A read with nothing to record takes no lock.
+- The [reservation lifecycle](flows/reservation-lifecycle.md#who-may-call-each-function) states who may call each function. Supabase grants new functions to `anon` and `authenticated` by default, so each one revokes that first. Every `security definer` function sets an empty `search_path`.
+
+**Why:** The rule lives in one function, and the stored records are up to date whenever anyone looks. The lapse is written inside the database, so app code still only reads in Server Components (D-010). Locking only what it records keeps reads from queuing behind holds, so nobody can stall a Space by reading it in a loop.
+
+**Rejected:** Working lapses out in every reader and recording them at the next write (every reader would have to apply the rule itself); a sweep by Vercel cron (at most once a day, D-011); a sweep by Supabase Cron alone (it runs inside Postgres, so D-011's limit doesn't apply, but a read between two sweeps would still show a lapsed hold).
+
+**Revisit if:** Sprint 3's payment records (FR-5.3) need lapses recorded on Spaces nobody has opened. A Supabase Cron sweep that calls the same function is then the backstop.
+
+## D-048 · Closing time ends every visit and Host-set state
+
+**Decision:**
+
+- A Space's hours (D-027) are read in Asia/Manila time, UTC+8. A Space has no time zone of its own.
+- When a Space's closing time passes, each visit there ends `completed`, and each unit its Host set to Reserved or Occupied returns to Available without moving the Host-updated time (D-051).
+- A Seeker can hold a unit only while its Space is open, and only if the payment window and the chosen wait window both end by the next closing time. So no hold is pending or reserved at closing time.
+- A Host can't change a Space's hours in a way that would end an active hold early or cut it short. The database refuses, as it refuses deleting a held unit (D-052), so the rule above still holds after a change of hours.
+- A Space open 24 hours has no closing time. A visit there ends at check-out or at the Host's tap, and a Host-set state lasts until the Host changes it.
+
+**Why:** FR-2.4 returns units to Available at closing, so they don't sit Occupied overnight (STORY-10). Worq's Spaces are in the Philippines, as STORY-05 already assumed when it showed times in `Asia/Manila`. Without the refusal, a shorter day could close on a Seeker who has paid and is on the way.
+
+**Rejected:** A time zone column on each Space (no Space needs one); cutting a wait window short at closing (the Seeker would pay for a wait they don't get); a maximum visit length in 24-hour Spaces (Hosts are the source of truth for releasing seats, SRS §3.1.3); letting a change of hours count only from the next day (a Host closing early today would still show as open); ending the holds a change of hours cuts into (new moves, and a paid Seeker would lose their seat).
+
+**Revisit if:** A Space outside UTC+8 joins, or forgotten visits pile up in 24-hour Spaces.
+
+## D-049 · What a hold covers and costs
+
+**Decision:**
+
+- A hold covers one unit, and a whole room is one unit: one Seeker, one hold and one fee. A room's capacity is shown, not enforced (FR-2.1; §8 of the Sprint 2 plan left this open).
+- The payment window and the reservation fee are one value each for the whole system, kept in the database. A hold copies the fee onto its payment, so changing the fee never rewrites a record.
+- Each Space has a maximum wait window, set by its Host within system limits. The Seeker picks a wait window up to it, and it starts when the payment is confirmed (D-004).
+- STORY-09's design sets the payment window, the limits and the fee: Maria proposes them, and Adrian confirms (D-042).
+
+**Why:** FR-2.1 treats a room as one unit and asks for host-allowed bounds on the wait window. A fixed fee needs no pricing form in Sprint 2, and a copied fee keeps paid records true.
+
+**Rejected:** One hold per person, up to a room's capacity (it breaks D-008's one active hold per unit); a fee each Host sets (a pricing form for a sandbox fee); a payment window each Host sets (it protects every Seeker from abandoned checkouts, not one Host's Space).
+
+**Revisit if:** Hosts ask to price rooms differently from seats.
+
+## D-050 · Ending a hold early
+
+**Decision:**
+
+- A Host may set the state of a unit with an active hold after the app warns them (FR-3.2). The database ends the hold only when the call names the hold the Host saw, its reservation and its status, and refuses if either has changed. The hold ends `cancelled`, or `completed` if the Seeker had checked in. A paid fee stays `paid` until an Administrator refunds it (FR-5.3, STORY-14).
+- A Seeker may cancel their own hold, naming the status they saw. Before paying, it ends `cancelled` and costs nothing. After paying, it ends `cancelled` and the fee is forfeited, as for a no-show, but the unit is released at once.
+- A Seeker who has checked in checks out from their dashboard, or the Host's tap ends the visit.
+
+**Why:** FR-3.2 lets a Host set any unit, and D-005 refunds a fee when the Host can't honour the hold. Without a cancel, a Seeker who leaves the checkout keeps their one hold (D-008) until the payment window lapses. Forfeiting a paid cancel matches D-005's no-show rule, so a paid hold can't be dropped for free. Naming what the person saw means a payment confirmed at the same moment can't turn a free cancel into a forfeit, and a stale screen can't cancel a hold that was paid, or end a visit that began, after the Host looked.
+
+**Rejected:** Blocking a Host's tap on a held unit (FR-3.2 says any unit, with a warning); a yes-or-no `override` flag (it acts on whatever the hold has become by then); refunding a Seeker who cancels after paying (holding seats "just in case" would cost nothing); refunding at once when a Host overrides (gateway refunds arrive with STORY-14).
+
+**Accepted risk:** Hold cycling. A Seeker can hold, cancel for free and hold again, all day, and throwaway accounts could keep a whole Space in Pending Payment. In sandbox even paying costs nothing, so no fee rule would stop it during the course.
+
+**Revisit:** STORY-14's design, which could refund a Host's override at once; and hold cycling, if real payments come in, or a test or the demo shows it happening.
+
+## D-051 · The Host-updated time counts only the Host's own taps
+
+Proposes D-041 again, which D-043 withdrew, now from the reservation lifecycle (D-044).
+
+**Decision:**
+
+- `units.host_updated_at` is the time behind "Host-updated · X min ago" (D-002). It is set when the Host adds a unit (STORY-07), and by every tap that sets a unit's state (STORY-12), walk-ins and overrides included, even one that keeps the state.
+- Nothing else moves it: holds, payments, lapses, cancels, check-ins, check-outs, closing time, or the Host editing a unit's label, type or place on the grid.
+- No trigger sets it. The function behind the tap does.
+
+**Why:** The label tells a Seeker how long ago the Host last vouched for the states they set by hand. The app's own holds are guaranteed (D-002) and need no freshness label. If a lapsed hold moved the time, a seat the Host last checked at 9:00 would read "Host-updated · 2 min ago" at 11:12. A plain `updated_at`, the glossary's earlier name, would also move when a Host renames a unit.
+
+**Rejected:** A trigger that stamps every state change (it overstates freshness); counting check-ins (a check-in proves the app's hold, not the Host's map); a generic `updated_at`.
+
+**Revisit if:** A screen needs the time of the last change of any kind.
+
+## D-052 · A held unit can't be deleted or changed, and a visit outlives its unit
+
+**Decision:**
+
+- The database refuses to delete a unit with an active hold, or a zone or a Space that has one, after recording lapses (D-047). The Host ends the hold first, with an override (D-050).
+- It also refuses to change a held unit's label, type, capacity or place on the grid.
+- Both refusals are `before` row triggers: on `units` for deleting and changing, which runs once the unit's row is locked; and on `zones` and `spaces` for deleting, which lock their units in id order before checking. So a hold that is committing at the same moment either blocks the delete or change, or waits for it.
+- An ended reservation outlives its unit: its unit link is cleared, and it keeps its Space, so a visit still allows its review (D-009). A visit is a reservation with a check-in, and each allows one review.
+- Deleting a Space deletes its ended reservations and their payments.
+
+**Why:** Deleting a held unit would delete a paid record, and send a Seeker to a seat that no longer exists. Changing it would send them to a different seat from the one they held. A review needs the visit and its Space, not the unit.
+
+**Rejected:** Deleting active holds along with their unit (it loses paid records); a check in a policy, or on the zone row alone (it can miss a hold that is committing); allowing edits and always showing the current label (the Seeker held it for what it was); archiving units instead of deleting them (every read would have to skip archived units); keeping a deleted Space's payments (nothing reads them before STORY-14).
+
+**Revisit:** STORY-14's design, if payment records must outlive their Space.
+
 ## D-053 · A Space's status changes only through `set_space_status`
 
 Replaces D-037's second bullet. D-037's other bullets stand.
@@ -624,7 +737,35 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 **Revisit if:** A Seeker with a hold needs to see a Space that has left Verified, once STORY-14 lets one leave it.
 
-## D-057 · Booking token format and QR encoding
+## D-056 · The sandbox gateway is PayMongo
+
+**Decision:**
+
+- Reservation fees are paid through PayMongo's hosted checkout (Checkout Sessions), in test mode, as D-005 requires. Card and e-wallet details never reach Worq.
+- A payment counts once PayMongo's `checkout_session.payment.paid` webhook event reaches the route in `app/api/` (D-010). The sandbox payment confirmation flow (#175) draws how, including the signature check.
+- A PayMongo checkout stays open until it is paid or expired. PayMongo expires one on request, but has no setting that ends it when the payment window lapses, so a payment can arrive after its hold has lapsed (P2 in the [reservation lifecycle](flows/reservation-lifecycle.md)). The sandbox payment confirmation flow settles what follows.
+
+**Why:** PayMongo is a Philippine gateway with a test mode, and its hosted checkout keeps card data away from Worq (D-005). Stripe doesn't appear to be generally open to businesses registered in the Philippines, though sources disagree. The Sprint 2 brief asked for the gateway first, because its account and test keys take time, and the payment confirmation flow needs its webhook and how its checkout ends.
+
+**Rejected:** Stripe (by most accounts not open to Philippine businesses); leaving the choice to STORY-09's design (the payment confirmation flow, drawn before it, needs the gateway).
+
+**Revisit if:** PayMongo's test mode can't do what the payment confirmation flow or STORY-09 needs.
+
+## D-057 · The Space's Host sees which reservation holds each unit
+
+**Decision:**
+
+- `public.unit_states` also returns each held unit's `reservation_id` to the Space's Host, and `null` to everyone else and for a unit with no hold. STORY-09 adds it along with holds, and STORY-12's occupancy view reads it ([reservation lifecycle](flows/reservation-lifecycle.md#reading-a-state)).
+- The Host's view shows a unit with a `reservation_id` as a Seeker's hold, warns before a tap on it (FR-3.2), and passes `set_unit_state` that `reservation_id` and the seat state it saw (D-050).
+- Nobody else gets it, and nobody gets the Seeker or the booking token behind a hold (N18, N25).
+
+**Why:** A tap that ends a hold must name it (D-050), and the Host's view had no way to: `unit_states` returned states and times only, and no grant lets the app read `reservations` (D-047). A seat state of Reserved or Occupied also reads the same whether a Seeker's hold or the Host's own tap set it, so the view couldn't tell when to warn. A reservation's id says nothing about its Seeker, and the Host already sees the hold's state.
+
+**Rejected:** a separate function that lists a Space's holds for its Host (a second read of the same rows, with its own lapse step and grant); naming the hold by its status alone (a hold that ends and a new one with the same status, between the Host's look and their tap, would be overridden unseen, which is why D-050 rejected a yes-or-no flag); returning the `reservation_id` to everyone (nobody else needs it).
+
+**Revisit if:** An Administrator needs to act on holds (STORY-14).
+
+## D-058 · Booking token format and QR encoding
 
 **Decision:**
 
@@ -637,7 +778,7 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 **Rejected:** Raw UUIDs (unwieldy for manual typing), proprietary barcode schemes, and encoding seeker personal data or reservation IDs directly in the payload.
 
-## D-058 · Space-scoped check-in and error isolation
+## D-059 · Space-scoped check-in and error isolation
 
 **Decision:**
 

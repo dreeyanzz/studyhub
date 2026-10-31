@@ -11,7 +11,7 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | Supabase: cloud dev project                    | Shared database for teammates and Vercel previews | Adrian                                 | Active (`studyhub-dev`)        |
 | Supabase: production project                   | The deployed app                                  | Adrian                                 | Created before the Final phase |
 | Vercel (Hobby)                                 | Hosting: `main` to production, PRs to previews    | Adrian                                 | To be connected                |
-| Payment sandbox (PayMongo or Stripe test mode) | Reservation fees                                  | Each developer, their own test account | STORY-09                       |
+| Payment sandbox: PayMongo in test mode (D-056) | Reservation fees                                  | Each developer, their own test account | STORY-09                       |
 
 The Supabase free plan allows two active projects (dev and production). It pauses a
 project after about a week without activity, so wake it the day before any demo.
