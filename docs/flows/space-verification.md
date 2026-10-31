@@ -22,8 +22,8 @@ It leaves these to others:
 - **The [reservation lifecycle](reservation-lifecycle.md)** (#173): holds. A Seeker can
   hold a unit only in a Verified Space (its R1 and N4), and only its Host and
   Administrators see the units of a Pending or Rejected Space (its N19).
-- **The Host setup journey** (#177): the Host's steps from a new Space to a public one,
-  and what they are told on the way (D-042).
+- **The [Host setup journey](host-setup-journey.md)** (#177): the Host's steps from a
+  new Space to a public one, and what they are told on the way (D-042).
 - **STORY-15's design:** the `/admin` page: what the verification queue shows for each
   Space, its order, and the Approve and Reject controls.
 - **STORY-08's and STORY-11's designs:** how search and the Space profile show a Verified
@@ -124,8 +124,8 @@ allows, by a pull request to this flow.
 ## What each status shows
 
 Seekers and signed-out visitors see the same thing, and so does a Host looking at another
-Host's Space. Maria words what each person is told (D-042): the Host setup journey draws
-the Host's side, and STORY-15's design the queue.
+Host's Space. Maria words what each person is told (D-042): the [Host setup
+journey](host-setup-journey.md) draws the Host's side, and STORY-15's design the queue.
 
 | Status     | Seekers and signed-out visitors                                                                                           | The Space's Host                                                                                                                           | Administrators                                                                                                                          |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
