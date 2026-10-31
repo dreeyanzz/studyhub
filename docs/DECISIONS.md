@@ -782,23 +782,30 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 **Decision:**
 
-- When a sandbox payment is confirmed (R2), the reservation receives an unguessable 12-character alphanumeric booking token stored in `reservations.booking_token` (FR-2.3).
-- The token uses a Crockford-like base32 alphabet that excludes ambiguous characters (`0`, `O`, `1`, `I`, `l`), providing over 60 bits of entropy.
-- The Seeker dashboard (`/seeker`) renders the token as an SVG QR code containing an HTTPS URL: `https://<domain>/api/check-in?token=<booking_token>&space=<space_id>`. Directly underneath the QR code, the token is displayed as three hyphen-separated groups (e.g. `ABC-DEF-GHJ`) for manual entry.
+- When a sandbox payment is confirmed (R2), the reservation receives an unguessable 12-character uppercase booking token stored in `reservations.booking_token` (FR-2.3).
+- The token uses Douglas Crockford's uppercase base32 alphabet (`0123456789ABCDEFGHJKMNPQRSTVWXYZ`), omitting `I`, `L`, `O`, and `U`. Input normalization maps lowercase to uppercase, `O`/`o` to `0`, and `I`/`i`/`L`/`l` to `1`.
+- Length is 12 characters, providing exactly 60 bits of cryptographic entropy ($32^{12} = 2^{60}$). The database enforces uniqueness with a `UNIQUE` index on `reservations(booking_token)`.
+- The Seeker dashboard (`/seeker`) displays the token grouped as `ABCD-EFGH-JKMN` directly under an SVG QR code.
+- The QR code encodes only the raw 12-character token (or a URL containing only the token). It does not encode `space_id` or Seeker personal data.
 - The [check-in flow](flows/check-in.md) draws the full sequence.
 
-**Why:** Direct device cameras (standard iOS/Android camera apps) can scan the QR code to open the check-in URL, while noisy, low-light, or camera-damaged setups can use the 12-character manual input without ambiguity. The token carries no PII or sensitive payment details.
+**Why:** Exactly 60 bits of entropy eliminates brute-force guessing while keeping manual typing and oral communication clear and error-tolerant. Eliminating `space_id` from the QR code ensures cross-Space verification always validates against the scanning Host's actual location.
 
-**Rejected:** Raw UUIDs (unwieldy for manual typing), proprietary barcode schemes, and encoding seeker personal data or reservation IDs directly in the payload.
+**Rejected:** Mixed-case alphabets (difficult to read or speak aloud); raw UUIDs (too long for manual entry); encoding `space_id` or Seeker PII in the QR code payload.
 
-## D-060 · Space-scoped check-in and error isolation
+**Revisit if:** Physical scanner hardware integrations require barcodes or alternate encodings.
+
+## D-060 · Space-scoped check-in and mutation safety
 
 **Decision:**
 
-- Check-in requires both the booking token and the `space_id` (`public.check_in(p_token, p_space_id)`).
-- The function checks that the caller is the authenticated Host of `p_space_id`, and that the reservation's unit belongs to `p_space_id`.
-- If a Seeker presents a token at the wrong Space, the check-in fails with a clear message naming the mismatch, and the reservation remains untouched in its `reserved` state so the Seeker can still travel to the correct venue before their wait window ends.
+- Check-in requires both the booking token and the Host's `space_id` (`public.check_in(p_token, p_space_id)`). The `space_id` is determined by the Host's portal context (`/host/spaces/[spaceId]/check-in`), never by the Seeker's QR code.
+- Check-in mutations execute exclusively via Next.js Server Actions using HTTP POST with CSRF origin checks (`actions.ts`, D-010). External camera scans navigate to the Host page without performing state changes.
+- The function verifies that the caller is the authenticated Host of `p_space_id`, locks the unit row then the reservation row, and checks that the reservation's unit belongs to `p_space_id`.
+- If a Seeker presents a token at another Space, the check-in fails with SQLSTATE `P0001` hint `wrong_space`, leaving the Seeker's reservation untouched in its `reserved` state.
 
-**Why:** It blocks accidental or fraudulent cross-venue token consumption. A Host cannot claim another venue's reservation, and an honest Seeker who arrives at the wrong branch or building does not lose their reservation or fee.
+**Why:** Eliminates CSRF vulnerabilities from GET-based check-in links and ensures multi-space Hosts or mistaken Seekers are alerted to wrong-location arrivals without losing reservations or forfeiting fees.
 
-**Rejected:** Global unscoped check-in (where a Host simply inputs a token and claims whatever reservation matches across the entire database).
+**Rejected:** Performing state changes on HTTP GET; global unscoped check-in; taking `space_id` from the Seeker's QR code.
+
+**Revisit if:** Standalone hardware kiosks without browser sessions require an API check-in endpoint.
