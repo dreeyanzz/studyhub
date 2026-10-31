@@ -107,7 +107,7 @@ The V2 and V3 tests run against the local stack while the Administrator account 
 unavailable on cloud development (#182; see the [Space verification flow](space-verification.md)).
 
 | Path ID                       | Expected Host or Seeker experience                                                                                  | Test that proves it                                                                                                                              |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | host-open-portal              | An authenticated Host opens `/host` and starts a new Space.                                                         | Playwright `e2e/host-setup.spec.ts`: a signed-in Host can open the owned Space list and create form.                                             |
 | host-space-create-invalid     | Invalid details show field errors, keep entered values and let the Host correct the form.                           | Playwright `e2e/host-setup.spec.ts`: invalid Space details show errors and retain the form values.                                               |
 | host-space-created-pending    | A valid create saves the Host's Space as Pending verification and shows it in the Host's list.                      | Playwright `e2e/host-setup.spec.ts`: creating a Space shows Pending verification in the owned list.                                              |
@@ -154,3 +154,4 @@ This draft introduces no new product decision. D-028 keeps an Administrator acco
 cloud development; the question is tracked separately in
 [issue #182](https://github.com/dreeyanzz/studyhub/issues/182). Until it is settled, V2
 and V3 are exercised on the local stack as the [Space verification flow](space-verification.md) specifies.
+
