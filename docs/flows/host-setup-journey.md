@@ -27,6 +27,12 @@ The Host must be authenticated with the Host role to start. Registration and rol
 assignment belong to STORY-03. This flow ends at the verification outcome. What Seekers
 do after a Space becomes public belongs to the [Seeker journey](seeker-journey.md).
 
+It leaves these to others:
+
+- **STORY-09's design** (#58): where the Host sets each Space's maximum wait window
+  and how the system limits are shown to them (D-049). The value is Host-set; this
+  journey leaves the control's placement and wording to that design.
+
 The [Space verification flow](space-verification.md) defines V1–V5, who can change
 `spaces.status`, visibility by status, and what edits or deletion do. This journey shows
 the Host's steps and the user-facing result without redrawing those rules. Only an
