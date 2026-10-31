@@ -783,15 +783,15 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Decision:**
 
 - When a sandbox payment is confirmed (R2), the reservation receives an unguessable 12-character uppercase booking token stored in `reservations.booking_token` (FR-2.3).
-- The token uses Douglas Crockford's uppercase base32 alphabet (`0123456789ABCDEFGHJKMNPQRSTVWXYZ`), omitting `I`, `L`, `O`, and `U`. Input normalization maps lowercase to uppercase, `O`/`o` to `0`, and `I`/`i`/`L`/`l` to `1`.
+- The token uses Douglas Crockford's uppercase base32 alphabet (`0123456789ABCDEFGHJKMNPQRSTVWXYZ`), omitting `I`, `L`, and `O` (to prevent confusion with digits `1` and `0`) and `U` (to prevent accidental obscenity). Input normalization (`lib/check-in`) maps lowercase to uppercase, strips whitespace and hyphens, maps `O`/`o` to `0`, and `I`/`i`/`L`/`l` to `1`.
 - Length is 12 characters, providing exactly 60 bits of cryptographic entropy ($32^{12} = 2^{60}$). The database enforces uniqueness with a `UNIQUE` index on `reservations(booking_token)`.
 - The Seeker dashboard (`/seeker`) displays the token grouped as `ABCD-EFGH-JKMN` directly under an SVG QR code.
-- The QR code encodes only the raw 12-character token (or a URL containing only the token). It does not encode `space_id` or Seeker personal data.
+- The QR code encodes only the raw 12-character token string. It does not encode URLs, query parameters, `space_id`, or Seeker personal data.
 - The [check-in flow](flows/check-in.md) draws the full sequence.
 
-**Why:** Exactly 60 bits of entropy eliminates brute-force guessing while keeping manual typing and oral communication clear and error-tolerant. Eliminating `space_id` from the QR code ensures cross-Space verification always validates against the scanning Host's actual location.
+**Why:** Exactly 60 bits of entropy eliminates brute-force guessing while keeping manual typing and oral communication clear and error-tolerant. Eliminating URLs and `space_id` from the QR code keeps tokens out of browser history and query string server logs, and ensures cross-Space verification always validates against the scanning Host's actual location.
 
-**Rejected:** Mixed-case alphabets (difficult to read or speak aloud); raw UUIDs (too long for manual entry); encoding `space_id` or Seeker PII in the QR code payload.
+**Rejected:** Mixed-case alphabets (difficult to read or speak aloud); raw UUIDs (too long for manual entry); encoding URLs or `space_id` in the QR code payload.
 
 **Revisit if:** Physical scanner hardware integrations require barcodes or alternate encodings.
 
@@ -800,7 +800,7 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Decision:**
 
 - Check-in requires both the booking token and the Host's `space_id` (`public.check_in(p_token, p_space_id)`). The `space_id` is determined by the Host's portal context (`/host/spaces/[spaceId]/check-in`), never by the Seeker's QR code.
-- Check-in mutations execute exclusively via Next.js Server Actions using HTTP POST with CSRF origin checks (`actions.ts`, D-010). External camera scans navigate to the Host page without performing state changes.
+- Check-in mutations execute exclusively via Next.js Server Actions using HTTP POST with CSRF origin checks (`actions.ts`, D-010).
 - The function verifies that the caller is the authenticated Host of `p_space_id`, locks the unit row then the reservation row, and checks that the reservation's unit belongs to `p_space_id`.
 - If a Seeker presents a token at another Space, the check-in fails with SQLSTATE `P0001` hint `wrong_space`, leaving the Seeker's reservation untouched in its `reserved` state.
 
