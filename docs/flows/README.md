@@ -12,7 +12,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Reservation lifecycle](reservation-lifecycle.md) | #173  | State    | Adrian   | Maria         | No other flow         | draft       |
 | [Space verification](space-verification.md)       | #174  | State    | Adrian   | Maria         | No other flow         | draft       |
 | Sandbox payment confirmation                      | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | not written |
-| Check-in                                          | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | not written |
+| [Check-in](check-in.md)                           | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | draft       |
 | [Host setup journey](host-setup-journey.md)       | #177  | Swimlane | Maria    | Adrian        | No other flow         | draft       |
 | [Seeker journey](seeker-journey.md)               | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | draft       |
 
