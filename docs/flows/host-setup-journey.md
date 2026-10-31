@@ -154,4 +154,3 @@ This draft introduces no new product decision. D-028 keeps an Administrator acco
 cloud development; the question is tracked separately in
 [issue #182](https://github.com/dreeyanzz/studyhub/issues/182). Until it is settled, V2
 and V3 are exercised on the local stack as the [Space verification flow](space-verification.md) specifies.
-
