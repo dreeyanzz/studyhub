@@ -1,7 +1,7 @@
 # Check-in
 
 **Status:** draft · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
-**Stories:** STORY-09, STORY-10, STORY-12 · **Decisions:** D-004, D-009, D-010, D-011, D-046, D-047, D-050, D-058, D-059
+**Stories:** STORY-09, STORY-10, STORY-12 · **Decisions:** D-004, D-009, D-010, D-011, D-046, D-047, D-050, D-059, D-060
 
 This flow follows a reservation from the moment a Seeker arrives at a Space and presents
 their booking token until the unit transitions to Occupied (R6). It defines what the
@@ -11,7 +11,7 @@ the Host and Seeker are told.
 
 ## What this flow covers
 
-- What the booking token contains, its format, and its QR code representation (FR-2.3, D-058).
+- What the booking token contains, its format, and its QR code representation (FR-2.3, D-059).
 - The two check-in methods: device camera scan via route handler (`/api/check-in`, D-010) and
   manual alphanumeric entry via Server Action.
 - The check-in sequence and its branches: success (R6), expired wait window / no-show (R7),
@@ -41,7 +41,7 @@ It leaves these to others:
 When a Seeker's sandbox payment is confirmed (R2 in STORY-09), the system issues a single-use
 **booking token** stored in `reservations.booking_token` (FR-2.3):
 
-1. **Format and Entropy (D-058):**
+1. **Format and Entropy (D-059):**
    - The token is a 12-character unguessable alphanumeric string chosen from a Crockford-like
      base32 / safe alphanumeric alphabet (omitting easily confused characters `0`, `O`, `1`,
      `I`, and `l`).
@@ -112,7 +112,7 @@ sequenceDiagram
         DB-->>CheckInHandler: Error: Token already consumed
         CheckInHandler-->>HostUI: 409 Conflict: "Token has already been used"
         HostUI-->>Host: Show replay warning: already checked in
-    else Branch C4: Token presented at wrong Space (D-059)
+    else Branch C4: Token presented at wrong Space (D-060)
         DB-->>CheckInHandler: Error: Token belongs to different Space
         CheckInHandler-->>HostUI: 422 Unprocessable: "Reservation is for [Other Space]"
         HostUI-->>Host: Show wrong venue notice (hold remains untouched)
@@ -138,7 +138,7 @@ database function (`supabase/tests/NN-check-in-release.sql`), the application to
 | C1  | Valid check-in      | Active `reserved` hold, valid token, matching `space_id`, within wait window       | R6: `reservations.status` → `occupied`, `checked_in_at = clock_timestamp()`. Payment stays `paid`. Unit seat state reads Occupied (D-046) | `public.check_in` (STORY-10)                             | `check-in-release`: "a Host checks in a Reserved unit, which reads Occupied"; `e2e/check-in`: "Host scans valid QR code and unit becomes Occupied"                                                              |
 | C2  | Lapsed wait window  | `wait_window_ends_at < clock_timestamp()`                                          | R7: `reservations.status` → `no_show`, `payments.status` → `forfeited`. Unit reads Available                                              | `private.record_lapses` (D-047) called inside `check_in` | `check-in-release`: "a booking token cannot check in once its wait window has lapsed"; `check-in-release`: "a no-show releases the unit and forfeits the fee"                                                   |
 | C3  | Token already used  | `reservations.status` is `occupied` or `completed`                                 | None. Reservation remains in its existing state                                                                                           | `public.check_in`                                        | `check-in-release`: "a token cannot be checked in twice"; `lib/check-in`: "rejects check-in for already consumed token"                                                                                         |
-| C4  | Wrong Space (D-059) | Token exists and is `reserved`, but unit belongs to another Space                  | None. Hold remains `reserved` so Seeker can still travel to correct Space                                                                 | `public.check_in`                                        | `check-in-release`: "a Host cannot check in a token for another Space"; `e2e/check-in`: "scanning token at wrong space preserves hold and shows informative error"                                              |
+| C4  | Wrong Space (D-060) | Token exists and is `reserved`, but unit belongs to another Space                  | None. Hold remains `reserved` so Seeker can still travel to correct Space                                                                 | `public.check_in`                                        | `check-in-release`: "a Host cannot check in a token for another Space"; `e2e/check-in`: "scanning token at wrong space preserves hold and shows informative error"                                              |
 | C5  | Invalid token       | Token format invalid or not found in `reservations`                                | None. No row matches                                                                                                                      | `public.check_in`                                        | `check-in-release`: "an invalid token string is rejected"; `lib/check-in`: "validates token alphabet and length"                                                                                                |
 | C6  | Unauthorized caller | Authenticated user is not the owning Host of `p_space_id`, or caller is signed out | None. Database raises error `42501`                                                                                                       | `public.check_in`                                        | `check-in-release`: "a Seeker cannot check in their own reservation"; `check-in-release`: "another Host cannot check in a Space they do not own"; `check-in-release`: "a signed-out caller cannot run check_in" |
 
@@ -175,7 +175,7 @@ as $$
 -- 2. Record lapses first (D-047)
 -- 3. Find reservation by p_token
 -- 4. If not found -> raise invalid_token
--- 5. If space_id != p_space_id -> raise wrong_space (D-059)
+-- 5. If space_id != p_space_id -> raise wrong_space (D-060)
 -- 6. If status != 'reserved' -> raise token_already_used or lapsed
 -- 7. Update reservations set status = 'occupied', checked_in_at = clock_timestamp()
 -- 8. Return unit and seeker metadata for host feedback
@@ -206,7 +206,7 @@ Maria decides exact UX wording and component presentation (D-042):
 
 Each choice has its entry in [DECISIONS](../DECISIONS.md):
 
-- **D-058: Booking token format and QR encoding.** The booking token is an unguessable
+- **D-059: Booking token format and QR encoding.** The booking token is an unguessable
   12-character alphanumeric code using a Crockford-like base32 alphabet (no `0`, `O`, `1`, `I`,
   `l`) generated at R2. The QR code encodes a verification URL
   `https://<domain>/api/check-in?token=<token>&space=<space_id>` for native cameras, while the
@@ -215,7 +215,7 @@ Each choice has its entry in [DECISIONS](../DECISIONS.md):
   environments or damaged phone screens can rely on the 12-character manual input.
   _Rejected:_ Raw UUIDs (too long to type), proprietary bar codes, or storing seeker PII in the
   QR payload.
-- **D-059: Space-scoped check-in and error isolation.** Check-in requires `space_id` alongside
+- **D-060: Space-scoped check-in and error isolation.** Check-in requires `space_id` alongside
   the token. When a token is presented at the wrong Space, the check-in is rejected with an
   explicit message naming the mismatch, and the reservation is left untouched in `reserved`
   status.

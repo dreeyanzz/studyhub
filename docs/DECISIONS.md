@@ -765,7 +765,20 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 **Revisit if:** An Administrator needs to act on holds (STORY-14).
 
-## D-058 · Booking token format and QR encoding
+## D-058 · Re-select a unit after authentication
+
+**Decision:**
+
+- After sign-in or registration from a hold prompt, return the Seeker to the Space profile through a validated, same-site return target. Discard the pre-authentication unit selection, reread availability, and require the Seeker to choose an Available unit again. Authentication does not create a hold.
+- STORY-09 carries the safe Space-profile return target through both sign-in and registration. If the unit is no longer Available, show its current state and do not create a hold.
+
+**Why:** Availability can change while someone authenticates. Returning to the profile makes the fresh availability check and new selection explicit.
+
+**Rejected:** Returning directly to the previously selected unit after revalidation. It carries pre-authentication state forward and can imply that the earlier selection still holds.
+
+**Revisit if:** Usability testing shows that reselection causes substantial abandonment, or the authentication flow changes.
+
+## D-059 · Booking token format and QR encoding
 
 **Decision:**
 
@@ -778,7 +791,7 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 **Rejected:** Raw UUIDs (unwieldy for manual typing), proprietary barcode schemes, and encoding seeker personal data or reservation IDs directly in the payload.
 
-## D-059 · Space-scoped check-in and error isolation
+## D-060 · Space-scoped check-in and error isolation
 
 **Decision:**
 
