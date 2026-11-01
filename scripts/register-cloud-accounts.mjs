@@ -163,6 +163,9 @@ for (const account of standardAccounts) {
   } else if (signUpError) {
     console.error(`  ${adminAccount.email}: sign-up failed (${signUpError.message})`)
     failures++
+  } else if (!signUpData?.user?.id) {
+    console.error(`  ${adminAccount.email}: sign-up returned no user ID`)
+    failures++
   } else {
     adminUserId = signUpData.user.id
   }
@@ -170,6 +173,12 @@ for (const account of standardAccounts) {
   if (adminUserId) {
     const adminServiceClient = createClient(url, secretKey, {
       auth: { persistSession: false, autoRefreshToken: false },
+    })
+
+    // Ensure email is confirmed so the Administrator can sign in immediately
+    // even if email confirmation was enabled on the cloud project.
+    await adminServiceClient.auth.admin.updateUserById(adminUserId, {
+      email_confirm: true,
     })
 
     const { error: promoteError } = await adminServiceClient
@@ -183,17 +192,30 @@ for (const account of standardAccounts) {
       )
       failures++
     } else {
-      const { data: profile, error: profileError } = await adminUserClient
-        .from('profiles')
-        .select('role')
-        .single()
-      if (profileError || profile.role !== adminAccount.role) {
+      // Re-sign in to ensure a fresh authenticated session and verify credentials
+      const { error: verifySignInError } = await adminUserClient.auth.signInWithPassword({
+        email: adminAccount.email,
+        password: adminPassword,
+      })
+
+      if (verifySignInError) {
         console.error(
-          `  ${adminAccount.email}: expected role ${adminAccount.role}, found ${profile?.role ?? profileError?.message}`,
+          `  ${adminAccount.email}: sign-in verification failed (${verifySignInError.message})`,
         )
         failures++
       } else {
-        console.log(`  ${adminAccount.email}: ${adminOutcome}, role ${profile.role}`)
+        const { data: profile, error: profileError } = await adminUserClient
+          .from('profiles')
+          .select('role')
+          .single()
+        if (profileError || profile?.role !== adminAccount.role) {
+          console.error(
+            `  ${adminAccount.email}: expected role ${adminAccount.role}, found ${profile?.role ?? profileError?.message}`,
+          )
+          failures++
+        } else {
+          console.log(`  ${adminAccount.email}: ${adminOutcome}, role ${profile.role}`)
+        }
       }
     }
   }
