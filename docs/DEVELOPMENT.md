@@ -47,6 +47,7 @@ and is gitignored.
 | `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                  |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                      |
 | `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                         |
+| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-059). Adrian and admin testers only         |
 | `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code. Adrian only (D-029) |
 
 `proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
@@ -54,7 +55,7 @@ without them every page, the landing page included, fails with an error that nam
 
 **How cloud keys are shared (D-029):**
 
-- Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the cloud dev URL, the publishable key and the test accounts' password.
+- Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the cloud dev URL, the publishable key and the test accounts' password. `CLOUD_DEV_ADMIN_PASSWORD` is sent only to whoever tests `/admin` (D-059).
 - The secret key stays with Adrian. Nothing uses it yet.
 - If a secret key is ever committed or posted publicly, **rotate it** in the Supabase dashboard. Deleting the line is not enough.
 - GitHub push protection is on and blocks many keys automatically.
@@ -121,11 +122,13 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
 - **Email confirmation is off**, as in local `config.toml`, so a new account can log in
   straight away.
 - **Test accounts.** `npm run db:accounts` registers `host@`, `host2@` and
-  `seeker@example.test` through Supabase Auth sign-up, so the sign-up trigger gives each
-  its role (D-028). It reads `CLOUD_DEV_ACCOUNT_PASSWORD` from `.env.local`, which must
-  differ from the seed password. Run it again whenever the project is recreated; it skips
-  accounts that exist and checks each one's role and password. There is never an
-  Administrator on a cloud project (D-013).
+  `seeker@example.test`, and registers and promotes `admin@example.test` with
+  `SUPABASE_SECRET_KEY` (D-028, D-059). It reads `CLOUD_DEV_ACCOUNT_PASSWORD` and
+  `CLOUD_DEV_ADMIN_PASSWORD` from `.env.local`, which must both differ from the seed
+  password and each other. Adrian shares `CLOUD_DEV_ADMIN_PASSWORD` only with whoever
+  tests `/admin` (D-059). Run it again whenever the project is recreated; it skips
+  accounts that exist and checks each one's role and password. The production project
+  has no Administrator until planned (D-028).
 
 ## Scheduled work
 
