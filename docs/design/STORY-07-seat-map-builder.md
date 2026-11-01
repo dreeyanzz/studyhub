@@ -129,7 +129,7 @@ Unique constraint on `(id, space_id)` allows composite foreign key enforcement f
   - `zones_space_id_lower_name_idx`: `create unique index zones_space_id_lower_name_idx on public.zones (space_id, lower(name));` enforces case-insensitive uniqueness per Space.
   - `units_space_id_lower_label_idx`: `create unique index units_space_id_lower_label_idx on public.units (space_id, lower(label));` enforces case-insensitive uniqueness per Space.
 - **Check constraints:**
-  - `capacity_matches_type`: `((unit_type = 'room' and capacity between 1 and 50) or (unit_type in ('seat', 'standing_desk') and capacity is null))`
+  - `capacity_matches_type`: `((unit_type = 'room' and capacity is not null and capacity between 1 and 50) or (unit_type in ('seat', 'standing_desk') and capacity is null))`. The `is not null` matters: a check passes when its expression is NULL, so without it a whole room with no capacity would be accepted.
   - `col_span_matches_type`: `((unit_type in ('seat', 'standing_desk') and col_span = 1) or (unit_type = 'room' and col_span in (2, 3)))`
   - `col_bounds`: `(grid_col + col_span <= 6)`
 - **Composite foreign key:** `foreign key (zone_id, space_id) references public.zones(id, space_id) on delete cascade` guarantees that a unit and its zone cannot point to different Spaces.
@@ -215,7 +215,7 @@ All direct privileges revoked from `anon` and `authenticated` first, then grante
 | `units` | update | authenticated       | `zone_id, unit_type, label, capacity, grid_row, grid_col, col_span`                                       | Caller owns Space (`host_id = auth.uid()`)           |
 | `units` | delete | authenticated       | —                                                                                                         | Caller owns Space (`host_id = auth.uid()`)           |
 
-Crucial security invariant (N15): No `select` or `update` grant is given on `units.host_state` or `units.host_updated_at`. State and freshness are read exclusively through `public.unit_states(space_id)` (D-047), and mutated only through dedicated functions (`set_unit_state` in STORY-12). Direct writes to those columns fail with Postgres error `42501`.
+Crucial security invariant (N15): No `select` or `update` grant is given on `units.host_state` or `units.host_updated_at`. State and freshness are read exclusively through `public.unit_states(space_id)` (D-047), and mutated only through dedicated functions (`set_unit_state` in STORY-12). Direct writes to those columns fail with Postgres error `42501`. So does `select *` on `units`, which is what supabase-js sends for `.select()` with no arguments, so `getSeatMap()` and the Server Actions name their columns.
 
 ### Zod validation schemas (`lib/validation/seat-map.ts`)
 
@@ -381,7 +381,7 @@ Named tests are the ones the [reservation lifecycle](../flows/reservation-lifecy
 | Seeker or visitor selects zones and units for a Pending Space                                 | 0 rows (D-055, N19)                                             |
 | Another Host selects zones and units for a Pending Space                                      | 0 rows (D-055, N19)                                             |
 | Administrator selects zones and units for a Pending Space                                     | Returns all rows (STORY-15)                                     |
-| Anyone selects `units.host_state` or `units.host_updated_at` directly                         | 42501 refusal (no column grant, N15)                            |
+| Anyone selects `units.host_state` or `units.host_updated_at` directly, or `*` from `units`    | 42501 refusal (no column grant, N15)                            |
 | Host inserts zone or unit in their own Space                                                  | Succeeds                                                        |
 | Host inserts zone or unit targeting another Host's Space                                      | 42501 refusal                                                   |
 | Seeker or visitor inserts a zone or a unit                                                    | 42501 refusal                                                   |
