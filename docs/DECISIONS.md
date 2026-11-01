@@ -140,7 +140,7 @@ Their lengths are decided in STORY-09's design.
 
 ## D-013 · Synthetic data only
 
-**Amended by D-059** for the cloud dev project's one Administrator.
+**Amended by D-061** for the cloud dev project's one Administrator.
 
 **Decision:** Seed and demo data are invented, and emails use `@example.test`. The admin account is seeded locally only, never in a cloud project.
 
@@ -311,7 +311,7 @@ one PR rather than leaving a submission half-restyled.
 
 ## D-028 · Shared test accounts on the cloud dev project
 
-**Amended by D-059:** the cloud dev project has one Administrator account.
+**Amended by D-061:** the cloud dev project has one Administrator account.
 
 **Decision:**
 
@@ -327,6 +327,8 @@ one PR rather than leaving a submission half-restyled.
 **Revisit:** When the production project is created (D-017). Its demo accounts follow the same rules.
 
 ## D-029 · Who holds which Supabase key
+
+**Amended by D-061:** `npm run db:accounts` is the first thing to use the secret key.
 
 **Decision:**
 
@@ -782,9 +784,9 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 **Revisit if:** Usability testing shows that reselection causes substantial abandonment, or the authentication flow changes.
 
-## D-059 · An Administrator on the cloud dev project
+## D-061 · An Administrator on the cloud dev project
 
-Amends D-013 and D-028 for the cloud dev project only.
+Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing uses it yet".
 
 **Decision:**
 

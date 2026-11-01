@@ -160,7 +160,7 @@ the Host sees no rejection reason (D-037). STORY-14's design revisits both.
 
 ## Open questions
 
-None in this flow. D-059 settled the Administrator account on the cloud dev
+None in this flow. D-061 settled the Administrator account on the cloud dev
 project: `npm run db:accounts` registers and promotes one Administrator account there,
 unblocking V2 and V3 testing on cloud development for STORY-15. The production project
-still has no Administrator account until planned (D-028, D-059).
+still has no Administrator account until planned (D-028, D-061).
