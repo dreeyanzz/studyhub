@@ -28,7 +28,7 @@ It leaves these to others:
 - **The [Space verification flow](space-verification.md)** (#174): a Space's verification
   status. A Seeker can hold a unit only in a Verified Space (R1, N4), and only its Host
   and Administrators see the units of a Pending or Rejected Space (N19).
-- **The sandbox payment confirmation flow** (#175): how PayMongo's message reaches R2, the
+- **The [sandbox payment confirmation flow](sandbox-payment-confirmation.md)** (#175): how PayMongo's message reaches R2, the
   signature check, a message that comes twice or late, a failed payment, and the Seeker's
   return from the checkout. A PayMongo checkout stays open until it is paid or expired, so
   a payment after the payment window has lapsed (P2) is a real case there (D-056).
