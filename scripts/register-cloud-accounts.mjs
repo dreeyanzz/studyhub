@@ -1,7 +1,7 @@
-// Registers the shared test accounts in the cloud dev project (D-028, D-059).
+// Registers the shared test accounts in the cloud dev project (D-028, D-061).
 // Standard accounts sign up through Supabase Auth, the same path /register uses,
 // so the sign-up trigger gives each its role. The Administrator account signs up
-// as a seeker and is promoted to admin using the secret key (D-059). Safe to
+// as a seeker and is promoted to admin using the secret key (D-061). Safe to
 // re-run: accounts that already exist are signed in instead, and every account's
 // role and password are confirmed either way.
 //
@@ -56,10 +56,10 @@ if (!adminPassword) {
   fail('CLOUD_DEV_ADMIN_PASSWORD must be set. See docs/DEVELOPMENT.md.')
 }
 if (adminPassword === seedPassword) {
-  fail('CLOUD_DEV_ADMIN_PASSWORD must not be the public seed password (D-028, D-059).')
+  fail('CLOUD_DEV_ADMIN_PASSWORD must not be the public seed password (D-028, D-061).')
 }
 if (adminPassword === password) {
-  fail('CLOUD_DEV_ADMIN_PASSWORD must not match CLOUD_DEV_ACCOUNT_PASSWORD (D-059).')
+  fail('CLOUD_DEV_ADMIN_PASSWORD must not match CLOUD_DEV_ACCOUNT_PASSWORD (D-061).')
 }
 if (
   adminPassword.length < 8 ||
@@ -71,7 +71,7 @@ if (
 
 if (!secretKey) {
   fail(
-    'SUPABASE_SECRET_KEY must be set to promote the Administrator account (D-029, D-059).',
+    'SUPABASE_SECRET_KEY must be set to promote the Administrator account (D-029, D-061).',
   )
 }
 
@@ -128,7 +128,7 @@ for (const account of standardAccounts) {
   console.log(`  ${account.email}: ${outcome}, role ${profile.role}`)
 }
 
-// 2. Administrator account (D-059)
+// 2. Administrator account (D-061)
 {
   const adminUserClient = createClient(url, publishableKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -138,7 +138,7 @@ for (const account of standardAccounts) {
   let adminUserId = null
 
   // The sign-up trigger refuses `admin` (STORY-01), so the Administrator signs
-  // up as a seeker and is promoted below with the secret key (D-059).
+  // up as a seeker and is promoted below with the secret key (D-061).
   const { data: signUpData, error: signUpError } = await adminUserClient.auth.signUp({
     email: adminAccount.email,
     password: adminPassword,
@@ -177,9 +177,16 @@ for (const account of standardAccounts) {
 
     // Ensure email is confirmed so the Administrator can sign in immediately
     // even if email confirmation was enabled on the cloud project.
-    await adminServiceClient.auth.admin.updateUserById(adminUserId, {
-      email_confirm: true,
-    })
+    const { error: confirmError } = await adminServiceClient.auth.admin.updateUserById(
+      adminUserId,
+      { email_confirm: true },
+    )
+    if (confirmError) {
+      console.error(
+        `  ${adminAccount.email}: email confirmation failed (${confirmError.message})`,
+      )
+      failures++
+    }
 
     const { error: promoteError } = await adminServiceClient
       .from('profiles')
@@ -204,9 +211,11 @@ for (const account of standardAccounts) {
         )
         failures++
       } else {
+        // An Administrator can read every profile (STORY-01), so ask for this one.
         const { data: profile, error: profileError } = await adminUserClient
           .from('profiles')
           .select('role')
+          .eq('id', adminUserId)
           .single()
         if (profileError || profile?.role !== adminAccount.role) {
           console.error(
