@@ -777,3 +777,18 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Rejected:** Returning directly to the previously selected unit after revalidation. It carries pre-authentication state forward and can imply that the earlier selection still holds.
 
 **Revisit if:** Usability testing shows that reselection causes substantial abandonment, or the authentication flow changes.
+
+## D-064 · A payment after its hold ended is recorded, and the hold stays ended
+
+**Decision:**
+
+- When PayMongo confirms a payment for a hold that has already ended `expired` or `cancelled`, `confirm_payment` records the payment as `paid` and leaves the reservation as it is (P2 in the [reservation lifecycle](flows/reservation-lifecycle.md)). The Seeker gets no unit and no booking token.
+- The Seeker's return page says the payment was recorded and that an Administrator can refund it. STORY-14's design adds the refund (P1, FR-5.3). Until then, the record stays `paid`.
+- Only a `pending` payment moves. A repeated message never changes a payment that is `paid`, `forfeited` or `refunded`.
+- The [sandbox payment confirmation flow](flows/sandbox-payment-confirmation.md) draws how.
+
+**Why:** A PayMongo checkout stays open after its hold lapses, so a slow payer is a normal path, and D-056 left what follows to this flow. By then someone else may hold the unit (N3), or the Seeker may hold another (D-008), so the old hold can't safely come back. Refunds arrive only with STORY-14, in Sprint 3, so this has to work without one, and a `paid` payment on an ended hold is how STORY-14 finds them.
+
+**Rejected:** Bringing the hold back when nobody else has taken the unit (it breaks N11, and the outcome would depend on luck); moving the Seeker to another open unit (they didn't choose it); a refund inside the webhook (gateway refunds arrive with STORY-14); a new payment status for late payments (D-046 keeps the SRS's four).
+
+**Revisit:** STORY-14's design, and if real payments come in.
