@@ -160,6 +160,7 @@ the Host sees no rejection reason (D-037). STORY-14's design revisits both.
 
 ## Open questions
 
-None in this flow. One limit outside it: D-013 and D-028 keep the Administrator account
-off the cloud dev project and production, and the sign-up trigger refuses `admin`
-(STORY-01). So V2 and V3 can be made only on the local stack until that changes.
+None in this flow. D-061 settled the Administrator account on the cloud dev
+project: `npm run db:accounts` registers and promotes one Administrator account there,
+unblocking V2 and V3 testing on cloud development for STORY-15. The production project
+still has no Administrator account until planned (D-028, D-061).
