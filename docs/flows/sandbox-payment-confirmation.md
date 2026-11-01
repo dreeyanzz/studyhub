@@ -79,37 +79,46 @@ sequenceDiagram
     B->>SA: createCheckoutSession(spaceId, unitId, waitWindowMinutes)
     SA->>DB: hold_unit(...) [Move R1]
     Note over DB: reservation: pending_payment<br/>payment: pending (fee copied)<br/>payment_window_ends_at set
-    SA->>PM: POST /v1/checkout_sessions (amount=fee_amount, metadata={reservation_id})
+    SA->>PM: POST /v1/checkout_sessions (amount=fee_amount, success_url, cancel_url, metadata={reservation_id})
     PM-->>SA: 200 OK (checkout_url, checkout_session_id)
+    SA->>DB: attach_checkout_session(reservation_id, checkout_session_id, checkout_url)
+    Note over DB: payments: saves session ID & URL for session reuse (W2)
     SA-->>B: Redirect to checkout_url
     B->>PM: Seeker visits PayMongo hosted checkout
 
-    S->>PM: Completes test payment (card/GCash/Maya)
-    PM->>PM: Processes payment successfully
+    alt Seeker Completes Payment
+        S->>PM: Completes test payment (card/GCash/Maya)
+        PM->>PM: Processes payment successfully
 
-    par Webhook Notification
-        PM->>WH: POST /api/webhooks/paymongo (checkout_session.payment.paid, signature header)
-        WH->>WH: Verify paymongo-signature (HMAC-SHA256, timestamp skew <= 300s)
-        alt Signature Invalid
-            WH-->>PM: 400 Bad Request / 401 Unauthorized
-        else Signature Valid
-            WH->>DB: public.confirm_payment(p_reservation_id, p_checkout_session_id, p_payment_id) [Secret Key]
-            Note over DB: Lock units -> reservations -> payments<br/>Check status: pending_payment<br/>reservation -> reserved<br/>payment -> paid<br/>Generate 1 booking token<br/>wait_window_ends_at = now() + wait_window
-            DB-->>WH: Success (reservation_id, status='reserved')
-            WH-->>PM: 200 OK
+        par Webhook Notification
+            PM->>WH: POST /api/webhooks/paymongo (checkout_session.payment.paid, signature header)
+            WH->>WH: Verify paymongo-signature (HMAC-SHA256, timestamp skew <= 300s)
+            alt Signature Invalid
+                WH-->>PM: 400 Bad Request / 401 Unauthorized
+            else Signature Valid
+                WH->>DB: public.confirm_payment(p_reservation_id, p_checkout_session_id, p_payment_id) [Secret Key]
+                Note over DB: Lock units -> reservations -> payments<br/>Check status: pending_payment<br/>reservation -> reserved<br/>payment -> paid<br/>Generate 1 booking token<br/>wait_window_ends_at = now() + wait_window
+                DB-->>WH: Success (reservation_id, status='reserved')
+                WH-->>PM: 200 OK
+            end
+        and Seeker Return to App
+            PM-->>B: Redirects to success_url (?reservation_id=...)
+            B->>SA: GET /dashboard/seeker/reservations/[id]/confirmation
+            SA->>DB: unit_states(space_id) / getReservation(reservation_id)
+            alt Webhook already committed
+                DB-->>SA: status: reserved, booking_token, wait_window_ends_at
+                SA-->>B: Render "Confirmed / Reserved" with booking token & timer
+            else Webhook pending / racing
+                DB-->>SA: status: pending_payment
+                SA-->>B: Render "Waiting for payment confirmation..." (polls / revalidates)
+                Note over B: Client revalidates after 2s; sees 'reserved' once webhook commits
+            end
         end
-    and Seeker Return to App
-        PM-->>B: Redirects to success_url (?reservation_id=...)
-        B->>SA: GET /dashboard/seeker/reservations/[id]/confirmation
-        SA->>DB: unit_states(space_id) / getReservation(reservation_id)
-        alt Webhook already committed
-            DB-->>SA: status: reserved, booking_token, wait_window_ends_at
-            SA-->>B: Render "Confirmed / Reserved" with booking token & timer
-        else Webhook pending / racing
-            DB-->>SA: status: pending_payment
-            SA-->>B: Render "Waiting for payment confirmation..." (polls / revalidates)
-            Note over B: Client revalidates after 2s; sees 'reserved' once webhook commits
-        end
+    else Seeker Exits or Cancels Checkout
+        S->>PM: Clicks "Cancel" or "Return to merchant"
+        PM-->>B: Redirects to cancel_url (?status=cancelled)
+        B->>SA: GET /dashboard/seeker/reservations/[id]/confirmation?status=cancelled
+        SA-->>B: Render "Cancelled / Exit" (State 5) with option to release hold (Move R4)
     end
 ```
 
@@ -208,6 +217,28 @@ sequenceDiagram
     end
 ```
 
+#### Case D: Declined Card or Uncompleted Payment on Gateway
+
+A Seeker's payment method is declined or rejected on PayMongo's hosted checkout page. PayMongo allows
+the user to re-enter details or choose a different payment method.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor S as Seeker
+    participant PM as PayMongo Checkout
+    participant DB as Postgres (confirm_payment)
+
+    S->>PM: Submits declined card or insufficient funds
+    PM-->>S: Prompts retry on hosted checkout page (session remains active)
+    alt Seeker Abandons Checkout
+        Note over DB: Time passes: now() > payment_window_ends_at<br/>Lapse step moves reservation -> expired [Move R3]<br/>payment remains pending
+    else Seeker Returns via Cancel Link
+        PM-->>S: Redirects to cancel_url
+        Note over S: Lands on confirmation page (State 5); releases hold via cancel_hold [Move R4]
+    end
+```
+
 ---
 
 ## 2. Every Branch, Event, and Test
@@ -215,19 +246,21 @@ sequenceDiagram
 The table below catalogs every path through the checkout and webhook lifecycle, who initiates it,
 the mechanism making the change, the resulting state, and the test verifying it.
 
-| #   | Branch / Event                                        | Who makes it                    | Made by                                                               | Reservation status                | Payment status     | Test                                                                                          |
-| --- | ----------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------- | --------------------------------- | ------------------ | --------------------------------------------------------------------------------------------- |
-| W1  | Seeker initiates hold and checkout session            | Seeker                          | `hold_unit` (STORY-09 Server Action) + PayMongo API call              | `pending_payment`                 | `pending`          | `holds`: "a Seeker holds an Available unit, which reads Pending Payment"                      |
-| W2  | Duplicate checkout request for same hold              | Seeker (double click/tab)       | Server Action checks existing checkout session for active reservation | `pending_payment`                 | `pending`          | `vitest/payments`: "returns existing active checkout URL instead of creating second"          |
-| W3  | Webhook arrives with invalid signature                | PayMongo / Attacker             | `app/api/webhooks/paymongo/route.ts`                                  | Unchanged                         | Unchanged          | `vitest/webhooks`: "rejects payload with invalid or missing signature with 401"               |
-| W4  | Webhook arrives with expired timestamp (> 300s)       | PayMongo / Replay               | `app/api/webhooks/paymongo/route.ts`                                  | Unchanged                         | Unchanged          | `vitest/webhooks`: "rejects payload with timestamp exceeding tolerance with 400"              |
-| W5  | Webhook confirms payment within window (Move R2)      | PayMongo webhook via Secret Key | `public.confirm_payment`                                              | `pending_payment` → `reserved`    | `pending` → `paid` | `holds`: "a confirmed payment reserves the unit and gives it one booking token"               |
-| W6  | Duplicate webhook delivery after confirmation         | PayMongo retry                  | `public.confirm_payment`                                              | Stays `reserved`                  | Stays `paid`       | `holds`: "duplicate confirm_payment calls are idempotent and return success"                  |
-| W7  | Late payment after payment window lapsed (Move P2)    | PayMongo webhook via Secret Key | `public.confirm_payment`                                              | Stays `expired`                   | `pending` → `paid` | `holds`: "confirming a payment on an expired hold moves payment to paid and stays expired"    |
-| W8  | Late payment after hold cancelled by Seeker (Move P2) | PayMongo webhook via Secret Key | `public.confirm_payment`                                              | Stays `cancelled`                 | `pending` → `paid` | `holds`: "confirming a payment on a cancelled hold moves payment to paid and stays cancelled" |
-| W9  | Seeker return arrives before webhook commits          | Seeker                          | Seeker return page query                                              | `pending_payment` (reads pending) | `pending`          | `playwright/seeker`: "confirmation page shows waiting state until webhook completes"          |
-| W10 | Webhook arrives after Seeker cancel commits           | Seeker & Webhook                | `cancel_hold` followed by `confirm_payment`                           | `cancelled` (N21 prevents hold)   | `pending` → `paid` | `holds`: "cancel racing before confirm_payment preserves cancelled reservation state"         |
-| W11 | Seeker cancel arrives after Webhook commits           | Seeker & Webhook                | `confirm_payment` followed by `cancel_hold`                           | `reserved` (N21 refuses cancel)   | Stays `paid`       | `holds`: "cancel with pending_payment expected status fails once payment is confirmed"        |
+| #   | Branch / Event                                        | Who makes it                    | Made by                                                               | Reservation status                                     | Payment status     | Test                                                                                          |
+| --- | ----------------------------------------------------- | ------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------ | ------------------ | --------------------------------------------------------------------------------------------- |
+| W1  | Seeker initiates hold and checkout session            | Seeker                          | `hold_unit` (STORY-09 Server Action) + PayMongo API call              | `pending_payment`                                      | `pending`          | `holds`: "a Seeker holds an Available unit, which reads Pending Payment"                      |
+| W2  | Duplicate checkout request for same hold              | Seeker (double click/tab)       | Server Action checks existing checkout session for active reservation | `pending_payment`                                      | `pending`          | `vitest/payments`: "returns existing active checkout URL instead of creating second"          |
+| W3  | Webhook arrives with invalid signature                | PayMongo / Attacker             | `app/api/webhooks/paymongo/route.ts`                                  | Unchanged                                              | Unchanged          | `vitest/webhooks`: "rejects payload with invalid or missing signature with 401"               |
+| W4  | Webhook arrives with expired timestamp (> 300s)       | PayMongo / Replay               | `app/api/webhooks/paymongo/route.ts`                                  | Unchanged                                              | Unchanged          | `vitest/webhooks`: "rejects payload with timestamp exceeding tolerance with 400"              |
+| W5  | Webhook confirms payment within window (Move R2)      | PayMongo webhook via Secret Key | `public.confirm_payment`                                              | `pending_payment` → `reserved`                         | `pending` → `paid` | `holds`: "a confirmed payment reserves the unit and gives it one booking token"               |
+| W6  | Duplicate webhook delivery after confirmation         | PayMongo retry                  | `public.confirm_payment`                                              | Stays `reserved`                                       | Stays `paid`       | `holds`: "duplicate confirm_payment calls are idempotent and return success"                  |
+| W7  | Late payment after payment window lapsed (Move P2)    | PayMongo webhook via Secret Key | `public.confirm_payment`                                              | Stays `expired`                                        | `pending` → `paid` | `holds`: "confirming a payment on an expired hold moves payment to paid and stays expired"    |
+| W8  | Late payment after hold cancelled by Seeker (Move P2) | PayMongo webhook via Secret Key | `public.confirm_payment`                                              | Stays `cancelled`                                      | `pending` → `paid` | `holds`: "confirming a payment on a cancelled hold moves payment to paid and stays cancelled" |
+| W9  | Seeker return arrives before webhook commits          | Seeker                          | Seeker return page query                                              | `pending_payment` (reads pending)                      | `pending`          | `playwright/seeker`: "confirmation page shows waiting state until webhook completes"          |
+| W10 | Webhook arrives after Seeker cancel commits           | Seeker & Webhook                | `cancel_hold` followed by `confirm_payment`                           | `cancelled` (N21 prevents hold)                        | `pending` → `paid` | `holds`: "cancel racing before confirm_payment preserves cancelled reservation state"         |
+| W11 | Seeker cancel arrives after Webhook commits           | Seeker & Webhook                | `confirm_payment` followed by `cancel_hold`                           | `reserved` (N21 refuses cancel)                        | Stays `paid`       | `holds`: "cancel with pending_payment expected status fails once payment is confirmed"        |
+| W12 | Payment attempt declined or uncompleted on gateway    | PayMongo / Seeker               | Gateway hosted retry; hold expires if timer ends                      | Stays `pending_payment` until lapse (R3) / cancel (R4) | Stays `pending`    | `holds`: "uncompleted gateway payment leaves reservation pending_payment until lapse"         |
+| W13 | Seeker exits checkout and returns via cancel_url      | Seeker                          | `cancel_url` return page action                                       | `pending_payment` → `cancelled` (if Seeker confirms)   | Stays `pending`    | `holds`: "Seeker cancel from return page releases hold"                                       |
 
 ---
 
@@ -329,16 +362,31 @@ delivers the payment event, the return page supports four distinct display state
 4. **State: Lapsed / Unpaid (`reservations.status = 'expired'` and `payments.status = 'pending'`):**
    - Renders an error notice: "Payment window lapsed with no payment received".
    - Unit is available for new holds; offers link to try again.
-5. **State: Cancelled (`reservations.status = 'cancelled'`):**
-   - Informs the Seeker that the hold was cancelled prior to payment confirmation.
+5. **State: Cancelled (`reservations.status = 'cancelled'` or returned via `cancel_url`):**
+   - If the reservation was cancelled by the Seeker, renders confirmation that the hold was released.
+   - If the Seeker navigated back via `cancel_url` while the hold is still `pending_payment`, gives the Seeker an immediate action to release the hold (Move R4) so they or another student can select a seat without waiting for the timer to expire, or return to PayMongo if they wish to resume.
 
 ---
 
-## 6. Open Questions & Integration Notes
+## 6. Choices made and rejected
 
-- **PayMongo Sandbox Latency:** Webhooks in PayMongo's test mode typically deliver within 1–3 seconds,
-  meaning the Seeker return race (Section 5, State 2) will be regularly exercised. Polling with revalidation
-  is a required UI deliverable for STORY-09.
-- **Refund Automation in Sprint 3:** In Sprint 2, P2 payments remain recorded as `paid` with `reservations.status = 'expired'`.
-  STORY-14 (Admin Console in Sprint 3) will provide the user interface and gateway refund action (`refund_payment`, Move P1)
-  to disburse funds back to the user.
+- **Hosted checkout vs custom form:** D-005 and D-056 chose PayMongo Checkout Sessions (hosted checkout).
+  _Rejected:_ Collecting card credentials or embedding payment inputs directly in Worq, which expands PCI DSS scope and operational security risk.
+- **Secret-key webhook route vs client-triggered confirmation:** D-010 chose a route handler at `app/api/webhooks/paymongo/route.ts` with secret key authority (`service_role`, N7) calling `public.confirm_payment`.
+  _Rejected:_ Client-side confirmation triggered from browser redirects or query parameters, which would allow spoofing paid reservations without gateway verification.
+- **Handling late payment after payment window lapsed (Move P2):** Chose Move P2: record the payment as `paid` and keep the reservation `expired` (or `cancelled`) without resurrecting the hold or reassigning the seat, leaving the payment record for an Administrator sandbox refund in Sprint 3 (STORY-14, D-056).
+  _Rejected:_ Resurrecting the reservation or assigning an arbitrary open seat, which risks double-booking another Seeker who held the unit after expiry (N3, D-008).
+- **Payment failure semantics:** Chose leaving the reservation `pending_payment` until lapse (Move R3) or Seeker cancellation (Move R4), because `payments.status` strictly follows SRS §3.8 (`pending`, `paid`, `forfeited`, `refunded`) with no `failed` status.
+  _Rejected:_ Adding a `failed` database status or deleting the hold prematurely on checkout retry.
+- **PayMongo webhook replay tolerance:** Chose 300 seconds (5 minutes) skew limit and constant-time signature comparison (`crypto.timingSafeEqual`).
+  _Rejected:_ Indefinite timestamp tolerance (vulnerable to replay attacks) and standard string equality `===` (vulnerable to timing attacks).
+- **Deterministic transaction lock ordering (D-047):** Chose ordering locks units → reservations → payments.
+  _Rejected:_ Unordered or reverse row locking, which causes Postgres deadlocks during concurrent webhook and cancellation transactions.
+- **Return URL polling over server push:** Chose client-side short polling and Server Action revalidation on `/dashboard/seeker/reservations/[id]/confirmation`.
+  _Rejected:_ WebSocket or SSE connections, which require persistent server state not suited for Vercel serverless.
+
+---
+
+## 7. Open questions
+
+None. The architectural questions regarding gateway selection, hosted checkout sessions, signature verification, webhook races, and late payments were settled by D-005, D-010, D-047, D-050, and D-056. STORY-09 implements the concrete fee amount and timer limits, and STORY-14 (Sprint 3) implements the Administrator refund UI (P1). Webhooks in PayMongo test mode deliver within 1–3 seconds, so the return URL polling state (Section 5, State 2) is verified under the Vitest and Playwright test matrices.
