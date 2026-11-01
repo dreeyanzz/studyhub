@@ -230,4 +230,6 @@ for (const account of standardAccounts) {
   }
 }
 
-process.exit(failures === 0 ? 0 : 1)
+// Not process.exit(): with fetch's sockets still open, it crashes Node 24 on Windows
+// with a libuv assertion, which turns a successful run into a failed one.
+process.exitCode = failures === 0 ? 0 : 1
