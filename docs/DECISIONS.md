@@ -140,6 +140,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-013 · Synthetic data only
 
+**Amended by D-061** for the cloud dev project's one Administrator.
+
 **Decision:** Seed and demo data are invented, and emails use `@example.test`. The admin account is seeded locally only, never in a cloud project.
 
 **Why:** Seed passwords are public in this repository, and no real person's data belongs in a class demo.
@@ -309,6 +311,8 @@ one PR rather than leaving a submission half-restyled.
 
 ## D-028 · Shared test accounts on the cloud dev project
 
+**Amended by D-061:** the cloud dev project has one Administrator account.
+
 **Decision:**
 
 - The cloud dev project has the seed's invented Seeker and Host accounts: `host@`, `host2@` and `seeker@example.test`. It never has the Administrator (D-013).
@@ -323,6 +327,8 @@ one PR rather than leaving a submission half-restyled.
 **Revisit:** When the production project is created (D-017). Its demo accounts follow the same rules.
 
 ## D-029 · Who holds which Supabase key
+
+**Amended by D-061:** `npm run db:accounts` is the first thing to use the secret key.
 
 **Decision:**
 
@@ -777,3 +783,20 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Rejected:** Returning directly to the previously selected unit after revalidation. It carries pre-authentication state forward and can imply that the earlier selection still holds.
 
 **Revisit if:** Usability testing shows that reselection causes substantial abandonment, or the authentication flow changes.
+
+## D-061 · An Administrator on the cloud dev project
+
+Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing uses it yet".
+
+**Decision:**
+
+- The cloud dev project has one Administrator account: `admin@example.test`, registered and promoted by `npm run db:accounts`. The production project still has no Administrator until planned (D-028).
+- The account signs up through Supabase Auth as a Seeker (`role: 'seeker'`, `full_name: 'Alma Reyes'`), the same path the other test accounts use, and is then promoted to `admin` in `public.profiles` using `SUPABASE_SECRET_KEY`.
+- The account's password is `CLOUD_DEV_ADMIN_PASSWORD` from `.env.local`, separate from `CLOUD_DEV_ACCOUNT_PASSWORD` and the seed password. Adrian holds it and gives it privately only to whoever tests `/admin` (such as James for STORY-15).
+- `scripts/register-cloud-accounts.mjs` runs on Adrian's machine only, so `SUPABASE_SECRET_KEY` remains on Adrian's machine (D-029).
+
+**Why:** James builds `/admin` and its Approve and Reject actions (STORY-15, D-053) against the cloud dev project (D-017). Without an Administrator account there, the page cannot be opened or verified, preventing Spaces from reaching `verified` status for search (STORY-08) and profile/holds (STORY-11, STORY-09) on the shared dev project and blocking the Prefinal demo (D-045). Signing up as a Seeker and promoting via the secret key respects the sign-up trigger's refusal of `admin` (STORY-01) without exposing the secret key to teammates.
+
+**Rejected:** Testing `/admin` exclusively on the local Docker stack (prevents team verification on the shared dev project and blocks V2/V3 in the Prefinal demo); promoting via a migration (would run on every database including production, and account data does not belong in migrations); sharing `SUPABASE_SECRET_KEY` with teammates (violates D-029 least privilege); reusing `CLOUD_DEV_ACCOUNT_PASSWORD` for the Administrator (anyone with the shared test password could verify or reject Spaces).
+
+**Revisit:** When production deployment accounts and verification procedures are decided before the Final phase.
