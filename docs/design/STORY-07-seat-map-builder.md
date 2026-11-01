@@ -2,7 +2,7 @@
 
 **Status:** draft · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-05 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Host setup journey](../flows/host-setup-journey.md) ·
-**Decisions:** D-002, D-003, D-004, D-006, D-007, D-010, D-011, D-013, D-027, D-032, D-039, D-040, D-042, D-044, D-046, D-047, D-051, D-052, D-055
+**Decisions:** D-002, D-003, D-004, D-006, D-007, D-010, D-011, D-013, D-027, D-032, D-039, D-040, D-042, D-044, D-046, D-047, D-051, D-052, D-055, D-057
 
 ## 0. Scope
 
@@ -125,6 +125,9 @@ Unique constraint on `(id, space_id)` allows composite foreign key enforcement f
       int4range(grid_col, grid_col + col_span) with &&
     );
   ```
+- **Unique indexes:**
+  - `zones_space_id_lower_name_idx`: `create unique index zones_space_id_lower_name_idx on public.zones (space_id, lower(name));` enforces case-insensitive uniqueness per Space.
+  - `units_space_id_lower_label_idx`: `create unique index units_space_id_lower_label_idx on public.units (space_id, lower(label));` enforces case-insensitive uniqueness per Space.
 - **Check constraints:**
   - `capacity_matches_type`: `((unit_type = 'room' and capacity between 1 and 50) or (unit_type in ('seat', 'standing_desk') and capacity is null))`
   - `col_span_matches_type`: `((unit_type in ('seat', 'standing_desk') and col_span = 1) or (unit_type = 'room' and col_span in (2, 3)))`
@@ -177,7 +180,8 @@ begin
     null::timestamptz as wait_window_ends_at,
     null::uuid as reservation_id
   from public.units u
-  where u.space_id = p_space_id;
+  where u.space_id = p_space_id
+  order by u.zone_id, u.grid_row, u.grid_col;
 end;
 $$;
 ```
