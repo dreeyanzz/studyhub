@@ -1,6 +1,6 @@
 # Check-in
 
-**Status:** approved 2026-11-02 · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
+**Status:** draft · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
 **Stories:** STORY-09, STORY-10 · **Decisions:** D-004, D-009, D-010, D-011, D-046, D-047, D-050, D-059, D-060
 
 This flow follows a reservation from the moment a Seeker arrives at a Space and presents
@@ -32,6 +32,9 @@ It leaves these to others:
 - **The [Seeker journey](seeker-journey.md)** (#178): the Seeker's path from search to hold, and navigating to
   their `/seeker` dashboard to display their token (D-042).
 - **The [Host setup journey](host-setup-journey.md)** (#177): the Host's onboarding and managing their Space.
+- **The [sandbox payment confirmation](sandbox-payment-confirmation.md)** (#175): how a
+  confirmed sandbox payment (R2) gives the reservation its booking token and starts its
+  wait window.
 - **STORY-10's design:** the visual layout of the Seeker's QR code card on `/seeker`, the
   Host's camera viewfinder interface on `/host/spaces/[spaceId]/check-in`, the manual token entry dialog, and the live wait-window
   countdown timers on the Host's seat map (FR-3.3).
@@ -180,7 +183,7 @@ Tests verify the database function (`supabase/tests/NN-check-in-release.sql`), t
 | C2  | Lapsed wait window    | Status is `no_show` after the lapse step                                           | R7: `reservations.status` → `no_show`, `payments.status` → `forfeited`. Unit reads Available                                              | None (Result: `wait_window_lapsed`) | `check-in-release`: "a booking token cannot check in once its wait window has lapsed"; `check-in-release`: "a no-show releases the unit and forfeits the fee"                                                     |
 | C3  | Token already used    | `reservations.status` is `occupied` or `completed`                                 | None. Reservation remains in its existing state                                                                                           | `P0001` (`token_already_used`)      | `check-in-release`: "a token cannot be checked in twice"; concurrency test (2 connections): "two staff devices scanning the same token result in exactly one check-in"; `lib/check-in`: "rejects used token"      |
 | C4  | Reservation cancelled | `reservations.status` is `cancelled` (R8 or R9)                                    | None. Reservation remains `cancelled`                                                                                                     | `P0001` (`reservation_cancelled`)   | `check-in-release`: "a cancelled reservation cannot be checked in"; `check-in-release`: "cancelling at counter before scan refuses check-in"                                                                      |
-| C5  | Wrong Space (D-060)   | Token exists and is `reserved`, but unit belongs to another Space                  | None. Hold remains `reserved` at its original Space                                                                                       | `P0001` (`wrong_space`)             | `check-in-release`: "a Host cannot check in a token for another Space"; `e2e/check-in`: "scanning token at wrong space preserves hold and shows informative error"                                                |
+| C5  | Wrong Space (D-060)   | Token exists, but its reservation is for another Space                             | None. Hold remains `reserved` at its original Space                                                                                       | `P0001` (`wrong_space`)             | `check-in-release`: "a Host cannot check in a token for another Space"; `e2e/check-in`: "scanning token at wrong space preserves hold and shows informative error"                                                |
 | C6  | Invalid token         | Token format invalid or not found in `reservations`                                | None. No row matches                                                                                                                      | `P0001` (`invalid_token`)           | `check-in-release`: "an invalid token string is rejected"; `lib/check-in`: "validates Crockford base32 alphabet and normalization"                                                                                |
 | C7  | Unauthorized caller   | Authenticated user is not the owning Host of `p_space_id`, or caller is signed out | None. Database raises error `42501`                                                                                                       | `42501` (`insufficient_privilege`)  | `check-in-release`: "a Seeker cannot check in their own reservation"; `check-in-release`: "another Host cannot check in a Space they do not own"; `check-in-release`: "a signed-out visitor cannot call check_in" |
 
@@ -196,12 +199,12 @@ The lifecycle defines the global rules for holds, payments, and caller roles:
 
 The check-in flow defines these additional moves specific to tokens and Space boundaries:
 
-| #    | Nobody may                                                  | Stopped by                                                                        | Test                                                                                |
-| ---- | ----------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| C-N1 | Check in a token at another Space                           | `public.check_in` verifies `unit.space_id = p_space_id` (D-060)                   | `check-in-release`: "a Host cannot check in a token for another Space"              |
-| C-N2 | Check in a token twice                                      | `public.check_in` checks `status = 'reserved'` after acquiring unit lock          | `check-in-release`: "a token cannot be checked in twice"                            |
-| C-N3 | Check in an unpaid hold (`pending_payment`)                 | Tokens are generated only upon confirmed payment (R2); lookup requires `reserved` | `check-in-release`: "a pending_payment hold cannot be checked in"                   |
-| C-N4 | Learn the Seeker's identity or profile from check-in return | `public.check_in` returns only unit and zone labels, never Seeker name or id      | `check-in-release`: "check_in returns unit and zone labels without Seeker identity" |
+| #    | Nobody may                                                  | Stopped by                                                                                                                                                       | Test                                                                                |
+| ---- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| C-N1 | Check in a token at another Space                           | `public.check_in` verifies `reservations.space_id = p_space_id` (D-060)                                                                                          | `check-in-release`: "a Host cannot check in a token for another Space"              |
+| C-N2 | Check in a token twice                                      | `public.check_in` checks `status = 'reserved'` after acquiring unit lock                                                                                         | `check-in-release`: "a token cannot be checked in twice"                            |
+| C-N3 | Check in an unpaid hold (`pending_payment`)                 | Tokens are generated only upon confirmed payment (R2), so none exists for a hold before then; a token on a non-`reserved` hold gets `P0001` hint `invalid_state` | `check-in-release`: "a pending_payment hold cannot be checked in"                   |
+| C-N4 | Learn the Seeker's identity or profile from check-in return | `public.check_in` returns only unit and zone labels, never Seeker name or id                                                                                     | `check-in-release`: "check_in returns unit and zone labels without Seeker identity" |
 
 ## The database function
 

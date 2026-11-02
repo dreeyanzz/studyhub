@@ -50,7 +50,7 @@ It leaves these to other flows:
   for units, reservations, and payments; lapse rules (D-011, D-047); and moves R1, R3–R12.
 - **The [Space verification flow](space-verification.md)** (#174): Space verification status
   enforcing that holds can only be created in Verified Spaces (R1, N4).
-- **The check-in flow** (#176): What the booking token holds and its format, QR presentation,
+- **The [check-in flow](check-in.md)** (#176): What the booking token holds and its format, QR presentation,
   Host scanning, and check-in transition (R6).
 - **The [Seeker journey](seeker-journey.md)** (#178): High-level discovery, seat selection,
   and authentication before checkout.
