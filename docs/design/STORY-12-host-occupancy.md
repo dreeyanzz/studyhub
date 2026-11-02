@@ -288,7 +288,7 @@ One PR per row, and every PR targets `main`:
 ## 8. Open questions
 
 - **Reservation ID on `unit_states`:** settled by #185 (D-057). `unit_states` gives the Space's Host each held unit's `reservation_id`, and `null` everywhere else, so the page can tell a hold from a Host-set state and name it without reading `reservations` (N6, D-047). §2 relies on it, so this design merges after #185.
-- **Seat map component exports from STORY-07:** TSK-12.5 waits for STORY-07's design to name the seat map component export and its container layout.
+- **Seat map component exports from STORY-07:** settled by [STORY-07's design](STORY-07-seat-map-builder.md#the-shared-renderer-tsk-074), which names `SeatMapGrid`, `SeatMapTile`, `SeatMapLegend` and `getSeatMap()`, and their container layout. A cell is too narrow for the three state pills, so TSK-12.5 passes `renderUnit` and shows the pills outside the grid.
 - **Seat-state colors (Maria, D-031, D-042):** `app/globals.css` has no seat-state tokens yet. Maria picks the four token pairs and checks each at 4.5:1. STORY-11's availability view shows the same four seat states, so the two stories share them: whichever builds its view first adds them.
 - **The wording in §3** is proposed here, and Maria approves it (D-042).
 
