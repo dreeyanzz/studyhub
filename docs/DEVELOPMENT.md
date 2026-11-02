@@ -58,7 +58,7 @@ without them every page, the landing page included, fails with an error that nam
 - Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the same values as Adrian's: the cloud dev URL, the publishable key, both test passwords and the secret key.
 - The secret key bypasses Row-Level Security, so treat the whole file as a secret: keep it out of commits, screenshots and AI chats. Only `npm run db:accounts` uses the key so far, to promote the cloud dev project's Administrator (D-061).
 - These are the cloud dev project's values only. The production project's keys are decided when it is created (D-017).
-- If a secret key is ever committed or posted publicly, **rotate it** in the Supabase dashboard, then Adrian sends everyone a new `.env.local`. Deleting the line is not enough.
+- If a secret key is ever committed or posted publicly, Adrian or Luke **rotates it** in the Supabase dashboard, then Adrian sends everyone a new `.env.local`. Deleting the line is not enough.
 - GitHub push protection is on and blocks many keys automatically.
 
 ## The daily loop
@@ -120,9 +120,12 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
 - **Linking.** Once per machine: `npx supabase link --project-ref <ref>`. The ref is in
   the project's URL.
 - **Migrations.** Step 6 above, after every merged migration.
-- **Dashboard.** Every teammate is invited to the project's Supabase organization as an
-  Administrator (D-065), so each can read its tables, logs and users. Schema changes
-  still go through migrations, never the dashboard.
+- **Dashboard.** In the project's Supabase organization, Luke is an Administrator, and
+  Maria and James are Developers (D-065). A Developer can read the keys and run SQL, but
+  can't generate a new JWT secret, change Auth settings, reset the database password, or
+  pause or delete the project. The organization holds only Worq's projects, because on
+  the Free plan a role covers every project in it. Schema changes still go through
+  migrations, never the dashboard.
 - **Email confirmation is off**, as in local `config.toml`, so a new account can log in
   straight away.
 - **Test accounts.** `npm run db:accounts` registers `host@`, `host2@` and
