@@ -124,6 +124,12 @@ export async function updateSpace(
   redirect('/host?notice=updated')
 }
 
+// Every failed delete says the same, whatever the cause: a Space that is gone, one
+// that belongs to another Host, or a photo that would not go (STORY-05 design §1.4,
+// D-063).
+const deleteFailed =
+  'We could not delete this Space. It may no longer exist or you may not have access.'
+
 export async function deleteSpace(
   _state: DeleteSpaceState,
   formData: FormData,
@@ -134,52 +140,31 @@ export async function deleteSpace(
     return { formError: z.flattenError(spaceId.error).formErrors.join(' ') }
   }
 
-  // Verify the Space belongs to the caller before cleaning up photos (D-063).
-  // If the Space is already gone or belongs to another Host, keep the same error message.
-  const { data: space, error: fetchError } = await supabase
+  // Only the Space's own Host gets as far as its photos.
+  const { data: space, error: readError } = await supabase
     .from('spaces')
     .select('id')
     .eq('id', spaceId.data)
     .eq('host_id', user.id)
     .maybeSingle()
-  if (fetchError || !space) {
-    return {
-      formError:
-        'We could not delete this Space. It may no longer exist or you may not have access.',
-    }
-  }
+  if (readError || !space) return { formError: deleteFailed }
 
-  // Deleting a Space removes its photos first (D-063). Once the row is gone,
-  // no storage policy matches its photos, so they must be emptied first.
-  let hasMore = true
-  while (hasMore) {
-    const { data: files, error: listError } = await supabase.storage
-      .from('space-photos')
-      .list(spaceId.data, { limit: 100 })
-    if (listError) {
-      return {
-        formError:
-          'We could not delete this Space. It may no longer exist or you may not have access.',
-      }
-    }
+  // The photos go first (D-063): once the row is gone, no storage policy matches
+  // them, and the bucket is public. If one won't go, the Space stays. Photos sit one
+  // folder deep (the bucket's insert policy), so listing the folder finds them all.
+  // A listing returns at most 100 names, so this repeats until the folder is empty.
+  const photos = supabase.storage.from('space-photos')
+  while (true) {
+    const { data: files, error: listError } = await photos.list(spaceId.data, {
+      limit: 100,
+    })
+    if (listError) return { formError: deleteFailed }
+    if (files.length === 0) break
 
-    if (!files || files.length === 0) {
-      break
-    }
-
-    const filePaths = files.map((file) => `${spaceId.data}/${file.name}`)
-    const { data: removed, error: removeError } = await supabase.storage
-      .from('space-photos')
-      .remove(filePaths)
-    if (removeError || !removed || removed.length !== filePaths.length) {
-      return {
-        formError:
-          'We could not delete this Space. It may no longer exist or you may not have access.',
-      }
-    }
-
-    if (files.length < 100) {
-      hasMore = false
+    const paths = files.map((file) => `${spaceId.data}/${file.name}`)
+    const { data: removed, error: removeError } = await photos.remove(paths)
+    if (removeError || removed.length !== paths.length) {
+      return { formError: deleteFailed }
     }
   }
 
@@ -191,12 +176,7 @@ export async function deleteSpace(
     .eq('host_id', user.id)
     .select('id')
     .maybeSingle()
-  if (error || !deleted) {
-    return {
-      formError:
-        'We could not delete this Space. It may no longer exist or you may not have access.',
-    }
-  }
+  if (error || !deleted) return { formError: deleteFailed }
 
   revalidatePath('/host')
   redirect('/host?notice=deleted')
