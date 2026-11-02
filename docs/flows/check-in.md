@@ -1,6 +1,6 @@
 # Check-in
 
-**Status:** draft · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
+**Status:** approved 2026-11-02 · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
 **Stories:** STORY-09, STORY-10 · **Decisions:** D-004, D-009, D-010, D-011, D-046, D-047, D-050, D-059, D-060
 
 This flow follows a reservation from the moment a Seeker arrives at a Space and presents
