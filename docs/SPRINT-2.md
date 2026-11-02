@@ -318,8 +318,8 @@ lifecycle (STORY-12) and the Space verification flow (STORY-15). Before the Spri
 review, check every merged story against the Definition of Done.
 
 **How to test:** `npm run test:e2e` against the local stack. By hand, locally or on the
-cloud dev project, as `host@example.test` and `admin@example.test`. Adrian sends you the
-cloud Administrator's password privately (D-061).
+cloud dev project, as `host@example.test` and `admin@example.test`. The cloud
+Administrator's password is in your `.env.local` (D-061, D-065).
 
 ## 5. Sprint calendar
 
