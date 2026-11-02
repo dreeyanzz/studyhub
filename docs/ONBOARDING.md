@@ -157,10 +157,11 @@ types are out of date.
 ### 8b. Everyone else: the shared cloud dev project
 
 🛑 **Stop.** Ask the teammate to get their `.env.local` from Adrian in a private message,
-and to save it themselves (D-029). It holds the dev project URL, the publishable key and
-`CLOUD_DEV_ACCOUNT_PASSWORD`, the password of the shared test accounts `host@`, `host2@`
-and `seeker@example.test` (D-028). It never holds the secret key. You never see or repeat
-the values. If Adrian hasn't sent it yet, skip this step and report it.
+and to save it themselves (D-029, D-065). It holds the dev project URL, the publishable
+key, `CLOUD_DEV_ACCOUNT_PASSWORD` (the password of the shared test accounts `host@`,
+`host2@` and `seeker@example.test`, D-028), `CLOUD_DEV_ADMIN_PASSWORD` (the
+Administrator's, D-061) and the secret key, which bypasses Row-Level Security. You never
+see or repeat the values. If Adrian hasn't sent it yet, skip this step and report it.
 
 ### 9. Checks
 

@@ -330,6 +330,8 @@ one PR rather than leaving a submission half-restyled.
 
 **Amended by D-061:** `npm run db:accounts` is the first thing to use the secret key.
 
+**Amended by D-065:** every teammate's `.env.local` holds the cloud dev project's secret key too.
+
 **Decision:**
 
 - Every teammate's `.env.local` holds the cloud dev project's URL, its publishable key and `CLOUD_DEV_ACCOUNT_PASSWORD` (D-028). Adrian sends it privately: never in the group chat, an issue or a PR.
@@ -788,6 +790,8 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing uses it yet".
 
+**Amended by D-065:** every teammate holds this account's password and the secret key.
+
 **Decision:**
 
 - The cloud dev project has one Administrator account: `admin@example.test`, registered and promoted by `npm run db:accounts`. The production project still has no Administrator until planned (D-028).
@@ -800,3 +804,22 @@ Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing
 **Rejected:** Testing `/admin` exclusively on the local Docker stack (prevents team verification on the shared dev project and blocks V2/V3 in the Prefinal demo); promoting via a migration (would run on every database including production, and account data does not belong in migrations); sharing `SUPABASE_SECRET_KEY` with teammates (violates D-029 least privilege); reusing `CLOUD_DEV_ACCOUNT_PASSWORD` for the Administrator (anyone with the shared test password could verify or reject Spaces).
 
 **Revisit:** When production deployment accounts and verification procedures are decided before the Final phase.
+
+## D-065 · Every teammate holds the cloud dev project's keys
+
+Amends D-029 and D-061, for the cloud dev project only.
+
+**Decision:**
+
+- Every teammate's `.env.local` holds what Adrian's does: the cloud dev project's URL and publishable key, `CLOUD_DEV_ACCOUNT_PASSWORD`, `CLOUD_DEV_ADMIN_PASSWORD` and `SUPABASE_SECRET_KEY`. Adrian sends it privately, never in the group chat, an issue or a PR.
+- Every teammate is invited to the project's Supabase organization as an Administrator, so each can open its dashboard.
+- Nothing else moves. Adrian stays the database owner and runs `supabase db push` and `npm run db:accounts` (D-017), and only Adrian merges (D-014). Schema changes still go through migrations, never the dashboard. The secret key still never reaches client code or `NEXT_PUBLIC_`, and agents still never write to a shared database.
+- The production project's keys are decided when it is created, before the Final phase (D-017).
+
+**Why:** We are four students on a project that D-013 keeps to invented data, so the cost of a leak is small: rebuilt test data and a rotated key. With one person holding everything, the other three wait on Adrian to look something up in the dashboard or to try something as the Administrator.
+
+**Rejected:** Giving each person only what their story needs, as D-029 and D-061 did (least privilege, but it makes Adrian a bottleneck for little protection on this project); sharing merge rights as well (a merge can need `supabase db push` right after it, and one merger keeps the D-entries in order, D-014); moving the repository to a GitHub organization so that several people can be its admins (GitHub allows one owner on a personal repository, and the move isn't worth it for a class project).
+
+**Accepted risk:** The secret key bypasses Row-Level Security and now sits on four laptops, where four people's AI tools could read it. Anyone holding it can read or change everything on the project, every account on it included. If it is committed or posted, rotate it in the dashboard, and Adrian sends everyone a new `.env.local`.
+
+**Revisit:** Before the Final phase, when the production project is created, or as soon as real people's data could reach the cloud dev project.

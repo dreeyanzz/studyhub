@@ -94,7 +94,7 @@ For UI work, check the page:
 
 The seeded accounts sign in with the password in `supabase/seed.sql` on a local stack,
 and with `CLOUD_DEV_ACCOUNT_PASSWORD` from your `.env.local` on the cloud dev project
-(D-028). The cloud project's Administrator account has its own password, which Adrian
-gives only to whoever tests `/admin` (D-061).
+(D-028). The cloud project's Administrator account has its own password,
+`CLOUD_DEV_ADMIN_PASSWORD`, also in your `.env.local` (D-061, D-065).
 
 Say in the PR which account you used and what you saw.

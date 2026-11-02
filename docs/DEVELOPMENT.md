@@ -8,7 +8,7 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | Service                                        | For                                               | Owner                                  | Status                         |
 | ---------------------------------------------- | ------------------------------------------------- | -------------------------------------- | ------------------------------ |
 | GitHub `dreeyanzz/studyhub`                    | Code, pull requests, issues, the board            | Adrian (admin); teammates have write   | Active                         |
-| Supabase: cloud dev project                    | Shared database for teammates and Vercel previews | Adrian                                 | Active (`studyhub-dev`)        |
+| Supabase: cloud dev project                    | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)      | Active (`studyhub-dev`)        |
 | Supabase: production project                   | The deployed app                                  | Adrian                                 | Created before the Final phase |
 | Vercel (Hobby)                                 | Hosting: `main` to production, PRs to previews    | Adrian                                 | To be connected                |
 | Payment sandbox: PayMongo in test mode (D-056) | Reservation fees                                  | Each developer, their own test account | STORY-09                       |
@@ -42,22 +42,23 @@ project after about a week without activity, so wake it the day before any demo.
 `.env.example` lists every variable and is committed. `.env.local` holds your values
 and is gitignored.
 
-| Variable                               | Where it may appear                                                                                                                                  |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                            |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                |
-| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                   |
-| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061). Adrian and admin testers only                                   |
-| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code. Adrian only (D-029) |
+| Variable                               | Where it may appear                                                                                                                            |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                      |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                          |
+| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                             |
+| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                     |
+| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065) |
 
 `proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
 without them every page, the landing page included, fails with an error that names them.
 
-**How cloud keys are shared (D-029):**
+**How cloud keys are shared (D-029, D-065):**
 
-- Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the cloud dev URL, the publishable key and the test accounts' password. `CLOUD_DEV_ADMIN_PASSWORD` is sent only to whoever tests `/admin` (D-061).
-- The secret key stays with Adrian. Only `npm run db:accounts` uses it so far, to promote the cloud dev project's Administrator (D-061).
-- If a secret key is ever committed or posted publicly, **rotate it** in the Supabase dashboard. Deleting the line is not enough.
+- Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the same values as Adrian's: the cloud dev URL, the publishable key, both test passwords and the secret key.
+- The secret key bypasses Row-Level Security, so treat the whole file as a secret: keep it out of commits, screenshots and AI chats. Only `npm run db:accounts` uses the key so far, to promote the cloud dev project's Administrator (D-061).
+- These are the cloud dev project's values only. The production project's keys are decided when it is created (D-017).
+- If a secret key is ever committed or posted publicly, **rotate it** in the Supabase dashboard, then Adrian sends everyone a new `.env.local`. Deleting the line is not enough.
 - GitHub push protection is on and blocks many keys automatically.
 
 ## The daily loop
@@ -119,16 +120,18 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
 - **Linking.** Once per machine: `npx supabase link --project-ref <ref>`. The ref is in
   the project's URL.
 - **Migrations.** Step 6 above, after every merged migration.
+- **Dashboard.** Every teammate is invited to the project's Supabase organization as an
+  Administrator (D-065), so each can read its tables, logs and users. Schema changes
+  still go through migrations, never the dashboard.
 - **Email confirmation is off**, as in local `config.toml`, so a new account can log in
   straight away.
 - **Test accounts.** `npm run db:accounts` registers `host@`, `host2@` and
   `seeker@example.test`, and registers and promotes `admin@example.test` (D-028, D-061).
-  Only Adrian runs it, because it reads `SUPABASE_SECRET_KEY` from `.env.local`. It also
-  reads `CLOUD_DEV_ACCOUNT_PASSWORD` and `CLOUD_DEV_ADMIN_PASSWORD`, which must both
-  differ from the seed password and each other. Adrian shares `CLOUD_DEV_ADMIN_PASSWORD`
-  only with whoever tests `/admin`. Run it again whenever the project is recreated; it
-  skips accounts that exist and checks each one's role and password. The production
-  project has no Administrator until planned (D-028).
+  Adrian runs it, as the database owner. It reads `SUPABASE_SECRET_KEY`,
+  `CLOUD_DEV_ACCOUNT_PASSWORD` and `CLOUD_DEV_ADMIN_PASSWORD` from `.env.local`, and the
+  two passwords must differ from the seed password and each other. Run it again whenever
+  the project is recreated; it skips accounts that exist and checks each one's role and
+  password. The production project has no Administrator until planned (D-028).
 
 ## Scheduled work
 
