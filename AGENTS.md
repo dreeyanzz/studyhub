@@ -112,7 +112,7 @@ npm test               # unit tests only (Vitest)
 npm run test:e2e       # Playwright tests (needs local stack running)
 npm run build          # production build (CI runs it too)
 npm run format         # Prettier, writes changes
-npm run db:start       # local Supabase in Docker (database owner, and Playwright tests)
+npm run db:start       # local Supabase in Docker (migration writers, and Playwright tests)
 npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
 npm run db:new <name>  # new migration file
@@ -248,7 +248,8 @@ Stop only at the 🛑 points.
 
 - the story or its design is unclear;
 - the work needs another story's files, a table or policy that doesn't exist yet
-  (tables and policies belong to Adrian's stories), or a change to a decision;
+  (Adrian writes those, except that Luke writes STORY-08's and STORY-10's, D-066), or a
+  change to a decision;
 - the story needs a shared flow that has no doc in `docs/flows/` yet (D-044);
 - the approved design, or a merged flow, turns out to be wrong;
 - the same step has failed twice.
