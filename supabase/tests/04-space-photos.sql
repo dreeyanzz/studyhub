@@ -8,11 +8,11 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(29);
+select plan(32);
 
 -- Set allow_delete_query for the test transaction so DELETE policies can be tested
 -- without triggering storage.protect_delete() refusal.
-set storage.allow_delete_query = true;
+set local storage.allow_delete_query = true;
 
 -- Bucket configuration verification
 select results_eq(
@@ -168,10 +168,30 @@ select lives_ok(
   'a Host can upload a photo to their own space'
 );
 
+select throws_ok(
+  $$insert into storage.objects (bucket_id, name) values ('space-photos', 'e0000000-0000-4000-8000-000000000001/sub/deep.jpg')$$,
+  '42501',
+  null,
+  'a Host cannot upload a photo into a subfolder of their own space''s folder'
+);
+
+select results_eq(
+  $$update storage.objects set metadata = '{"size": 2}' where id = '10000000-0000-4000-8000-000000000010' returning name$$,
+  $$values ('e0000000-0000-4000-8000-000000000001/my_upload.jpg')$$,
+  'a Host can replace a photo in their own space (an update that keeps its name)'
+);
+
 select results_eq(
   $$update storage.objects set name = 'e0000000-0000-4000-8000-000000000001/my_upload_renamed.jpg' where id = '10000000-0000-4000-8000-000000000010' returning name$$,
   $$values ('e0000000-0000-4000-8000-000000000001/my_upload_renamed.jpg')$$,
-  'a Host can update/replace a photo in their own space'
+  'a Host can rename a photo inside their own space''s folder'
+);
+
+select throws_ok(
+  $$update storage.objects set name = 'e0000000-0000-4000-8000-000000000001/sub/my_upload_renamed.jpg' where id = '10000000-0000-4000-8000-000000000010'$$,
+  '42501',
+  null,
+  'a Host cannot move their own photo into a subfolder of their own space''s folder'
 );
 
 select throws_ok(
