@@ -32,9 +32,9 @@ do something. The teammate answers questions and clicks things in a browser.
    Git Bash. The commands below are for Git Bash, which comes with Git for Windows;
    prefer it. In Windows PowerShell 5.1, `&&` does not work, so run commands joined by
    `&&` one at a time. PowerShell versions are given where a command itself differs.
-2. **Are you the database owner, or a cloud-dev user?** The database owner runs the
-   local database in Docker; by default that is Adrian. Everyone else is a cloud-dev
-   user.
+2. **Do you write migrations, or only use the cloud dev project?** Whoever writes
+   migrations runs the local database in Docker too: Adrian, the database owner, and Luke
+   for STORY-08 and STORY-10 (D-066). Everyone else is a cloud-dev user.
 3. **Which email does git commit with, and is it verified on your GitHub account?** Commits
    with an unverified email do not show as yours. That matters for the code authorship
    check in the Final phase.
@@ -112,7 +112,7 @@ git config core.hooksPath
 
 PowerShell: `if (-not (Test-Path .env.local)) { Copy-Item .env.example .env.local }`
 
-### 8a. Database owner only: local Supabase
+### 8a. Migration writers only: local Supabase
 
 ```bash
 docker info > /dev/null 2>&1 && echo "docker: running" || echo "docker: NOT running"
@@ -131,7 +131,9 @@ The first run downloads several images and can take five minutes or more. That i
 normal; do not cancel it.
 
 Copy the printed API URL and publishable key (called "anon key" on older CLI output) into
-`.env.local`:
+a new `.env.development.local`. It is gitignored, and `npm run dev` reads it ahead of
+`.env.local`, whose cloud dev values stay as they are (step 8b). Delete it to point
+`npm run dev` back at the cloud dev project.
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
@@ -154,7 +156,7 @@ npm run db:types
 `lib/supabase/database.types.ts`. If the types file changed, report it: the committed
 types are out of date.
 
-### 8b. Everyone else: the shared cloud dev project
+### 8b. Everyone: the shared cloud dev project
 
 🛑 **Stop.** Ask the teammate to get their `.env.local` from Adrian in a private message,
 and to save it themselves (D-029). It holds the dev project URL, the publishable key and
@@ -213,7 +215,8 @@ Tell the teammate, in this order:
 
 1. Which steps passed, including whether `npm run check` passed.
 2. Anything skipped or failed, and why.
-3. Any file you changed other than `.env.local`. There should be none.
+3. Any file you changed other than `.env.local` and, for a migration writer,
+   `.env.development.local`. There should be none.
 4. What to read next: [`SPRINT-2.md`](SPRINT-2.md), [`AGENTS.md`](../AGENTS.md) and
    [`CONTRIBUTING.md`](../CONTRIBUTING.md).
 5. What to say next: **"Start my Sprint 2 story."** That runs the story loop in

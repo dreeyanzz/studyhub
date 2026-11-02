@@ -22,7 +22,7 @@
 
 - **Seat map builder and unit layout:** snap-grid builder, unit placement, and coordinates belong to Adrian in STORY-07 (#56).
 - **Seeker availability view:** displaying public availability and the "Host-updated" tag on the Space profile belongs to Maria in STORY-11 (#76).
-- **Remaining wait windows and QR check-in:** displaying the remaining wait window countdown for Reserved units (FR-3.3) and QR scanning belong to Luke and Adrian in STORY-10 (#59). This story's unit card leaves visual layout space for STORY-10's wait window timer.
+- **Remaining wait windows and QR check-in:** displaying the remaining wait window countdown for Reserved units (FR-3.3) and QR scanning belong to Luke in STORY-10 (#59). This story's unit card leaves visual layout space for STORY-10's wait window timer.
 - **Online holds and sandbox payment:** online checkout and payment confirmation belong to Adrian in STORY-09 (#58).
 - **Database migrations and pgTAP execution:** Adrian writes database migrations, functions, and pgTAP tests (D-036).
 
