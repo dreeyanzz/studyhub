@@ -1,6 +1,6 @@
 # Host setup journey
 
-**Status:** draft · **Owner:** @fayeye-09 · **Approved by:** @dreeyanzz ·
+**Status:** approved 2026-10-31 · **Owner:** @fayeye-09 · **Approved by:** @dreeyanzz ·
 **Stories:** STORY-05, STORY-07, STORY-08, STORY-11, STORY-15 ·
 **Decisions:** D-003, D-006, D-027, D-028, D-032, D-037, D-042, D-044, D-053, D-054, D-055
 
