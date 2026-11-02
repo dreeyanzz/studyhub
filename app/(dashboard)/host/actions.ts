@@ -134,6 +134,55 @@ export async function deleteSpace(
     return { formError: z.flattenError(spaceId.error).formErrors.join(' ') }
   }
 
+  // Verify the Space belongs to the caller before cleaning up photos (D-063).
+  // If the Space is already gone or belongs to another Host, keep the same error message.
+  const { data: space, error: fetchError } = await supabase
+    .from('spaces')
+    .select('id')
+    .eq('id', spaceId.data)
+    .eq('host_id', user.id)
+    .maybeSingle()
+  if (fetchError || !space) {
+    return {
+      formError:
+        'We could not delete this Space. It may no longer exist or you may not have access.',
+    }
+  }
+
+  // Deleting a Space removes its photos first (D-063). Once the row is gone,
+  // no storage policy matches its photos, so they must be emptied first.
+  let hasMore = true
+  while (hasMore) {
+    const { data: files, error: listError } = await supabase.storage
+      .from('space-photos')
+      .list(spaceId.data, { limit: 100 })
+    if (listError) {
+      return {
+        formError:
+          'We could not delete this Space. It may no longer exist or you may not have access.',
+      }
+    }
+
+    if (!files || files.length === 0) {
+      break
+    }
+
+    const filePaths = files.map((file) => `${spaceId.data}/${file.name}`)
+    const { data: removed, error: removeError } = await supabase.storage
+      .from('space-photos')
+      .remove(filePaths)
+    if (removeError || !removed || removed.length !== filePaths.length) {
+      return {
+        formError:
+          'We could not delete this Space. It may no longer exist or you may not have access.',
+      }
+    }
+
+    if (files.length < 100) {
+      hasMore = false
+    }
+  }
+
   // Same scoping and zero-row rule as updateSpace (STORY-05 design §1.4).
   const { data: deleted, error } = await supabase
     .from('spaces')
