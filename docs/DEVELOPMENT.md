@@ -23,7 +23,7 @@ project after about a week without activity, so wake it the day before any demo.
 | Node 24            | Everyone                                              | Pinned in `.nvmrc` and `engines`                                             |
 | Git and GitHub CLI | Everyone                                              | Branches and pull requests                                                   |
 | Supabase CLI       | Everyone, through `npx`                               | Pinned in `package.json`                                                     |
-| Docker Desktop     | Database owner, and whoever runs the Playwright tests | The local Supabase stack                                                     |
+| Docker Desktop     | Anyone writing migrations or running Playwright tests | The local Supabase stack                                                     |
 | Playwright         | Whoever runs the Playwright tests                     | Pinned in `package.json`; needs Chromium (`npx playwright install chromium`) |
 | pandoc             | Whoever exports a submission                          | `npm run docs:docx`                                                          |
 
@@ -31,8 +31,8 @@ project after about a week without activity, so wake it the day before any demo.
 
 | Environment            | Database                                   | App                   | Data                                                  |
 | ---------------------- | ------------------------------------------ | --------------------- | ----------------------------------------------------- |
-| Local (database owner) | `npm run db:start` (Docker)                | `npm run dev`         | `supabase/seed.sql`, invented                         |
-| Local (everyone else)  | Shared cloud dev project                   | `npm run dev`         | The shared test accounts (D-028), and what you create |
+| Local (migration work) | `npm run db:start` (Docker)                | `npm run dev`         | `supabase/seed.sql`, invented                         |
+| Local (other work)     | Shared cloud dev project                   | `npm run dev`         | The shared test accounts (D-028), and what you create |
 | Preview                | Shared cloud dev project                   | Vercel preview per PR | The shared test accounts (D-028), and what you create |
 | Production             | Production project                         | Vercel, from `main`   | Demo data, invented; no seeded admin                  |
 | CI                     | A fresh local stack per run (the `db` job) | None                  | `supabase/seed.sql`, invented                         |
@@ -89,7 +89,15 @@ server on port 3100. They never talk to the cloud database.
 3. Ensure the local Supabase stack is running and seeded: `npm run db:start && npm run db:reset`
 4. Run them: `npm run test:e2e`
 
-## Changing the database (database owner)
+## Changing the database
+
+Adrian, the database owner, does this for every change, except that Luke does steps 1 to 5
+for STORY-08 and STORY-10 (D-066). Step 6 is always Adrian's.
+
+Work on the local stack. To try a change in the app, put the stack's URL and publishable
+key in a gitignored `.env.development.local` (`npx supabase status` prints them), because
+`npm run dev` reads that file ahead of `.env.local`. Delete it when you finish: until then,
+your app doesn't use the cloud dev project.
 
 1. Run `npm run db:new short_description`. Never edit a migration that has already been
    applied.
@@ -101,7 +109,18 @@ server on port 3100. They never talk to the cloud database.
 3. Add negative tests in `supabase/tests/`. The wrong user gets 0 rows, and the owner
    cannot make forbidden writes.
 4. `npm run db:reset && npm run db:test`.
-5. `npm run db:types`, and commit the regenerated types in the same PR.
+5. `npm run db:types`, and commit the regenerated types in the same PR. Two people write
+   migrations (D-066), so before the PR merges, merge `origin/main` into your branch and
+   check:
+   - **The order.** Your migration's timestamp must be later than every migration on
+     `main`. If it isn't, rename your file to a later one. That is safe, because it hasn't
+     reached a shared database yet. Otherwise `db push` refuses it without `--include-all`,
+     and CI doesn't notice.
+   - **The functions.** If you `create or replace` a function that another migration
+     created, start from its latest definition on `main`. The later definition replaces
+     the whole function, so any change you didn't carry over is lost with no error.
+   - **The types.** If `lib/supabase/database.types.ts` conflicts, don't fix it by hand.
+     Run steps 4 and 5 again.
 6. After the PR merges, Adrian runs `npx supabase db push` from `main` against the cloud
    dev project, and against production once it exists. Migrations do not ride along with
    Vercel deploys, so push them before the code that needs them reaches production.
@@ -157,4 +176,5 @@ example, expiry checked in the query itself, with Supabase `pg_cron` for clean-u
 | The automated test suite (STORY-06)       | Luke   |
 | Portal shells, QA                         | James  |
 
+Luke writes STORY-08's and STORY-10's migrations, which Adrian reviews and pushes (D-066).
 Stories after Sprint 1 are assigned at sprint planning.

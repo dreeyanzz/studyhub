@@ -52,6 +52,8 @@ settled. After pushing changes, request the review again.
    - for a design doc with screens, Maria has approved it (D-042)
    - for a flow doc, the approvers the [flows index](../flows/README.md) names have
      approved it (D-044)
+   - for a new migration, its timestamp is later than every migration on `main`, which
+     CI doesn't check (D-066)
 2. **Read the squash commit title and message** in the merge box. They are what stays on `main`, and you can fix the wording there. The `Co-Authored-By:` line must stay last.
 3. **Merge.** Tick "Merge without waiting for requirements to be met (bypass rules)" and choose "Squash and merge".
    - The bypass skips only the rule that stops teammates from merging. The approval and the checks still apply.

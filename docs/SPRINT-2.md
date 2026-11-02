@@ -68,10 +68,10 @@ Three things are new this sprint:
   flows they share are drawn once, in [`docs/flows/`](flows/README.md), and merged before
   the story designs that use them. Your design links them and draws only your story's
   part. The reservation lifecycle comes first, because five designs wait for it.
-- **Adrian writes every database change**, as in Sprint 1: migrations, policies and pgTAP
-  tests (D-036). If your story needs a table, a column or a policy, say exactly what in
-  your design doc, and Adrian builds it in its own pull request. Don't write migrations
-  yourself.
+- **Adrian writes the database changes**, as in Sprint 1: migrations, policies and pgTAP
+  tests (D-036). The exception is Luke, who writes STORY-08's and STORY-10's (D-066). If
+  another story needs a table, a column or a policy, say exactly what in its design doc,
+  and Adrian builds it in its own pull request. Maria and James don't write migrations.
 - **Maria decides what users see, do and are told**, in every story (D-042). If your
   story has screens, ask Maria to review your design doc too: Adrian merges it once Maria
   approves its user steps and UI. What the system allows and stores stays with Adrian,
@@ -86,7 +86,8 @@ says which flows are yours.
 Ask early. A question now costs minutes; a wrong guess costs days. Ask when:
 
 - you don't understand what your story is asking for;
-- your story needs a table, a column or a policy that isn't in a merged migration yet;
+- your story needs a table, a column or a policy that isn't in its design or a merged
+  migration yet;
 - your story needs a shared flow that has no doc in [`docs/flows/`](flows/README.md) yet;
 - your work would change another person's files, or a decision in
   [`DECISIONS.md`](DECISIONS.md);
@@ -118,22 +119,22 @@ flowchart LR
     S07 --> S12["STORY-12 Host occupancy<br/>James"]
     S07 --> S09["STORY-09 Holds and payment<br/>Adrian"]
     S11 --> S09
-    S09 --> S10["STORY-10 QR check-in<br/>Luke and Adrian"]
+    S09 --> S10["STORY-10 QR check-in<br/>Luke"]
     S12 --> S10
     S09 -. overrides .-> S12
-    S08["STORY-08 Map and filters<br/>Luke and Adrian"]
+    S08["STORY-08 Map and filters<br/>Luke"]
     S15["STORY-15 Space verification<br/>James and Adrian"]
 ```
 
-| Story                                    | Owner                                      | After its design, waits for                                                    |
-| ---------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
-| STORY-07 Seat map builder (#56)          | Adrian                                     | No other story; it goes first                                                  |
-| STORY-08 Map and filters (#57)           | Luke; Adrian writes its tag tables         | No other story for the map; Adrian's tag tables for the filters                |
-| STORY-15 Space verification (#166)       | James; Adrian writes its function          | No other story for the page; Adrian's function for saving                      |
-| STORY-11 Space profile (#76)             | Maria                                      | STORY-07's tables and photo bucket                                             |
-| STORY-12 Host occupancy (#77)            | James                                      | STORY-07's tables and Server Actions; STORY-09's reservations for overrides    |
-| STORY-09 Holds and sandbox payment (#58) | Adrian                                     | STORY-07's tables; STORY-11's seat map, where a Seeker picks a unit            |
-| STORY-10 QR check-in and release (#59)   | Luke; Adrian writes its database functions | STORY-09's reservations; STORY-12's seat map view, for the Host's wait windows |
+| Story                                    | Owner                             | After its design, waits for                                                    |
+| ---------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------ |
+| STORY-07 Seat map builder (#56)          | Adrian                            | No other story; it goes first                                                  |
+| STORY-08 Map and filters (#57)           | Luke                              | No other story for the map; its own tag tables for the filters                 |
+| STORY-15 Space verification (#166)       | James; Adrian writes its function | No other story for the page; Adrian's function for saving                      |
+| STORY-11 Space profile (#76)             | Maria                             | STORY-07's tables and photo bucket                                             |
+| STORY-12 Host occupancy (#77)            | James                             | STORY-07's tables and Server Actions; STORY-09's reservations for overrides    |
+| STORY-09 Holds and sandbox payment (#58) | Adrian                            | STORY-07's tables; STORY-11's seat map, where a Seeker picks a unit            |
+| STORY-10 QR check-in and release (#59)   | Luke                              | STORY-09's reservations; STORY-12's seat map view, for the Host's wait windows |
 
 **While you wait,** don't sit idle: review the flows your story waits for, write your
 design doc once they're merged, build what doesn't need the missing piece (page layouts,
@@ -144,14 +145,14 @@ form rules, components with sample data, tests), or review someone's pull reques
 Each step starts as soon as what it needs is merged. In step 1, each of us also reviews
 the flows our stories wait for, and approves the ones the flows index names.
 
-| Step                    | Adrian                                                                                        | Luke                                                   | Maria                                                 | James                                                              |
-| ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------ |
-| **1. Flows**            | The reservation lifecycle first, then Space verification and the sandbox payment confirmation | The check-in, once the reservation lifecycle is merged | The Host setup journey first, then the Seeker journey | Review the flows STORY-12 and STORY-15 wait for, and both journeys |
-| **2. Designs**          | STORY-07's design first, then STORY-09's; review the others                                   | STORY-08's and STORY-10's designs                      | STORY-11's design                                     | STORY-12's and STORY-15's designs                                  |
-| **3. Tables first**     | STORY-07's tables and RLS; then STORY-08's tag tables and STORY-15's function                 | STORY-08's map and search                              | STORY-11's layout and photo gallery                   | STORY-15's `/admin` page; STORY-12's layout                        |
-| **4. Build**            | STORY-07's builder; STORY-09's hold and payment; then STORY-10's database functions           | STORY-08's filters; STORY-10's QR code and scan page   | STORY-11's availability view and seat map             | STORY-12's one-tap states and walk-ins                             |
-| **5. Wire it together** | Wire it together; review and merge                                                            | STORY-10 on STORY-09's reservations                    | Responsive and keyboard checks                        | The Playwright journeys; walk-through as each role                 |
-| **Tue 1 Dec**           | Sprint 2 review and Prefinal demo                                                             | Same, together                                         | Same, together                                        | Same, together                                                     |
+| Step                    | Adrian                                                                                        | Luke                                                                              | Maria                                                 | James                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------ |
+| **1. Flows**            | The reservation lifecycle first, then Space verification and the sandbox payment confirmation | The check-in, once the reservation lifecycle is merged                            | The Host setup journey first, then the Seeker journey | Review the flows STORY-12 and STORY-15 wait for, and both journeys |
+| **2. Designs**          | STORY-07's design first, then STORY-09's; review the others                                   | STORY-08's and STORY-10's designs                                                 | STORY-11's design                                     | STORY-12's and STORY-15's designs                                  |
+| **3. Tables first**     | STORY-07's tables and RLS; then STORY-15's function                                           | STORY-08's tag tables, map and search                                             | STORY-11's layout and photo gallery                   | STORY-15's `/admin` page; STORY-12's layout                        |
+| **4. Build**            | STORY-07's builder; STORY-09's hold and payment                                               | STORY-08's filters; STORY-10's QR code and scan page; then its database functions | STORY-11's availability view and seat map             | STORY-12's one-tap states and walk-ins                             |
+| **5. Wire it together** | Wire it together; review and merge                                                            | STORY-10 on STORY-09's reservations                                               | Responsive and keyboard checks                        | The Playwright journeys; walk-through as each role                 |
+| **Tue 1 Dec**           | Sprint 2 review and Prefinal demo                                                             | Same, together                                                                    | Same, together                                        | Same, together                                                     |
 
 ## 4. Your part
 
@@ -169,7 +170,7 @@ Words used below (the [glossary](GLOSSARY.md) has them all):
 - **Sandbox:** the payment gateway's test mode. No real money moves, and card details
   never touch Worq (D-005).
 
-### Adrian: STORY-07, STORY-09, and every database change
+### Adrian: STORY-07, STORY-09, and most database changes
 
 **Your flows, first (D-044).** The reservation lifecycle, which five designs wait for;
 then the Space verification status, and the sandbox payment confirmation, which Luke
@@ -197,10 +198,10 @@ time. The design then sets the length of the payment window, the wait window's l
 the fee (D-049). The reservation lifecycle settled the rest first, such as a whole room
 taking one hold (D-044).
 
-**The database half of the others' stories:** STORY-08's tag tables, STORY-15's
-verification function, and STORY-10's check-in, check-out and release functions. Each goes
-in its own pull request with its pgTAP tests, as early as you can, because the others
-wait for them.
+**The database half of the others' stories:** STORY-15's verification function, and what
+Maria's and James's designs ask for. Each goes in its own pull request with its pgTAP
+tests, as early as you can, because the others wait for them. STORY-08's and STORY-10's
+are Luke's (D-066): you review and merge those pull requests, then run `supabase db push`.
 
 **How to test:** pgTAP for every table and policy (`npm run db:test`): the right user can,
 the wrong user gets zero rows, and the owner can't make a forbidden change. For STORY-09,
@@ -213,6 +214,12 @@ once, and what happens at the wrong Space. Draw it once the reservation lifecycl
 merged; Adrian and Maria approve it. You also approve the sandbox payment confirmation,
 and the signed-out part of Maria's Seeker journey.
 
+**Your database changes (D-066).** You write the migrations, policies, pgTAP tests and
+database functions for both stories, on the local stack, following
+[Changing the database](DEVELOPMENT.md#changing-the-database). Each goes in its own pull
+request, and your design says what it adds. Adrian reviews and merges them, then runs
+`supabase db push`, so you never apply anything to the cloud dev project yourself.
+
 **STORY-08, map discovery and filters (#57).** A Leaflet map of OpenStreetMap tiles with
 Space pins and a list beside it. Search by a typed place or campus name, or by the
 device's location. A filter panel for the seven curated criteria (Wi-Fi, outlets, noise,
@@ -223,8 +230,8 @@ match both. Also the Host's form for tagging their Space.
 name, price tier and distance, and links to its profile; filters combine with AND; a
 Space that isn't Verified never shows up; custom tags are never offered as filters.
 
-**Waits for:** no other story for the map and the search. The filters need Adrian's tag
-tables, so say in your design exactly what you need.
+**Waits for:** no other story for the map and the search. The filters need the tag tables,
+which you write, so say in your design exactly what they hold.
 
 **STORY-10, QR check-in and release (#59).** The Seeker's dashboard shows their booking
 token as a QR code. The Host scans it, or types it, and the unit becomes Occupied.
@@ -235,11 +242,14 @@ whatever is left. The Host sees each reservation's remaining wait window.
 releases the unit and records the fee as forfeited; check-out and closing time return
 units to Available; the Host sees the remaining wait windows.
 
-**Waits for:** STORY-09's reservations, and Adrian's database functions for check-in.
-Build the QR code, the scan page and the token rules first, against sample data.
+**Waits for:** STORY-09's reservations, which your check-in, check-out and release
+functions build on. Build the QR code, the scan page and the token rules first, against
+sample data.
 
-**How to test:** Vitest for the filter query and the token rules. By hand, on the local
-stack: search and filter as a Seeker, then check in a test reservation as a Host.
+**How to test:** pgTAP for every table, policy and function you write (`npm run db:test`):
+the right user can, the wrong user gets zero rows, and the owner can't make a forbidden
+change. Vitest for the filter query and the token rules. By hand, on the local stack:
+search and filter as a Seeker, then check in a test reservation as a Host.
 
 ### Maria: STORY-11, and every story's user experience
 
