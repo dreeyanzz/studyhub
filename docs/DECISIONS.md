@@ -815,6 +815,7 @@ Amends D-017 and D-036, which rejected this.
 - Adrian stays the database owner: Adrian writes every other database change, reviews and merges Luke's migrations, and runs `supabase db push` right after merging (D-014, D-017). Maria and James still name what they need in their designs.
 - With two writers, a migration's pull request merges only if its timestamp is later than every migration on `main`, and any function it replaces starts from its latest definition on `main`. `docs/DEVELOPMENT.md` has the steps.
 - STORY-10's functions still wait for STORY-09's reservations, because they extend `public.unit_states` and `private.record_lapses`, which STORY-09 changes first (the reservation lifecycle flow).
+- The Sprint 2 plan stays as baselined (D-043). The Sprint 2 brief changes to match this entry.
 
 **Why:** The brief had STORY-08's filters and STORY-10's check-in waiting for Adrian's SQL while Adrian also builds STORY-07 and STORY-09, the start of the critical path. Luke owns security (D-042) and already drafts `public.check_in` in the check-in flow. The Final phase checks authorship, so a story's owner should be able to explain its SQL. D-036 gave no reason for its rejection, and D-017's reason for a single owner, version collisions, is what the two checks above are for.
 
