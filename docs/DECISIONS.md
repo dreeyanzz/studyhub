@@ -482,6 +482,8 @@ Maria maintains the board; Adrian is Project Manager.
 
 **Withdrawn by D-043**, with STORY-07's design. A new design may propose it again.
 
+**Proposed again as D-062**, by STORY-07's new design (D-044).
+
 **Decision:**
 
 - Each zone of a Space's seat map is a band 6 cells wide, with as many rows as it needs. A seat or a standing desk takes one cell, and a whole room takes 2 or 3 cells in one row. Cells may stay empty, for aisles and gaps.
@@ -497,6 +499,8 @@ Maria maintains the board; Adrian is Project Manager.
 ## D-040 · Venue photos are public
 
 **Withdrawn by D-043**, with STORY-07's design. A new design may propose it again.
+
+**Proposed again as D-063**, by STORY-07's new design (D-044).
 
 **Decision:**
 
@@ -804,6 +808,40 @@ Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing
 **Rejected:** Testing `/admin` exclusively on the local Docker stack (prevents team verification on the shared dev project and blocks V2/V3 in the Prefinal demo); promoting via a migration (would run on every database including production, and account data does not belong in migrations); sharing `SUPABASE_SECRET_KEY` with teammates (violates D-029 least privilege); reusing `CLOUD_DEV_ACCOUNT_PASSWORD` for the Administrator (anyone with the shared test password could verify or reject Spaces).
 
 **Revisit:** When production deployment accounts and verification procedures are decided before the Final phase.
+
+## D-062 · The seat map is a 6-column grid per zone
+
+Proposes D-039 again, which D-043 withdrew, now that the flows STORY-07 uses are merged (D-044).
+
+**Decision:**
+
+- Each zone of a Space's seat map is a band 6 cells wide, with as many rows as it needs. A seat or a standing desk takes one cell, and a whole room takes 2 or 3 cells in one row. Cells may stay empty, for aisles and gaps.
+- The database rejects two units on overlapping cells, with an exclusion constraint, whatever the app checks first.
+- Each change in the builder (adding, editing, moving or removing a unit, or changing a zone) saves at once through its own Server Action (D-010). There is no draft and no "Save layout" button.
+
+**Why:** Six cells of 48 px fit a 360 px screen without scrolling sideways (SRS §3.2.2), and the bands match SRS Figure 3. One grid shape lets Hosts and Seekers share one renderer, so a saved map renders the same for both (FR-3.1). Saving each change keeps the grid and the list view on the same actions, and a closed tab loses nothing. The reservation lifecycle and the Host setup journey leave the layout to this story, so D-043's reason for withdrawing it no longer applies.
+
+**Rejected:** Units in order with no positions (simplest, but no gaps, aisles or real layout); one floor-plan grid for the whole Space, with zones as areas on it (the most work, and a phone can't show it without zooming or scrolling sideways); editing a draft and saving the whole map at once (one large save, and the list view would need the same draft).
+
+**Revisit if:** Hosts need rows wider than 6 cells, or rooms that span rows.
+
+## D-063 · Venue photos are public
+
+Proposes D-040 again, which D-043 withdrew, now that the flows STORY-07 uses are merged (D-044).
+
+**Decision:**
+
+- Venue photos live in a public Supabase Storage bucket, `space-photos`, at `<space_id>/<file name>`. Each is at most 5 MB, and JPEG, PNG or WebP.
+- Only the Host who owns the Space may upload, replace or delete its photos. Listing them follows the Space's own visibility (STORY-01).
+- Deleting a Space removes its photos first: `deleteSpace` empties the Space's folder through the Storage API, then deletes the row. Once the row is gone, no policy matches those photos, and the bucket is public. From STORY-09, it first checks for an active hold, because the database refuses that delete (D-052), and the photos would already be gone.
+
+**Why:** Photos are for everyone who can see the Space (FR-1.3), and plain URLs keep STORY-11's gallery simple.
+
+**Rejected:** A private bucket with short-lived signed URLs: tighter, but more work for STORY-11, and it protects little, because the photos become public once the Space is Verified.
+
+**Accepted risk:** Anyone who has the exact URL of a Pending or Rejected Space's photo can open it. Nothing publishes those URLs.
+
+**Revisit if:** A photo ever needs to stay private, such as a document for verification.
 
 ## D-066 · Luke writes the database half of STORY-08 and STORY-10
 
