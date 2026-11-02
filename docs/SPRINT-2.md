@@ -307,8 +307,9 @@ every path in them can be tested, and the flows your stories wait for: the reser
 lifecycle (STORY-12) and the Space verification flow (STORY-15). Before the Sprint 2
 review, check every merged story against the Definition of Done.
 
-**How to test:** `npm run test:e2e` against the local stack. By hand, locally, as
-`host@example.test` and `admin@example.test`.
+**How to test:** `npm run test:e2e` against the local stack. By hand, locally or on the
+cloud dev project, as `host@example.test` and `admin@example.test`. Adrian sends you the
+cloud Administrator's password privately (D-061).
 
 ## 5. Sprint calendar
 

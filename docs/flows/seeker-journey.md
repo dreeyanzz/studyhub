@@ -10,11 +10,11 @@ This journey follows a Seeker from discovery to a paid hold and booking token. I
 - Search by a typed place or campus name or device location; map and list results; curated filters; and opening a Space profile (STORY-08).
 - Reviewing a Space’s photos, hours, curated and Host custom tags, open status, and Available units per zone with Host-updated times; choosing a unit from the seat map or accessible list (STORY-11).
 - Choosing an eligible wait window, authenticating as a Seeker when needed, making or cancelling a hold, and seeing a clear outcome when a unit cannot be held (STORY-09).
-- PayMongo hosted sandbox checkout and the return to Worq. The sandbox payment confirmation flow (#175) owns callback handling and exact messages for duplicate, late and failed payments; its issue is open and its flow document is not written.
+- PayMongo hosted sandbox checkout and the return to Worq. The [sandbox payment confirmation flow](sandbox-payment-confirmation.md) (#175) owns callback handling and exact messages for duplicate, late and failed payments.
 - The Reserved unit and booking token on the Seeker dashboard (STORY-10).
 - What signed-out visitors and signed-in non-Seeker roles see when they try to hold a unit.
 
-This flow links, but does not redraw, the merged [reservation lifecycle](reservation-lifecycle.md) or [Space verification flow](space-verification.md). The sandbox payment confirmation (#175) and check-in (#176) are separate flows whose issues are open and documents are not written. They own gateway callback details and check-in rules; later flow PRs should link the documents once both exist. This journey ends when the Seeker has the booking token. Cancellation of a paid Reserved hold after that point follows R8 in the reservation lifecycle; the fee is forfeited.
+This flow links, but does not redraw, the merged [reservation lifecycle](reservation-lifecycle.md) or [Space verification flow](space-verification.md). The [sandbox payment confirmation](sandbox-payment-confirmation.md) (#175) and check-in (#176) are separate flows. They own gateway callback details and check-in rules. This journey ends when the Seeker has the booking token. Cancellation of a paid Reserved hold after that point follows R8 in the reservation lifecycle; the fee is forfeited.
 
 ## Journey
 

@@ -1,6 +1,6 @@
 # Check-in
 
-**Status:** draft · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
+**Status:** approved 2026-11-02 · **Owner:** @lukedongque · **Approved by:** @dreeyanzz, @fayeye-09 ·
 **Stories:** STORY-09, STORY-10 · **Decisions:** D-004, D-009, D-010, D-011, D-046, D-047, D-050, D-059, D-060
 
 This flow follows a reservation from the moment a Seeker arrives at a Space and presents
@@ -110,7 +110,7 @@ sequenceDiagram
     end
 
     Action->>DB: CALL public.check_in(token, space_id)
-    Note over DB: Step 1: Caller authorization check<br/>Step 2: Unlocked reservation lookup by token<br/>Step 3: Wrong Space check (p_space_id != space_id)<br/>Step 4: Lock unit (FOR UPDATE), then lock reservation (FOR UPDATE)<br/>Step 5: private.record_lapses() for this unit (D-047)
+    Note over DB: Step 1: Caller authorization check<br/>Step 2: Unlocked reservation lookup by token<br/>Step 3: Wrong Space check (p_space_id != space_id)<br/>Step 4: Lock unit (FOR UPDATE OF u), then lock reservation (FOR UPDATE)<br/>Step 5: private.record_lapses() for this unit (D-047)
 
     alt Branch C1: Valid token at correct Space within wait window (R6)
         DB-->>Action: Success: { outcome: 'success', unit_label, zone_name }
@@ -134,7 +134,7 @@ sequenceDiagram
     else Branch C5: Token presented at wrong Space (D-060)
         DB-->>Action: Refusal: P0001 (hint: wrong_space)
         Action-->>HostUI: Refusal: wrong_space
-        HostUI-->>Host: Warning: "Reservation is for another Space: [Other Space Name]"
+        HostUI-->>Host: Warning: "This reservation is for a different Space. No changes were made."
         Note over SeekerUI: Hold at correct Space remains intact
     else Branch C6: Token not found or invalid format
         DB-->>Action: Refusal: P0001 (hint: invalid_token)
@@ -177,7 +177,7 @@ Tests verify the database function (`supabase/tests/NN-check-in-release.sql`), t
 | #   | Branch                | Condition                                                                          | Database state move                                                                                                                       | Error code & hint                   | Test                                                                                                                                                                                                              |
 | --- | --------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | C1  | Valid check-in        | Active `reserved` hold, valid token, matching `space_id`, within wait window       | R6: `reservations.status` → `occupied`, `checked_in_at = clock_timestamp()`. Payment stays `paid`. Unit seat state reads Occupied (D-046) | None (Success)                      | `check-in-release`: "a Host checks in a Reserved unit, which reads Occupied"; `e2e/check-in`: "Host scans valid QR code and unit becomes Occupied"                                                                |
-| C2  | Lapsed wait window    | Status is `no_show` after lapse step, or `wait_window_ends_at < clock_timestamp()` | R7: `reservations.status` → `no_show`, `payments.status` → `forfeited`. Unit reads Available                                              | None (Result: `wait_window_lapsed`) | `check-in-release`: "a booking token cannot check in once its wait window has lapsed"; `check-in-release`: "a no-show releases the unit and forfeits the fee"                                                     |
+| C2  | Lapsed wait window    | Status is `no_show` after the lapse step                                           | R7: `reservations.status` → `no_show`, `payments.status` → `forfeited`. Unit reads Available                                              | None (Result: `wait_window_lapsed`) | `check-in-release`: "a booking token cannot check in once its wait window has lapsed"; `check-in-release`: "a no-show releases the unit and forfeits the fee"                                                     |
 | C3  | Token already used    | `reservations.status` is `occupied` or `completed`                                 | None. Reservation remains in its existing state                                                                                           | `P0001` (`token_already_used`)      | `check-in-release`: "a token cannot be checked in twice"; concurrency test (2 connections): "two staff devices scanning the same token result in exactly one check-in"; `lib/check-in`: "rejects used token"      |
 | C4  | Reservation cancelled | `reservations.status` is `cancelled` (R8 or R9)                                    | None. Reservation remains `cancelled`                                                                                                     | `P0001` (`reservation_cancelled`)   | `check-in-release`: "a cancelled reservation cannot be checked in"; `check-in-release`: "cancelling at counter before scan refuses check-in"                                                                      |
 | C5  | Wrong Space (D-060)   | Token exists and is `reserved`, but unit belongs to another Space                  | None. Hold remains `reserved` at its original Space                                                                                       | `P0001` (`wrong_space`)             | `check-in-release`: "a Host cannot check in a token for another Space"; `e2e/check-in`: "scanning token at wrong space preserves hold and shows informative error"                                                |
@@ -205,7 +205,7 @@ The check-in flow defines these additional moves specific to tokens and Space bo
 
 ## The database function
 
-`public.check_in(p_token text, p_space_id uuid)` (STORY-10, written by Adrian):
+`public.check_in(p_token text, p_space_id uuid)` (STORY-10, written by Luke, D-066):
 
 ```sql
 create or replace function public.check_in(
@@ -251,7 +251,7 @@ begin
   from public.units u
   join public.zones z on z.id = u.zone_id
   where u.id = v_res.unit_id
-  for update;
+  for update of u;
 
   select r.* into v_res
   from public.reservations r
@@ -269,7 +269,7 @@ begin
   -- 6. Evaluate status branches
   -- Notice: wait_window_lapsed returns JSON rather than raising,
   -- ensuring the no_show and forfeited writes performed by record_lapses are committed!
-  if v_res.status = 'no_show' or v_res.wait_window_ends_at < clock_timestamp() then
+  if v_res.status = 'no_show' then
     return jsonb_build_object(
       'outcome', 'wait_window_lapsed',
       'unit_id', v_unit.id,
@@ -317,7 +317,7 @@ Maria decides exact UX wording and component presentation (D-042):
 | **C2 Lapsed wait window** | Notice: "Wait window lapsed. Seat has been released and reservation fee forfeited."                    | Dashboard shows "Wait window lapsed · Unit released".                                                                             |
 | **C3 Already used**       | Alert: "This token was already checked in. Unit is currently Occupied."                                | "Already checked in."                                                                                                             |
 | **C4 Cancelled**          | Warning: "This reservation was cancelled."                                                             | Dashboard shows "Reservation cancelled".                                                                                          |
-| **C5 Wrong Space**        | Warning: "This reservation is for another Space: [Other Space Name]. No changes were made."            | Status remains "Reserved · Ready for check-in at [Correct Space Name]".                                                           |
+| **C5 Wrong Space**        | Warning: "This reservation is for a different Space. No changes were made."                            | Status remains "Reserved · Ready for check-in at [Correct Space Name]".                                                           |
 | **C6 Invalid token**      | Error: "Invalid booking token. Please verify the code or ask the Seeker to refresh their dashboard."   | Displays QR code with option to view alphanumeric code.                                                                           |
 | **C7 Unauthorized**       | Error: "You must be signed in as the Host of this Space to perform check-in."                          | N/A                                                                                                                               |
 
@@ -336,4 +336,4 @@ Each choice has its entry in [DECISIONS](../DECISIONS.md):
 
 ## Open questions
 
-- **Network latency grace period (#199):** Should the database check-in function provide a small grace period (e.g., 30 to 60 seconds) past `wait_window_ends_at` to tolerate network delays at venue entry, or should `clock_timestamp()` strictly enforce the exact deadline?
+- **Network latency grace period (#199):** Should the database check-in function provide a small grace period (e.g., 30 to 60 seconds) past `wait_window_ends_at` to tolerate network delays at the door, or should `clock_timestamp()` strictly enforce the exact deadline?
