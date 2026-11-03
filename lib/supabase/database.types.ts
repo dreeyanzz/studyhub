@@ -108,15 +108,123 @@ export type Database = {
           },
         ]
       }
+      units: {
+        Row: {
+          capacity: number | null
+          col_span: number
+          created_at: string
+          grid_col: number
+          grid_row: number
+          host_state: string
+          host_updated_at: string
+          id: string
+          label: string
+          space_id: string
+          unit_type: Database["public"]["Enums"]["unit_type"]
+          updated_at: string
+          zone_id: string
+        }
+        Insert: {
+          capacity?: number | null
+          col_span?: number
+          created_at?: string
+          grid_col: number
+          grid_row: number
+          host_state?: string
+          host_updated_at?: string
+          id?: string
+          label: string
+          space_id: string
+          unit_type: Database["public"]["Enums"]["unit_type"]
+          updated_at?: string
+          zone_id: string
+        }
+        Update: {
+          capacity?: number | null
+          col_span?: number
+          created_at?: string
+          grid_col?: number
+          grid_row?: number
+          host_state?: string
+          host_updated_at?: string
+          id?: string
+          label?: string
+          space_id?: string
+          unit_type?: Database["public"]["Enums"]["unit_type"]
+          updated_at?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "units_zone_space_fkey"
+            columns: ["zone_id", "space_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id", "space_id"]
+          },
+        ]
+      }
+      zones: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          space_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position: number
+          space_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          space_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zones_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      unit_states: {
+        Args: { p_space_id: string }
+        Returns: {
+          host_updated_at: string
+          reservation_id: string
+          seat_state: string
+          unit_id: string
+          wait_window_ends_at: string
+        }[]
+      }
     }
     Enums: {
       space_status: "pending" | "verified" | "rejected"
+      unit_type: "seat" | "standing_desk" | "room"
       user_role: "seeker" | "host" | "admin"
     }
     CompositeTypes: {
@@ -249,6 +357,7 @@ export const Constants = {
   public: {
     Enums: {
       space_status: ["pending", "verified", "rejected"],
+      unit_type: ["seat", "standing_desk", "room"],
       user_role: ["seeker", "host", "admin"],
     },
   },
