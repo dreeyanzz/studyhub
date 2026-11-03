@@ -124,6 +124,12 @@ export async function updateSpace(
   redirect('/host?notice=updated')
 }
 
+// Every failed delete says the same, whatever the cause: a Space that is gone, one
+// that belongs to another Host, or a photo that would not go (STORY-05 design §1.4,
+// D-063).
+const deleteFailed =
+  'We could not delete this Space. It may no longer exist or you may not have access.'
+
 export async function deleteSpace(
   _state: DeleteSpaceState,
   formData: FormData,
@@ -134,6 +140,34 @@ export async function deleteSpace(
     return { formError: z.flattenError(spaceId.error).formErrors.join(' ') }
   }
 
+  // Only the Space's own Host gets as far as its photos.
+  const { data: space, error: readError } = await supabase
+    .from('spaces')
+    .select('id')
+    .eq('id', spaceId.data)
+    .eq('host_id', user.id)
+    .maybeSingle()
+  if (readError || !space) return { formError: deleteFailed }
+
+  // The photos go first (D-063): once the row is gone, no storage policy matches
+  // them, and the bucket is public. If one won't go, the Space stays. Photos sit one
+  // folder deep (the bucket's insert policy), so listing the folder finds them all.
+  // A listing returns at most 100 names, so this repeats until the folder is empty.
+  const photos = supabase.storage.from('space-photos')
+  while (true) {
+    const { data: files, error: listError } = await photos.list(spaceId.data, {
+      limit: 100,
+    })
+    if (listError) return { formError: deleteFailed }
+    if (files.length === 0) break
+
+    const paths = files.map((file) => `${spaceId.data}/${file.name}`)
+    const { data: removed, error: removeError } = await photos.remove(paths)
+    if (removeError || removed.length !== paths.length) {
+      return { formError: deleteFailed }
+    }
+  }
+
   // Same scoping and zero-row rule as updateSpace (STORY-05 design §1.4).
   const { data: deleted, error } = await supabase
     .from('spaces')
@@ -142,12 +176,7 @@ export async function deleteSpace(
     .eq('host_id', user.id)
     .select('id')
     .maybeSingle()
-  if (error || !deleted) {
-    return {
-      formError:
-        'We could not delete this Space. It may no longer exist or you may not have access.',
-    }
-  }
+  if (error || !deleted) return { formError: deleteFailed }
 
   revalidatePath('/host')
   redirect('/host?notice=deleted')
