@@ -9,17 +9,17 @@
 
 - **Administrator portal shell and route access** (`app/(dashboard)/admin/layout.tsx`, `app/(dashboard)/admin/page.tsx`): protected portal layout accessible strictly by users with `role = 'admin'` (D-032, FR-5.1). Both `proxy.ts` (for page requests) and the Server Component in `page.tsx` verify the authenticated user's role via `evaluateRouteAccess`. Non-admin users are redirected to their designated dashboard (`/seeker` or `/host`); unauthenticated visitors are redirected to `/login?returnUrl=%2Fadmin`.
 - **Space verification queue view** (`app/(dashboard)/admin/page.tsx`): a dedicated administrative queue displaying every Space currently in `pending` status, ordered chronologically by creation timestamp (`created_at ASC`, FIFO review order).
-- **Verification item card** (`app/(dashboard)/admin/_components/verification-card.tsx`): clearly displays essential Space details needed for manual verification: Space name, address, description, daily hours formatted with midnight-crossing support, Host name (from `public.profiles(full_name)` with fallback to "Host"), and creation date in `Asia/Manila` time.
+- **Verification item card** (`app/(dashboard)/admin/_components/verification-card.tsx`): clearly displays essential Space details needed for manual verification: Space name, address, description, daily hours formatted with midnight-crossing support, Host name (from `public.profiles(full_name)` with fallback to "Host: Unnamed"), and creation date in `Asia/Manila` time.
 - **Immediate decision actions** (`app/(dashboard)/admin/actions.ts`): one-click `[Approve]` and `[Reject]` controls per pending Space that execute Server Actions (D-010). Approving sets status to `verified` (Move V2); rejecting sets status to `rejected` (Move V3). The Server Action checks the caller's session via `signedInClient()` and confirms the `admin` role.
 - **Optimistic concurrency / freshness protection** (D-053): the Server Action passes the exact `updated_at` timestamp string retrieved when the page rendered (preserving full microsecond precision per the Space verification flow). If a Host modified their Space while the Administrator was reviewing, the mutation is refused with a clear user prompt to refresh and inspect the updated details (N9).
-- **Shared Space formatting helpers** (`lib/spaces/format.ts`): shared utilities for formatting daily operating hours (including midnight-crossing and 24-hour Spaces, matching STORY-05's `hoursText`) and Manila timestamps, co-located with Vitest unit tests (`lib/spaces/format.test.ts`).
+- **Shared Space formatting helpers** (`lib/space/format.ts`): shared utilities for formatting daily operating hours (including midnight-crossing and 24-hour Spaces, matching STORY-05's `hoursText`) and Manila timestamps, co-located with Vitest unit tests (`lib/space/format.test.ts`), shared between Host and Admin portals.
 - **Zod validation schema** (`lib/validation/verification.ts`): reuses `spaceIdSchema` from `lib/validation/space.ts`, validates target status enum (`verified` or `rejected`), and validates the timestamp string for `updatedAt`, with co-located Vitest unit tests (`lib/validation/verification.test.ts`).
-- **Postgres function and pgTAP test suite:** Adrian implements `public.set_space_status`, rewrites the comment on `spaces.status`, regenerates `lib/supabase/database.types.ts`, and writes `supabase/tests/NN-space-verification.sql` (D-036, D-053) covering positive transitions (V2, V3), negative denials (N2–N7, N9), and the flow's V4 and refusal cases.
+- **Postgres function and pgTAP test suite:** Adrian implements `public.set_space_status`, rewrites the comment on `spaces.status` in the migration and in `seed.sql`, regenerates `lib/supabase/database.types.ts`, and writes `supabase/tests/NN-space-verification.sql` (D-036, D-053) covering positive transitions (V2, V3), negative denials (N2–N7, N9), and the flow's V4 and refusal cases.
 - **End-to-end journey tests:** Playwright test in `e2e/space-verification.spec.ts` where the test creates its own dedicated Space on `/host`, logs in as `admin@example.test`, views the queue on `/admin`, executes approval and rejection, and verifies status updates on `/host` and unauthorized route redirects. Also updates the stale `/admin` note in `e2e/smoke.spec.ts`.
 
 **Out:**
 
-- **Host contact email on card:** Emails live in `auth.users` and are not exposed via `public.profiles` (STORY-01). The card shows `profiles(full_name)` only; email retrieval or host messaging is deferred to STORY-14.
+- **Host contact email on card:** Emails live in `auth.users` and are not exposed via `public.profiles` (STORY-01). Who sees whose email is a call for Adrian and Luke, and is out of Sprint 2.
 - **Rejection reasons and feedback to Host:** in Sprint 2, rejection is a direct status change with no mandatory reason input (D-037, D-054). Rejection reasons and re-submission workflows belong to STORY-14 in Sprint 3.
 - **Editing Space details as an Administrator:** Administrators review and verify/reject, but cannot modify Host Space attributes (D-053, N6). Listing moderation belongs to STORY-14.
 - **Reversing decisions or re-reviewing in Sprint 2:** once approved or rejected, a Space status never transitions again in Sprint 2 (D-054). Taking down a verified Space or re-evaluating rejected Spaces belongs to STORY-14.
@@ -159,7 +159,7 @@ The Administrator verification experience lives at `/admin`:
    - Summary description: "Review pending Spaces. Approved Spaces become immediately visible in public search."
    - Active queue count: A badge indicating pending count (e.g., "3 pending").
 3. **Queue Content:**
-   - **Loading state:** Card placeholders with subtle pulsing backgrounds (`animate-pulse bg-muted/50 rounded-lg`).
+   - **Loading state:** Rendered via `app/(dashboard)/admin/loading.tsx` with card placeholders with subtle pulsing backgrounds (`animate-pulse bg-muted/50 rounded-lg`).
    - **Error state:** If the queue query fails to load:
      - Inline alert: `"We could not load the verification queue. Refresh the page to try again."`
    - **Empty state:** When no pending Spaces exist:
@@ -172,9 +172,9 @@ The Administrator verification experience lives at `/admin`:
      - **Metadata area:**
        - Address with location pin icon.
        - Daily hours: formatted via shared `hoursText` helper (e.g., "18:00 to 02:00 next day" or "Open 24 hours").
-       - Host information: "Host: [Full Name]" (using `profiles(full_name)` with fallback to "Host" if full name is empty).
-       - Created date: formatted in `Asia/Manila` time (e.g., "Created 2 Nov 2026, 18:00").
-     - **Description area:** venue description reflowing gracefully without horizontal truncation.
+       - Host information: "Host: [Full Name]" (using `profiles(full_name)` with fallback to "Host: Unnamed" if full name is empty or null).
+       - Created date: formatted in `Asia/Manila` time (e.g., "Nov 2, 2026, 18:00").
+     - **Description area:** description reflowing gracefully without horizontal truncation.
      - **Action area:**
        - Two prominent action buttons aligned at the bottom right of the card:
          - **`[Reject]` Button:** destructive outline styling (`border-destructive text-destructive hover:bg-destructive/10`), minimum 48×48 px touch target.
@@ -190,13 +190,15 @@ The Administrator verification experience lives at `/admin`:
 | File                                                       | Type                    | Purpose                                                                                 |
 | ---------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------- |
 | `app/(dashboard)/admin/layout.tsx`                         | Server Component        | Portal shell layout providing `AdminHeader`                                             |
+| `app/(dashboard)/admin/loading.tsx`                        | Server Component        | Card placeholder skeletons while the verification queue loads                           |
 | `app/(dashboard)/admin/page.tsx`                           | Server Component        | Role check, fetches pending spaces joined with `profiles(full_name)`, and renders queue |
 | `app/(dashboard)/admin/actions.ts`                         | Server Action           | `setSpaceStatusAction` checking session and executing `public.set_space_status`         |
 | `app/(dashboard)/admin/_components/admin-header.tsx`       | Server/Client Component | Navigation header with Administrator badge, user name, and Log out controls             |
-| `app/(dashboard)/admin/_components/verification-queue.tsx` | Client Component        | Manages queue list rendering, action states, and optimistic removal                     |
+| `app/(dashboard)/admin/_components/verification-queue.tsx` | Client Component        | Manages queue list rendering, action states, and removing reviewed cards                |
 | `app/(dashboard)/admin/_components/verification-card.tsx`  | Client Component        | Individual Space card with details, action triggers, and loading states                 |
-| `lib/spaces/format.ts`                                     | Pure TS                 | Shared operating hours and Manila timestamp formatters (used by Host and Admin portals) |
-| `lib/spaces/format.test.ts`                                | Vitest                  | Unit tests for shared space formatting helpers                                          |
+| `app/(dashboard)/host/_components/space-list.tsx`          | Client Component        | Refactored to import shared hours and date formatters from `lib/space/format.ts`        |
+| `lib/space/format.ts`                                      | Pure TS                 | Shared operating hours and Manila timestamp formatters (used by Host and Admin portals) |
+| `lib/space/format.test.ts`                                 | Vitest                  | Unit tests for shared space formatting helpers                                          |
 | `lib/validation/verification.ts`                           | Pure TS                 | Zod validation schema for verification actions (reusing `spaceIdSchema`)                |
 | `lib/validation/verification.test.ts`                      | Vitest                  | Unit tests for Zod validation schema                                                    |
 
@@ -221,7 +223,7 @@ The Administrator verification experience lives at `/admin`:
 | **pgTAP**            | a signed-out visitor cannot run set_space_status (N4)                                     | Execution denied by function grant                                                   |
 | **pgTAP**            | an Administrator cannot move a Verified or a Rejected Space (N5)                          | Refused with `P0001` hint `not_pending`                                              |
 | **pgTAP**            | an Administrator cannot decide a Space that does not exist                                | Refused with `P0001` hint `not_pending`                                              |
-| **pgTAP**            | an Administrator cannot set status to pending or an invalid status value                  | Refused with `P0001` hint `invalid_target_status`                                    |
+| **pgTAP**            | an Administrator cannot set status to pending, or to no status (null)                     | Refused with `P0001` hint `invalid_target_status`                                    |
 | **pgTAP**            | an Administrator updating a Host's space affects 0 rows (N6)                              | Affects 0 rows (enforced by RLS)                                                     |
 | **pgTAP**            | a Seeker and a signed-out visitor cannot read a Rejected Space (N7)                       | Returns 0 rows (enforced by RLS)                                                     |
 | **pgTAP**            | an Administrator cannot decide a Space that changed since they read it (N9)               | Refused with `P0001` hint `stale_version`                                            |
@@ -239,22 +241,22 @@ The Administrator verification experience lives at `/admin`:
 
 These rows become the story's TSK sub-issues once this doc is merged. Estimates total exactly **3 points and 1.5 days** (matching Issue #166 and the Sprint 2 plan):
 
-| Task         | What                                                                                                                                                            | Owner              | Points (1–10) | Days | Depends on         |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------- | ---- | ------------------ |
-| **TSK-15.1** | Database function `public.set_space_status`, status comment update, `db:types` regeneration, and pgTAP test suite in `supabase/tests/NN-space-verification.sql` | @dreeyanzz         | 1             | 0.5  | This design merged |
-| **TSK-15.2** | Shared Space formatting helpers (`lib/spaces/format.ts`), verification Zod schema (`lib/validation/verification.ts`), and unit tests                            | @JamesNino-Mandawe | 1             | 0.25 | This design merged |
-| **TSK-15.3** | `/admin` portal shell layout, queue UI, Server Actions, smoke test comment update, and Playwright journey tests (`e2e/space-verification.spec.ts`)              | @JamesNino-Mandawe | 1             | 0.75 | TSK-15.1, TSK-15.2 |
+| Task         | What                                                                                                                                                                                        | Owner              | Points (1–10) | Days | Depends on         |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------- | ---- | ------------------ |
+| **TSK-15.1** | Database function `public.set_space_status`, status comment update in migration and `seed.sql`, `db:types` regeneration, and pgTAP test suite in `supabase/tests/NN-space-verification.sql` | @dreeyanzz         | 1             | 0.5  | This design merged |
+| **TSK-15.2** | Shared Space formatting helpers (`lib/space/format.ts`), refactoring `space-list.tsx` to use them, verification Zod schema (`lib/validation/verification.ts`), and unit tests               | @JamesNino-Mandawe | 1             | 0.25 | This design merged |
+| **TSK-15.3** | `/admin` portal shell layout, `loading.tsx`, queue UI, Server Actions, smoke test comment update, and Playwright journey tests (`e2e/space-verification.spec.ts`)                           | @JamesNino-Mandawe | 1             | 0.75 | TSK-15.1, TSK-15.2 |
 
 ## 6. Build order
 
 One PR per row, and every PR targets `main`:
 
-| #   | Branch                          | PR title                                                   | Contains                                                                                                             |
-| --- | ------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| 1   | `feature/STORY-15-design`       | `docs(STORY-15): design space verification`                | Design doc in `docs/design/` and README index update                                                                 |
-| 2   | `feature/STORY-15-db-function`  | `feat(STORY-15): add set_space_status function and tests`  | TSK-15.1: Migration, `public.set_space_status`, comment update, `db:types`, and `NN-space-verification.sql` (Adrian) |
-| 3   | `feature/STORY-15-validation`   | `feat(STORY-15): add verification schema and formatters`   | TSK-15.2: `lib/spaces/format.ts`, `lib/validation/verification.ts`, and unit tests (James)                           |
-| 4   | `feature/STORY-15-admin-portal` | `feat(STORY-15): add admin portal, actions, and e2e tests` | TSK-15.3: `/admin` portal, queue UI, Server Actions, and Playwright tests (James)                                    |
+| #   | Branch                          | PR title                                                   | Contains                                                                                                                                               |
+| --- | ------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `feature/STORY-15-design`       | `docs(STORY-15): design space verification`                | Design doc in `docs/design/` and README index update                                                                                                   |
+| 2   | `feature/STORY-15-db-function`  | `feat(STORY-15): add set_space_status function and tests`  | TSK-15.1: Migration, `public.set_space_status`, status comment updates in migration & `seed.sql`, `db:types`, and `NN-space-verification.sql` (Adrian) |
+| 3   | `feature/STORY-15-validation`   | `feat(STORY-15): add verification schema and formatters`   | TSK-15.2: `lib/space/format.ts`, refactored `space-list.tsx`, `lib/validation/verification.ts`, and unit tests (James)                                 |
+| 4   | `feature/STORY-15-admin-portal` | `feat(STORY-15): add admin portal, actions, and e2e tests` | TSK-15.3: `/admin` portal, `loading.tsx`, queue UI, Server Actions, and Playwright tests (James)                                                       |
 
 ## 7. Rejected alternatives
 
