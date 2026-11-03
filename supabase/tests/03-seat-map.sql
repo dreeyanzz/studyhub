@@ -124,10 +124,10 @@ select results_eq(
   'an anonymous visitor calls unit_states on a verified space: all 14 units available, wait window and reservation null'
 );
 
--- Case 24: unit_states returns 0 rows for a Pending Space to visitor
+-- Case 24: "unit_states returns 0 rows for a Pending Space, except to its Host and Administrators" (N19), as a visitor
 select is_empty(
   $$select * from public.unit_states('e0000000-0000-4000-8000-000000000002')$$,
-  'an anonymous visitor gets 0 rows from unit_states for a pending space'
+  'unit_states returns 0 rows for a Pending Space, except to its Host and Administrators (N19): an anonymous visitor gets 0 rows'
 );
 
 select is_empty(
@@ -246,10 +246,10 @@ select results_eq(
   'a Seeker calls unit_states on a verified space: all 14 units available, wait window and reservation null'
 );
 
--- Case 24: unit_states returns 0 rows for a Pending Space to Seeker
+-- Case 24: "unit_states returns 0 rows for a Pending Space, except to its Host and Administrators" (N19), as a Seeker
 select is_empty(
   $$select * from public.unit_states('e0000000-0000-4000-8000-000000000002')$$,
-  'a Seeker gets 0 rows from unit_states for a pending space'
+  'unit_states returns 0 rows for a Pending Space, except to its Host and Administrators (N19): a Seeker gets 0 rows'
 );
 
 -- ---------------------------------------------------------------------------
@@ -311,10 +311,10 @@ select is_empty(
   'another Host deleting a Host''s unit affects 0 rows'
 );
 
--- Case 24: unit_states returns 0 rows for a Pending Space to another Host
+-- Case 24: "unit_states returns 0 rows for a Pending Space, except to its Host and Administrators" (N19), as another Host
 select is_empty(
   $$select * from public.unit_states('e0000000-0000-4000-8000-000000000002')$$,
-  'another Host gets 0 rows from unit_states for the first Host''s pending space'
+  'unit_states returns 0 rows for a Pending Space, except to its Host and Administrators (N19): another Host gets 0 rows'
 );
 
 select results_eq(
@@ -386,11 +386,11 @@ select is_empty(
   'an Administrator deleting a Host''s unit affects 0 rows'
 );
 
--- Case 24: unit_states returns rows for a Pending Space to an Administrator
+-- Case 24: "unit_states returns 0 rows for a Pending Space, except to its Host and Administrators" (N19), as an Administrator
 select results_eq(
   $$select count(*)::int from public.unit_states('e0000000-0000-4000-8000-000000000002')$$,
   $$values (2)$$,
-  'an Administrator reads unit_states for a pending space'
+  'unit_states returns 0 rows for a Pending Space, except to its Host and Administrators (N19): an Administrator gets its 2 units'
 );
 
 -- ---------------------------------------------------------------------------
@@ -783,11 +783,11 @@ select is_empty(
   'deleting a zone cascades to its units'
 );
 
--- Case 24: unit_states returns rows for a Pending Space to its Host
+-- Case 24: "unit_states returns 0 rows for a Pending Space, except to its Host and Administrators" (N19), as its Host
 select results_eq(
   $$select count(*)::int from public.unit_states('e0000000-0000-4000-8000-000000000002')$$,
   $$values (2)$$,
-  'unit_states returns rows for a Pending Space to its Host (N19)'
+  'unit_states returns 0 rows for a Pending Space, except to its Host and Administrators (N19): its Host gets its 2 units'
 );
 
 -- ---------------------------------------------------------------------------
