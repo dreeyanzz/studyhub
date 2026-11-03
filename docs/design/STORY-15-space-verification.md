@@ -7,22 +7,24 @@
 
 **In:**
 
-- **Administrator portal shell and route access** (`app/(dashboard)/admin/layout.tsx`): protected portal layout accessible strictly by users with `role = 'admin'` (D-032, FR-5.1). Seekers and Hosts attempting to access `/admin` are redirected to their respective dashboards (`/seeker`, `/host`) via `evaluateRouteAccess` and the proxy layer. Unauthenticated visitors are redirected to `/login?returnUrl=%2Fadmin`.
+- **Administrator portal shell and route access** (`app/(dashboard)/admin/layout.tsx`, `app/(dashboard)/admin/page.tsx`): protected portal layout accessible strictly by users with `role = 'admin'` (D-032, FR-5.1). Both `proxy.ts` (for page requests) and the Server Component in `page.tsx` verify the authenticated user's role via `evaluateRouteAccess`. Non-admin users are redirected to their designated dashboard (`/seeker` or `/host`); unauthenticated visitors are redirected to `/login?returnUrl=%2Fadmin`.
 - **Space verification queue view** (`app/(dashboard)/admin/page.tsx`): a dedicated administrative queue displaying every Space currently in `pending` status, ordered chronologically by creation timestamp (`created_at ASC`, FIFO review order).
-- **Verification item card** (`app/(dashboard)/admin/_components/verification-card.tsx`): clearly displays essential venue details needed for manual verification: Space name, address, description, opening and closing hours (formatted in `Asia/Manila` time), Host contact identity (name and email), and submission date.
-- **Immediate decision actions** (`app/(dashboard)/admin/actions.ts`): one-click `[Approve]` and `[Reject]` controls per pending Space that execute Server Actions (D-010). Approving sets status to `verified` (Move V2); rejecting sets status to `rejected` (Move V3).
-- **Optimistic concurrency / freshness protection** (D-053): the Server Action passes the exact `updated_at` timestamp string retrieved when the page rendered. If a Host modified their Space while the Administrator was reviewing, the mutation is refused with a clear user prompt to refresh and inspect the updated details (N9).
-- **Zod validation schema** (`lib/validation/verification.ts`): validates UUID format for `spaceId`, target status enum (`verified` or `rejected`), and timestamp string for `updatedAt`, with co-located Vitest unit tests (`lib/validation/verification.test.ts`).
-- **Postgres function and pgTAP test suite:** Adrian implements `public.set_space_status` and writes `supabase/tests/03-space-verification.sql` (D-036, D-053) covering positive transitions (V2, V3) and negative denials (N2–N7, N9).
-- **End-to-end journey tests:** Playwright test in `e2e/space-verification.spec.ts` verifying the Administrator login, queue listing, approval, rejection, and unauthorized access denials.
+- **Verification item card** (`app/(dashboard)/admin/_components/verification-card.tsx`): clearly displays essential Space details needed for manual verification: Space name, address, description, daily hours formatted with midnight-crossing support, Host name (from `public.profiles(full_name)` with fallback to "Host"), and creation date in `Asia/Manila` time.
+- **Immediate decision actions** (`app/(dashboard)/admin/actions.ts`): one-click `[Approve]` and `[Reject]` controls per pending Space that execute Server Actions (D-010). Approving sets status to `verified` (Move V2); rejecting sets status to `rejected` (Move V3). The Server Action checks the caller's session via `signedInClient()` and confirms the `admin` role.
+- **Optimistic concurrency / freshness protection** (D-053): the Server Action passes the exact `updated_at` timestamp string retrieved when the page rendered (preserving full microsecond precision per the Space verification flow). If a Host modified their Space while the Administrator was reviewing, the mutation is refused with a clear user prompt to refresh and inspect the updated details (N9).
+- **Shared Space formatting helpers** (`lib/spaces/format.ts`): shared utilities for formatting daily operating hours (including midnight-crossing and 24-hour Spaces, matching STORY-05's `hoursText`) and Manila timestamps, co-located with Vitest unit tests (`lib/spaces/format.test.ts`).
+- **Zod validation schema** (`lib/validation/verification.ts`): reuses `spaceIdSchema` from `lib/validation/space.ts`, validates target status enum (`verified` or `rejected`), and validates the timestamp string for `updatedAt`, with co-located Vitest unit tests (`lib/validation/verification.test.ts`).
+- **Postgres function and pgTAP test suite:** Adrian implements `public.set_space_status`, rewrites the comment on `spaces.status`, regenerates `lib/supabase/database.types.ts`, and writes `supabase/tests/NN-space-verification.sql` (D-036, D-053) covering positive transitions (V2, V3), negative denials (N2–N7, N9), and the flow's V4 and refusal cases.
+- **End-to-end journey tests:** Playwright test in `e2e/space-verification.spec.ts` where the test creates its own dedicated Space on `/host`, logs in as `admin@example.test`, views the queue on `/admin`, executes approval and rejection, and verifies status updates on `/host` and unauthorized route redirects. Also updates the stale `/admin` note in `e2e/smoke.spec.ts`.
 
 **Out:**
 
+- **Host contact email on card:** Emails live in `auth.users` and are not exposed via `public.profiles` (STORY-01). The card shows `profiles(full_name)` only; email retrieval or host messaging is deferred to STORY-14.
 - **Rejection reasons and feedback to Host:** in Sprint 2, rejection is a direct status change with no mandatory reason input (D-037, D-054). Rejection reasons and re-submission workflows belong to STORY-14 in Sprint 3.
-- **Editing Space details as an Administrator:** Administrators review and verify/reject, but cannot modify Host venue attributes (D-053, N6). Listing moderation belongs to STORY-14.
-- **Reversing decisions or re-reviewing in Sprint 2:** once approved or rejected, a Space status never transitions again in Sprint 2 (D-054). Taking down a verified space or re-evaluating rejected spaces belongs to STORY-14.
+- **Editing Space details as an Administrator:** Administrators review and verify/reject, but cannot modify Host Space attributes (D-053, N6). Listing moderation belongs to STORY-14.
+- **Reversing decisions or re-reviewing in Sprint 2:** once approved or rejected, a Space status never transitions again in Sprint 2 (D-054). Taking down a verified Space or re-evaluating rejected Spaces belongs to STORY-14.
 - **Seat map layout and unit construction:** building zones and units belongs to STORY-07 (#56). Spaces enter the verification queue immediately upon creation, with or without units (D-054).
-- **Public search discovery and profile presentation:** filtering verified spaces in search belongs to STORY-08 (#57); viewing the public Space profile belongs to STORY-11 (#76).
+- **Public search discovery and profile presentation:** filtering verified Spaces in search belongs to STORY-08 (#57); viewing the public Space profile belongs to STORY-11 (#76).
 
 ## 1. Flow
 
@@ -37,7 +39,7 @@ This story implements the Administrator verification moves defined in the [Space
   - **N3:** Hosts and Seekers cannot execute `public.set_space_status` (refused with `42501`).
   - **N4:** Signed-out visitors cannot execute `public.set_space_status`.
   - **N5:** Non-pending Spaces (already `verified` or `rejected`) cannot be moved in Sprint 2 (D-054).
-  - **N6:** Administrators cannot update Host venue details directly.
+  - **N6:** Administrators cannot update Host Space details directly.
   - **N7:** Seekers and anonymous visitors cannot read Pending or Rejected Spaces (D-055).
   - **N9:** An Administrator cannot decide a Space that changed after they loaded the page (concurrency check on `updated_at`, D-053).
 
@@ -48,16 +50,18 @@ sequenceDiagram
     autonumber
     actor A as Administrator
     participant B as Browser (/admin)
+    participant SC as Server Component (admin/page.tsx)
     participant SA as Server Action (setSpaceStatusAction)
     participant DB as Postgres (public.set_space_status)
 
-    A->>B: Opens /admin
-    Note over B: Role check (role === 'admin', D-032)<br/>Reads pending spaces via Supabase client
-    B->>A: Renders verification queue with Space cards
+    A->>B: Navigates to /admin
+    B->>SC: Requests page
+    Note over SC: Verifies session & role === 'admin'<br/>Queries pending spaces joined with profiles(full_name)
+    SC-->>B: Renders verification queue with Space cards
 
     A->>B: Clicks [Approve] or [Reject]
     B->>SA: Submits spaceId, status ('verified' | 'rejected'), updatedAt
-    Note over SA: Validates inputs using verifySpaceSchema (Zod)
+    Note over SA: Checks session & admin role<br/>Validates inputs via verifySpaceSchema (Zod)
 
     SA->>DB: select public.set_space_status(p_space_id, p_status, p_updated_at)
 
@@ -66,14 +70,17 @@ sequenceDiagram
         SA-->>B: Error alert: "Only administrators may verify spaces."
     else Space changed since Administrator viewed it (N9)
         DB-->>SA: P0001 refusal, hint: stale_version
-        SA-->>B: Error alert: "Space details were updated by the host. Please refresh before deciding."
-    else Space is not in pending status (N5)
+        SA-->>B: Error alert: "Space details were updated by the host while you were reviewing. Please refresh to inspect the latest information."
+    else Space is not pending or does not exist (N5)
         DB-->>SA: P0001 refusal, hint: not_pending
-        SA-->>B: Error alert: "This space has already been reviewed."
+        SA-->>B: Error alert: "This space is no longer pending verification."
+    else Invalid target status (not verified or rejected)
+        DB-->>SA: P0001 refusal, hint: invalid_target_status
+        SA-->>B: Error alert: "Invalid decision status."
     else Success (V2 or V3)
         DB-->>SA: Updates spaces.status, trigger updates spaces.updated_at
-        SA-->>B: revalidatePath('/admin') + success message
-        B-->>A: Removes card from queue & displays confirmation toast
+        SA-->>B: revalidatePath('/admin') + success
+        B-->>A: Removes card from queue & displays confirmation alert
     end
 ```
 
@@ -94,12 +101,15 @@ This story operates on the `public.spaces` table established in STORY-01:
 - `spaces.created_at` (`timestamptz`, not null, default `now()`)
 - `spaces.updated_at` (`timestamptz`, not null, default `now()`, maintained by `set_updated_at` trigger)
 
+STORY-15's migration updates the comment on `spaces.status`, which currently says STORY-14 changes it, to state:
+`'Verification status: pending until an Administrator approves or rejects it on /admin (STORY-15, FR-5.1).'`.
+
 ### State transitions
 
-| From      | Event                           | To         | Precondition                                                                                           | Who                                  |
-| --------- | ------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------ |
-| `pending` | Move V2: Administrator approves | `verified` | Caller has `role = 'admin'`; Space is currently `pending`; `updated_at` matches current database value | Administrator via `set_space_status` |
-| `pending` | Move V3: Administrator rejects  | `rejected` | Caller has `role = 'admin'`; Space is currently `pending`; `updated_at` matches current database value | Administrator via `set_space_status` |
+| From      | Event                           | To         | Precondition                                                                                                                  | Who                                  |
+| --------- | ------------------------------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `pending` | Move V2: Administrator approves | `verified` | Caller has `role = 'admin'`; Space is currently `pending`; `p_updated_at` is not null and matches current `spaces.updated_at` | Administrator via `set_space_status` |
+| `pending` | Move V3: Administrator rejects  | `rejected` | Caller has `role = 'admin'`; Space is currently `pending`; `p_updated_at` is not null and matches current `spaces.updated_at` | Administrator via `set_space_status` |
 
 In Sprint 2, once a Space transitions to `verified` or `rejected`, the decision is final and `spaces.status` never transitions again (D-054).
 
@@ -107,13 +117,14 @@ In Sprint 2, once a Space transitions to `verified` or `rejected`, the decision 
 
 ```typescript
 import { z } from 'zod'
+import { spaceIdSchema } from '@/lib/validation/space'
 
 export const spaceVerificationDecisionSchema = z.enum(['verified', 'rejected'], {
   error: 'Decision must be either verified or rejected',
 })
 
 export const verifySpaceSchema = z.object({
-  spaceId: z.string().uuid({ error: 'Invalid Space ID' }),
+  spaceId: spaceIdSchema,
   status: spaceVerificationDecisionSchema,
   updatedAt: z.string().min(1, { error: 'Timestamp is required for verification' }),
 })
@@ -128,11 +139,11 @@ Implemented by Adrian (@dreeyanzz) in `supabase/migrations/` (D-036, D-053):
 - **Signature:** `public.set_space_status(p_space_id uuid, p_status space_status, p_updated_at timestamptz) returns void`
 - **Security:** `security definer`, `set search_path = ''`.
 - **Permissions:** Revoke all execution grants from `public` and `anon`. Grant execution strictly to `authenticated`.
-- **Role verification:** Calls `private.has_role(auth.uid(), 'admin')`. If false, raises exception with SQLSTATE `42501` (insufficient privilege).
-- **Target status validation:** Ensures `p_status in ('verified', 'rejected')`. If not, raises `P0001` with hint `invalid_target_status`.
-- **Row lock & status check:** Queries `public.spaces` row `where id = p_space_id for update`.
-  - If no row found or `status != 'pending'`, raises exception `P0001` with hint `not_pending` (N5).
-  - If `updated_at != p_updated_at`, raises exception `P0001` with hint `stale_version` (N9).
+- **Role check:** If not `(select private.has_role('admin'))`, raises exception with SQLSTATE `42501` (permission denied).
+- **Target status check:** If `p_status is null or p_status not in ('verified', 'rejected')`, raises exception `P0001` with hint `invalid_target_status`.
+- **Row query & lock:** Queries `public.spaces` row `where id = p_space_id for update`.
+  - If `not found or status is distinct from 'pending'`, raises exception `P0001` with hint `not_pending` (N5).
+  - If `p_updated_at is null or updated_at is distinct from p_updated_at`, raises exception `P0001` with hint `stale_version` (N9).
 - **Update:** Updates `status = p_status`. Postgres triggers automatically advance `updated_at` to `now()`.
 
 ## 3. UI and files
@@ -142,25 +153,27 @@ Implemented by Adrian (@dreeyanzz) in `supabase/migrations/` (D-036, D-053):
 The Administrator verification experience lives at `/admin`:
 
 1. **Header & Navigation:**
-   - Consistent dashboard navigation bar (`AdminHeader`) with the Worq logo, a distinct "Administrator" badge (using badge design token), current user's name, and "Sign out" button.
+   - Consistent dashboard navigation bar (`AdminHeader`) with the Worq logo, a distinct "Administrator" badge (using `badge` design token), current user's name, and "Log out" button (matching `/host` and `/seeker`).
 2. **Page Header:**
    - Primary heading: "Space Verification" (`text-2xl font-bold`).
-   - Summary description: "Review newly submitted spaces. Approved spaces become immediately visible in public search."
+   - Summary description: "Review pending Spaces. Approved Spaces become immediately visible in public search."
    - Active queue count: A badge indicating pending count (e.g., "3 pending").
 3. **Queue Content:**
-   - **Loading state:** Accessible skeleton cards displaying placeholder pulsing blocks matching card layout.
-   - **Empty state:** When no pending spaces exist:
-     - Icon: Check circle / Inbox icon.
-     - Heading: "No pending spaces".
-     - Subtitle: "All registered study spaces have been reviewed."
+   - **Loading state:** Card placeholders with subtle pulsing backgrounds (`animate-pulse bg-muted/50 rounded-lg`).
+   - **Error state:** If the queue query fails to load:
+     - Inline alert: `"We could not load the verification queue. Refresh the page to try again."`
+   - **Empty state:** When no pending Spaces exist:
+     - Icon: Inbox icon (`lucide-react`).
+     - Heading: `"No pending spaces"`.
+     - Subtitle: `"All spaces have been reviewed."`
    - **Queue Card List:**
-     - Each pending Space is rendered as a distinct card with clear visual separation.
-     - **Header area:** Space name in prominent text (`text-lg font-semibold`), accompanied by a "Pending Review" pill tag.
+     - Each pending Space is rendered as an accessible card (`components/ui/card.tsx`).
+     - **Header area:** Space name in prominent text (`text-lg font-semibold`), accompanied by a `"Pending verification"` badge (matching STORY-05).
      - **Metadata area:**
        - Address with location pin icon.
-       - Operating hours: formatted daily opening and closing time (e.g., "Open daily: 08:00 – 22:00" or "Open 24 hours" if opening equals closing time, D-027).
-       - Host information: "Host: [Full Name] ([Email])".
-       - Submitted date: relative time formatted client-side (e.g., "Submitted 2 hours ago").
+       - Daily hours: formatted via shared `hoursText` helper (e.g., "18:00 to 02:00 next day" or "Open 24 hours").
+       - Host information: "Host: [Full Name]" (using `profiles(full_name)` with fallback to "Host" if full name is empty).
+       - Created date: formatted in `Asia/Manila` time (e.g., "Created 2 Nov 2026, 18:00").
      - **Description area:** venue description reflowing gracefully without horizontal truncation.
      - **Action area:**
        - Two prominent action buttons aligned at the bottom right of the card:
@@ -168,21 +181,24 @@ The Administrator verification experience lives at `/admin`:
          - **`[Approve]` Button:** primary styling (`bg-primary text-primary-foreground hover:bg-primary/90`), minimum 48×48 px touch target.
        - While an action is processing, both buttons on that card enter a disabled loading state displaying a spinner and accessible `aria-busy="true"`.
 4. **Feedback & Concurrency Alerts:**
-   - Success: On approval/rejection, the card transitions out of the queue and an accessible toast/banner confirms: `"[Space Name] has been approved"` or `"[Space Name] has been rejected"`.
-   - Stale data alert: If the Space was edited by the Host after page load, an inline alert banner informs: `"Space details were updated by the host while you were reviewing. Please refresh the page to inspect the latest information."`
+   - Success: On approval/rejection, the card transitions out of the queue and an accessible dismissible inline alert (`components/ui/alert.tsx`) confirms: `"[Space Name] has been approved"` or `"[Space Name] has been rejected"`.
+   - Stale data alert: If the Space was edited by the Host after page load, an inline alert informs: `"Space details were updated by the host while you were reviewing. Please refresh to inspect the latest information."`
+   - Non-pending alert: If the Space was already reviewed or deleted by the Host: `"This space is no longer pending verification."`
 
 ### Routes and components
 
-| File                                                       | Type                    | Purpose                                                                  |
-| ---------------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------ |
-| `app/(dashboard)/admin/layout.tsx`                         | Server Component        | Portal shell layout providing `AdminHeader` and role guard encapsulation |
-| `app/(dashboard)/admin/page.tsx`                           | Server Component        | Fetches pending spaces and renders the verification queue                |
-| `app/(dashboard)/admin/actions.ts`                         | Server Action           | Implements `setSpaceStatusAction` executing `public.set_space_status`    |
-| `app/(dashboard)/admin/_components/admin-header.tsx`       | Server/Client Component | Navigation header with Administrator badge and profile/sign-out controls |
-| `app/(dashboard)/admin/_components/verification-queue.tsx` | Client Component        | Manages queue list rendering, action states, and optimistic removal      |
-| `app/(dashboard)/admin/_components/verification-card.tsx`  | Client Component        | Individual Space card with details, action triggers, and loading states  |
-| `lib/validation/verification.ts`                           | Pure TS                 | Zod validation schema for verification actions                           |
-| `lib/validation/verification.test.ts`                      | Vitest                  | Unit tests for Zod validation schema                                     |
+| File                                                       | Type                    | Purpose                                                                                 |
+| ---------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------- |
+| `app/(dashboard)/admin/layout.tsx`                         | Server Component        | Portal shell layout providing `AdminHeader`                                             |
+| `app/(dashboard)/admin/page.tsx`                           | Server Component        | Role check, fetches pending spaces joined with `profiles(full_name)`, and renders queue |
+| `app/(dashboard)/admin/actions.ts`                         | Server Action           | `setSpaceStatusAction` checking session and executing `public.set_space_status`         |
+| `app/(dashboard)/admin/_components/admin-header.tsx`       | Server/Client Component | Navigation header with Administrator badge, user name, and Log out controls             |
+| `app/(dashboard)/admin/_components/verification-queue.tsx` | Client Component        | Manages queue list rendering, action states, and optimistic removal                     |
+| `app/(dashboard)/admin/_components/verification-card.tsx`  | Client Component        | Individual Space card with details, action triggers, and loading states                 |
+| `lib/spaces/format.ts`                                     | Pure TS                 | Shared operating hours and Manila timestamp formatters (used by Host and Admin portals) |
+| `lib/spaces/format.test.ts`                                | Vitest                  | Unit tests for shared space formatting helpers                                          |
+| `lib/validation/verification.ts`                           | Pure TS                 | Zod validation schema for verification actions (reusing `spaceIdSchema`)                |
+| `lib/validation/verification.test.ts`                      | Vitest                  | Unit tests for Zod validation schema                                                    |
 
 ### Accessibility (SRS §3.2.2, D-031)
 
@@ -194,56 +210,57 @@ The Administrator verification experience lives at `/admin`:
 
 ## 4. Security and test matrix
 
-| Layer                | Case                                                                                   | Expected                                                                             |
-| -------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **pgTAP**            | Administrator approves a Pending Space (Move V2)                                       | Succeeds; `spaces.status` becomes `verified`; signed-out visitors can read the space |
-| **pgTAP**            | Administrator rejects a Pending Space (Move V3)                                        | Succeeds; `spaces.status` becomes `rejected`; Seekers and visitors get 0 rows        |
-| **pgTAP**            | Administrator cannot write `spaces.status` directly via `UPDATE spaces` (N2)           | Permission denied (`42501`)                                                          |
-| **pgTAP**            | Host attempts to run `public.set_space_status` on their own Space (N3)                 | Permission denied (`42501`)                                                          |
-| **pgTAP**            | Seeker attempts to run `public.set_space_status` (N3)                                  | Permission denied (`42501`)                                                          |
-| **pgTAP**            | Anonymous caller attempts to run `public.set_space_status` (N4)                        | Execution denied by function grant                                                   |
-| **pgTAP**            | Administrator attempts to decide a Space that is already `verified` or `rejected` (N5) | Refused with `P0001` hint `not_pending`                                              |
-| **pgTAP**            | Administrator attempts to update a Host's Space details directly (N6)                  | Affects 0 rows (enforced by RLS)                                                     |
-| **pgTAP**            | Seeker and signed-out visitor attempt to read a Rejected Space (N7)                    | Returns 0 rows (enforced by RLS)                                                     |
-| **pgTAP**            | Administrator decides a Space with a stale `updated_at` timestamp (N9)                 | Refused with `P0001` hint `stale_version`                                            |
-| **Vitest**           | Valid verification action payload (`spaceId`, `status`, `updatedAt`)                   | Zod schema parse succeeds                                                            |
-| **Vitest**           | Invalid UUID or missing timestamp payload                                              | Zod schema parse fails with validation error                                         |
-| **Vitest**           | Target status other than `verified` or `rejected`                                      | Zod schema parse fails with validation error                                         |
-| **E2E (Playwright)** | Authenticated Administrator opens `/admin`, views pending spaces, and clicks Approve   | Space card disappears from queue; Space becomes public                               |
-| **E2E (Playwright)** | Authenticated Administrator clicks Reject on a pending Space                           | Space card disappears from queue; Space remains hidden from public search            |
-| **E2E (Playwright)** | Authenticated Seeker or Host navigates to `/admin`                                     | Redirected to `/seeker` or `/host` dashboard (D-032)                                 |
-| **E2E (Playwright)** | Anonymous visitor navigates to `/admin`                                                | Redirected to `/login?returnUrl=%2Fadmin`                                            |
+| Layer                | Case                                                                                      | Expected                                                                             |
+| -------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **pgTAP**            | an Administrator approves a Pending Space, and a signed-out visitor can read it (Move V2) | Succeeds; `spaces.status` becomes `verified`; signed-out visitors can read the Space |
+| **pgTAP**            | an Administrator rejects a Pending Space, and a Seeker still cannot read it (Move V3)     | Succeeds; `spaces.status` becomes `rejected`; Seekers and visitors get 0 rows        |
+| **pgTAP**            | a Host's edit leaves a Pending or a Rejected Space as it was (Move V4)                    | Succeeds; Space details update while `status` remains unchanged                      |
+| **pgTAP**            | an Administrator cannot write status directly (N2)                                        | Permission denied (`42501`)                                                          |
+| **pgTAP**            | a Host cannot approve or reject a Space, their own included (N3)                          | Permission denied (`42501`)                                                          |
+| **pgTAP**            | a Seeker cannot approve or reject a Space (N3)                                            | Permission denied (`42501`)                                                          |
+| **pgTAP**            | a signed-out visitor cannot run set_space_status (N4)                                     | Execution denied by function grant                                                   |
+| **pgTAP**            | an Administrator cannot move a Verified or a Rejected Space (N5)                          | Refused with `P0001` hint `not_pending`                                              |
+| **pgTAP**            | an Administrator cannot decide a Space that does not exist                                | Refused with `P0001` hint `not_pending`                                              |
+| **pgTAP**            | an Administrator cannot set status to pending or an invalid status value                  | Refused with `P0001` hint `invalid_target_status`                                    |
+| **pgTAP**            | an Administrator updating a Host's space affects 0 rows (N6)                              | Affects 0 rows (enforced by RLS)                                                     |
+| **pgTAP**            | a Seeker and a signed-out visitor cannot read a Rejected Space (N7)                       | Returns 0 rows (enforced by RLS)                                                     |
+| **pgTAP**            | an Administrator cannot decide a Space that changed since they read it (N9)               | Refused with `P0001` hint `stale_version`                                            |
+| **pgTAP**            | an Administrator cannot decide a Space when passing a null updated_at timestamp           | Refused with `P0001` hint `stale_version`                                            |
+| **Vitest**           | Valid verification action payload (`spaceId`, `status`, `updatedAt`)                      | Zod schema parse succeeds                                                            |
+| **Vitest**           | Invalid UUID or missing timestamp payload                                                 | Zod schema parse fails with validation error                                         |
+| **Vitest**           | Target status other than `verified` or `rejected`                                         | Zod schema parse fails with validation error                                         |
+| **Vitest**           | Shared `hoursText` formatting for 24-hour Spaces and overnight closing times              | Matches expected formatted strings                                                   |
+| **E2E (Playwright)** | Authenticated Administrator approves a newly created Space on `/admin`                    | Space card leaves queue; Space status shows Verified on `/host`                      |
+| **E2E (Playwright)** | Authenticated Administrator rejects a newly created Space on `/admin`                     | Space card leaves queue; Space status shows Rejected on `/host`                      |
+| **E2E (Playwright)** | Authenticated Seeker or Host navigates to `/admin`                                        | Redirected to `/seeker` or `/host` dashboard (D-032)                                 |
+| **E2E (Playwright)** | Anonymous visitor navigates to `/admin`                                                   | Redirected to `/login?returnUrl=%2Fadmin`                                            |
 
 ## 5. Tasks and estimates
 
-These rows become the story's TSK sub-issues once this doc is merged:
+These rows become the story's TSK sub-issues once this doc is merged. Estimates total exactly **3 points and 1.5 days** (matching Issue #166 and the Sprint 2 plan):
 
-| Task         | What                                                                                                           | Owner              | Points (1–10) | Days | Depends on         |
-| ------------ | -------------------------------------------------------------------------------------------------------------- | ------------------ | ------------- | ---- | ------------------ |
-| **TSK-15.1** | Database function `public.set_space_status` and pgTAP test suite in `supabase/tests/03-space-verification.sql` | @dreeyanzz         | 2             | 0.5  | None               |
-| **TSK-15.2** | Verification Zod validation schema and unit tests in `lib/validation/verification.ts`                          | @JamesNino-Mandawe | 1             | 0.25 | None               |
-| **TSK-15.3** | `/admin` portal shell layout, header, and verification queue UI components                                     | @JamesNino-Mandawe | 3             | 0.5  | TSK-15.2           |
-| **TSK-15.4** | Server Actions for Approve/Reject and optimistic concurrency handling in `app/(dashboard)/admin/actions.ts`    | @JamesNino-Mandawe | 2             | 0.25 | TSK-15.1, TSK-15.3 |
-| **TSK-15.5** | End-to-end Playwright journey tests (`e2e/space-verification.spec.ts`) and accessibility checks                | @JamesNino-Mandawe | 2             | 0.25 | TSK-15.4           |
+| Task         | What                                                                                                                                                            | Owner              | Points (1–10) | Days | Depends on         |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------- | ---- | ------------------ |
+| **TSK-15.1** | Database function `public.set_space_status`, status comment update, `db:types` regeneration, and pgTAP test suite in `supabase/tests/NN-space-verification.sql` | @dreeyanzz         | 1             | 0.5  | This design merged |
+| **TSK-15.2** | Shared Space formatting helpers (`lib/spaces/format.ts`), verification Zod schema (`lib/validation/verification.ts`), and unit tests                            | @JamesNino-Mandawe | 1             | 0.25 | This design merged |
+| **TSK-15.3** | `/admin` portal shell layout, queue UI, Server Actions, smoke test comment update, and Playwright journey tests (`e2e/space-verification.spec.ts`)              | @JamesNino-Mandawe | 1             | 0.75 | TSK-15.1, TSK-15.2 |
 
 ## 6. Build order
 
 One PR per row, and every PR targets `main`:
 
-| #   | Branch                          | PR title                                                  | Contains                                                                       |
-| --- | ------------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| 1   | `feature/STORY-15-design`       | `docs(STORY-15): design space verification`               | Design doc in `docs/design/` and README index update                           |
-| 2   | `feature/STORY-15-db-function`  | `feat(STORY-15): add set_space_status function and tests` | Migration, `public.set_space_status`, and `03-space-verification.sql` (Adrian) |
-| 3   | `feature/STORY-15-validation`   | `feat(STORY-15): add verification schema and tests`       | `lib/validation/verification.ts` and `verification.test.ts` (James)            |
-| 4   | `feature/STORY-15-admin-portal` | `feat(STORY-15): add admin portal shell and queue UI`     | `app/(dashboard)/admin/` layout, page, and components (James)                  |
-| 5   | `feature/STORY-15-actions`      | `feat(STORY-15): wire approve and reject server actions`  | `actions.ts` wiring to Postgres function with error mapping (James)            |
-| 6   | `feature/STORY-15-e2e`          | `test(STORY-15): add admin verification journey tests`    | Playwright journey in `e2e/space-verification.spec.ts` (James)                 |
+| #   | Branch                          | PR title                                                   | Contains                                                                                                             |
+| --- | ------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | `feature/STORY-15-design`       | `docs(STORY-15): design space verification`                | Design doc in `docs/design/` and README index update                                                                 |
+| 2   | `feature/STORY-15-db-function`  | `feat(STORY-15): add set_space_status function and tests`  | TSK-15.1: Migration, `public.set_space_status`, comment update, `db:types`, and `NN-space-verification.sql` (Adrian) |
+| 3   | `feature/STORY-15-validation`   | `feat(STORY-15): add verification schema and formatters`   | TSK-15.2: `lib/spaces/format.ts`, `lib/validation/verification.ts`, and unit tests (James)                           |
+| 4   | `feature/STORY-15-admin-portal` | `feat(STORY-15): add admin portal, actions, and e2e tests` | TSK-15.3: `/admin` portal, queue UI, Server Actions, and Playwright tests (James)                                    |
 
 ## 7. Rejected alternatives
 
-- **Direct table updates via RLS policy:** Granting column-level update permission on `spaces.status` to `admin` was considered in D-037. Rejected by D-053 because grants target Postgres roles (`authenticated`), which both Hosts and Administrators share. Postgres allows an update if any policy matches, which would allow Hosts to update their own space status. A `security definer` function strictly verifies the user's role via `private.has_role` and prevents unauthorized status writes.
+- **Direct table updates via RLS policy:** Granting column-level update permission on `spaces.status` to `admin` was considered in D-037. Rejected by D-053 because grants target Postgres roles (`authenticated`), which both Hosts and Administrators share. Postgres allows an update if any policy matches, which would allow Hosts to update their own space status. A `security definer` function strictly verifies the user's role via `(select private.has_role('admin'))` and prevents unauthorized status writes.
 - **Allowing Administrators to edit Space details during review:** Rejected by D-053. Admin listing moderation belongs to STORY-14. Keeping STORY-15 strictly scoped to approval/rejection ensures separation of concerns and maintains Host authorship integrity.
-- **Client-side `Date` object parsing for optimistic locking:** Rejected by D-053. JavaScript `Date` truncates sub-millisecond microsecond precision, causing Postgres `timestamptz` comparisons to fail consistently. The exact ISO timestamp string returned by Postgres must be preserved and passed back without conversion.
+- **Client-side `Date` object parsing for optimistic locking:** Rejected by the Space verification flow ("The function"). JavaScript `Date` truncates sub-millisecond microsecond precision, causing Postgres `timestamptz` comparisons to fail consistently. The exact ISO timestamp string returned by Postgres must be preserved and passed back without conversion.
 - **Rejection reasons modal and appeal workflows in Sprint 2:** Rejected by D-037 and D-054. Space verification is focused on unblocking the Prefinal demo so newly registered spaces can reach public search. Rich rejection feedback, host notifications, and re-submission workflows are deferred to Sprint 3 in STORY-14.
 
 ## 8. Open questions
