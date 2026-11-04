@@ -3,21 +3,21 @@
 **Status:** draft · **Owner:** @fayeye-09 · **Story:** #76 · **FR:** FR-1.3, FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-02, STORY-05, STORY-07, STORY-08 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Space verification](../flows/space-verification.md), [Host setup journey](../flows/host-setup-journey.md), [Seeker journey](../flows/seeker-journey.md) ·
-**Decisions:** D-001, D-002, D-003, D-004, D-006, D-007, D-009, D-010, D-013, D-016, D-026, D-027, D-031, D-032, D-036, D-042, D-044, D-046, D-047, D-048, D-051, D-055, D-057, D-058, D-062, D-063
+**Decisions:** D-002, D-006, D-009, D-010, D-027, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-049, D-051, D-055, D-057, D-058, D-062, D-063
 
 ## 0. Scope
 
 **In:**
 
 - **Public Space profile route (`/spaces/[spaceId]`):** a responsive Server Component at `app/(public)/spaces/[spaceId]/page.tsx` accessible to anyone (signed-out visitors, Seekers, Hosts, and Administrators).
-- **Public visibility enforcement (D-055):** only Spaces with `status = 'verified'` render publicly. While STORY-01's RLS policy allows an owning Host or an Administrator to read a Hidden Space (`pending` or `rejected`), the page explicitly checks `status === 'verified'`. A missing id, malformed UUID, or a Hidden Space returns the identical Next.js 404 `notFound()` page, leaking no information about private venues (D-055, N19).
-- **Venue header and details:** Space title, address, description, daily operating hours (`opens_at` to `closes_at` in Asia/Manila), and a computed open/closed badge ("Open now" vs "Closed · Opens at HH:mm" / "Closed · Opens tomorrow at HH:mm", D-027, D-048). Equal opening and closing times denote a Space open 24 hours (D-027, D-048).
+- **Public visibility enforcement (D-055):** only Spaces with `status = 'verified'` render publicly. While STORY-01's RLS policy allows an owning Host or an Administrator to read a Hidden Space (`pending` or `rejected`), the page explicitly checks `status === 'verified'`. A missing id, malformed UUID, or a Hidden Space returns the identical Next.js 404 `notFound()` page, leaking no information about private Spaces (D-055, N19).
+- **Space header and details:** Space title, address, description, daily operating hours (`opens_at` to `closes_at` in Asia/Manila), and a computed open/closed badge ("Open now" vs "Closed · Opens at HH:mm" / "Closed · Opens tomorrow at HH:mm", D-027, D-048). Equal opening and closing times denote a Space open 24 hours (D-027, D-048).
 - **Pricing display (FR-1.3):** pricing information is presented on the profile via its two project mechanisms: the curated price tier tag (e.g. `₱`, `₱₱`, `₱₱₱`) from STORY-08, and the exact sandbox reservation fee in the hold action slot from STORY-09 (D-027, D-049).
 - **Space photo gallery:** public gallery and carousel displaying images stored in the `space-photos` bucket (`<spaceId>/<filename>`, D-063) listed chronologically (`created_at ASC`) so the first upload serves as the cover photo. Features full keyboard navigation, accessible slide controls, thumbnail strip, and a fallback placeholder when a Space has no uploaded photos. Configures `images.remotePatterns` in `next.config.ts` for Supabase Storage domains.
 - **Curated and custom tag presentation rules (D-006):** platform-curated amenity tags rendered as solid primary badges with icons, alongside Host custom tags rendered as distinct outline badges under a separate "Host custom tags" label. Custom tags are display-only and never function as filters. The data shape and component implementation wait for STORY-08's design and tag tables (TSK-11.6).
 - **Zone availability overview (FR-1.3):** summary cards reporting the count of Available units per zone (e.g. "Quiet desks: 6 available · 8 total") and the oldest `host_updated_at` among its Available units, ensuring freshness is never overstated (D-051). An empty state is presented when no units in the Space are Available (`seeker-profile-no-available-unit`).
 - **"Host-updated · X min ago" freshness labels (D-002, D-051):**
-  - **Per-unit freshness:** each unit displays its own freshness timestamp in the list-view row, in the selected-unit panel, and in its tile's accessible name ("S4, Seat, Available, Host-updated 2 hr ago"). Sourced exclusively from `public.unit_states(space_id)` (D-047). Never uses the forbidden words "real-time" or "live" (Glossary).
+  - **Per-unit freshness:** each unit displays its own freshness timestamp in the list-view row, in the selected-unit panel, and in its tile's accessible name ("S4, Seat, Available, Host-updated · 2 hr ago"). Sourced exclusively from `public.unit_states(space_id)` (D-047). Never uses the forbidden words "real-time" or "live" (Glossary).
   - **Hydration safety:** server renders Manila clock time in a `<time dateTime="...">` element first; client-side formatting computes relative time after mount to avoid SSR hydration mismatches.
 - **Synchronized seat map and accessible list view (SRS §3.2.2):**
   - **Seat map view:** embeds STORY-07's shared `SeatMapGrid` and `SeatMapLegend` (`components/seat-map/`), placed directly in the page column (without padded card wrappers) to fit within 328 px viewport width at 360 px (D-062).
@@ -28,10 +28,10 @@
   - **Revalidation & deletion:** `revalidatePhotos` revalidates relevant paths; `deletePhoto` deletes a photo via Storage API using a server-rendered confirmation step (`?remove=<fileName>`, matching STORY-07).
 - **"Photos" action in Host portal:** adds a "Photos" link to each Space card in `app/(dashboard)/host/_components/space-list.tsx`.
 - **Shared formatting helpers and Zod schemas:**
-  - `lib/spaces/format.ts`: shared space formatting module (consolidated with STORY-15) providing `hoursText` (handling 24-hour and midnight-crossing spaces) and Manila timestamps.
-  - `lib/space/freshness.ts`: pure formatting helper for "Host-updated · X min ago" (including past 24 hours).
-  - `lib/space/availability.ts`: pure calculation of available units and zone-level oldest available update.
-  - `lib/validation/space-photos.ts`: Zod validation for photo file metadata (size <= 5 MB, JPEG/PNG/WebP) and delete filename safety.
+  - `lib/spaces/format.ts`: shared space formatting module (consolidated with STORY-15; whichever of TSK-11.1 or TSK-15.2 lands first creates it and the other imports it, moving `space-list.tsx`'s `hoursText` into it) providing `hoursText` (handling 24-hour and midnight-crossing spaces) and Manila timestamps.
+  - `lib/spaces/freshness.ts`: pure formatting helper for "Host-updated · X min ago" (including past 24 hours).
+  - `lib/spaces/availability.ts`: pure calculation of available units and zone-level oldest available update.
+  - `lib/validation/space-photos.ts`: Zod validation for photo file metadata (size <= 5 MB, JPEG/PNG/WebP, reusing `spaceIdSchema`) and delete filename safety.
 
 **Out:**
 
@@ -86,7 +86,7 @@ sequenceDiagram
 
     P->>DB: SELECT id, name, description, address, opens_at, closes_at, status FROM spaces WHERE id = spaceId
     alt Space missing or status != 'verified' (D-055)
-        DB-->>P: 0 rows (or unverified row)
+        DB-->>P: 0 rows (or Hidden Space row)
         P-->>B: notFound() [404: hidden Space reads as nonexistent]
     end
 
@@ -101,7 +101,7 @@ sequenceDiagram
     end
 
     P->>P: Compute open/closed status in Asia/Manila (lib/spaces/format.ts)
-    P->>P: Compute zone availability & oldest available updates (lib/space/availability.ts)
+    P->>P: Compute zone availability & oldest available updates (lib/spaces/availability.ts)
     P-->>B: HTML with Server-rendered profile shell, gallery, map/list, and <time> timestamps
     B->>B: Formats relative "Host-updated · X min ago" timestamps after mount
     B->>S: Renders Space profile without horizontal scroll (360/768/1024 px)
@@ -111,9 +111,9 @@ sequenceDiagram
         alt Unit is Available and Space is open
             B->>B: Displays unit details and renders STORY-09 hold slot
         else Space is closed (seeker-space-closed)
-            B->>B: Displays closed notice and link to discovery search; hold slot suppressed
+            B->>B: Displays closed notice and link to discovery search, hold slot suppressed
         else Unit is Pending Payment, Reserved, or Occupied
-            B->>B: Displays unit status notice; hold slot suppressed
+            B->>B: Displays unit status notice, hold slot suppressed
         end
     end
 ```
@@ -154,7 +154,7 @@ sequenceDiagram
     SA2->>SA2: revalidatePath('/host/spaces/' + spaceId + '/photos')
     SA2->>SA2: revalidatePath('/spaces/' + spaceId)
     SA2-->>B: Revalidation complete
-    B-->>H: Photo gallery updates; thumbnails display with Delete links
+    B-->>H: Photo gallery updates, thumbnails display with Delete links
 ```
 
 ## 2. Data and state
@@ -182,6 +182,7 @@ Shared between client and Server Actions:
 
 ```ts
 import { z } from 'zod'
+import { spaceIdSchema } from '@/lib/validation/space'
 
 export const MAX_PHOTO_FILE_SIZE = 5 * 1024 * 1024 // 5 MB (D-063)
 export const ALLOWED_PHOTO_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
@@ -198,7 +199,7 @@ export const photoFileMetadataSchema = z.object({
 })
 
 export const uploadPhotosRequestSchema = z.object({
-  spaceId: z.string().uuid('Invalid space ID'),
+  spaceId: spaceIdSchema,
   files: z
     .array(photoFileMetadataSchema)
     .min(1, 'Select at least one photo')
@@ -206,7 +207,7 @@ export const uploadPhotosRequestSchema = z.object({
 })
 
 export const deletePhotoSchema = z.object({
-  spaceId: z.string().uuid('Invalid space ID'),
+  spaceId: spaceIdSchema,
   fileName: z
     .string()
     .min(1)
@@ -251,16 +252,17 @@ Sits in the public route group `app/(public)/spaces/[spaceId]/page.tsx`, wrapped
 - **Availability Overview Banner (`availability-summary.tsx`):**
   - Prominent container sitting above the seat map.
   - **Zone breakdown:** card chips showing available count vs total, plus the zone's oldest available update:
-    - "Quiet desks: 6 available · 8 total · Host-updated 2 hr ago"
-    - "Standing desks: 2 available · 4 total · Host-updated 15 min ago"
-    - "Private rooms: 1 available · 2 total · Host-updated 1 hr ago"
+    - "Quiet desks: 6 available · 8 total · Host-updated · 2 hr ago"
+    - "Standing desks: 2 available · 4 total · Host-updated · 15 min ago"
+    - "Private rooms: 1 available · 2 total · Host-updated · 1 hr ago"
+    - If a zone has 0 available units, its chip displays: "Quiet desks: 0 available · 8 total · No available units"
   - **Oldest-available rule (D-051):** the zone timestamp reflects the oldest `host_updated_at` among its currently Available units, ensuring freshness is never overstated.
   - **All-occupied empty state:** if `availableCount === 0`, displays an alert banner: "No units are currently Available. Check back later or explore other spaces." with an active link to discovery search (`seeker-profile-no-available-unit`).
 - **Seat Map vs Accessible List View Switcher (`space-seat-map-view.tsx`):**
   - View switcher links using `aria-current`: **Seat map** (default, `?view=grid`) and **List view** (`?view=list`). Works via URL query parameters before JavaScript loads (SRS §3.2.2).
   - **Seat map view:**
     - Embeds STORY-07's shared `SeatMapGrid` and `SeatMapLegend` directly in the page column (without extra card padding) so the 308 px grid fits 328 px viewport width at 360 px.
-    - Unit tiles display label, type icon, capacity, seat state, and accessible name including unit freshness ("S4, Seat, Available, Host-updated 2 hr ago").
+    - Unit tiles display label, type icon, capacity, seat state, and accessible name including unit freshness ("S4, Seat, Available, Host-updated · 2 hr ago").
     - Clicking an Available unit selects it.
   - **Accessible list view alternative (SRS §3.2.2):**
     - Grouped by Zone in position order.
@@ -268,8 +270,8 @@ Sits in the public route group `app/(public)/spaces/[spaceId]/page.tsx`, wrapped
     - Fully operable by keyboard before JavaScript loads via standard links.
 - **Unit Selection Panel & Hold Slot:**
   - Selected unit panel renders below the map/list (via client state or server `?unit=<id>`):
-    - Available unit & Space open: displays unit label, zone, capacity, and freshness timestamp, and renders the `renderSelectedUnitAction?.(unit)` prop container where STORY-09 injects the wait-window dropdown and hold button.
-    - Non-available unit: displays unit status (e.g. "Reserved · This unit is currently held by another seeker") and suppresses the hold slot.
+    - Available unit & Space open: displays unit label, zone, capacity, and freshness timestamp, and renders the `renderSelectedUnitAction?.(unit)` prop container where STORY-09 passes the wait-window dropdown, hold button, and S12 check.
+    - Non-available unit: displays unit status (e.g. "Reserved · Not available to hold right now", "Occupied", or "Pending Payment") and suppresses the hold slot.
     - Space closed: displays "This Space is closed now" with a link to discovery search, suppressing the hold slot (`seeker-space-closed`).
 
 ### Screen 2: Host Photo Management (`/host/spaces/[spaceId]/photos`)
@@ -282,6 +284,7 @@ Sits in the Host portal route group `app/(dashboard)/host/spaces/[spaceId]/photo
   - Drag-and-drop zone and native file input (`multiple accept="image/jpeg,image/png,image/webp"`).
   - Guidelines: "Upload up to 5 MB per photo. Supported formats: JPEG, PNG, WebP."
   - Upload flow: client requests signed URLs via `createPhotoUploadUrls`, uploads files via `uploadToSignedUrl`, and calls `revalidatePhotos`.
+  - Upload error handling: if an individual upload fails (storage error or network drop), an inline alert informs the Host: "Failed to upload [filename]: [error reason]. Other photos uploaded successfully.", with an option to retry the failed file.
   - Non-JS fallback notice: uploading requires JavaScript to handle direct storage transfers.
 - **Photo Grid (`photo-grid.tsx`):**
   - Grid of uploaded photos with thumbnail preview, file size, and upload date.
@@ -330,9 +333,7 @@ components/space/
 
 lib/spaces/
 ├── format.ts                          # Shared hoursText, Manila date, and operating status formatters
-└── format.test.ts                     # Vitest unit tests for shared formatters
-
-lib/space/
+├── format.test.ts                     # Vitest unit tests for shared formatters
 ├── freshness.ts                       # Pure relative time formatting (including > 24 hr)
 ├── freshness.test.ts                  # Vitest unit tests for relative freshness
 ├── availability.ts                    # Pure zone availability counts and oldest-available logic
@@ -346,11 +347,11 @@ lib/validation/
 ### Accessibility (SRS §3.2.2, D-031)
 
 - **Touch targets:** all buttons, links, carousel navigation, and unit tiles meet the 48×48 px minimum touch target requirement (D-031, SRS §3.2.2).
-- **Contrast:** design tokens maintain WCAG 2.1 AA 4.5:1 contrast on `#f8f9f3` background: `text-primary` (`#173c2d`) on `bg-primary/10` is 6.38:1; `text-muted-foreground` (`#536356`) on `bg-muted/40` is 5.86:1.
+- **Contrast:** design tokens maintain WCAG 2.1 AA 4.5:1 contrast on `#f8f9f3` background: `text-primary` (`#215c3f`) on `bg-primary/10` (or `--foreground` `#173c2d`) is 6.38:1; `text-muted-foreground` (`#536356`) on `bg-muted/40` is 5.86:1.
 - **Keyboard navigation:** full sequential tab order with visible focus rings (`focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`).
 - **Screen readers:**
   - Photo gallery uses `role="region"` and `aria-roledescription="carousel"` with slide announcements.
-  - Seat map tiles declare full metadata and freshness in accessible names: e.g. `aria-label="Seat S1, Quiet desks, Available, Host-updated 2 hr ago"`.
+  - Seat map tiles declare full metadata and freshness in accessible names: e.g. `aria-label="Seat S1, Quiet desks, Available, Host-updated · 2 hr ago"`.
 - **Responsive layout & zoom:**
   - Containers use `min-w-0` and `wrap-anywhere` without `overflow-x-hidden`.
   - Verified across 360 px (mobile), 768 px (tablet), and 1024 px (desktop), and with browser text scaled to 200% without horizontal scrolling or text overlap.
@@ -376,13 +377,13 @@ lib/validation/
 | **Vitest** | `lib/spaces/format.ts`: Space open during normal daytime hours             | Returns `isOpen: true`, formatted closing time                                         |
 | **Vitest** | `lib/spaces/format.ts`: Space closed outside operating hours               | Returns `isOpen: false`, formatted next opening time                                   |
 | **Vitest** | `lib/spaces/format.ts`: Overnight hours spanning midnight                  | Correctly calculates open status across day boundary                                   |
-| **Vitest** | `lib/space/freshness.ts`: `host_updated_at` < 1 min ago                    | Returns `"Host-updated · Just now"`                                                    |
-| **Vitest** | `lib/space/freshness.ts`: `host_updated_at` 15 mins ago                    | Returns `"Host-updated · 15 min ago"`                                                  |
-| **Vitest** | `lib/space/freshness.ts`: `host_updated_at` 3 hours ago                    | Returns `"Host-updated · 3 hr ago"`                                                    |
-| **Vitest** | `lib/space/freshness.ts`: `host_updated_at` 2 days ago                     | Returns `"Host-updated · 2 d ago"`                                                     |
-| **Vitest** | `lib/space/freshness.ts`: glossary compliance                              | Output never contains `"real-time"` or `"live"`                                        |
-| **Vitest** | `lib/space/availability.ts`: zone oldest-available rule                    | Returns the oldest `host_updated_at` among available units                             |
-| **Vitest** | `lib/space/availability.ts`: zone with 0 available units                   | Correctly calculates 0 available and total units                                       |
+| **Vitest** | `lib/spaces/freshness.ts`: `host_updated_at` < 1 min ago                   | Returns `"Host-updated · Just now"`                                                    |
+| **Vitest** | `lib/spaces/freshness.ts`: `host_updated_at` 15 mins ago                   | Returns `"Host-updated · 15 min ago"`                                                  |
+| **Vitest** | `lib/spaces/freshness.ts`: `host_updated_at` 3 hours ago                   | Returns `"Host-updated · 3 hr ago"`                                                    |
+| **Vitest** | `lib/spaces/freshness.ts`: `host_updated_at` 2 days ago                    | Returns `"Host-updated · 2 d ago"`                                                     |
+| **Vitest** | `lib/spaces/freshness.ts`: glossary compliance                             | Output never contains `"real-time"` or `"live"`                                        |
+| **Vitest** | `lib/spaces/availability.ts`: zone oldest-available rule                   | Returns the oldest `host_updated_at` among available units                             |
+| **Vitest** | `lib/spaces/availability.ts`: zone with 0 available units                  | Correctly calculates 0 available and total units                                       |
 | **Vitest** | `lib/validation/space-photos.ts`: valid JPEG <= 5 MB                       | Zod parse succeeds                                                                     |
 | **Vitest** | `lib/validation/space-photos.ts`: file > 5 MB or wrong MIME                | Zod parse fails with specific error message                                            |
 | **Vitest** | `lib/validation/space-photos.ts`: delete filename with `..`                | Fails directory traversal check                                                        |
@@ -399,14 +400,14 @@ lib/validation/
 
 These rows become the story's TSK sub-issues once this design doc is merged. Total: 8 story points, 4 days.
 
-| Task         | What                                                                                                                                                                                                                                                                                        | Owner      | Points (1–10) | Days | Depends on                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------- | ---- | --------------------------------------------------- |
-| **TSK-11.1** | Shared formatting helpers and schemas: shared `lib/spaces/format.ts` (24h and overnight hours), relative freshness (`freshness.ts` with > 24h support), zone availability logic (`availability.ts`), and photo validation schemas (`space-photos.ts`), with comprehensive Vitest unit tests | @fayeye-09 | 1             | 0.5  | This design merged                                  |
-| **TSK-11.2** | Host photo management: `/host/spaces/[spaceId]/photos` route (owner-scoped), Server Actions for signed upload URLs (`createPhotoUploadUrls`, `revalidatePhotos`, `deletePhoto`), `?remove=` confirmation step, and "Photos" link in `SpaceList`                                             | @fayeye-09 | 2             | 1.0  | TSK-11.1, STORY-07 TSK-07.2 (`space-photos` bucket) |
-| **TSK-11.3** | Public Space profile shell: `/spaces/[spaceId]` Server Component, verified check with 404 fallback (D-055), header, hours badge, and empty/closed notices with discovery links (`seeker-space-closed`, `seeker-profile-no-available-unit`)                                                  | @fayeye-09 | 2             | 1.0  | TSK-11.1                                            |
-| **TSK-11.4** | Space photo gallery & carousel: responsive hero carousel with `next/image` (`next.config.ts` remotePatterns), chronological listing, touch navigation, keyboard controls, thumbnail strip, and fallback illustration                                                                        | @fayeye-09 | 1             | 0.5  | TSK-11.2, TSK-11.3                                  |
-| **TSK-11.5** | Availability overview and seat map: zone cards with oldest available freshness, per-unit freshness in list view and tile aria-labels, `SeatMapGrid` integration, `?view=list` support, and unit selection with `renderSelectedUnitAction` slot for STORY-09                                 | @fayeye-09 | 1             | 0.5  | TSK-11.3, STORY-07 TSK-07.4 (shared renderer)       |
-| **TSK-11.6** | Tag presentation: distinct curated vs custom tag styling on profile, list view, and selected unit panel, consuming tag tables once STORY-08's design merges                                                                                                                                 | @fayeye-09 | 1             | 0.5  | TSK-11.3, STORY-08 design & tables                  |
+| Task         | What                                                                                                                                                                                                                                                                                                                                                                                                 | Owner      | Points (1–10) | Days | Depends on                                          |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------- | ---- | --------------------------------------------------- |
+| **TSK-11.1** | Shared formatting helpers and schemas: shared `lib/spaces/format.ts` (whichever of TSK-11.1 or TSK-15.2 lands first creates it and the other imports it, moving `space-list.tsx`'s `hoursText` into it), relative freshness (`freshness.ts` with > 24h support), zone availability logic (`availability.ts`), and photo validation schemas (`space-photos.ts`), with comprehensive Vitest unit tests | @fayeye-09 | 1             | 0.5  | This design merged                                  |
+| **TSK-11.2** | Host photo management: `/host/spaces/[spaceId]/photos` route (owner-scoped), Server Actions for signed upload URLs (`createPhotoUploadUrls`, `revalidatePhotos`, `deletePhoto`), `?remove=` confirmation step, and "Photos" link in `SpaceList`                                                                                                                                                      | @fayeye-09 | 2             | 1.0  | TSK-11.1, STORY-07 TSK-07.2 (`space-photos` bucket) |
+| **TSK-11.3** | Public Space profile shell: `/spaces/[spaceId]` Server Component, verified check with 404 fallback (D-055), header, hours badge, and empty/closed notices with discovery links (`seeker-space-closed`, `seeker-profile-no-available-unit`)                                                                                                                                                           | @fayeye-09 | 2             | 1.0  | TSK-11.1                                            |
+| **TSK-11.4** | Space photo gallery & carousel: responsive hero carousel with `next/image` (`next.config.ts` remotePatterns), chronological listing, touch navigation, keyboard controls, thumbnail strip, and fallback illustration                                                                                                                                                                                 | @fayeye-09 | 1             | 0.5  | TSK-11.2, TSK-11.3                                  |
+| **TSK-11.5** | Availability overview and seat map: zone cards with oldest available freshness, per-unit freshness in list view and tile aria-labels, `SeatMapGrid` integration, `?view=list` support, and unit selection with `renderSelectedUnitAction` slot for STORY-09                                                                                                                                          | @fayeye-09 | 1             | 0.5  | TSK-11.3, STORY-07 TSK-07.4 (shared renderer)       |
+| **TSK-11.6** | Tag presentation: distinct curated vs custom tag styling on profile, list view, and selected unit panel, consuming tag tables once STORY-08's design merges                                                                                                                                                                                                                                          | @fayeye-09 | 1             | 0.5  | TSK-11.3, STORY-08 design & tables                  |
 
 ## 6. Build order
 
@@ -414,7 +415,7 @@ One PR per row, and every PR targets `main`. Each UI task includes responsive ch
 
 | #   | Branch                              | PR title                                                                        | Contains                                                                                                                                 |
 | --- | ----------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | `feature/STORY-11-pure-logic`       | `feat(STORY-11): add space formatters, freshness, and photo validation helpers` | `lib/spaces/format.ts`, `lib/space/` (freshness, availability), `lib/validation/space-photos.ts`, and Vitest tests                       |
+| 1   | `feature/STORY-11-pure-logic`       | `feat(STORY-11): add space formatters, freshness, and photo validation helpers` | `lib/spaces/` (format, freshness, availability), `lib/validation/space-photos.ts`, and Vitest tests                                      |
 | 2   | `feature/STORY-11-host-photos`      | `feat(STORY-11): add host photo management and signed upload actions`           | `app/(dashboard)/host/spaces/[spaceId]/photos/`, signed URL Server Actions, `?remove=` confirmation, and `SpaceList` link                |
 | 3   | `feature/STORY-11-profile-shell`    | `feat(STORY-11): add public space profile shell and hours badge`                | `app/(public)/spaces/[spaceId]/page.tsx`, header, hours open/closed badge, closed/empty notices with discovery links                     |
 | 4   | `feature/STORY-11-photo-gallery`    | `feat(STORY-11): add space photo gallery and carousel`                          | `space-photo-gallery.tsx` with chronological order, keyboard controls, thumbnails, and `next.config.ts` remotePatterns                   |
@@ -427,10 +428,10 @@ One PR per row, and every PR targets `main`. Each UI task includes responsive ch
 - **Uploading from the browser with no Server Action:** rejected because D-010 requires Server Actions to mutate data and authorize operations. A pure client-side upload would bypass server-side file metadata validation, ownership checks, and server-generated UUID naming.
 - **Single "Host-updated" freshness label for the entire Space:** rejected per D-051 and the Seeker journey (P4). A single Space-level timestamp overstates freshness for all other units when a Host updates only one unit. Displaying individual unit timestamps and zone oldest-available timestamps keeps freshness completely honest.
 - **Storing photo metadata in a dedicated `space_photos` database table:** rejected to avoid database schema migrations (which Maria and James do not write, D-036). Supabase Storage bucket listing provides all required functionality, with the accepted trade-off that custom ordering is not supported and images receive generic alt text.
-- **Private photo bucket with signed URLs:** rejected per D-063. Venue photos are intended for public browsing once a Space is Verified; generating short-lived signed URLs adds runtime overhead with negligible security benefit.
+- **Private photo bucket with signed URLs:** rejected per D-063. Space photos are intended for public browsing once a Space is Verified; generating short-lived signed URLs adds runtime overhead with negligible security benefit.
 - **Calling availability "real-time" or "live":** rejected per D-002 and Glossary. In the absence of IoT sensors, occupancy states are Host-maintained. Calling them "live" would be misleading; "Host-updated · X min ago" remains completely honest about data freshness.
 - **Offering custom tags as search filters:** rejected per D-006. Free-text tags break structured filtering. They are restricted to display-only badges on the profile.
-- **Displaying a "Pending approval" page for Hidden Spaces:** rejected per D-055. Revealing that an unverified Space exists leaks private venue information. A Hidden Space returns a 404 `notFound()`, identical to a nonexistent Space.
+- **Displaying a "Pending approval" page for Hidden Spaces:** rejected per D-055. Revealing that a Hidden Space exists leaks private Space information. A Hidden Space returns a 404 `notFound()`, identical to a nonexistent Space.
 - **Single-view spatial seat map without list view:** rejected per SRS §3.2.2. A purely visual seat map is inaccessible to screen readers and difficult to operate on small touch devices. An equivalent accessible list view is mandatory.
 
 ## 8. Open questions
