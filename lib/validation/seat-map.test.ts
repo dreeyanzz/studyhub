@@ -187,6 +187,15 @@ describe('gridRowSchema', () => {
     expect(gridRowSchema.safeParse(50).success).toBe(false)
     expect(gridRowSchema.safeParse('50').success).toBe(false)
   })
+
+  it('words the range error from 1, as the page counts rows', () => {
+    expect(gridRowSchema.safeParse(50).error?.issues[0]?.message).toBe(
+      'Row must be between 1 and 50',
+    )
+    expect(gridRowSchema.safeParse(-1).error?.issues[0]?.message).toBe(
+      'Row must be between 1 and 50',
+    )
+  })
 })
 
 describe('gridColSchema', () => {
@@ -200,6 +209,15 @@ describe('gridColSchema', () => {
     expect(gridColSchema.safeParse(-1).success).toBe(false)
     expect(gridColSchema.safeParse(6).success).toBe(false)
     expect(gridColSchema.safeParse('6').success).toBe(false)
+  })
+
+  it('words the range error from 1, as the page counts columns', () => {
+    expect(gridColSchema.safeParse(6).error?.issues[0]?.message).toBe(
+      'Column must be between 1 and 6',
+    )
+    expect(gridColSchema.safeParse(-1).error?.issues[0]?.message).toBe(
+      'Column must be between 1 and 6',
+    )
   })
 })
 
@@ -621,6 +639,7 @@ describe('Server Action form schemas', () => {
       zone_id: validZoneId,
       row: '2',
       col: '4',
+      colSpan: '1',
     })
     expect(valid.success).toBe(true)
     if (valid.success) {
@@ -628,6 +647,7 @@ describe('Server Action form schemas', () => {
       expect(valid.data.grid_row).toBe(2)
       expect(valid.data.col).toBe(4)
       expect(valid.data.grid_col).toBe(4)
+      expect(valid.data.colSpan).toBe(1)
       expect(valid.data.spaceId).toBe(validSpaceId)
     }
 
@@ -637,11 +657,13 @@ describe('Server Action form schemas', () => {
       zoneId: validZoneId,
       grid_row: '3',
       grid_col: '1',
+      col_span: '2',
     })
     expect(withSnakeGrid.success).toBe(true)
     if (withSnakeGrid.success) {
       expect(withSnakeGrid.data.row).toBe(3)
       expect(withSnakeGrid.data.col).toBe(1)
+      expect(withSnakeGrid.data.colSpan).toBe(2)
     }
 
     const invalid = moveUnitSchema.safeParse({
@@ -650,8 +672,42 @@ describe('Server Action form schemas', () => {
       zoneId: validZoneId,
       row: 50,
       col: 6,
+      colSpan: 1,
     })
     expect(invalid.success).toBe(false)
+  })
+
+  it('rejects a moveUnitSchema move that would push the unit past the right edge', () => {
+    const ids = { spaceId: validSpaceId, unitId: validUnitId, zoneId: validZoneId }
+
+    // A 3-wide whole room at column index 4 would cover columns 4–6: past the edge.
+    const pastEdge = moveUnitSchema.safeParse({ ...ids, row: 0, col: 4, colSpan: 3 })
+    expect(pastEdge.success).toBe(false)
+    if (!pastEdge.success) {
+      const issue = pastEdge.error.issues.find((i) => i.path.includes('col'))
+      expect(issue?.message).toBe('Unit must fit within the 6 grid columns')
+    }
+
+    // The same room at column index 3 ends exactly on the edge.
+    expect(moveUnitSchema.safeParse({ ...ids, row: 0, col: 3, colSpan: 3 }).success).toBe(
+      true,
+    )
+    // A seat fits in the last column.
+    expect(moveUnitSchema.safeParse({ ...ids, row: 0, col: 5, colSpan: 1 }).success).toBe(
+      true,
+    )
+    // A 2-wide room in the last column does not.
+    expect(moveUnitSchema.safeParse({ ...ids, row: 0, col: 5, colSpan: 2 }).success).toBe(
+      false,
+    )
+  })
+
+  it('requires the width in moveUnitSchema, so a room cannot skip the edge check', () => {
+    const ids = { spaceId: validSpaceId, unitId: validUnitId, zoneId: validZoneId }
+    expect(moveUnitSchema.safeParse({ ...ids, row: 0, col: 4 }).success).toBe(false)
+    expect(
+      moveUnitSchema.safeParse({ ...ids, row: 0, col: 4, colSpan: '' }).success,
+    ).toBe(false)
   })
 
   it('validates unitFormSchema with FormData, stringified inputs, and empty optional IDs', () => {

@@ -5,6 +5,7 @@ import { z } from 'zod'
  *
  * All coordinates count from 0 in form values, Zod schemas, and the database.
  * Limits accurately mirror check constraints on public.zones and public.units.
+ * Error messages count rows and columns from 1, as the page does (design §3).
  */
 
 // --- Base Field Schemas ---
@@ -56,8 +57,8 @@ export const gridRowSchema = z.preprocess(
   },
   z
     .int({ error: 'Row must be an integer' })
-    .min(0, { error: 'Row must be between 0 and 49' })
-    .max(49, { error: 'Row must be between 0 and 49' }),
+    .min(0, { error: 'Row must be between 1 and 50' })
+    .max(49, { error: 'Row must be between 1 and 50' }),
 )
 
 export const gridColSchema = z.preprocess(
@@ -68,8 +69,8 @@ export const gridColSchema = z.preprocess(
   },
   z
     .int({ error: 'Column must be an integer' })
-    .min(0, { error: 'Column must be between 0 and 5' })
-    .max(5, { error: 'Column must be between 0 and 5' }),
+    .min(0, { error: 'Column must be between 1 and 6' })
+    .max(5, { error: 'Column must be between 1 and 6' }),
 )
 
 export const colSpanSchema = z.preprocess(
@@ -457,6 +458,9 @@ export const updateUnitSchema = z.preprocess(
 
 export type UpdateUnitInput = z.infer<typeof updateUnitSchema>
 
+// colSpan is the unit's current width. It is required, not defaulted to 1, so
+// the right edge (col_bounds: grid_col + col_span <= 6) is checked for a whole
+// room too. It is only for that check: moveUnit writes the position, not the width.
 export const moveUnitSchema = z.preprocess(
   (val) => {
     const v = normalizeActionIds(val)
@@ -464,6 +468,7 @@ export const moveUnitSchema = z.preprocess(
       const obj = { ...(v as Record<string, unknown>) }
       if ('grid_row' in obj && !('row' in obj)) obj.row = obj.grid_row
       if ('grid_col' in obj && !('col' in obj)) obj.col = obj.grid_col
+      if ('col_span' in obj && !('colSpan' in obj)) obj.colSpan = obj.col_span
       return obj
     }
     return v
@@ -475,6 +480,11 @@ export const moveUnitSchema = z.preprocess(
       zoneId: z.uuid({ error: 'Zone ID is required' }),
       row: gridRowSchema,
       col: gridColSchema,
+      colSpan: colSpanSchema,
+    })
+    .refine((data) => data.col + data.colSpan <= 6, {
+      error: 'Unit must fit within the 6 grid columns',
+      path: ['col'],
     })
     .transform((data) => ({
       ...data,
