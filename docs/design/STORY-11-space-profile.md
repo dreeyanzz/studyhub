@@ -1,6 +1,6 @@
 # STORY-11: Space profile and host-updated availability
 
-**Status:** draft · **Owner:** @fayeye-09 · **Story:** #76 · **FR:** FR-1.3, FR-3.1, SRS §3.2.2 ·
+**Status:** approved 2026-11-04 · **Owner:** @fayeye-09 · **Story:** #76 · **FR:** FR-1.3, FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-02, STORY-05, STORY-07, STORY-08 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Space verification](../flows/space-verification.md), [Host setup journey](../flows/host-setup-journey.md), [Seeker journey](../flows/seeker-journey.md) ·
 **Decisions:** D-002, D-006, D-009, D-010, D-027, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-049, D-051, D-055, D-057, D-058, D-062, D-063
