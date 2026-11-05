@@ -1,6 +1,6 @@
 # Reservation lifecycle
 
-**Status:** draft · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
+**Status:** approved 2026-11-05 · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
 **Stories:** STORY-07, STORY-09, STORY-10, STORY-11, STORY-12, STORY-13, STORY-14 ·
 **Decisions:** D-002, D-004, D-005, D-008, D-009, D-010, D-011, D-027, D-046 to D-052,
 D-056, D-057

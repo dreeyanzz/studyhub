@@ -1,6 +1,6 @@
 # Space verification
 
-**Status:** draft · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
+**Status:** approved 2026-11-05 · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
 **Stories:** STORY-01, STORY-05, STORY-08, STORY-11, STORY-14, STORY-15 ·
 **Decisions:** D-027, D-037, D-052, D-053 to D-055
 
