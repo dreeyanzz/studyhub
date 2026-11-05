@@ -68,7 +68,7 @@ flowchart TB
     S43 -->|Reserved: seeker-payment-wins-cancel-race| S34
     S43 -->|Ended by Host: seeker-payment-wins-cancel-race| S32
     S43 -->|Expired unpaid: seeker-payment-wins-cancel-race| S36
-    S43 -->|Expired paid: seeker-payment-window-lapses-paid| S38
+    S43 -->|Expired paid: seeker-payment-wins-cancel-race| S38
     S41 --> S7
     S28 -->|Host overrides unpaid hold: seeker-unpaid-hold-host-override| S32[Explain hold ended; refresh availability]
     S32 --> S7
