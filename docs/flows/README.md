@@ -14,7 +14,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Sandbox payment confirmation](sandbox-payment-confirmation.md) | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | approved 2026-11-02 |
 | [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | approved 2026-11-02 |
 | [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian        | No other flow         | approved 2026-10-31 |
-| [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | draft               |
+| [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | approved 2026-11-05 |
 
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
 and "Approved by" columns. "Waits for" names the flows that must merge before a flow is

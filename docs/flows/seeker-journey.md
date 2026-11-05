@@ -1,6 +1,6 @@
 # Seeker journey
 
-**Status:** draft · **Owner:** @fayeye-09 · **Approved by:** @dreeyanzz, @lukedongque ·
+**Status:** approved 2026-11-05 · **Owner:** @fayeye-09 · **Approved by:** @dreeyanzz, @lukedongque ·
 **Stories:** STORY-08, STORY-09, STORY-10, STORY-11 · **Decisions:** D-001, D-002, D-003, D-006, D-008, D-010, D-012, D-026, D-044, D-048, D-049, D-050, D-055, D-056, D-058
 
 This journey follows a Seeker from discovery to a paid hold and booking token. It says what the Seeker sees, does and is told across search, the Space profile, authentication, the hold, sandbox checkout and dashboard. The named Playwright tests are planned; they do not yet exist.
