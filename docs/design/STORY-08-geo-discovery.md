@@ -2,16 +2,8 @@
 
 **Status:** draft · **Owner:** @lukedongque · **Story:** #57 · **FR:** FR-1.1, FR-1.2, FR-5.1 ·
 **Depends on:** none ·
-**Flows:** [Space verification](../flows/space-verification.md) (pending merge in PR #228), [Host setup journey](../flows/host-setup-journey.md) (approved), [Seeker journey](../flows/seeker-journey.md) (pending merge in PR #227) ·
+**Flows:** [Space verification](../flows/space-verification.md) (approved), [Host setup journey](../flows/host-setup-journey.md) (approved), [Seeker journey](../flows/seeker-journey.md) (approved) ·
 **Decisions:** D-003, D-006, D-007, D-010, D-012, D-027, D-037, D-042, D-044, D-048, D-055, D-066
-
-> [!IMPORTANT]
-> **Merge Gate Prerequisite (D-044):** Per D-044, merging this design doc into `main` requires that the upstream shared flows it depends on are merged first:
->
-> 1. [Seeker journey](../flows/seeker-journey.md) — PR #227 (open/draft)
-> 2. [Space verification](../flows/space-verification.md) — PR #228 (open/draft)
->
-> Implementation code for STORY-08 cannot begin until this design doc and both upstream flow PRs are merged.
 
 ## 0. Scope
 
