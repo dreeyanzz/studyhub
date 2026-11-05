@@ -194,8 +194,9 @@ Grants on `public.unit_states`:
 ### Storage bucket: `space-photos` (D-063)
 
 - Public, so a photo loads by its URL. Each file is at most 5 MB, and JPEG, PNG or WebP.
-- A photo's path starts with its Space's id: `<space_id>/<file name>`.
+- A photo's path is its Space's id, then its file name, one folder deep: `<space_id>/<file name>`.
 - Policies on `storage.objects`, for this bucket only: `insert`, `update` and `delete` when the first folder is a Space the caller owns; `select` (listing) when that Space is visible to the caller. A public URL needs no policy.
+- `insert` and `update` also refuse a path more than one folder deep: `array_length(storage.foldername(objects.name), 1) = 1`. `deleteSpace` lists only the Space's own folder, and a listing shows a deeper path as a folder, which it can't remove, so one such photo would keep the Space from ever being deleted.
 - Each policy compares the folder with the Space's id as text: `s.id::text = (storage.foldername(objects.name))[1]`. Inside the `spaces` subquery, a bare `name` would be the Space's name, and the policy would refuse every upload. A cast to `uuid` would make every listing fail once one object's folder isn't an id.
 - Deleting a Space removes its photos first: `deleteSpace` (`app/(dashboard)/host/actions.ts`) empties the Space's folder through the Storage API, then deletes the row. Once the row is gone, no policy matches its photos, so only the secret key could remove them, and the bucket is public. If the photos can't be removed, the Space stays, and the Host gets the usual "We could not delete this Space" message.
 - Whether photos also need a table, for their order and alt text, is STORY-11's call.
@@ -403,14 +404,15 @@ Named tests are the ones the [reservation lifecycle](../flows/reservation-lifecy
 
 ### pgTAP tests (`supabase/tests/04-space-photos.sql`)
 
-| Case                                                                   | Expected              |
-| ---------------------------------------------------------------------- | --------------------- |
-| Host uploads, replaces and deletes a photo in their own Space's folder | Succeeds              |
-| Another Host, a Seeker or a visitor uploads to that folder             | Denied by storage RLS |
-| Another Host deletes a Host's photo                                    | 0 rows                |
-| Host moves their own photo into another Host's Space's folder          | Denied by storage RLS |
-| Another Host, a Seeker or a visitor lists a Pending Space's photos     | 0 rows                |
-| Anyone lists a Verified Space's photos                                 | Returns them          |
+| Case                                                                       | Expected              |
+| -------------------------------------------------------------------------- | --------------------- |
+| Host uploads, replaces and deletes a photo in their own Space's folder     | Succeeds              |
+| Another Host, a Seeker or a visitor uploads to that folder                 | Denied by storage RLS |
+| Another Host deletes a Host's photo                                        | 0 rows                |
+| Host moves their own photo into another Host's Space's folder              | Denied by storage RLS |
+| Host uploads or moves a photo into a subfolder of their own Space's folder | Denied by storage RLS |
+| Another Host, a Seeker or a visitor lists a Pending Space's photos         | 0 rows                |
+| Anyone lists a Verified Space's photos                                     | Returns them          |
 
 **Notes for the pgTAP files:**
 
