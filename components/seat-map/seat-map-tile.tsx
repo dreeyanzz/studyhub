@@ -1,0 +1,124 @@
+import type { ReactNode } from 'react'
+import {
+  Armchair,
+  PersonStanding,
+  DoorClosed,
+  CheckCircle,
+  Hourglass,
+  Clock,
+  User,
+} from 'lucide-react'
+import type { SeatMapUnit, SeatState, UnitType } from '@/lib/seat-map/grid'
+import { cn } from '@/lib/utils'
+
+const TYPE_CONFIG: Record<
+  UnitType,
+  {
+    label: string
+    icon: typeof Armchair
+  }
+> = {
+  seat: { label: 'Seat', icon: Armchair },
+  standing_desk: { label: 'Standing Desk', icon: PersonStanding },
+  room: { label: 'Room', icon: DoorClosed },
+}
+
+const STATE_CONFIG: Record<
+  SeatState,
+  {
+    label: string
+    icon: typeof CheckCircle
+    tileClassName: string
+    iconClassName: string
+  }
+> = {
+  available: {
+    label: 'Available',
+    icon: CheckCircle,
+    tileClassName:
+      'border-emerald-600/40 bg-emerald-50 text-emerald-950 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100',
+    iconClassName: 'text-emerald-700 dark:text-emerald-400',
+  },
+  pending_payment: {
+    label: 'Pending Payment',
+    icon: Hourglass,
+    tileClassName:
+      'border-purple-600/40 bg-purple-50 text-purple-950 dark:border-purple-500/40 dark:bg-purple-950/40 dark:text-purple-100',
+    iconClassName: 'text-purple-700 dark:text-purple-400',
+  },
+  reserved: {
+    label: 'Reserved',
+    icon: Clock,
+    tileClassName:
+      'border-blue-600/40 bg-blue-50 text-blue-950 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-100',
+    iconClassName: 'text-blue-700 dark:text-blue-400',
+  },
+  occupied: {
+    label: 'Occupied',
+    icon: User,
+    tileClassName:
+      'border-amber-600/40 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100',
+    iconClassName: 'text-amber-700 dark:text-amber-400',
+  },
+}
+
+/**
+ * Renders an individual unit tile on the snap grid (STORY-07, TSK-07.4, FR-3.1).
+ *
+ * Shows the unit label, room capacity if applicable, unit type icon, and seat state icon.
+ * Features an accessible name pronouncing all details in words (e.g. "S4, Seat, Available").
+ * Minimum dimensions are 48x48 px (min-h-12, min-w-12) to meet touch target requirements (SRS §3.2.2).
+ */
+export function SeatMapTile({
+  unit,
+  className,
+}: {
+  unit: SeatMapUnit
+  className?: string
+}): ReactNode {
+  const typeInfo = TYPE_CONFIG[unit.unitType] ?? {
+    label: unit.unitType,
+    icon: Armchair,
+  }
+  const stateInfo = STATE_CONFIG[unit.seatState] ?? {
+    label: unit.seatState,
+    icon: CheckCircle,
+    tileClassName: 'border-border bg-card text-foreground',
+    iconClassName: 'text-foreground',
+  }
+
+  const isRoomWithCapacity =
+    unit.unitType === 'room' && unit.capacity !== null && unit.capacity !== undefined
+  const displayLabel = isRoomWithCapacity
+    ? `${unit.label} (${unit.capacity})`
+    : unit.label
+
+  const accessibleName = `${displayLabel}, ${typeInfo.label}, ${stateInfo.label}`
+
+  const TypeIcon = typeInfo.icon
+  const StateIcon = stateInfo.icon
+
+  return (
+    <div
+      role="group"
+      aria-label={accessibleName}
+      className={cn(
+        'flex h-full min-h-12 w-full min-w-12 flex-col items-center justify-between rounded-md border p-1 text-center transition-colors select-none',
+        stateInfo.tileClassName,
+        className,
+      )}
+    >
+      <div className="flex w-full items-center justify-between gap-1">
+        <TypeIcon className="size-3.5 shrink-0 opacity-80" aria-hidden="true" />
+        <StateIcon
+          className={cn('size-3.5 shrink-0', stateInfo.iconClassName)}
+          aria-hidden="true"
+        />
+      </div>
+      <span className="my-auto max-w-full px-0.5 text-xs leading-tight font-semibold break-words">
+        {displayLabel}
+      </span>
+      <span className="sr-only">{accessibleName}</span>
+    </div>
+  )
+}
