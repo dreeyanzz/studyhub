@@ -63,7 +63,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-05 | [STORY-05-host-space-crud.md](STORY-05-host-space-crud.md)         | implemented 2026-09-30                                              |
 | STORY-06 | [STORY-06-testing-qa.md](STORY-06-testing-qa.md)                   | implemented 2026-10-04                                              |
 | STORY-07 | [STORY-07-seat-map-builder.md](STORY-07-seat-map-builder.md)       | approved 2026-11-02                                                 |
-| STORY-08 |                                                                    | not written                                                         |
+| STORY-08 | [STORY-08-geo-discovery.md](STORY-08-geo-discovery.md)             | draft                                                               |
 | STORY-09 |                                                                    | not written                                                         |
 | STORY-10 |                                                                    | not written                                                         |
 | STORY-11 | [STORY-11-space-profile.md](STORY-11-space-profile.md)             | approved 2026-11-04                                                 |
