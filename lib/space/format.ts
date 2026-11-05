@@ -1,4 +1,4 @@
-// STORY-15, TSK-15.2: Shared Space formatters (D-027, D-053).
+// STORY-15, TSK-15.2: Shared Space formatters (D-027).
 // Used by Host portal (/host) and Admin verification portal (/admin).
 
 /**
@@ -16,11 +16,8 @@ export function formatOpeningHours(opensAt: string, closesAt: string): string {
   return `${opens} to ${closes}`
 }
 
-/** Alias for formatOpeningHours matching STORY-05 naming. */
-export const hoursText = formatOpeningHours
-
-// Worq's Spaces are located in the Philippines (e.g. seeded venues in Cebu City).
-// Since servers may run in UTC, dates and timestamps are displayed in Philippine time (Asia/Manila).
+// Assumption: Worq's Spaces are in the Philippines (the seeded ones are in Cebu
+// City), and the server may run in UTC, so times are shown in Philippine time.
 const manilaDateTimeFormat = new Intl.DateTimeFormat('en-PH', {
   dateStyle: 'medium',
   timeStyle: 'short',
@@ -31,9 +28,6 @@ const manilaDateTimeFormat = new Intl.DateTimeFormat('en-PH', {
 /**
  * Formats a timestamp into localized Philippine time: e.g. "Nov 2, 2026, 18:00".
  */
-export function formatCreationDate(date: string | Date): string {
+export function formatDateTime(date: string | Date): string {
   return manilaDateTimeFormat.format(typeof date === 'string' ? new Date(date) : date)
 }
-
-/** Formats a timestamp for general display; identical to formatCreationDate. */
-export const formatDateTime = formatCreationDate

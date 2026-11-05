@@ -70,6 +70,6 @@ and what the right user is prevented from doing to their own rows.
 | STORY-12 | [STORY-12-host-occupancy.md](STORY-12-host-occupancy.md)           | approved 2026-10-29                                                 |
 | STORY-13 |                                                                    | not written                                                         |
 | STORY-14 |                                                                    | not written                                                         |
-| STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | draft                                                               |
+| STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | approved 2026-11-04                                                 |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.
