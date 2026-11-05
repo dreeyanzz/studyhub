@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import type { Database } from '@/lib/supabase/database.types'
+import { formatDateTime, formatOpeningHours } from '@/lib/space/format'
 
 type SpaceRow = Database['public']['Tables']['spaces']['Row']
 type SpaceStatus = Database['public']['Enums']['space_status']
@@ -39,27 +40,6 @@ const statusBadges: Record<
   rejected: { label: 'Rejected', variant: 'destructive' },
 }
 
-// One opening and closing time for every day (D-027). Postgres returns a time as
-// HH:mm:ss and the form saves HH:mm, so only the first five characters count.
-// Equal times mean open 24 hours, and a closing time earlier than the opening
-// time means the Space closes after midnight.
-function hoursText(opensAt: string, closesAt: string) {
-  const opens = opensAt.slice(0, 5)
-  const closes = closesAt.slice(0, 5)
-  if (opens === closes) return 'Open 24 hours'
-  if (closes < opens) return `${opens} to ${closes} next day`
-  return `${opens} to ${closes}`
-}
-
-// Assumption: Worq's Spaces are in the Philippines (the seeded ones are in Cebu
-// City), and the server may run in UTC, so times are shown in Philippine time.
-const updatedAtFormat = new Intl.DateTimeFormat('en-PH', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-  hourCycle: 'h23',
-  timeZone: 'Asia/Manila',
-})
-
 function SpaceCard({ space }: { space: SpaceListItem }) {
   const status = statusBadges[space.status]
 
@@ -82,14 +62,14 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
         <dl className="space-y-1">
           <div>
             <dt className="inline font-medium">Daily hours: </dt>
-            <dd className="inline">{hoursText(space.opens_at, space.closes_at)}</dd>
+            <dd className="inline">
+              {formatOpeningHours(space.opens_at, space.closes_at)}
+            </dd>
           </div>
           <div>
             <dt className="inline font-medium">Last updated: </dt>
             <dd className="inline">
-              <time dateTime={space.updated_at}>
-                {updatedAtFormat.format(new Date(space.updated_at))}
-              </time>
+              <time dateTime={space.updated_at}>{formatDateTime(space.updated_at)}</time>
             </dd>
           </div>
         </dl>

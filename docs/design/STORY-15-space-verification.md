@@ -1,6 +1,6 @@
 # STORY-15: Space verification (approve or reject)
 
-**Status:** draft · **Owner:** @JamesNino-Mandawe (page and actions), @dreeyanzz (database function and policy) · **Story:** #166 · **FR:** FR-5.1 ·
+**Status:** approved 2026-11-04 · **Owner:** @JamesNino-Mandawe (page and actions), @dreeyanzz (database function and policy) · **Story:** #166 · **FR:** FR-5.1 ·
 **Depends on:** STORY-01, STORY-03, STORY-05 · **Flows:** [Space verification](../flows/space-verification.md), [Host setup journey](../flows/host-setup-journey.md) · **Decisions:** D-010, D-016, D-027, D-031, D-032, D-036, D-037, D-042, D-044, D-053, D-054, D-055, D-061, D-065
 
 ## 0. Scope
@@ -196,7 +196,7 @@ The Administrator verification experience lives at `/admin`:
 | `app/(dashboard)/admin/_components/admin-header.tsx`       | Server/Client Component | Navigation header with Administrator badge, user name, and Log out controls             |
 | `app/(dashboard)/admin/_components/verification-queue.tsx` | Client Component        | Manages queue list rendering, action states, and removing reviewed cards                |
 | `app/(dashboard)/admin/_components/verification-card.tsx`  | Client Component        | Individual Space card with details, action triggers, and loading states                 |
-| `app/(dashboard)/host/_components/space-list.tsx`          | Client Component        | Refactored to import shared hours and date formatters from `lib/space/format.ts`        |
+| `app/(dashboard)/host/_components/space-list.tsx`          | Server Component        | Refactored to import shared hours and date formatters from `lib/space/format.ts`        |
 | `lib/space/format.ts`                                      | Pure TS                 | Shared operating hours and Manila timestamp formatters (used by Host and Admin portals) |
 | `lib/space/format.test.ts`                                 | Vitest                  | Unit tests for shared space formatting helpers                                          |
 | `lib/validation/verification.ts`                           | Pure TS                 | Zod validation schema for verification actions (reusing `spaceIdSchema`)                |
@@ -271,4 +271,4 @@ None. Decision D-061 and D-065 established the Administrator test account (`admi
 
 ## 9. After the build
 
-_To be filled when the story is implemented._
+- During TSK-15.2 build (#225), corrected §3 table entry for `space-list.tsx` to Server Component (matches `main`, renders within Host page Server Component, and contains no `'use client'`).
