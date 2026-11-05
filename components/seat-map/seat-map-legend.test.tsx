@@ -6,6 +6,7 @@ describe('SeatMapLegend component (STORY-07 TSK-07.4)', () => {
   it('names every icon and state in words', () => {
     const html = renderToStaticMarkup(<SeatMapLegend />)
 
+    expect(html).toContain('role="region"')
     expect(html).toContain('aria-label="Seat map legend"')
 
     // States in words

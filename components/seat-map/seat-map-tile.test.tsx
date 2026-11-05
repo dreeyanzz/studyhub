@@ -117,4 +117,26 @@ describe('SeatMapTile component (STORY-07 TSK-07.4)', () => {
     expect(html).toContain('shrink-0')
     expect(html).toContain('break-words')
   })
+
+  it('uses role="img" for accessible graphic representation without redundant sr-only spans', () => {
+    const unit: SeatMapUnit = {
+      id: 'unit-6',
+      unitType: 'seat',
+      label: 'S1',
+      capacity: null,
+      row: 0,
+      col: 0,
+      colSpan: 1,
+      seatState: 'available',
+      hostUpdatedAt: '2026-11-01T00:00:00Z',
+      waitWindowEndsAt: null,
+      reservationId: null,
+    }
+
+    const html = renderToStaticMarkup(<SeatMapTile unit={unit} />)
+
+    expect(html).toContain('role="img"')
+    expect(html).not.toContain('role="group"')
+    expect(html).not.toContain('class="sr-only"')
+  })
 })

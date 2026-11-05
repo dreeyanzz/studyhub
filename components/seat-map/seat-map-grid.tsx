@@ -3,6 +3,7 @@ import { SeatMapLegend } from '@/components/seat-map/seat-map-legend'
 import { SeatMapTile } from '@/components/seat-map/seat-map-tile'
 import {
   GRID_COLS,
+  MAX_GRID_ROWS,
   getZoneRowCount,
   type SeatMapUnit,
   type SeatMapZone,
@@ -38,13 +39,14 @@ export function SeatMapGrid({
         <p className="text-sm text-muted-foreground">No zones in this seat map.</p>
       ) : (
         zones.map((zone) => {
-          const rowCount = getZoneRowCount(zone.units)
+          const rowCount = Math.min(MAX_GRID_ROWS, getZoneRowCount(zone.units))
           const unitsByStart = new Map<string, SeatMapUnit>()
           const coveredCells = new Set<string>()
 
           for (const unit of zone.units) {
             if (
               unit.row < 0 ||
+              unit.row >= MAX_GRID_ROWS ||
               unit.col < 0 ||
               unit.col >= GRID_COLS ||
               !Number.isFinite(unit.row) ||
@@ -52,11 +54,21 @@ export function SeatMapGrid({
             ) {
               continue
             }
-            const key = `${unit.row},${unit.col}`
-            if (!unitsByStart.has(key)) {
-              unitsByStart.set(key, unit)
-            }
             const span = Math.max(1, Math.min(unit.colSpan || 1, GRID_COLS - unit.col))
+
+            // Defensive collision guard: skip if any cell in the span is already covered
+            let collides = false
+            for (let c = unit.col; c < unit.col + span; c++) {
+              if (coveredCells.has(`${unit.row},${c}`)) {
+                collides = true
+                break
+              }
+            }
+            if (collides) {
+              continue
+            }
+
+            unitsByStart.set(`${unit.row},${unit.col}`, unit)
             for (let c = unit.col; c < unit.col + span; c++) {
               coveredCells.add(`${unit.row},${c}`)
             }

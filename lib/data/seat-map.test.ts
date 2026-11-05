@@ -318,4 +318,126 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
     const result = await getSeatMap(mockSupabase, validSpaceId)
     expect(result).toEqual([])
   })
+
+  it('returns empty array when unit_states RPC returns an error', async () => {
+    const zonesData = [
+      {
+        id: 'zone-1',
+        name: 'Quiet Desks',
+        position: 0,
+        created_at: '2026-11-01T00:00:00Z',
+      },
+    ]
+
+    const unitsData = [
+      {
+        id: 'unit-1',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'S1',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 0,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+    ]
+
+    const mockZonesChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: zonesData, error: null }),
+          }),
+        }),
+      }),
+    }
+
+    const mockUnitsChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: unitsData, error: null }),
+          }),
+        }),
+      }),
+    }
+
+    const mockFrom = vi.fn().mockImplementation((table: string) => {
+      if (table === 'zones') return mockZonesChain
+      if (table === 'units') return mockUnitsChain
+      throw new Error(`Unexpected table ${table}`)
+    })
+
+    const mockSupabase = {
+      from: mockFrom,
+      rpc: vi
+        .fn()
+        .mockResolvedValue({ data: null, error: new Error('42501 permission denied') }),
+    } as unknown as SupabaseClient<Database>
+
+    const result = await getSeatMap(mockSupabase, validSpaceId)
+    expect(result).toEqual([])
+  })
+
+  it('returns empty array when space has units but unit_states returns 0 rows (caller not authorized to see pending/rejected space)', async () => {
+    const zonesData = [
+      {
+        id: 'zone-1',
+        name: 'Quiet Desks',
+        position: 0,
+        created_at: '2026-11-01T00:00:00Z',
+      },
+    ]
+
+    const unitsData = [
+      {
+        id: 'unit-1',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'S1',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 0,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+    ]
+
+    const mockZonesChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: zonesData, error: null }),
+          }),
+        }),
+      }),
+    }
+
+    const mockUnitsChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: unitsData, error: null }),
+          }),
+        }),
+      }),
+    }
+
+    const mockFrom = vi.fn().mockImplementation((table: string) => {
+      if (table === 'zones') return mockZonesChain
+      if (table === 'units') return mockUnitsChain
+      throw new Error(`Unexpected table ${table}`)
+    })
+
+    const mockSupabase = {
+      from: mockFrom,
+      rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
+    } as unknown as SupabaseClient<Database>
+
+    const result = await getSeatMap(mockSupabase, validSpaceId)
+    expect(result).toEqual([])
+  })
 })

@@ -100,7 +100,7 @@ export function SeatMapTile({
 
   return (
     <div
-      role="group"
+      role="img"
       aria-label={accessibleName}
       className={cn(
         'flex h-full min-h-12 w-full min-w-12 flex-col items-center justify-between rounded-md border p-1 text-center transition-colors select-none',
@@ -118,7 +118,6 @@ export function SeatMapTile({
       <span className="my-auto max-w-full px-0.5 text-xs leading-tight font-semibold break-words">
         {displayLabel}
       </span>
-      <span className="sr-only">{accessibleName}</span>
     </div>
   )
 }

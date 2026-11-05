@@ -23,11 +23,12 @@ export function SeatMapLegend({
 } = {}): ReactNode {
   return (
     <div
+      role="region"
+      aria-label="Seat map legend"
       className={cn(
         'rounded-md border border-border bg-card p-3 text-xs text-foreground',
         className,
       )}
-      aria-label="Seat map legend"
     >
       <div className="flex flex-col gap-2.5">
         <div>

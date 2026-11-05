@@ -47,7 +47,18 @@ export async function getSeatMap(
     supabase.rpc('unit_states', { p_space_id: parsedId.data }),
   ])
 
-  if (unitsResult.error || !unitsResult.data) {
+  if (
+    unitsResult.error ||
+    !unitsResult.data ||
+    statesResult.error ||
+    !statesResult.data
+  ) {
+    return []
+  }
+
+  // If a Space has units but unit_states returned 0 rows, the caller is not
+  // authorized to see the units (e.g. pending/rejected space, D-055, N19).
+  if (unitsResult.data.length > 0 && statesResult.data.length === 0) {
     return []
   }
 

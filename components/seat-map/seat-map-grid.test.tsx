@@ -198,4 +198,80 @@ describe('SeatMapGrid component (STORY-07 TSK-07.4)', () => {
     expect(html).toContain('Row 1 Col 1')
     expect(html).toContain('Row 1 Col 6')
   })
+
+  it('handles colliding or overlapping units safely by skipping the conflicting unit', () => {
+    const zones: SeatMapZone[] = [
+      {
+        id: 'zone-collision',
+        name: 'Colliding Zone',
+        units: [
+          {
+            id: 'unit-room',
+            unitType: 'room',
+            label: 'Room A',
+            capacity: 6,
+            row: 0,
+            col: 0,
+            colSpan: 3, // covers (0,0), (0,1), (0,2)
+            seatState: 'available',
+            hostUpdatedAt: '2026-11-01T00:00:00Z',
+            waitWindowEndsAt: null,
+            reservationId: null,
+          },
+          {
+            id: 'unit-overlap',
+            unitType: 'seat',
+            label: 'S_Conflict',
+            capacity: null,
+            row: 0,
+            col: 1, // collides with Room A!
+            colSpan: 1,
+            seatState: 'occupied',
+            hostUpdatedAt: '2026-11-01T00:00:00Z',
+            waitWindowEndsAt: null,
+            reservationId: null,
+          },
+        ],
+      },
+    ]
+
+    const html = renderToStaticMarkup(<SeatMapGrid zones={zones} />)
+
+    // Room A rendered
+    expect(html).toContain('Room A (6)')
+    // Conflicting seat should be skipped, preventing overlapping elements on CSS grid
+    expect(html).not.toContain('S_Conflict')
+  })
+
+  it('caps rows at MAX_GRID_ROWS (50) and skips units with out-of-bounds row coordinates', () => {
+    const zones: SeatMapZone[] = [
+      {
+        id: 'zone-oob',
+        name: 'OOB Zone',
+        units: [
+          {
+            id: 'unit-oob',
+            unitType: 'seat',
+            label: 'S_OOB',
+            capacity: null,
+            row: 999, // out of bounds (> 50)
+            col: 0,
+            colSpan: 1,
+            seatState: 'available',
+            hostUpdatedAt: '2026-11-01T00:00:00Z',
+            waitWindowEndsAt: null,
+            reservationId: null,
+          },
+        ],
+      },
+    ]
+
+    const html = renderToStaticMarkup(<SeatMapGrid zones={zones} />)
+
+    // S_OOB should be skipped
+    expect(html).not.toContain('S_OOB')
+    // Grid only renders 1 default row rather than looping up to row 1000
+    expect(html).toContain('grid-row:1')
+    expect(html).not.toContain('grid-row:1000')
+  })
 })
