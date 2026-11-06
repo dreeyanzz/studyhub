@@ -213,8 +213,8 @@ export type Database = {
     Functions: {
       set_unit_state: {
         Args: {
-          p_expected_reservation_id?: string | null
-          p_expected_reservation_status?: string | null
+          p_expected_reservation_id?: string
+          p_expected_reservation_status?: string
           p_state: string
           p_unit_id: string
         }
