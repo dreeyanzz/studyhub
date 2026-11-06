@@ -191,7 +191,7 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
         wait_window_ends_at: '2026-11-01T03:00:00Z',
         reservation_id: 'res-123',
       },
-      // unit-3 intentionally missing from unit_states to test fallback
+      // unit-3 intentionally missing from unit_states to test fail-closed fallback
     ]
 
     const mockZonesChain = {
@@ -246,7 +246,7 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
       row: 1,
       col: 0,
       colSpan: 1,
-      seatState: 'available', // fallback
+      seatState: 'occupied', // fails closed when missing from unit_states
       hostUpdatedAt: '2026-11-01T01:00:00Z', // unit.created_at fallback
       waitWindowEndsAt: null,
       reservationId: null,
@@ -439,5 +439,153 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
 
     const result = await getSeatMap(mockSupabase, validSpaceId)
     expect(result).toEqual([])
+  })
+
+  it('fails closed to occupied when unit state is missing or unrecognized', async () => {
+    const zonesData = [
+      {
+        id: 'zone-1',
+        name: 'Zone 1',
+        position: 0,
+        created_at: '2026-11-01T00:00:00Z',
+      },
+    ]
+
+    const unitsData = [
+      {
+        id: 'unit-a',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'A',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 0,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+      {
+        id: 'unit-b',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'B',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 1,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+      {
+        id: 'unit-c',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'C',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 2,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+      {
+        id: 'unit-d',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'D',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 3,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+      {
+        id: 'unit-e',
+        space_id: validSpaceId,
+        zone_id: 'zone-1',
+        unit_type: 'seat' as const,
+        label: 'E',
+        capacity: null,
+        grid_row: 0,
+        grid_col: 4,
+        col_span: 1,
+        created_at: '2026-11-01T01:00:00Z',
+      },
+    ]
+
+    const unitStatesData = [
+      {
+        unit_id: 'unit-a',
+        seat_state: 'available',
+        host_updated_at: '2026-11-01T02:00:00Z',
+        wait_window_ends_at: null,
+        reservation_id: null,
+      },
+      {
+        unit_id: 'unit-b',
+        seat_state: 'pending_payment',
+        host_updated_at: '2026-11-01T02:00:00Z',
+        wait_window_ends_at: '2026-11-01T02:15:00Z',
+        reservation_id: 'res-b',
+      },
+      {
+        unit_id: 'unit-c',
+        seat_state: 'reserved',
+        host_updated_at: '2026-11-01T02:00:00Z',
+        wait_window_ends_at: '2026-11-01T03:00:00Z',
+        reservation_id: 'res-c',
+      },
+      {
+        unit_id: 'unit-d',
+        seat_state: 'unexpected_state_value',
+        host_updated_at: '2026-11-01T02:00:00Z',
+        wait_window_ends_at: null,
+        reservation_id: null,
+      },
+      // unit-e is omitted entirely from unitStatesData
+    ]
+
+    const mockZonesChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: zonesData, error: null }),
+          }),
+        }),
+      }),
+    }
+
+    const mockUnitsChain = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            order: vi.fn().mockResolvedValue({ data: unitsData, error: null }),
+          }),
+        }),
+      }),
+    }
+
+    const mockFrom = vi.fn().mockImplementation((table: string) => {
+      if (table === 'zones') return mockZonesChain
+      if (table === 'units') return mockUnitsChain
+      throw new Error(`Unexpected table ${table}`)
+    })
+
+    const mockRpc = vi.fn().mockResolvedValue({ data: unitStatesData, error: null })
+
+    const mockSupabase = {
+      from: mockFrom,
+      rpc: mockRpc,
+    } as unknown as SupabaseClient<Database>
+
+    const result = await getSeatMap(mockSupabase, validSpaceId)
+    const units = result[0]!.units
+
+    expect(units.find((u) => u.id === 'unit-a')?.seatState).toBe('available')
+    expect(units.find((u) => u.id === 'unit-b')?.seatState).toBe('pending_payment')
+    expect(units.find((u) => u.id === 'unit-c')?.seatState).toBe('reserved')
+    expect(units.find((u) => u.id === 'unit-d')?.seatState).toBe('occupied')
+    expect(units.find((u) => u.id === 'unit-e')?.seatState).toBe('occupied')
   })
 })

@@ -94,10 +94,14 @@ export async function getSeatMap(
 
     const stateInfo = stateMap.get(unit.id)
     const rawState = stateInfo?.seat_state
+    // Fail closed: if a unit has no matching entry in stateMap or has an
+    // unrecognized state, do not default to available; fail closed to occupied.
     const seatState: SeatState =
-      rawState === 'pending_payment' || rawState === 'reserved' || rawState === 'occupied'
+      rawState === 'available' ||
+      rawState === 'pending_payment' ||
+      rawState === 'reserved'
         ? rawState
-        : 'available'
+        : 'occupied'
 
     list.push({
       id: unit.id,
