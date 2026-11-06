@@ -212,10 +212,7 @@ export type Database = {
     }
     Functions: {
       reorder_zones: {
-        Args: {
-          p_space_id: string
-          p_zone_ids: string[]
-        }
+        Args: { p_space_id: string; p_zone_ids: string[] }
         Returns: undefined
       }
       set_space_status: {

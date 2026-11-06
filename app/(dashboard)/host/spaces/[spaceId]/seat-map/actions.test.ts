@@ -574,6 +574,35 @@ describe('Seat Map Server Actions', () => {
       expect(res.success).toBeFalsy()
       expect(res.formError).toBe('Space may not exist or you do not have permission')
       expect(capturedUpdates.filter((u) => u.table === 'zones')).toHaveLength(0)
+      expect(mockRevalidatePath).not.toHaveBeenCalled()
+    })
+
+    it('handles atomic failure when moveZoneUp rpc fails without persisting partial order', async () => {
+      tableResponses.zones = {
+        data: [
+          { id: 'd0000000-0000-4000-8000-000000000002', position: 0 },
+          { id: validZoneId, position: 1 },
+        ],
+        error: null,
+      }
+
+      mockRpcResponse = {
+        data: null,
+        error: {
+          code: '42501',
+          message: 'permission denied',
+        },
+      }
+
+      const res = await moveZoneUp({
+        spaceId: validSpaceId,
+        zoneId: validZoneId,
+      })
+
+      expect(res.success).toBeFalsy()
+      expect(res.formError).toBe('Space may not exist or you do not have permission')
+      expect(capturedUpdates.filter((u) => u.table === 'zones')).toHaveLength(0)
+      expect(mockRevalidatePath).not.toHaveBeenCalled()
     })
 
     it('deletes zone successfully', async () => {
