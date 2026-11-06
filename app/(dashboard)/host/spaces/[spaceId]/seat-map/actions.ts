@@ -377,26 +377,22 @@ export async function reorderZones(
     }
   }
 
-  const orders: { zoneId: string; position: number }[] = []
+  let zoneIds: string[] = []
   if (parsed.data.zoneIds) {
-    parsed.data.zoneIds.forEach((zoneId, idx) => {
-      orders.push({ zoneId, position: idx })
-    })
+    zoneIds = parsed.data.zoneIds
   } else if (parsed.data.zoneOrders) {
-    orders.push(...parsed.data.zoneOrders)
+    const sorted = [...parsed.data.zoneOrders].sort((a, b) => a.position - b.position)
+    zoneIds = sorted.map((o) => o.zoneId)
   }
 
-  for (const { zoneId, position } of orders) {
-    const { error } = await supabase
-      .from('zones')
-      .update({ position })
-      .eq('id', zoneId)
-      .eq('space_id', parsed.data.spaceId)
+  const { error } = await supabase.rpc('reorder_zones', {
+    p_space_id: parsed.data.spaceId,
+    p_zone_ids: zoneIds,
+  })
 
-    if (error) {
-      const mapped = mapPostgresError(error, 'zone')
-      return { ...mapped, values: rawValues }
-    }
+  if (error) {
+    const mapped = mapPostgresError(error, 'zone')
+    return { ...mapped, values: rawValues }
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)
@@ -480,20 +476,15 @@ export async function moveZoneUp(
   if (!moved) return { success: true }
   ordered.splice(targetIndex, 0, moved)
 
-  for (let i = 0; i < ordered.length; i++) {
-    const z = ordered[i]
-    if (z && z.position !== i) {
-      const { error: updateError } = await supabase
-        .from('zones')
-        .update({ position: i })
-        .eq('id', z.id)
-        .eq('space_id', parsed.data.spaceId)
+  const zoneIds = ordered.map((z) => z.id)
+  const { error: rpcError } = await supabase.rpc('reorder_zones', {
+    p_space_id: parsed.data.spaceId,
+    p_zone_ids: zoneIds,
+  })
 
-      if (updateError) {
-        const mapped = mapPostgresError(updateError, 'zone')
-        return { ...mapped, values: rawValues }
-      }
-    }
+  if (rpcError) {
+    const mapped = mapPostgresError(rpcError, 'zone')
+    return { ...mapped, values: rawValues }
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)
@@ -577,20 +568,15 @@ export async function moveZoneDown(
   if (!moved) return { success: true }
   ordered.splice(targetIndex, 0, moved)
 
-  for (let i = 0; i < ordered.length; i++) {
-    const z = ordered[i]
-    if (z && z.position !== i) {
-      const { error: updateError } = await supabase
-        .from('zones')
-        .update({ position: i })
-        .eq('id', z.id)
-        .eq('space_id', parsed.data.spaceId)
+  const zoneIds = ordered.map((z) => z.id)
+  const { error: rpcError } = await supabase.rpc('reorder_zones', {
+    p_space_id: parsed.data.spaceId,
+    p_zone_ids: zoneIds,
+  })
 
-      if (updateError) {
-        const mapped = mapPostgresError(updateError, 'zone')
-        return { ...mapped, values: rawValues }
-      }
-    }
+  if (rpcError) {
+    const mapped = mapPostgresError(rpcError, 'zone')
+    return { ...mapped, values: rawValues }
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)

@@ -116,6 +116,15 @@ function createMockQueryBuilder(table: string) {
   return builder
 }
 
+let mockRpcResponse: {
+  data: unknown
+  error: { code?: string; message?: string } | null
+} = {
+  data: null,
+  error: null,
+}
+let capturedRpcCalls: { fn: string; args: unknown }[] = []
+
 const mockSupabase = {
   auth: {
     getUser: vi.fn(async () => ({
@@ -124,6 +133,10 @@ const mockSupabase = {
     })),
   },
   from: vi.fn((table: string) => createMockQueryBuilder(table)),
+  rpc: vi.fn(async (fn: string, args: unknown) => {
+    capturedRpcCalls.push({ fn, args })
+    return mockRpcResponse
+  }),
 }
 
 vi.mock('@/lib/supabase/server', () => ({
@@ -167,7 +180,13 @@ describe('Seat Map Server Actions', () => {
     capturedUpdates = []
     capturedDeletes = []
     capturedSelects = []
+    capturedRpcCalls = []
+    mockRpcResponse = { data: null, error: null }
     mockSupabase.from = vi.fn((table: string) => createMockQueryBuilder(table))
+    mockSupabase.rpc = vi.fn(async (fn: string, args: unknown) => {
+      capturedRpcCalls.push({ fn, args })
+      return mockRpcResponse
+    })
     mockRevalidatePath.mockClear()
     mockRedirect.mockClear()
     vi.clearAllMocks()
@@ -388,7 +407,13 @@ describe('Seat Map Server Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${validSpaceId}/seat-map`,
       )
-      expect(capturedUpdates.filter((u) => u.table === 'zones')).toHaveLength(2)
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: ['d0000000-0000-4000-8000-000000000002', validZoneId],
+        },
+      })
     })
 
     it('reorders zones with zoneIds array', async () => {
@@ -401,7 +426,13 @@ describe('Seat Map Server Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${validSpaceId}/seat-map`,
       )
-      expect(capturedUpdates.filter((u) => u.table === 'zones')).toHaveLength(2)
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: [validZoneId, 'd0000000-0000-4000-8000-000000000002'],
+        },
+      })
     })
 
     it('supports positional arguments on reorderZones', async () => {
@@ -411,7 +442,13 @@ describe('Seat Map Server Actions', () => {
       ])
 
       expect(res.success).toBe(true)
-      expect(capturedUpdates.filter((u) => u.table === 'zones')).toHaveLength(2)
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: [validZoneId, 'd0000000-0000-4000-8000-000000000002'],
+        },
+      })
     })
 
     it('moves zone up successfully and normalizes positions', async () => {
@@ -432,6 +469,13 @@ describe('Seat Map Server Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${validSpaceId}/seat-map`,
       )
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: [validZoneId, 'd0000000-0000-4000-8000-000000000002'],
+        },
+      })
     })
 
     it('supports positional arguments on moveZoneUp and moveZoneDown', async () => {
@@ -445,7 +489,15 @@ describe('Seat Map Server Actions', () => {
 
       const resUp = await moveZoneUp(validSpaceId, validZoneId)
       expect(resUp.success).toBe(true)
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: [validZoneId, 'd0000000-0000-4000-8000-000000000002'],
+        },
+      })
 
+      capturedRpcCalls = []
       tableResponses.zones = {
         data: [
           { id: validZoneId, position: 0 },
@@ -456,6 +508,13 @@ describe('Seat Map Server Actions', () => {
 
       const resDown = await moveZoneDown(validSpaceId, validZoneId)
       expect(resDown.success).toBe(true)
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: ['d0000000-0000-4000-8000-000000000002', validZoneId],
+        },
+      })
     })
 
     it('returns error when moveZoneUp or moveZoneDown targets non-existent zone', async () => {
@@ -489,6 +548,32 @@ describe('Seat Map Server Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${validSpaceId}/seat-map`,
       )
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: ['d0000000-0000-4000-8000-000000000002', validZoneId],
+        },
+      })
+    })
+
+    it('handles atomic failure when reorder_zones rpc fails without partial updates', async () => {
+      mockRpcResponse = {
+        data: null,
+        error: {
+          code: '23503',
+          message: 'Zone does not exist or does not belong to Space',
+        },
+      }
+
+      const res = await reorderZones({
+        spaceId: validSpaceId,
+        zoneIds: [validZoneId, 'd0000000-0000-4000-8000-000000000002'],
+      })
+
+      expect(res.success).toBeFalsy()
+      expect(res.formError).toBe('Space may not exist or you do not have permission')
+      expect(capturedUpdates.filter((u) => u.table === 'zones')).toHaveLength(0)
     })
 
     it('deletes zone successfully', async () => {
