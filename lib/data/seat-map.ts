@@ -39,7 +39,7 @@ export async function getSeatMap(
     supabase
       .from('units')
       .select(
-        'id, space_id, zone_id, unit_type, label, capacity, grid_row, grid_col, col_span, created_at',
+        'id, space_id, zone_id, unit_type, label, capacity, grid_row, grid_col, col_span',
       )
       .eq('space_id', parsedId.data)
       .order('grid_row', { ascending: true })
@@ -93,15 +93,22 @@ export async function getSeatMap(
     if (!list) continue
 
     const stateInfo = stateMap.get(unit.id)
-    const rawState = stateInfo?.seat_state
-    // Fail closed: if a unit has no matching entry in stateMap or has an
-    // unrecognized state, do not default to available; fail closed to occupied.
-    const seatState: SeatState =
-      rawState === 'available' ||
-      rawState === 'pending_payment' ||
-      rawState === 'reserved'
-        ? rawState
-        : 'occupied'
+    if (!stateInfo) {
+      // Do not render a partial map when a unit has no authoritative state.
+      return []
+    }
+
+    const rawState = stateInfo.seat_state
+    if (
+      rawState !== 'available' &&
+      rawState !== 'pending_payment' &&
+      rawState !== 'reserved' &&
+      rawState !== 'occupied'
+    ) {
+      // Unknown state data must not be presented as a real seat state.
+      return []
+    }
+    const seatState = rawState as SeatState
 
     list.push({
       id: unit.id,
@@ -112,7 +119,7 @@ export async function getSeatMap(
       col: unit.grid_col,
       colSpan: unit.col_span,
       seatState,
-      hostUpdatedAt: stateInfo?.host_updated_at ?? unit.created_at,
+      hostUpdatedAt: stateInfo.host_updated_at,
       waitWindowEndsAt: stateInfo?.wait_window_ends_at ?? null,
       reservationId: stateInfo?.reservation_id ?? null,
     })

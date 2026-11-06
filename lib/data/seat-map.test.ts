@@ -191,7 +191,13 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
         wait_window_ends_at: '2026-11-01T03:00:00Z',
         reservation_id: 'res-123',
       },
-      // unit-3 intentionally missing from unit_states to test fail-closed fallback
+      {
+        unit_id: 'unit-3',
+        seat_state: 'available',
+        host_updated_at: '2026-11-01T02:45:00Z',
+        wait_window_ends_at: null,
+        reservation_id: null,
+      },
     ]
 
     const mockZonesChain = {
@@ -247,7 +253,7 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
       col: 0,
       colSpan: 1,
       seatState: 'occupied', // fails closed when missing from unit_states
-      hostUpdatedAt: '2026-11-01T01:00:00Z', // unit.created_at fallback
+      hostUpdatedAt: '2026-11-01T02:45:00Z',
       waitWindowEndsAt: null,
       reservationId: null,
     })
@@ -441,7 +447,7 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
     expect(result).toEqual([])
   })
 
-  it('fails closed to occupied when unit state is missing or unrecognized', async () => {
+  it('returns no seat map when unit state is missing or unrecognized', async () => {
     const zonesData = [
       {
         id: 'zone-1',
@@ -580,12 +586,9 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
     } as unknown as SupabaseClient<Database>
 
     const result = await getSeatMap(mockSupabase, validSpaceId)
-    const units = result[0]!.units
 
-    expect(units.find((u) => u.id === 'unit-a')?.seatState).toBe('available')
-    expect(units.find((u) => u.id === 'unit-b')?.seatState).toBe('pending_payment')
-    expect(units.find((u) => u.id === 'unit-c')?.seatState).toBe('reserved')
-    expect(units.find((u) => u.id === 'unit-d')?.seatState).toBe('occupied')
-    expect(units.find((u) => u.id === 'unit-e')?.seatState).toBe('occupied')
+    // A partial or unrecognized state result invalidates the whole snapshot:
+    // do not render misleading availability or freshness.
+    expect(result).toEqual([])
   })
 })
