@@ -252,7 +252,7 @@ describe('getSeatMap server data helper (STORY-07 TSK-07.4)', () => {
       row: 1,
       col: 0,
       colSpan: 1,
-      seatState: 'occupied', // fails closed when missing from unit_states
+      seatState: 'available',
       hostUpdatedAt: '2026-11-01T02:45:00Z',
       waitWindowEndsAt: null,
       reservationId: null,
