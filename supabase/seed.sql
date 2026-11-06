@@ -60,7 +60,7 @@ set role = 'admin'
 where id = 'a0000000-0000-4000-8000-000000000001';
 
 -- Spaces (STORY-01), with fixed ids for pgTAP. The seed sets status directly;
--- in the app only an Administrator changes it (STORY-14).
+-- in the app only an Administrator changes it on /admin (STORY-15, FR-5.1).
 --   e0000000-0000-4000-8000-000000000001  host@   verified  07:00-22:00
 --   e0000000-0000-4000-8000-000000000002  host@   pending   18:00-02:00 (after midnight)
 --   e0000000-0000-4000-8000-000000000003  host2@  verified  open 24 hours
