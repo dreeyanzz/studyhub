@@ -67,6 +67,10 @@ test.describe('Space verification portal (STORY-15)', () => {
       page.getByText('Space created. It is pending verification.'),
     ).toBeVisible()
 
+    // Host logs out before Administrator signs in
+    await page.getByRole('button', { name: 'Log out' }).click()
+    await expect(page).toHaveURL('/')
+
     // 2. Administrator signs in and visits /admin
     await page.goto('/login?returnUrl=%2Fadmin')
     await page.getByLabel('Email').fill('admin@example.test')
@@ -121,8 +125,16 @@ test.describe('Space verification portal (STORY-15)', () => {
       page.getByRole('heading', { level: 2, name: uniqueRejectedName }),
     ).toHaveCount(0)
 
-    // 5. Host portal reflects Verified status for approved space
-    await page.goto('/host')
+    // 5. Host signs back in and verifies status in Host portal
+    await page.getByRole('button', { name: 'Log out' }).click()
+    await expect(page).toHaveURL('/')
+
+    await page.goto('/login?returnUrl=%2Fhost')
+    await page.getByLabel('Email').fill('host@example.test')
+    await page.getByLabel('Password').fill(SEED_PASSWORD)
+    await page.getByRole('button', { name: 'Log in' }).click()
+    await expect(page).toHaveURL(/\/host$/)
+
     const hostApprovedCard = page
       .locator('article, .rounded-lg, [data-slot="card"]')
       .filter({
