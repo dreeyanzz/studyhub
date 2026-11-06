@@ -93,7 +93,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 size-8 text-muted-foreground hover:text-foreground"
+            className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
             onClick={() => setNotice(null)}
             aria-label="Dismiss notice"
           >

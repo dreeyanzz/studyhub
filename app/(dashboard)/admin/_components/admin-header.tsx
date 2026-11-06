@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { signOut } from '@/app/(auth)/actions'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { dashboardFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 
@@ -27,7 +28,9 @@ export async function AdminHeader() {
     .eq('id', user.id)
     .maybeSingle()
 
-  if (!profile || profile.role !== 'admin') redirect('/login')
+  if (!profile || profile.role !== 'admin') {
+    redirect(profile ? dashboardFor(profile.role) : '/login')
+  }
 
   const displayName = profile.full_name || 'Administrator'
 
