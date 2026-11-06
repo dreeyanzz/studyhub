@@ -9,7 +9,12 @@ import { setUnitStateSchema, type SetUnitStateInput } from '@/lib/validation/occ
 
 export type SetUnitStateResult =
   | { success: true; error?: never }
-  | { success: false; error: string; code?: string | null }
+  | {
+      success: false
+      error: string
+      code?: string | null
+      hint?: string | null
+    }
 
 /**
  * Server Action for Host live occupancy control (STORY-12 design §2, §3, TSK-12.3).
@@ -17,15 +22,29 @@ export type SetUnitStateResult =
  * Validates inputs with setUnitStateSchema, verifies the Host session,
  * invokes Postgres stored procedure public.set_unit_state, maps database
  * refusals (42501 -> N13, P0001/hold_not_named -> N14, P0001/hold_changed -> N21),
- * and triggers Next.js revalidation for the occupancy view.
+ * returns structured refusal metadata (code and hint), and triggers Next.js revalidation
+ * for the occupancy view.
  */
 export async function setUnitStateAction(
-  spaceIdOrInput: string | SetUnitStateInput | unknown,
-  maybeInput?: SetUnitStateInput | unknown,
+  spaceId: string,
+  input: SetUnitStateInput,
+): Promise<SetUnitStateResult>
+export async function setUnitStateAction(
+  input: SetUnitStateInput,
+): Promise<SetUnitStateResult>
+export async function setUnitStateAction(
+  spaceIdOrInput: string | SetUnitStateInput,
+  maybeInput?: SetUnitStateInput,
 ): Promise<SetUnitStateResult> {
   const isFirstArgSpaceId = typeof spaceIdOrInput === 'string'
-  const spaceId = isFirstArgSpaceId ? spaceIdOrInput : ''
   const rawInput = isFirstArgSpaceId ? maybeInput : spaceIdOrInput
+
+  // Extract spaceId from first argument or from input object if provided
+  const inputSpaceId =
+    typeof rawInput === 'object' && rawInput !== null && 'spaceId' in rawInput
+      ? String((rawInput as { spaceId?: unknown }).spaceId ?? '')
+      : ''
+  const spaceId = isFirstArgSpaceId ? spaceIdOrInput : inputSpaceId
 
   const parsed = setUnitStateSchema.safeParse(rawInput)
   if (!parsed.success) {
@@ -61,11 +80,14 @@ export async function setUnitStateAction(
       success: false,
       error: userMessage,
       code: error.code ?? null,
+      hint: error.hint ?? null,
     }
   }
 
   if (spaceId) {
     revalidatePath(`/host/spaces/${spaceId}/occupancy`)
+  } else {
+    revalidatePath('/host/spaces/[spaceId]/occupancy', 'page')
   }
 
   return { success: true }
