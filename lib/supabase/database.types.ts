@@ -211,6 +211,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      set_space_status: {
+        Args: {
+          p_space_id: string
+          p_status: Database["public"]["Enums"]["space_status"]
+          p_updated_at: string
+        }
+        Returns: undefined
+      }
+      set_unit_state: {
+        Args: {
+          p_expected_reservation_id?: string
+          p_expected_reservation_status?: string
+          p_state: string
+          p_unit_id: string
+        }
+        Returns: undefined
+      }
       unit_states: {
         Args: { p_space_id: string }
         Returns: {
