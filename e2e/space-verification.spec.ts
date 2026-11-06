@@ -47,10 +47,10 @@ test.describe('Space verification portal (STORY-15)', () => {
     await expect(page).toHaveURL(/\/host$/)
 
     const uniqueApprovedName = `Approval Space ${Date.now()}`
-    await page.getByLabel('Name').fill(uniqueApprovedName)
+    await page.getByLabel('Space name').fill(uniqueApprovedName)
     await page.getByLabel('Address').fill('100 Test St, Cebu City')
-    await page.getByLabel('Opens at').fill('08:00')
-    await page.getByLabel('Closes at').fill('20:00')
+    await page.getByLabel('Opening time').fill('08:00')
+    await page.getByLabel('Closing time').fill('20:00')
     await page.getByRole('button', { name: 'Create Space' }).click()
     await expect(
       page.getByText('Space created. It is pending verification.'),
@@ -58,10 +58,10 @@ test.describe('Space verification portal (STORY-15)', () => {
 
     // Host creates a second Space for rejection testing
     const uniqueRejectedName = `Rejection Space ${Date.now()}`
-    await page.getByLabel('Name').fill(uniqueRejectedName)
+    await page.getByLabel('Space name').fill(uniqueRejectedName)
     await page.getByLabel('Address').fill('101 Test St, Cebu City')
-    await page.getByLabel('Opens at').fill('09:00')
-    await page.getByLabel('Closes at').fill('18:00')
+    await page.getByLabel('Opening time').fill('09:00')
+    await page.getByLabel('Closing time').fill('18:00')
     await page.getByRole('button', { name: 'Create Space' }).click()
     await expect(
       page.getByText('Space created. It is pending verification.'),
