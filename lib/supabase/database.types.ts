@@ -211,6 +211,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      set_unit_state: {
+        Args: {
+          p_expected_reservation_id?: string | null
+          p_expected_reservation_status?: string | null
+          p_state: string
+          p_unit_id: string
+        }
+        Returns: undefined
+      }
       unit_states: {
         Args: { p_space_id: string }
         Returns: {
