@@ -36,8 +36,8 @@ test.describe('Sign-in smoke test (STORY-06)', () => {
   test('Administrator signs in and audits Host and Seeker portals (D-032)', async ({
     page,
   }) => {
-    // Administrator signs in from /login?returnUrl=%2Fhost because there is no /admin
-    // page until STORY-14 (STORY-06 design §4).
+    // Administrator signs in from /login?returnUrl=%2Fhost to audit the Host portal (D-032);
+    // the /admin Space verification portal was added in STORY-15.
     await page.goto('/login?returnUrl=%2Fhost')
 
     await page.getByLabel('Email').fill('admin@example.test')

@@ -88,8 +88,8 @@ notes/                postmortems
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
 `(public)/`, STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-04's
-`(dashboard)/seeker/` portal, and STORY-05's Host portal and Space actions in
-`(dashboard)/host/`),
+`(dashboard)/seeker/` portal, STORY-05's Host portal and Space actions in
+`(dashboard)/host/`, and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
 (STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/occupancy/` (STORY-12's override rules), `lib/seat-map/`
@@ -98,7 +98,7 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `lib/validation/` (the auth, profile, Space, occupancy, seat map and verification
 rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, and the form-values test from #146) and `docs/`. The other route groups and
+test, the form-values test from #146, and STORY-15's space-verification test) and `docs/`. The other route groups and
 `app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts` and
 `lib/data/` arrive with the stories that need them.
 
