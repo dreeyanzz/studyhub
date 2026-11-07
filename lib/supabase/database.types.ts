@@ -34,6 +34,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      curated_tags: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          label: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id: string
+          label: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          label?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -69,8 +96,11 @@ export type Database = {
           description: string | null
           host_id: string
           id: string
+          latitude: number | null
+          longitude: number | null
           name: string
           opens_at: string
+          price_tier: Database["public"]["Enums"]["price_tier"]
           status: Database["public"]["Enums"]["space_status"]
           updated_at: string
         }
@@ -81,8 +111,11 @@ export type Database = {
           description?: string | null
           host_id?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name: string
           opens_at: string
+          price_tier?: Database["public"]["Enums"]["price_tier"]
           status?: Database["public"]["Enums"]["space_status"]
           updated_at?: string
         }
@@ -93,8 +126,11 @@ export type Database = {
           description?: string | null
           host_id?: string
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           name?: string
           opens_at?: string
+          price_tier?: Database["public"]["Enums"]["price_tier"]
           status?: Database["public"]["Enums"]["space_status"]
           updated_at?: string
         }
@@ -104,6 +140,68 @@ export type Database = {
             columns: ["host_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      space_curated_tags: {
+        Row: {
+          created_at: string
+          space_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          space_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          space_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_curated_tags_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_curated_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "curated_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      space_custom_tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          space_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          space_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          space_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_custom_tags_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
             referencedColumns: ["id"]
           },
         ]
@@ -240,6 +338,7 @@ export type Database = {
       }
     }
     Enums: {
+      price_tier: "free" | "budget" | "standard" | "premium"
       space_status: "pending" | "verified" | "rejected"
       unit_type: "seat" | "standing_desk" | "room"
       user_role: "seeker" | "host" | "admin"
@@ -373,6 +472,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      price_tier: ["free", "budget", "standard", "premium"],
       space_status: ["pending", "verified", "rejected"],
       unit_type: ["seat", "standing_desk", "room"],
       user_role: ["seeker", "host", "admin"],
