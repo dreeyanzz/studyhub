@@ -1,94 +1,70 @@
 'use server'
 
+// Server Action for the Host's occupancy controls (STORY-12 design §2 and §3, D-010).
+// An action can be called directly, so it checks its own input and session.
+// public.set_unit_state is the security boundary: it refuses anyone but the Space's
+// Host (N13).
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
 
 import { mapRefusalError } from '@/lib/occupancy/override'
 import { createClient } from '@/lib/supabase/server'
 import { setUnitStateSchema, type SetUnitStateInput } from '@/lib/validation/occupancy'
+import { spaceIdSchema } from '@/lib/validation/space'
 
 export type SetUnitStateResult =
-  | { success: true; error?: never }
+  | { success: true }
   | {
       success: false
+      // One of design §3's messages, never a Supabase error.
       error: string
-      code?: string | null
-      hint?: string | null
+      // N14 and N21: the hold the Host saw has changed, so the UI offers a refresh.
+      canRefresh: boolean
     }
 
-/**
- * Server Action for Host live occupancy control (STORY-12 design §2, §3, TSK-12.3).
- *
- * Validates inputs with setUnitStateSchema, verifies the Host session,
- * invokes Postgres stored procedure public.set_unit_state, maps database
- * refusals (42501 -> N13, P0001/hold_not_named -> N14, P0001/hold_changed -> N21),
- * returns structured refusal metadata (code and hint), and triggers Next.js revalidation
- * for the occupancy view.
- */
 export async function setUnitStateAction(
   spaceId: string,
   input: SetUnitStateInput,
-): Promise<SetUnitStateResult>
-export async function setUnitStateAction(
-  input: SetUnitStateInput,
-): Promise<SetUnitStateResult>
-export async function setUnitStateAction(
-  spaceIdOrInput: string | SetUnitStateInput,
-  maybeInput?: SetUnitStateInput,
 ): Promise<SetUnitStateResult> {
-  const isFirstArgSpaceId = typeof spaceIdOrInput === 'string'
-  const rawInput = isFirstArgSpaceId ? maybeInput : spaceIdOrInput
-
-  // Extract spaceId from first argument or from input object if provided
-  const inputSpaceId =
-    typeof rawInput === 'object' && rawInput !== null && 'spaceId' in rawInput
-      ? String((rawInput as { spaceId?: unknown }).spaceId ?? '')
-      : ''
-  const spaceId = isFirstArgSpaceId ? spaceIdOrInput : inputSpaceId
-
-  const parsed = setUnitStateSchema.safeParse(rawInput)
+  const space = spaceIdSchema.safeParse(spaceId)
+  if (!space.success) {
+    // spaceIdSchema's one message, "We could not find that Space."
+    const error = z.flattenError(space.error).formErrors.join(' ')
+    return { success: false, error, canRefresh: false }
+  }
+  const parsed = setUnitStateSchema.safeParse(input)
   if (!parsed.success) {
-    const firstIssue = parsed.error.issues[0]
-    return {
-      success: false,
-      error: firstIssue?.message ?? 'Invalid unit state input.',
-    }
+    const error = parsed.error.issues[0]?.message ?? 'Invalid unit state input.'
+    return { success: false, error, canRefresh: false }
   }
 
+  const occupancyPath = `/host/spaces/${space.data}/occupancy`
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
-
-  if (!user) {
-    const returnUrl = spaceId ? `/host/spaces/${spaceId}/occupancy` : '/host'
-    redirect(`/login?returnUrl=${encodeURIComponent(returnUrl)}`)
-  }
+  if (!user) redirect(`/login?returnUrl=${encodeURIComponent(occupancyPath)}`)
 
   const { unitId, state, expectedReservationId, expectedReservationStatus } = parsed.data
-
   const { error } = await supabase.rpc('set_unit_state', {
     p_unit_id: unitId,
     p_state: state,
     p_expected_reservation_id: expectedReservationId ?? undefined,
     p_expected_reservation_status: expectedReservationStatus ?? undefined,
   })
-
   if (error) {
-    const userMessage = mapRefusalError(error.code, error.hint)
+    // Design §2: refusals are told apart by code and hint, never by message text.
+    const holdMoved =
+      error.code === 'P0001' &&
+      (error.hint === 'hold_not_named' || error.hint === 'hold_changed')
     return {
       success: false,
-      error: userMessage,
-      code: error.code ?? null,
-      hint: error.hint ?? null,
+      error: mapRefusalError(error.code, error.hint),
+      canRefresh: holdMoved,
     }
   }
 
-  if (spaceId) {
-    revalidatePath(`/host/spaces/${spaceId}/occupancy`)
-  } else {
-    revalidatePath('/host/spaces/[spaceId]/occupancy', 'page')
-  }
-
+  revalidatePath(occupancyPath)
   return { success: true }
 }
