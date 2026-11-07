@@ -8,7 +8,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(44);
+select plan(50);
 
 -- Pre-seed test curated and custom tags as postgres (bypassing RLS)
 insert into public.space_curated_tags (space_id, tag_id)
@@ -134,7 +134,7 @@ select is_empty(
 
 select throws_ok(
   $$insert into public.space_curated_tags (space_id, tag_id) values ('e0000000-0000-4000-8000-000000000001', 'ac_full')$$,
-  '44000',
+  '42501',
   null,
   'a seeker cannot insert into space_curated_tags (violates RLS check)'
 );
@@ -160,7 +160,7 @@ select is_empty(
 
 select throws_ok(
   $$insert into public.space_custom_tags (space_id, name) values ('e0000000-0000-4000-8000-000000000001', 'Nice View')$$,
-  '44000',
+  '42501',
   null,
   'a seeker cannot insert into space_custom_tags (violates RLS check)'
 );
@@ -271,7 +271,7 @@ select results_eq(
 -- Host cannot insert curated tags on another host''s space
 select throws_ok(
   $$insert into public.space_curated_tags (space_id, tag_id) values ('e0000000-0000-4000-8000-000000000003', 'wifi_fast')$$,
-  '44000',
+  '42501',
   null,
   'a host cannot insert curated tags on another host''s space'
 );
@@ -314,7 +314,7 @@ select results_eq(
 -- Host cannot insert custom tag on another host''s space
 select throws_ok(
   $$insert into public.space_custom_tags (space_id, name) values ('e0000000-0000-4000-8000-000000000003', 'Hacked Tag')$$,
-  '44000',
+  '42501',
   null,
   'a host cannot insert a custom tag on another host''s space'
 );
@@ -343,6 +343,14 @@ select throws_ok(
   'custom tag with < or > violates check constraint'
 );
 
+-- Custom tag validation: untrimmed whitespace
+select throws_ok(
+  $$insert into public.space_custom_tags (space_id, name) values ('e0000000-0000-4000-8000-000000000001', ' untrimmed tag ')$$,
+  '23514',
+  null,
+  'custom tag with leading or trailing whitespace violates check constraint'
+);
+
 -- Host can read custom tags on own pending space
 select results_eq(
   $$select name from public.space_custom_tags where space_id = 'e0000000-0000-4000-8000-000000000002'$$,
@@ -366,6 +374,30 @@ select results_eq(
   $$select count(*)::int from public.space_custom_tags where space_id = 'e0000000-0000-4000-8000-000000000003'$$,
   $$values (1)$$,
   'a host cannot delete custom tags on another host''s space'
+);
+
+-- Host cannot make forbidden writes to own tag rows or catalog (Rule 5)
+select throws_ok(
+  $$update public.space_curated_tags set space_id = 'e0000000-0000-4000-8000-000000000003'
+    where space_id = 'e0000000-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'a host cannot move their own curated tag row to another space'
+);
+
+select throws_ok(
+  $$update public.space_custom_tags set space_id = 'e0000000-0000-4000-8000-000000000003'
+    where space_id = 'e0000000-0000-4000-8000-000000000001'$$,
+  '42501',
+  null,
+  'a host cannot move their own custom tag row to another space'
+);
+
+select throws_ok(
+  $$insert into public.curated_tags (id, category, label) values ('host_tag', 'wifi', 'Host Tag')$$,
+  '42501',
+  null,
+  'a host cannot add to the curated tags catalog'
 );
 
 -- ---------------------------------------------------------------------------

@@ -88,62 +88,6 @@ export type Database = {
         }
         Relationships: []
       }
-      spaces: {
-        Row: {
-          address: string
-          closes_at: string
-          created_at: string
-          description: string | null
-          host_id: string
-          id: string
-          latitude: number | null
-          longitude: number | null
-          name: string
-          opens_at: string
-          price_tier: Database["public"]["Enums"]["price_tier"]
-          status: Database["public"]["Enums"]["space_status"]
-          updated_at: string
-        }
-        Insert: {
-          address: string
-          closes_at: string
-          created_at?: string
-          description?: string | null
-          host_id?: string
-          id?: string
-          latitude?: number | null
-          longitude?: number | null
-          name: string
-          opens_at: string
-          price_tier?: Database["public"]["Enums"]["price_tier"]
-          status?: Database["public"]["Enums"]["space_status"]
-          updated_at?: string
-        }
-        Update: {
-          address?: string
-          closes_at?: string
-          created_at?: string
-          description?: string | null
-          host_id?: string
-          id?: string
-          latitude?: number | null
-          longitude?: number | null
-          name?: string
-          opens_at?: string
-          price_tier?: Database["public"]["Enums"]["price_tier"]
-          status?: Database["public"]["Enums"]["space_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "spaces_host_id_fkey"
-            columns: ["host_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       space_curated_tags: {
         Row: {
           created_at: string
@@ -202,6 +146,62 @@ export type Database = {
             columns: ["space_id"]
             isOneToOne: false
             referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      spaces: {
+        Row: {
+          address: string
+          closes_at: string
+          created_at: string
+          description: string | null
+          host_id: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opens_at: string
+          price_tier: Database["public"]["Enums"]["price_tier"]
+          status: Database["public"]["Enums"]["space_status"]
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          closes_at: string
+          created_at?: string
+          description?: string | null
+          host_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opens_at: string
+          price_tier?: Database["public"]["Enums"]["price_tier"]
+          status?: Database["public"]["Enums"]["space_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          closes_at?: string
+          created_at?: string
+          description?: string | null
+          host_id?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opens_at?: string
+          price_tier?: Database["public"]["Enums"]["price_tier"]
+          status?: Database["public"]["Enums"]["space_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spaces_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]

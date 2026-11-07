@@ -114,6 +114,7 @@ create table public.space_custom_tags (
   name text not null check (
     char_length(btrim(name)) >= 1
     and char_length(name) <= 30
+    and name = btrim(name)
     and name !~ '[<>{}\\]'
   ),
   created_at timestamptz not null default now()
@@ -123,7 +124,6 @@ comment on table public.space_custom_tags is 'Host-defined free-text tags for di
 
 create unique index space_custom_tags_space_lower_name_idx
   on public.space_custom_tags (space_id, lower(name));
-create index space_custom_tags_space_id_idx on public.space_custom_tags (space_id);
 
 alter table public.space_custom_tags enable row level security;
 
