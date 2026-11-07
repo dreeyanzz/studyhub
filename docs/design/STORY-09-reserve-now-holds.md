@@ -1,6 +1,6 @@
 # STORY-09: Reserve-now holds and sandbox payments
 
-**Status:** draft · **Owner:** @dreeyanzz · **Story:** #58 · **FR:** FR-2.1, FR-2.2, FR-2.3, FR-2.5, SRS §3.2.2, SRS §3.8 ·
+**Status:** approved 2026-11-08 · **Owner:** @dreeyanzz · **Story:** #58 · **FR:** FR-2.1, FR-2.2, FR-2.3, FR-2.5, SRS §3.2.2, SRS §3.8 ·
 **Depends on:** STORY-01, STORY-03, STORY-05, STORY-07, STORY-11 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md), [Check-in](../flows/check-in.md), [Seeker journey](../flows/seeker-journey.md) ·
 **Decisions:** D-001, D-004, D-005, D-008, D-010, D-011, D-042, D-046 to D-052, D-055 to D-059, D-064, D-067, D-068
