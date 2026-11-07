@@ -931,3 +931,31 @@ Amends D-017 and D-036, which rejected this.
 **Rejected:** Keeping every database change with Adrian (D-036), which leaves the wait above; every teammate writing migrations (more writers and more collisions, when Maria's and James's stories need little SQL); Luke running `supabase db push` (merging and pushing are one step, and only Adrian merges).
 
 **Revisit if:** Two migrations collide on `main` or on the cloud dev project. Otherwise, at the Sprint 2 review.
+
+## D-067 · A hold's payment window, fee and wait windows
+
+**Decision:**
+
+- The payment window is 10 minutes, and the reservation fee is ₱50.00, kept as 5000 centavos. Each is one value in `private.reservation_settings`, and a hold copies the fee onto its payment (D-049).
+- A wait window is 15 to 120 minutes, in 15-minute steps. Each Space's Host sets a maximum within those limits, 60 minutes until they change it. A Seeker picks a wait window up to that maximum that ends, with the payment window, before closing time (D-048).
+- Changing any of these is a migration. [STORY-09's design](design/STORY-09-reserve-now-holds.md) keeps them.
+
+**Why:** Ten minutes is enough for a test checkout by card or e-wallet, and an abandoned hold blocks a unit for no longer than that. ₱50 is a believable small fee, and well above the smallest amounts PayMongo charges. Two hours lets a Host keep a seat for a Seeker who crosses the city, and 15-minute steps keep the list of choices short.
+
+**Rejected:** A 5-minute payment window (a Seeker who stops at the e-wallet step pays late, P2); a 15-minute one (an abandoned hold blocks a unit for longer); a ₱20 fee (it may sit at PayMongo's minimum) and a ₱100 one; wait windows up to 30 or 60 minutes (too short for a long commute); any number of minutes instead of steps (a long list for no gain).
+
+**Revisit if:** A test or the demo shows Seekers running out of time to pay, or Hosts ask for longer wait windows.
+
+## D-068 · Holding a unit and paying for it are two steps
+
+**Decision:**
+
+- "Hold this unit" makes the hold (R1) and opens the hold page, `/seeker/reservations/[id]`. It shows the fee, when the payment window ends and the chosen wait window, with "Continue to payment" and "Cancel hold".
+- "Continue to payment" makes the PayMongo checkout, or reuses the one the hold already has (W2).
+- These are the calls the [sandbox payment confirmation flow](flows/sandbox-payment-confirmation.md) draws in its §1.1, split across two taps. No move or branch changes.
+
+**Why:** The [Seeker journey](flows/seeker-journey.md) puts a Pending Payment screen between the hold and the checkout (S28 to S31), so a Seeker sees how long they have and can cancel before they leave Worq. A Seeker who closes the checkout tab also has a page to come back to.
+
+**Rejected:** One tap straight to PayMongo, as the payment confirmation flow's sequence draws it (the Seeker never sees the payment window in Worq, and the journey's cancel step disappears).
+
+**Revisit if:** Maria's walk-throughs show the extra tap costs Seekers more than it helps them.
