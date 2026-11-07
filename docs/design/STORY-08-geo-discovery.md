@@ -554,7 +554,7 @@ lib/
     space.ts                             # Updated spaceSchema with latitude, longitude, and priceTier
 supabase/
   migrations/
-    20261103000000_geo_and_tags.sql      # Schema additions (lat/lng, price_tier, tag tables, revoke all, RLS)
+    20261107120000_geo_and_tags.sql      # Schema additions (lat/lng, price_tier, tag tables, revoke all, RLS)
   tests/
     08-tags.sql                          # pgTAP tests for tags, coordinates, and RLS policies
 ```
