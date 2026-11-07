@@ -8,6 +8,7 @@
 --   host@example.test    b0000000-0000-4000-8000-000000000001  Host
 --   host2@example.test   b0000000-0000-4000-8000-000000000002  Host
 --   seeker@example.test  c0000000-0000-4000-8000-000000000001  Seeker
+--   seeker2@example.test c0000000-0000-4000-8000-000000000002  Seeker
 
 -- Users go into auth.users, so private.handle_new_user() creates their profiles
 -- exactly as a real sign-up would. The token columns must be '' rather than null,
@@ -37,7 +38,8 @@ from (
     ('a0000000-0000-4000-8000-000000000001'::uuid, 'admin@example.test', 'seeker', 'Alma Reyes'),
     ('b0000000-0000-4000-8000-000000000001'::uuid, 'host@example.test', 'host', 'Hugo Santos'),
     ('b0000000-0000-4000-8000-000000000002'::uuid, 'host2@example.test', 'host', 'Hana Villanueva'),
-    ('c0000000-0000-4000-8000-000000000001'::uuid, 'seeker@example.test', 'seeker', 'Sam Dela Cruz')
+    ('c0000000-0000-4000-8000-000000000001'::uuid, 'seeker@example.test', 'seeker', 'Sam Dela Cruz'),
+    ('c0000000-0000-4000-8000-000000000002'::uuid, 'seeker2@example.test', 'seeker', 'Rina Bautista')
 ) as u (id, email, signup_role, full_name);
 
 insert into auth.identities (

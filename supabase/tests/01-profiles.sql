@@ -106,7 +106,7 @@ set local request.jwt.claims =
 
 select is(
   (select count(*) from public.profiles),
-  4::bigint,
+  5::bigint,
   'an Administrator reads every profile'
 );
 
