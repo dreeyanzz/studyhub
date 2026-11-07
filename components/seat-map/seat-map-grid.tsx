@@ -19,18 +19,27 @@ import { cn } from '@/lib/utils'
  * Designed to be rendered in both Server and Client Components (no 'use client').
  * Callers customize unit display via `renderUnit` (e.g. wrapping with click/focus handlers)
  * and empty cell display via `renderEmptyCell` (e.g. builder placement buttons).
+ * The Host's builder (TSK-07.6) also passes `renderZoneActions`, for each zone's own
+ * controls beside its heading, and `extraRows`, so there is always an empty row to
+ * place a unit in. Each zone heading takes focus programmatically (`tabIndex={-1}`),
+ * so a caller can move focus to a zone after a change.
  */
 export function SeatMapGrid({
   zones,
   renderUnit,
   renderEmptyCell,
+  renderZoneActions,
+  extraRows = 0,
   className,
 }: {
   zones: SeatMapZone[]
   renderUnit?: (unit: SeatMapUnit) => ReactNode
   renderEmptyCell?: (cell: { zoneId: string; row: number; col: number }) => ReactNode
+  renderZoneActions?: (zone: SeatMapZone) => ReactNode
+  extraRows?: number
   className?: string
 }): ReactNode {
+  const spareRows = Number.isInteger(extraRows) && extraRows > 0 ? extraRows : 0
   return (
     <div className={cn('w-full max-w-xl space-y-6', className)}>
       <SeatMapLegend />
@@ -39,7 +48,10 @@ export function SeatMapGrid({
         <p className="text-sm text-muted-foreground">No zones in this seat map.</p>
       ) : (
         zones.map((zone) => {
-          const rowCount = Math.min(MAX_GRID_ROWS, getZoneRowCount(zone.units))
+          const rowCount = Math.min(
+            MAX_GRID_ROWS,
+            getZoneRowCount(zone.units) + spareRows,
+          )
           const unitsByStart = new Map<string, SeatMapUnit>()
           const coveredCells = new Set<string>()
 
@@ -94,7 +106,7 @@ export function SeatMapGrid({
                       gridColumn: `${unit.col + 1} / span ${span}`,
                       gridRow: `${unit.row + 1}`,
                     }}
-                    className="flex min-h-12 min-w-12 items-stretch"
+                    className="flex min-h-12 min-w-[48px] items-stretch"
                   >
                     {renderUnit ? renderUnit(unit) : <SeatMapTile unit={unit} />}
                   </div>,
@@ -115,7 +127,7 @@ export function SeatMapGrid({
                       gridColumn: `${c + 1} / span 1`,
                       gridRow: `${r + 1}`,
                     }}
-                    className="flex min-h-12 min-w-12 items-stretch"
+                    className="flex min-h-12 min-w-[48px] items-stretch"
                     aria-hidden={emptyContent ? undefined : true}
                   >
                     {emptyContent}
@@ -131,12 +143,26 @@ export function SeatMapGrid({
               aria-labelledby={`zone-heading-${zone.id}`}
               className="space-y-2"
             >
-              <h3
-                id={`zone-heading-${zone.id}`}
-                className="text-base font-semibold tracking-tight text-foreground"
-              >
-                {zone.name}
-              </h3>
+              {renderZoneActions ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3
+                    id={`zone-heading-${zone.id}`}
+                    tabIndex={-1}
+                    className="mr-auto text-base font-semibold tracking-tight wrap-anywhere text-foreground"
+                  >
+                    {zone.name}
+                  </h3>
+                  {renderZoneActions(zone)}
+                </div>
+              ) : (
+                <h3
+                  id={`zone-heading-${zone.id}`}
+                  tabIndex={-1}
+                  className="text-base font-semibold tracking-tight text-foreground"
+                >
+                  {zone.name}
+                </h3>
+              )}
               <div
                 className="grid gap-1"
                 style={{

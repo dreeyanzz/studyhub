@@ -500,4 +500,19 @@ None blocking this story. Integration boundaries are aligned with:
 
 ## 9. After the build
 
-Fill this in when the story is done.
+Fill this in when the story is done. Until then, each task's differences from this plan:
+
+**TSK-07.6 (the builder):**
+
+- **The shared grid gained three optional props, used only by the builder.**
+  - `renderZoneActions`, for each zone's Move up, Move down, Rename and Delete beside its heading.
+  - `extraRows`, for a spare empty row while placing or moving, so a full row still leaves somewhere to put a unit.
+  - Zone headings take focus programmatically (`tabIndex={-1}`), so focus can move to a zone after a change.
+
+  STORY-11 and STORY-12 pass none of them, so nothing changes for them.
+
+- **Cell and tile widths, and the tile's icons, are in px, not rem.** At 200% text, `min-w-12` became 96 px, so six cells needed 576 px and a 360 px screen scrolled sideways. Heights stay in rem, so a tile still grows taller as its label wraps (§3, Accessibility).
+- **`mapPostgresError` moved from `actions.ts` to `lib/seat-map/errors.ts`.** A `'use server'` file may export only async functions, and `next build` refuses one that exports anything else once a Client Component imports it. TSK-07.5's file had passed CI only because nothing in the browser imported it yet.
+- **The Grid/List switch arrives with TSK-07.7**, so `main` never links to a list view that doesn't exist.
+- **In the grid view, the confirmation panel opens above the map**, where a selected unit's panel goes, not inside the unit's 51 px cell. TSK-07.7's list view shows it in place.
+- **Copy:** an empty zone says "Pick a unit type above, then tap an empty cell." The grid view has no form below the grid, as §3's wording assumed.

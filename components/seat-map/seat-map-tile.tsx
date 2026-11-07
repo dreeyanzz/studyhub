@@ -67,7 +67,9 @@ const STATE_CONFIG: Record<
  *
  * Shows the unit label, room capacity if applicable, unit type icon, and seat state icon.
  * Features an accessible name pronouncing all details in words (e.g. "S4, Seat, Available").
- * Minimum dimensions are 48x48 px (min-h-12, min-w-12) to meet touch target requirements (SRS §3.2.2).
+ * Minimum dimensions are 48x48 px to meet touch target requirements (SRS §3.2.2). The width
+ * and the icons are in px, not rem, so six tiles still fit a 360 px screen at 200% text;
+ * the height is in rem, so a tile grows taller as its label wraps (design §3).
  */
 export function SeatMapTile({
   unit,
@@ -103,15 +105,15 @@ export function SeatMapTile({
       role="img"
       aria-label={accessibleName}
       className={cn(
-        'flex h-full min-h-12 w-full min-w-12 flex-col items-center justify-between rounded-md border p-1 text-center transition-colors select-none',
+        'flex h-full min-h-12 w-full min-w-[48px] flex-col items-center justify-between rounded-md border p-1 text-center transition-colors select-none',
         stateInfo.tileClassName,
         className,
       )}
     >
       <div className="flex w-full items-center justify-between gap-1">
-        <TypeIcon className="size-3.5 shrink-0 opacity-80" aria-hidden="true" />
+        <TypeIcon className="size-[14px] shrink-0 opacity-80" aria-hidden="true" />
         <StateIcon
-          className={cn('size-3.5 shrink-0', stateInfo.iconClassName)}
+          className={cn('size-[14px] shrink-0', stateInfo.iconClassName)}
           aria-hidden="true"
         />
       </div>

@@ -12,7 +12,6 @@ import {
   deleteUnitAction,
   deleteZone,
   deleteZoneAction,
-  mapPostgresError,
   moveUnit,
   moveUnitAction,
   moveZoneDown,
@@ -28,6 +27,7 @@ import {
   updateZone,
   updateZoneAction,
 } from './actions'
+import { mapPostgresError } from '@/lib/seat-map/errors'
 
 // --- Mock Next.js dependencies ---
 const mockRevalidatePath = vi.fn()
