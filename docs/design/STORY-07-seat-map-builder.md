@@ -516,3 +516,12 @@ Fill this in when the story is done. Until then, each task's differences from th
 - **The Grid/List switch arrives with TSK-07.7**, so `main` never links to a list view that doesn't exist.
 - **In the grid view, the confirmation panel opens above the map**, where a selected unit's panel goes, not inside the unit's 51 px cell. TSK-07.7's list view shows it in place.
 - **Copy:** an empty zone says "Pick a unit type above, then tap an empty cell." The grid view has no form below the grid, as §3's wording assumed.
+
+**TSK-07.7 (the accessible list view alternative):**
+
+- **`SeatMapListView` is a Server Component** (`_components/seat-map-list-view.tsx`) rendering all zones and units in an accessible list/card structure.
+- **The Grid/List segmented switcher** in `page.tsx` maintains current space context and search parameters (e.g. active removal confirmations) across view switches.
+- **All builder actions (add, edit, move, delete unit and zone)** are operable via standard HTML forms and keyboard alone (Tab, Enter, Space), and function before JavaScript loads.
+- **`UnitForm` supports both `edit` and `add` modes**, with `showCoordinates` providing native selects for Row (1–50) and Column (1–6), zone selection when multiple zones exist, and optional `cancelHref`.
+- **`ZoneForm` accepts `shouldFocus?: boolean`**, preventing the bottom "Add a zone" form from stealing focus and scrolling the page on mount.
+- **Confirmation step** (`ConfirmRemoval`) renders in place for unit removals and zone deletions.

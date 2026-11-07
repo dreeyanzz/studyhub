@@ -1,14 +1,15 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import type { SeatMapUnit, UnitType } from '@/lib/seat-map/grid'
+import type { SeatMapUnit, SeatMapZone, UnitType } from '@/lib/seat-map/grid'
 
-import { updateUnit, type SeatMapActionState } from '../actions'
+import { addUnit, updateUnit, type SeatMapActionState } from '../actions'
 
 /** A native select styled like STORY-02's Input, until the design system has a Select (design §3). */
 export const selectClassName =
@@ -28,37 +29,61 @@ type FieldControlProps = {
   'aria-describedby': string | undefined
 }
 
-type UnitFormProps = {
+type BaseUnitFormProps = {
   spaceId: string
   zoneId: string
-  unit: SeatMapUnit
+  zones?: SeatMapZone[]
+  showCoordinates?: boolean
   /** Called once the unit is saved, with its id and its label as saved. */
-  onDone: (unit: { id: string; label: string }) => void
-  onCancel: () => void
+  onDone?: (unit: { id: string; label: string }) => void
+  onCancel?: () => void
+  cancelHref?: string
 }
 
+type EditUnitFormProps = BaseUnitFormProps & {
+  mode?: 'edit'
+  unit: SeatMapUnit
+}
+
+type AddUnitFormProps = BaseUnitFormProps & {
+  mode: 'add'
+  unit?: never
+  defaultLabel?: string
+  defaultType?: UnitType
+  defaultRow?: number
+  defaultCol?: number
+}
+
+export type UnitFormProps = EditUnitFormProps | AddUnitFormProps
+
 /**
- * Edits a unit's label, type, and a whole room's capacity and width (STORY-07 design
- * §3). It keeps the unit where it is: the grid moves units with Move, and TSK-07.7's
- * list view adds its row and column. It saves through updateUnit, so overlaps (23P01)
- * and duplicate labels (23505) come back as messages.
+ * Adds or edits a unit's label, type, coordinates, and a whole room's capacity and width
+ * (STORY-07 design §3). In the grid view, coordinates are fixed (or moved via Move mode).
+ * In TSK-07.7's list view, row and column are native selects (reading from 1, submitting from 0).
+ * It saves through addUnit or updateUnit, so overlaps (23P01) and duplicate labels (23505)
+ * come back as messages.
  */
-export function UnitForm({ spaceId, zoneId, unit, onDone, onCancel }: UnitFormProps) {
+export function UnitForm(props: UnitFormProps) {
+  const isEdit = props.mode !== 'add'
+  const action = isEdit ? updateUnit : addUnit
   const [state, formAction, pending] = useActionState<SeatMapActionState, FormData>(
-    updateUnit,
+    action,
     {},
   )
-  const [unitType, setUnitType] = useState<UnitType>(unit.unitType)
+  const initialType: UnitType = isEdit
+    ? props.unit.unitType
+    : (props.defaultType ?? 'seat')
+  const [unitType, setUnitType] = useState<UnitType>(initialType)
   const id = useId()
-  const onDoneRef = useRef(onDone)
+  const onDoneRef = useRef(props.onDone)
   useEffect(() => {
-    onDoneRef.current = onDone
+    onDoneRef.current = props.onDone
   })
 
   // Runs once per answer from the action: each answer is a new state object.
   useEffect(() => {
     const saved = state.success ? (state.data as { id?: string; label?: string }) : null
-    if (saved?.id) onDoneRef.current({ id: saved.id, label: saved.label ?? '' })
+    if (saved?.id) onDoneRef.current?.({ id: saved.id, label: saved.label ?? '' })
   }, [state])
 
   const errors = state.fieldErrors ?? {}
@@ -66,6 +91,14 @@ export function UnitForm({ spaceId, zoneId, unit, onDone, onCancel }: UnitFormPr
   const isRoom = unitType === 'room'
   const value = (name: string, fallback: string) =>
     typeof state.values?.[name] === 'string' ? (state.values[name] as string) : fallback
+
+  const defaultLabel = isEdit ? props.unit.label : (props.defaultLabel ?? '')
+  const initialRow = isEdit ? props.unit.row : (props.defaultRow ?? 0)
+  const initialCol = isEdit ? props.unit.col : (props.defaultCol ?? 0)
+  const initialCapacity = isEdit ? String(props.unit.capacity ?? 4) : '4'
+  const initialColSpan = isEdit
+    ? String(props.unit.unitType === 'room' ? props.unit.colSpan : 2)
+    : '2'
 
   function field(
     name: string,
@@ -92,7 +125,15 @@ export function UnitForm({ spaceId, zoneId, unit, onDone, onCancel }: UnitFormPr
   }
 
   // A message the fields don't show, such as an overlap or a permission refusal.
-  const shownFieldErrors = ['label', 'unitType', 'capacity', 'colSpan']
+  const shownFieldErrors = [
+    'label',
+    'unitType',
+    'capacity',
+    'colSpan',
+    'row',
+    'col',
+    'zoneId',
+  ]
   const formError =
     state.formError &&
     !shownFieldErrors.some((name) => fieldError(name) === state.formError)
@@ -106,18 +147,70 @@ export function UnitForm({ spaceId, zoneId, unit, onDone, onCancel }: UnitFormPr
           <AlertDescription>{formError}</AlertDescription>
         </Alert>
       )}
-      <input type="hidden" name="spaceId" value={spaceId} />
-      <input type="hidden" name="unitId" value={unit.id} />
-      <input type="hidden" name="zoneId" value={zoneId} />
-      <input type="hidden" name="row" value={unit.row} />
-      <input type="hidden" name="col" value={unit.col} />
-      {!isRoom && <input type="hidden" name="colSpan" value={1} />}
+      <input type="hidden" name="spaceId" value={props.spaceId} />
+      {isEdit && <input type="hidden" name="unitId" value={props.unit.id} />}
+
+      {props.zones && props.zones.length > 1 ? (
+        field('zoneId', 'Zone', (aria) => (
+          <select
+            {...aria}
+            className={selectClassName}
+            defaultValue={value('zoneId', props.zoneId)}
+          >
+            {props.zones!.map((z) => (
+              <option key={z.id} value={z.id}>
+                {z.name}
+              </option>
+            ))}
+          </select>
+        ))
+      ) : (
+        <input type="hidden" name="zoneId" value={props.zoneId} />
+      )}
+
+      {props.showCoordinates ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {field('row', 'Row', (aria) => (
+            <select
+              {...aria}
+              className={selectClassName}
+              key={`row-${value('row', String(initialRow))}`}
+              defaultValue={value('row', String(initialRow))}
+            >
+              {Array.from({ length: 50 }, (_, i) => (
+                <option key={i} value={i}>
+                  Row {i + 1}
+                </option>
+              ))}
+            </select>
+          ))}
+          {field('col', 'Column', (aria) => (
+            <select
+              {...aria}
+              className={selectClassName}
+              key={`col-${value('col', String(initialCol))}`}
+              defaultValue={value('col', String(initialCol))}
+            >
+              {Array.from({ length: 6 }, (_, i) => (
+                <option key={i} value={i}>
+                  Column {i + 1}
+                </option>
+              ))}
+            </select>
+          ))}
+        </div>
+      ) : (
+        <>
+          <input type="hidden" name="row" value={initialRow} />
+          <input type="hidden" name="col" value={initialCol} />
+        </>
+      )}
 
       {field('label', 'Label', (aria) => (
         <Input
           {...aria}
-          key={`label-${value('label', unit.label)}`}
-          defaultValue={value('label', unit.label)}
+          key={`label-${value('label', defaultLabel)}`}
+          defaultValue={value('label', defaultLabel)}
           maxLength={12}
           required
         />
@@ -138,17 +231,17 @@ export function UnitForm({ spaceId, zoneId, unit, onDone, onCancel }: UnitFormPr
         </select>
       ))}
 
-      {isRoom && (
+      {isRoom ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {field('capacity', 'Capacity (people)', (aria) => (
             <Input
               {...aria}
-              key={`capacity-${value('capacity', String(unit.capacity ?? ''))}`}
+              key={`capacity-${value('capacity', initialCapacity)}`}
               type="number"
               inputMode="numeric"
               min={1}
               max={50}
-              defaultValue={value('capacity', String(unit.capacity ?? 4))}
+              defaultValue={value('capacity', initialCapacity)}
               required
             />
           ))}
@@ -156,26 +249,35 @@ export function UnitForm({ spaceId, zoneId, unit, onDone, onCancel }: UnitFormPr
             <select
               {...aria}
               className={selectClassName}
-              key={`span-${value('colSpan', String(unit.colSpan))}`}
-              defaultValue={value(
-                'colSpan',
-                String(unit.unitType === 'room' ? unit.colSpan : 2),
-              )}
+              key={`span-${value('colSpan', initialColSpan)}`}
+              defaultValue={value('colSpan', initialColSpan)}
             >
               <option value="2">2 cells</option>
               <option value="3">3 cells</option>
             </select>
           ))}
         </div>
+      ) : (
+        <input type="hidden" name="colSpan" value={1} />
       )}
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={pending} focusableWhenDisabled>
-          {pending ? 'Saving…' : 'Save changes'}
+          {pending ? 'Saving…' : isEdit ? 'Save changes' : 'Add unit'}
         </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
+        {props.onCancel && (
+          <Button type="button" variant="outline" onClick={props.onCancel}>
+            Cancel
+          </Button>
+        )}
+        {!props.onCancel && props.cancelHref && (
+          <Link
+            href={props.cancelHref}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            Cancel
+          </Link>
+        )}
       </div>
     </form>
   )
