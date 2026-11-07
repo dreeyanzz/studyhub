@@ -31,7 +31,10 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
   let latestHostUpdatedAt: string | null = null
   for (const unit of allUnits) {
     if (unit.hostUpdatedAt) {
-      if (!latestHostUpdatedAt || unit.hostUpdatedAt > latestHostUpdatedAt) {
+      if (
+        !latestHostUpdatedAt ||
+        new Date(unit.hostUpdatedAt).getTime() > new Date(latestHostUpdatedAt).getTime()
+      ) {
         latestHostUpdatedAt = unit.hostUpdatedAt
       }
     }

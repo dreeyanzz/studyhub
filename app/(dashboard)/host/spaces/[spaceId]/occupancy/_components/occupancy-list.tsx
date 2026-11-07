@@ -146,7 +146,9 @@ export function OccupancyList({
 
             return (
               <tr key={unit.id} className="hover:bg-muted/20">
-                <td className="px-4 py-3 font-semibold">{displayLabel}</td>
+                <th scope="row" className="px-4 py-3 text-left font-semibold">
+                  {displayLabel}
+                </th>
                 <td className="px-4 py-3">
                   <div className="flex flex-col">
                     <span className="text-xs font-medium text-muted-foreground">

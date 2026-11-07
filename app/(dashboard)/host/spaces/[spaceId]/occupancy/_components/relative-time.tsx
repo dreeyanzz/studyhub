@@ -2,36 +2,31 @@
 
 import { useSyncExternalStore } from 'react'
 
-function calculateRelativeTime(dateString: string, now: number): string {
-  const time = new Date(dateString).getTime()
-  if (Number.isNaN(time)) return 'recently'
+import { calculateRelativeTime } from '@/lib/occupancy/relative-time'
 
-  const diffMs = now - time
-  if (diffMs < 0 || diffMs < 60_000) {
-    return 'just now'
-  }
-
-  const minutes = Math.floor(diffMs / 60_000)
-  if (minutes < 60) {
-    return `${minutes} min ago`
-  }
-
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) {
-    return hours === 1 ? '1 hr ago' : `${hours} hrs ago`
-  }
-
-  const days = Math.floor(hours / 24)
-  return days === 1 ? '1 day ago' : `${days} days ago`
-}
+let currentTick = typeof window !== 'undefined' ? Date.now() : 0
+const listeners = new Set<() => void>()
+let intervalId: ReturnType<typeof setInterval> | null = null
 
 function subscribe(callback: () => void) {
-  const interval = setInterval(callback, 30_000)
-  return () => clearInterval(interval)
+  listeners.add(callback)
+  if (!intervalId) {
+    intervalId = setInterval(() => {
+      currentTick = Date.now()
+      listeners.forEach((cb) => cb())
+    }, 30_000)
+  }
+  return () => {
+    listeners.delete(callback)
+    if (listeners.size === 0 && intervalId) {
+      clearInterval(intervalId)
+      intervalId = null
+    }
+  }
 }
 
 function getClientSnapshot() {
-  return Date.now()
+  return currentTick
 }
 
 function getServerSnapshot() {
@@ -40,7 +35,10 @@ function getServerSnapshot() {
 
 /**
  * Client-computed relative time formatter (D-002).
- * Uses useSyncExternalStore to subscribe to external clock ticks without cascading renders.
+ *
+ * Uses a single shared module-level timer store with useSyncExternalStore
+ * to avoid cascading renders, timer multiplication, and hydration mismatches.
+ * Renders a truthful neutral placeholder ("—") on SSR rather than false "just now".
  */
 export function RelativeTime({
   date,
@@ -57,7 +55,8 @@ export function RelativeTime({
     return <span className={className}>Never</span>
   }
 
-  const relativeText = now === 0 ? 'just now' : calculateRelativeTime(date, now)
+  // During SSR or before client hydration mount, render a neutral placeholder (D-002)
+  const relativeText = now === 0 ? '—' : calculateRelativeTime(date, now)
 
   return (
     <time dateTime={date} className={className}>
@@ -66,3 +65,5 @@ export function RelativeTime({
     </time>
   )
 }
+
+export { calculateRelativeTime }

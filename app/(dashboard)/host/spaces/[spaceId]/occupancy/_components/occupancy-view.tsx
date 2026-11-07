@@ -59,17 +59,21 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
 
     startTransition(async () => {
       try {
+        const heldStatus =
+          unit.reservationId &&
+          (unit.seatState === 'pending_payment' ||
+            unit.seatState === 'reserved' ||
+            unit.seatState === 'occupied')
+            ? unit.seatState
+            : undefined
+
         const result = await setUnitStateAction(space.id, {
           unitId: unit.id,
           state: targetState,
-          expectedReservationId: unit.reservationId ?? undefined,
-          expectedReservationStatus:
-            unit.reservationId &&
-            (unit.seatState === 'pending_payment' ||
-              unit.seatState === 'reserved' ||
-              unit.seatState === 'occupied')
-              ? unit.seatState
-              : undefined,
+          expectedReservationId: heldStatus
+            ? (unit.reservationId ?? undefined)
+            : undefined,
+          expectedReservationStatus: heldStatus,
         })
 
         if (!result.success) {
@@ -182,7 +186,7 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
                       'relative flex h-full w-full items-stretch rounded-md text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                       isSelected && 'ring-2 ring-primary ring-offset-2',
                     )}
-                    aria-label={`Select ${unit.label} to manage occupancy`}
+                    aria-label={`Select ${unit.label} (${unit.seatState.replace('_', ' ')}) to manage occupancy`}
                     aria-pressed={isSelected}
                   >
                     <SeatMapTile unit={unit} className="h-full w-full" />
