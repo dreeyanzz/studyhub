@@ -1,6 +1,9 @@
-import type { ReactNode } from 'react'
+'use client'
+
+import { useEffect, useRef, useState, useTransition, type ReactNode } from 'react'
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -12,7 +15,7 @@ import {
 } from '@/lib/seat-map/grid'
 import { cn } from '@/lib/utils'
 
-import { moveZoneDownForm, moveZoneUpForm } from '../actions'
+import { moveZoneDown, moveZoneDownForm, moveZoneUp, moveZoneUpForm } from '../actions'
 import { ConfirmRemoval, type RemovalTarget } from './confirm-removal'
 import { UnitForm, unitTypeNames } from './unit-form'
 import { ZoneForm } from './zone-form'
@@ -45,19 +48,91 @@ export function SeatMapListView({
   confirm,
   baseHref,
 }: SeatMapListViewProps): ReactNode {
+  const router = useRouter()
+  const [announcement, setAnnouncement] = useState<string | null>(null)
+  const focusAfterSave = useRef<string[]>([])
+  const removing = useRef<RemovalTarget | null>(null)
+  const [isPending, startTransition] = useTransition()
+
   const allUnits = zones.flatMap((z) => z.units)
   const listHref = `${baseHref}?view=list`
+
+  // Removal cleanup and announcement (design §3)
+  useEffect(() => {
+    const target = removing.current
+    if (!target || confirm) return
+    removing.current = null
+    const stillThere =
+      target.kind === 'unit'
+        ? zones.some((zone) => zone.units.some((unit) => unit.id === target.id))
+        : zones.some((zone) => zone.id === target.id)
+    if (stillThere) return
+    setAnnouncement(
+      target.kind === 'unit'
+        ? `Removed ${target.label} from ${target.zoneName}.`
+        : `Deleted ${target.name}.`,
+    )
+    focusAfterSave.current =
+      target.kind === 'unit'
+        ? [`zone-heading-${target.zoneId}`]
+        : [...zones.map((zone) => `zone-heading-${zone.id}`), 'add-zone-heading']
+    router.replace(listHref, { scroll: false })
+  }, [confirm, zones, listHref, router])
+
+  // Focus management after mutations (design §3)
+  useEffect(() => {
+    for (const id of focusAfterSave.current) {
+      const element = document.getElementById(id)
+      if (element && !(element as HTMLButtonElement).disabled) {
+        element.focus()
+        focusAfterSave.current = []
+        return
+      }
+    }
+  }, [zones])
+
+  function handleMoveZoneUp(zone: SeatMapZone) {
+    startTransition(async () => {
+      const res = await moveZoneUp(spaceId, zone.id)
+      if (res.success) {
+        setAnnouncement(`Moved ${zone.name} up.`)
+        focusAfterSave.current = [`move-up-${zone.id}`]
+      }
+    })
+  }
+
+  function handleMoveZoneDown(zone: SeatMapZone) {
+    startTransition(async () => {
+      const res = await moveZoneDown(spaceId, zone.id)
+      if (res.success) {
+        setAnnouncement(`Moved ${zone.name} down.`)
+        focusAfterSave.current = [`move-down-${zone.id}`]
+      }
+    })
+  }
 
   if (zones.length === 0) {
     return (
       <div className="space-y-6">
+        <p role="status" aria-live="polite" className="sr-only">
+          {announcement}
+        </p>
         <div className="rounded-lg border border-dashed border-border p-6 text-center">
           <p className="text-sm text-muted-foreground">
             This Space has no zones yet. Start with a zone, such as &ldquo;Quiet
             desks&rdquo;. Zones group your units on the map.
           </p>
           <div className="mx-auto mt-4 max-w-md text-left">
-            <ZoneForm mode="add" spaceId={spaceId} position={0} shouldFocus={false} />
+            <ZoneForm
+              mode="add"
+              spaceId={spaceId}
+              position={0}
+              shouldFocus={false}
+              onDone={(created) => {
+                setAnnouncement(`Added ${created.name}.`)
+                focusAfterSave.current = [`zone-heading-${created.id}`]
+              }}
+            />
           </div>
         </div>
       </div>
@@ -66,6 +141,9 @@ export function SeatMapListView({
 
   return (
     <div className="space-y-8">
+      <p role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <div className="space-y-6">
         {zones.map((zone, zoneIndex) => {
           if (confirm?.kind === 'zone' && confirm.id === zone.id) {
@@ -75,6 +153,9 @@ export function SeatMapListView({
                 spaceId={spaceId}
                 target={confirm}
                 cancelHref={listHref}
+                onSubmitted={(target) => {
+                  removing.current = target
+                }}
               />
             )
           }
@@ -111,35 +192,54 @@ export function SeatMapListView({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1">
-                  <form action={moveZoneUpForm} className="inline">
+                  <form
+                    action={moveZoneUpForm}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      handleMoveZoneUp(zone)
+                    }}
+                    className="inline"
+                  >
                     <input type="hidden" name="spaceId" value={spaceId} />
                     <input type="hidden" name="zoneId" value={zone.id} />
                     <Button
+                      id={`move-up-${zone.id}`}
                       type="submit"
                       variant="ghost"
                       size="icon"
                       aria-label={`Move ${zone.name} up`}
-                      disabled={zoneIndex === 0}
+                      disabled={zoneIndex === 0 || isPending}
                     >
                       <ArrowUp aria-hidden="true" />
                     </Button>
                   </form>
 
-                  <form action={moveZoneDownForm} className="inline">
+                  <form
+                    action={moveZoneDownForm}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      handleMoveZoneDown(zone)
+                    }}
+                    className="inline"
+                  >
                     <input type="hidden" name="spaceId" value={spaceId} />
                     <input type="hidden" name="zoneId" value={zone.id} />
                     <Button
+                      id={`move-down-${zone.id}`}
                       type="submit"
                       variant="ghost"
                       size="icon"
                       aria-label={`Move ${zone.name} down`}
-                      disabled={zoneIndex === zones.length - 1}
+                      disabled={zoneIndex === zones.length - 1 || isPending}
                     >
                       <ArrowDown aria-hidden="true" />
                     </Button>
                   </form>
 
-                  <details className="group relative inline-block">
+                  <details
+                    id={`rename-details-${zone.id}`}
+                    className="group relative inline-block"
+                  >
                     <summary
                       className={cn(
                         buttonVariants({ variant: 'ghost' }),
@@ -154,6 +254,20 @@ export function SeatMapListView({
                         spaceId={spaceId}
                         zone={zone}
                         shouldFocus={false}
+                        onCancel={() => {
+                          const el = document.getElementById(
+                            `rename-details-${zone.id}`,
+                          ) as HTMLDetailsElement | null
+                          if (el) el.open = false
+                        }}
+                        onDone={(renamed) => {
+                          const el = document.getElementById(
+                            `rename-details-${zone.id}`,
+                          ) as HTMLDetailsElement | null
+                          if (el) el.open = false
+                          setAnnouncement(`Renamed zone to ${renamed.name}.`)
+                          focusAfterSave.current = [`zone-heading-${zone.id}`]
+                        }}
                         cancelHref={listHref}
                       />
                     </div>
@@ -189,6 +303,9 @@ export function SeatMapListView({
                             spaceId={spaceId}
                             target={confirm}
                             cancelHref={listHref}
+                            onSubmitted={(target) => {
+                              removing.current = target
+                            }}
                           />
                         </li>
                       )
@@ -238,7 +355,7 @@ export function SeatMapListView({
                             </div>
                           </div>
 
-                          <details className="group">
+                          <details id={`edit-details-${unit.id}`} className="group">
                             <summary
                               className={cn(
                                 buttonVariants({ variant: 'outline' }),
@@ -255,6 +372,20 @@ export function SeatMapListView({
                                 zones={zones}
                                 unit={unit}
                                 showCoordinates
+                                onCancel={() => {
+                                  const el = document.getElementById(
+                                    `edit-details-${unit.id}`,
+                                  ) as HTMLDetailsElement | null
+                                  if (el) el.open = false
+                                }}
+                                onDone={(saved) => {
+                                  const el = document.getElementById(
+                                    `edit-details-${unit.id}`,
+                                  ) as HTMLDetailsElement | null
+                                  if (el) el.open = false
+                                  setAnnouncement(`Saved ${saved.label}.`)
+                                  focusAfterSave.current = [`unit-heading-${saved.id}`]
+                                }}
                                 cancelHref={listHref}
                               />
                             </div>
@@ -268,6 +399,7 @@ export function SeatMapListView({
 
               {/* Add a unit to this zone */}
               <details
+                id={`add-unit-details-${zone.id}`}
                 open={count === 0}
                 className="rounded-lg border border-dashed border-border bg-muted/20 p-3 sm:p-4"
               >
@@ -285,6 +417,10 @@ export function SeatMapListView({
                     defaultLabel={nextLabel}
                     defaultType="seat"
                     showCoordinates
+                    onDone={(created) => {
+                      setAnnouncement(`Added ${created.label} to ${zone.name}.`)
+                      focusAfterSave.current = [`unit-heading-${created.id}`]
+                    }}
                   />
                 </div>
               </details>
@@ -311,6 +447,10 @@ export function SeatMapListView({
             spaceId={spaceId}
             position={zones.length}
             shouldFocus={false}
+            onDone={(created) => {
+              setAnnouncement(`Added ${created.name}.`)
+              focusAfterSave.current = [`zone-heading-${created.id}`]
+            }}
           />
         </div>
       </section>

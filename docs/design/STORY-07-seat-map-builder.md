@@ -519,7 +519,7 @@ Fill this in when the story is done. Until then, each task's differences from th
 
 **TSK-07.7 (the accessible list view alternative):**
 
-- **`SeatMapListView` is a Server Component** (`_components/seat-map-list-view.tsx`) rendering all zones and units in an accessible list/card structure.
+- **`SeatMapListView`** (`_components/seat-map-list-view.tsx`) renders all zones and units in an accessible list/card structure with live region announcements and focus management.
 - **The Grid/List segmented switcher** in `page.tsx` maintains current space context and search parameters (e.g. active removal confirmations) across view switches.
 - **All builder actions (add, edit, move, delete unit and zone)** are operable via standard HTML forms and keyboard alone (Tab, Enter, Space), and function before JavaScript loads.
 - **`UnitForm` supports both `edit` and `add` modes**, with `showCoordinates` providing native selects for Row (1–50) and Column (1–6), zone selection when multiple zones exist, and optional `cancelHref`.

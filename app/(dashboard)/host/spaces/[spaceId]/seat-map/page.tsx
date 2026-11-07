@@ -54,7 +54,11 @@ export function findRemovalTarget(
   query: Query,
 ): RemovalTarget | null {
   const one = (value: string | string[] | undefined) =>
-    typeof value === 'string' ? value : undefined
+    typeof value === 'string'
+      ? value
+      : Array.isArray(value) && typeof value[0] === 'string'
+        ? value[0]
+        : undefined
 
   const unitId = one(query.remove)
   if (unitId) {

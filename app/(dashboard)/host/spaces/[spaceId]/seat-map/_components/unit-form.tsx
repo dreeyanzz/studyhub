@@ -70,10 +70,17 @@ export function UnitForm(props: UnitFormProps) {
     action,
     {},
   )
-  const initialType: UnitType = isEdit
-    ? props.unit.unitType
-    : (props.defaultType ?? 'seat')
-  const [unitType, setUnitType] = useState<UnitType>(initialType)
+  const submittedType =
+    typeof state.values?.unitType === 'string'
+      ? (state.values.unitType as UnitType)
+      : typeof state.values?.unit_type === 'string'
+        ? (state.values.unit_type as UnitType)
+        : undefined
+  const [userType, setUserType] = useState<UnitType | null>(null)
+  const unitType: UnitType =
+    userType ??
+    submittedType ??
+    (isEdit ? props.unit.unitType : (props.defaultType ?? 'seat'))
   const id = useId()
   const onDoneRef = useRef(props.onDone)
   useEffect(() => {
@@ -90,7 +97,11 @@ export function UnitForm(props: UnitFormProps) {
   const fieldError = (name: string) => errors[name]?.[0]
   const isRoom = unitType === 'room'
   const value = (name: string, fallback: string) =>
-    typeof state.values?.[name] === 'string' ? (state.values[name] as string) : fallback
+    typeof state.values?.[name] === 'string'
+      ? (state.values[name] as string)
+      : typeof state.values?.[name] === 'number'
+        ? String(state.values[name])
+        : fallback
 
   const defaultLabel = isEdit ? props.unit.label : (props.defaultLabel ?? '')
   const initialRow = isEdit ? props.unit.row : (props.defaultRow ?? 0)
@@ -221,7 +232,7 @@ export function UnitForm(props: UnitFormProps) {
           {...aria}
           className={selectClassName}
           value={unitType}
-          onChange={(event) => setUnitType(event.target.value as UnitType)}
+          onChange={(event) => setUserType(event.target.value as UnitType)}
         >
           {(Object.keys(unitTypeNames) as UnitType[]).map((type) => (
             <option key={type} value={type}>
@@ -258,7 +269,15 @@ export function UnitForm(props: UnitFormProps) {
           ))}
         </div>
       ) : (
-        <input type="hidden" name="colSpan" value={1} />
+        <>
+          <input type="hidden" name="colSpan" value={1} />
+          <noscript>
+            <div className="rounded-md border border-dashed border-border p-3 text-xs text-muted-foreground">
+              If selecting Whole room without JavaScript, submit the form to enter room
+              capacity and width.
+            </div>
+          </noscript>
+        </>
       )}
 
       <div className="flex flex-wrap gap-2">

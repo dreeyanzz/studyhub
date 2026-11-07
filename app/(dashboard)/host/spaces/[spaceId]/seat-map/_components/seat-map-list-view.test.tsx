@@ -1,5 +1,15 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    replace: vi.fn(),
+    push: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  notFound: vi.fn(),
+  redirect: vi.fn(),
+}))
 
 import type { SeatMapZone } from '@/lib/seat-map/grid'
 import { SeatMapListView } from './seat-map-list-view'
@@ -109,6 +119,20 @@ describe('SeatMapListView (STORY-07 TSK-07.7)', () => {
     expect(html).toContain('Capacity: 6 people')
     expect(html).toContain('Row 2, Columns 1 to 3')
     expect(html).toContain('3 cells wide')
+  })
+
+  it('renders an aria-live polite region for screen reader announcements', () => {
+    const html = renderToStaticMarkup(
+      <SeatMapListView
+        spaceId={spaceId}
+        zones={zones}
+        confirm={null}
+        baseHref={baseHref}
+      />,
+    )
+
+    expect(html).toContain('role="status"')
+    expect(html).toContain('aria-live="polite"')
   })
 
   it('provides Move up and Move down forms with proper disabled states', () => {
@@ -308,6 +332,21 @@ describe('SeatMapListView (STORY-07 TSK-07.7)', () => {
       expect(findRemovalTarget(zones, { remove: 'unknown-id' })).toBeNull()
       expect(findRemovalTarget(zones, { 'delete-zone': 'unknown-id' })).toBeNull()
       expect(findRemovalTarget(zones, {})).toBeNull()
+
+      // Array query parameters defensively take the first string
+      expect(findRemovalTarget(zones, { remove: ['u1', 'u2'] })).toEqual({
+        kind: 'unit',
+        id: 'u1',
+        label: 'S1',
+        zoneId: 'zone-1',
+        zoneName: 'Quiet desks',
+      })
+      expect(findRemovalTarget(zones, { 'delete-zone': ['zone-1', 'zone-2'] })).toEqual({
+        kind: 'zone',
+        id: 'zone-1',
+        name: 'Quiet desks',
+        unitCount: 3,
+      })
     })
   })
 })

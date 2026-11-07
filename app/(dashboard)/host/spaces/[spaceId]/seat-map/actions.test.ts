@@ -16,8 +16,10 @@ import {
   moveUnitAction,
   moveZoneDown,
   moveZoneDownAction,
+  moveZoneDownForm,
   moveZoneUp,
   moveZoneUpAction,
+  moveZoneUpForm,
   renameZone,
   renameZoneAction,
   reorderZones,
@@ -548,6 +550,54 @@ describe('Seat Map Server Actions', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${validSpaceId}/seat-map`,
       )
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: ['d0000000-0000-4000-8000-000000000002', validZoneId],
+        },
+      })
+    })
+
+    it('executes moveZoneUpForm with FormData and returns void', async () => {
+      tableResponses.zones = {
+        data: [
+          { id: 'd0000000-0000-4000-8000-000000000002', position: 0 },
+          { id: validZoneId, position: 1 },
+        ],
+        error: null,
+      }
+
+      const fd = new FormData()
+      fd.append('spaceId', validSpaceId)
+      fd.append('zoneId', validZoneId)
+
+      const result = await moveZoneUpForm(fd)
+      expect(result).toBeUndefined()
+      expect(capturedRpcCalls).toContainEqual({
+        fn: 'reorder_zones',
+        args: {
+          p_space_id: validSpaceId,
+          p_zone_ids: [validZoneId, 'd0000000-0000-4000-8000-000000000002'],
+        },
+      })
+    })
+
+    it('executes moveZoneDownForm with FormData and returns void', async () => {
+      tableResponses.zones = {
+        data: [
+          { id: validZoneId, position: 0 },
+          { id: 'd0000000-0000-4000-8000-000000000002', position: 1 },
+        ],
+        error: null,
+      }
+
+      const fd = new FormData()
+      fd.append('spaceId', validSpaceId)
+      fd.append('zoneId', validZoneId)
+
+      const result = await moveZoneDownForm(fd)
+      expect(result).toBeUndefined()
       expect(capturedRpcCalls).toContainEqual({
         fn: 'reorder_zones',
         args: {
