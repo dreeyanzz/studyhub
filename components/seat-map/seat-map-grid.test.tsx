@@ -274,4 +274,84 @@ describe('SeatMapGrid component (STORY-07 TSK-07.4)', () => {
     expect(html).toContain('grid-row:1')
     expect(html).not.toContain('grid-row:1000')
   })
+  describe('builder props (TSK-07.6)', () => {
+    const seat = (id: string, label: string, row: number, col: number) => ({
+      id,
+      unitType: 'seat' as const,
+      label,
+      capacity: null,
+      row,
+      col,
+      colSpan: 1,
+      seatState: 'available' as const,
+      hostUpdatedAt: '2026-11-01T00:00:00Z',
+      waitWindowEndsAt: null,
+      reservationId: null,
+    })
+    const zones: SeatMapZone[] = [
+      {
+        id: 'zone-a',
+        name: 'Quiet desks',
+        units: [seat('u1', 'S1', 0, 0), seat('u2', 'S2', 0, 1)],
+      },
+      { id: 'zone-b', name: 'Rooms', units: [] },
+    ]
+    const marker = (cell: { zoneId: string; row: number; col: number }) => (
+      <span data-cell={`${cell.zoneId}:${cell.row}:${cell.col}`} />
+    )
+
+    it("renders each zone's actions beside its heading, and nothing extra without the prop", () => {
+      const withActions = renderToStaticMarkup(
+        <SeatMapGrid
+          zones={zones}
+          renderZoneActions={(zone) => <button>Rename {zone.name}</button>}
+        />,
+      )
+      expect(withActions).toContain('Rename Quiet desks')
+      expect(withActions).toContain('Rename Rooms')
+      // The actions sit after the zone's own heading, inside its section.
+      const section = withActions.slice(withActions.indexOf('zone-heading-zone-a'))
+      expect(section.indexOf('Quiet desks</h3>')).toBeLessThan(
+        section.indexOf('Rename Quiet desks'),
+      )
+
+      const without = renderToStaticMarkup(<SeatMapGrid zones={zones} />)
+      expect(without).not.toContain('Rename')
+    })
+
+    it('lets a caller move focus to a zone heading', () => {
+      const html = renderToStaticMarkup(<SeatMapGrid zones={zones} />)
+      expect(html).toContain('id="zone-heading-zone-a" tabindex="-1"')
+    })
+
+    it('draws extraRows spare rows of empty cells below each zone', () => {
+      const count = (html: string, zoneId: string) =>
+        (html.match(new RegExp(`data-cell="${zoneId}:`, 'g')) ?? []).length
+
+      const plain = renderToStaticMarkup(
+        <SeatMapGrid zones={zones} renderEmptyCell={marker} />,
+      )
+      // One row: 6 cells, 2 of them taken in zone A.
+      expect(count(plain, 'zone-a')).toBe(4)
+      expect(count(plain, 'zone-b')).toBe(6)
+
+      const spare = renderToStaticMarkup(
+        <SeatMapGrid zones={zones} renderEmptyCell={marker} extraRows={1} />,
+      )
+      expect(count(spare, 'zone-a')).toBe(10)
+      expect(count(spare, 'zone-b')).toBe(12)
+      expect(spare).toContain('data-cell="zone-a:1:5"')
+    })
+
+    it('ignores a negative or fractional extraRows', () => {
+      const html = renderToStaticMarkup(
+        <SeatMapGrid zones={zones} renderEmptyCell={marker} extraRows={-2} />,
+      )
+      expect(html).not.toContain('data-cell="zone-a:1:')
+      const frac = renderToStaticMarkup(
+        <SeatMapGrid zones={zones} renderEmptyCell={marker} extraRows={1.5} />,
+      )
+      expect(frac).not.toContain('data-cell="zone-a:1:')
+    })
+  })
 })

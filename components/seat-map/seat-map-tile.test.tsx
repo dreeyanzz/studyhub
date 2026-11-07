@@ -25,7 +25,8 @@ describe('SeatMapTile component (STORY-07 TSK-07.4)', () => {
     expect(html).toContain('S4')
     expect(html).toContain('border-emerald-600/40')
     expect(html).toContain('min-h-12')
-    expect(html).toContain('min-w-12')
+    // The width is in px, so six tiles still fit 360 px at 200% text (design §3).
+    expect(html).toContain('min-w-[48px]')
     // Contains two SVGs (type icon and state icon)
     const svgMatches = html.match(/<svg/g)
     expect(svgMatches).toHaveLength(2)
