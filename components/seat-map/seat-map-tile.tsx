@@ -23,6 +23,9 @@ const TYPE_CONFIG: Record<
   room: { label: 'Room', icon: DoorClosed },
 }
 
+// Light palette only, with no `dark:` variants: the app ships light mode only (D-031), and
+// with no `.dark` class `dark:` follows the OS setting, which turned these tiles into grey
+// with near-white text on the light page for anyone whose OS is in dark mode.
 const STATE_CONFIG: Record<
   SeatState,
   {
@@ -35,30 +38,26 @@ const STATE_CONFIG: Record<
   available: {
     label: 'Available',
     icon: CheckCircle,
-    tileClassName:
-      'border-emerald-600/40 bg-emerald-50 text-emerald-950 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100',
-    iconClassName: 'text-emerald-700 dark:text-emerald-400',
+    tileClassName: 'border-emerald-600/40 bg-emerald-50 text-emerald-950',
+    iconClassName: 'text-emerald-700',
   },
   pending_payment: {
     label: 'Pending Payment',
     icon: Hourglass,
-    tileClassName:
-      'border-purple-600/40 bg-purple-50 text-purple-950 dark:border-purple-500/40 dark:bg-purple-950/40 dark:text-purple-100',
-    iconClassName: 'text-purple-700 dark:text-purple-400',
+    tileClassName: 'border-purple-600/40 bg-purple-50 text-purple-950',
+    iconClassName: 'text-purple-700',
   },
   reserved: {
     label: 'Reserved',
     icon: Clock,
-    tileClassName:
-      'border-blue-600/40 bg-blue-50 text-blue-950 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-100',
-    iconClassName: 'text-blue-700 dark:text-blue-400',
+    tileClassName: 'border-blue-600/40 bg-blue-50 text-blue-950',
+    iconClassName: 'text-blue-700',
   },
   occupied: {
     label: 'Occupied',
     icon: User,
-    tileClassName:
-      'border-amber-600/40 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100',
-    iconClassName: 'text-amber-700 dark:text-amber-400',
+    tileClassName: 'border-amber-600/40 bg-amber-50 text-amber-950',
+    iconClassName: 'text-amber-700',
   },
 }
 

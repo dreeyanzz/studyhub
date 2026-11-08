@@ -14,7 +14,8 @@ import { cn } from '@/lib/utils'
  * Shared seat map legend (STORY-07, TSK-07.4, FR-3.1).
  *
  * Explains every icon and seat state in words so the interface never relies on color alone (D-031).
- * Rendered once above the zones by SeatMapGrid.
+ * Rendered once above the zones by SeatMapGrid. Its state colors match SeatMapTile's light
+ * palette, with no `dark:` variants, because the app ships light mode only (D-031).
  */
 export function SeatMapLegend({
   className,
@@ -34,32 +35,26 @@ export function SeatMapLegend({
         <div>
           <span className="font-semibold text-foreground">States:</span>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="inline-flex items-center gap-1.5 text-emerald-950 dark:text-emerald-200">
+            <span className="inline-flex items-center gap-1.5 text-emerald-950">
               <CheckCircle
-                className="size-3.5 shrink-0 text-emerald-700 dark:text-emerald-400"
+                className="size-3.5 shrink-0 text-emerald-700"
                 aria-hidden="true"
               />
               <span>Available</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 text-purple-950 dark:text-purple-200">
+            <span className="inline-flex items-center gap-1.5 text-purple-950">
               <Hourglass
-                className="size-3.5 shrink-0 text-purple-700 dark:text-purple-400"
+                className="size-3.5 shrink-0 text-purple-700"
                 aria-hidden="true"
               />
               <span>Pending Payment</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 text-blue-950 dark:text-blue-200">
-              <Clock
-                className="size-3.5 shrink-0 text-blue-700 dark:text-blue-400"
-                aria-hidden="true"
-              />
+            <span className="inline-flex items-center gap-1.5 text-blue-950">
+              <Clock className="size-3.5 shrink-0 text-blue-700" aria-hidden="true" />
               <span>Reserved</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 text-amber-950 dark:text-amber-200">
-              <User
-                className="size-3.5 shrink-0 text-amber-700 dark:text-amber-400"
-                aria-hidden="true"
-              />
+            <span className="inline-flex items-center gap-1.5 text-amber-950">
+              <User className="size-3.5 shrink-0 text-amber-700" aria-hidden="true" />
               <span>Occupied</span>
             </span>
           </div>

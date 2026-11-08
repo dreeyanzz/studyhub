@@ -119,6 +119,31 @@ describe('SeatMapTile component (STORY-07 TSK-07.4)', () => {
     expect(html).toContain('break-words')
   })
 
+  it.each(['available', 'pending_payment', 'reserved', 'occupied'] as const)(
+    'keeps the light palette for a tile in the %s state whatever the OS color scheme (D-031)',
+    (seatState) => {
+      const unit: SeatMapUnit = {
+        id: 'unit-7',
+        unitType: 'seat',
+        label: 'S2',
+        capacity: null,
+        row: 0,
+        col: 1,
+        colSpan: 1,
+        seatState,
+        hostUpdatedAt: '2026-11-01T00:00:00Z',
+        waitWindowEndsAt: null,
+        reservationId: null,
+      }
+
+      const html = renderToStaticMarkup(<SeatMapTile unit={unit} />)
+
+      // The app has no dark theme, so a dark: class would follow the OS setting and put
+      // near-white text on a grey tile on the light page.
+      expect(html).not.toContain('dark:')
+    },
+  )
+
   it('uses role="img" for accessible graphic representation without redundant sr-only spans', () => {
     const unit: SeatMapUnit = {
       id: 'unit-6',
