@@ -1,6 +1,6 @@
 # STORY-15: Space verification (approve or reject)
 
-**Status:** approved 2026-11-04 · **Owner:** @JamesNino-Mandawe (page and actions), @dreeyanzz (database function and policy) · **Story:** #166 · **FR:** FR-5.1 ·
+**Status:** implemented 2026-11-09 · **Owner:** @JamesNino-Mandawe (page and actions), @dreeyanzz (database function and policy) · **Story:** #166 · **FR:** FR-5.1 ·
 **Depends on:** STORY-01, STORY-03, STORY-05 · **Flows:** [Space verification](../flows/space-verification.md), [Host setup journey](../flows/host-setup-journey.md) · **Decisions:** D-010, D-016, D-027, D-031, D-032, D-036, D-037, D-042, D-044, D-053, D-054, D-055, D-061, D-065
 
 ## 0. Scope
@@ -271,4 +271,47 @@ None. Decision D-061 and D-065 established the Administrator test account (`admi
 
 ## 9. After the build
 
-- During TSK-15.2 build (#225), corrected §3 table entry for `space-list.tsx` to Server Component (matches `main`, renders within Host page Server Component, and contains no `'use client'`).
+Built in the §6 order: #231 (TSK-15.1, the function, @dreeyanzz), #225 (TSK-15.2, the
+form rules and formatters, @JamesNino-Mandawe) and #235 (TSK-15.3, the `/admin` page,
+its action and the Playwright tests, @JamesNino-Mandawe).
+
+### Different from the plan
+
+- **The formatters are `formatOpeningHours` and `formatDateTime`** in `lib/space/format.ts`, not a `hoursText` helper as §3 and §4 call it. `space-list.tsx` now uses them too, instead of its own copies (#225).
+- **`updatedAt` must be an ISO date-time with an offset** (`z.iso.datetime({ offset: true })`), not just a non-empty string as §2's schema has it. A value such as "yesterday" is refused before it reaches the database, and Postgres's microseconds are kept for the N9 check (#225).
+- **`space-list.tsx` is a Server Component**, as on `main`. #225 corrected §3's table, which had it otherwise.
+- **The action checks the session, and leaves the role to `set_space_status`.** §1's sequence has the action check the Administrator role too. The function refuses anyone else with `42501` either way, and the page itself sends anyone but an Administrator to their own portal (#235).
+- **Messages:** a `42501` reads "You are not authorized to verify spaces.", not §1's "Only administrators may verify spaces." The action has no branch for `invalid_target_status`, because Zod refuses any decision but `verified` or `rejected` before the call. Any other error reads "We could not update the space status. Please try again." (#235).
+
+### Left open at the close-out
+
+- **The Space verification flow stays `approved`.** Every test it names passes on `main` except N8, "search returns only Verified Spaces, even to their Host and to an Administrator", which STORY-08's search adds (TSK-08.3 and TSK-08.4). That PR sets the flow to `implemented`.
+- **"Approved Spaces become immediately visible in public search"**, as the page says, waits for the same search. Today an approved Space is readable by everyone, but nothing lists it for Seekers yet.
+- **§3's layout checks** (360, 768 and 1024 px, without sideways scrolling) aren't recorded in #235, and weren't re-run at the close-out.
+
+### Docs this story changed
+
+`AGENTS.md` (the layout note: `lib/space/` and the verification rules in #225, and
+`(dashboard)/admin/` in #235), this design's §3 and status (#225), the design index
+(#225), the comment in `e2e/smoke.spec.ts` (#235), and, at the close-out, the design
+index and the Sprint 2 brief.
+
+### Final checks
+
+On `main` at `cc77e4d`, with every STORY-15 task merged: `npm run check` (408 of 408
+unit tests), `npm run build` with CI's placeholder settings, `npm run db:test` (411 of 411
+pgTAP tests in 8 files, `05-space-verification.sql` included) and `npm run test:e2e` (10
+of 10, in Edge, the four in `e2e/space-verification.spec.ts` included).
+
+### Acceptance criteria (#166)
+
+Checked by Adrian's agent (Claude Code) at the close-out, on the local Supabase stack, as
+the seeded accounts. The same tests ran in the CI of #231 and #235. Nothing was written
+to the shared cloud database.
+
+| Criterion                                                                                                    | How it was verified                                                                                                                                                                                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| An Administrator sees every Pending Space on `/admin` and approves or rejects it                             | Playwright, "Authenticated Administrator accesses /admin and verifies pending spaces": two Spaces a Host has just created appear in the queue. Approving one and rejecting the other takes each card away with its announcement, and `/host` then shows them Verified and Rejected. The page reads every `pending` Space, oldest first |
+| An approved Space is readable by everyone; a Pending or Rejected one stays hidden from Seekers (FR-5.1, RLS) | `05-space-verification.sql`: "an Administrator approves a Pending Space, and a signed-out visitor can read it", "an Administrator rejects a Pending Space, and a Seeker still cannot read it" and "a Seeker and a signed-out visitor cannot read a Rejected Space". `02-spaces.sql`: "a Seeker lists verified spaces only"             |
+| pgTAP: a Host cannot change any Space's Verification status, their own included, and neither can a Seeker    | `05-space-verification.sql`: "a Host cannot approve or reject a Space, their own included" and "a Seeker cannot approve or reject a Space", each refused with `42501`. `02-spaces.sql`: "a Host cannot verify their own space", because no role may write `status` directly                                                            |
+| Only an Administrator can open `/admin` (D-032)                                                              | Playwright: a signed-out visitor is sent to `/login?returnUrl=%2Fadmin`, a Seeker to `/seeker` and a Host to `/host`, and the Administrator opens it. `page.tsx` checks the role as well as `proxy.ts`                                                                                                                                 |
