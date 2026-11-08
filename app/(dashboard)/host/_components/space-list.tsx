@@ -30,8 +30,8 @@ export type SpaceListItem = Pick<
 >
 
 // Every Verification status is written out, so no meaning depends on the badge
-// color alone (design §3.2 and §3.6).
-const statusBadges: Record<
+// color alone (design §3.2 and §3.6). The seat map page shows the same badge.
+export const statusBadges: Record<
   SpaceStatus,
   { label: string; variant: 'default' | 'secondary' | 'destructive' }
 > = {
@@ -77,6 +77,12 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
       <CardFooter className="flex-wrap gap-2">
         {/* The hidden name completes each link's accessible name, so every card's
             "Edit" and "Delete" say which Space they act on (design §3.2). */}
+        <Link
+          href={`/host/spaces/${space.id}/seat-map`}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Seat map<span className="sr-only"> for {space.name}</span>
+        </Link>
         <Link
           href={`/host/spaces/${space.id}/edit`}
           className={buttonVariants({ variant: 'outline' })}

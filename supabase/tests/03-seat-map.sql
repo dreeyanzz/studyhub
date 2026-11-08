@@ -7,7 +7,7 @@
 --   seeker c0000000-0000-4000-8000-000000000001
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(114);
+select plan(123);
 
 -- ---------------------------------------------------------------------------
 -- An anonymous visitor
@@ -900,6 +900,130 @@ select results_eq(
   $$select count(*)::int from public.unit_states('e0000000-0000-4000-8000-000000000004')$$,
   $$values (1)$$,
   'an Administrator reads unit_states for a rejected space'
+);
+
+-- ---------------------------------------------------------------------------
+-- public.reorder_zones (TSK-07.5): one call moves every zone, or none of them.
+-- Kapihan Study Hall's zones: d…01 Quiet desks, d…02 Standing desks, d…03 Private rooms.
+-- ---------------------------------------------------------------------------
+
+-- The Space's Host reorders their zones in one call
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+select lives_ok(
+  $$select public.reorder_zones('e0000000-0000-4000-8000-000000000001',
+    array['d0000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000001',
+          'd0000000-0000-4000-8000-000000000002']::uuid[])$$,
+  'a Host reorders their own Space''s zones in one call'
+);
+
+select results_eq(
+  $$select id from public.zones
+    where id in ('d0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000002',
+                 'd0000000-0000-4000-8000-000000000003')
+    order by position$$,
+  $$values ('d0000000-0000-4000-8000-000000000003'::uuid),
+           ('d0000000-0000-4000-8000-000000000001'::uuid),
+           ('d0000000-0000-4000-8000-000000000002'::uuid)$$,
+  'the zones take the order the Host gave'
+);
+
+-- A zone from another Space refuses the whole call
+select throws_ok(
+  $$select public.reorder_zones('e0000000-0000-4000-8000-000000000001',
+    array['d0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000002',
+          'd0000000-0000-4000-8000-000000000005']::uuid[])$$,
+  '23503',
+  null,
+  'a Host cannot reorder with a zone from another Space'
+);
+
+-- A failure after earlier updates leaves no partial order (Maria's review of #234).
+-- A test-only trigger fails the third zone's update, after the first two have run.
+-- The file's rollback removes it.
+reset role;
+create function public.test_fail_on_private_rooms() returns trigger
+language plpgsql as $$
+begin
+  if new.id = 'd0000000-0000-4000-8000-000000000003' then
+    raise exception 'simulated failure on the third zone';
+  end if;
+  return new;
+end;
+$$;
+create trigger test_fail_on_private_rooms
+  before update of position on public.zones
+  for each row execute function public.test_fail_on_private_rooms();
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+select throws_ok(
+  $$select public.reorder_zones('e0000000-0000-4000-8000-000000000001',
+    array['d0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000002',
+          'd0000000-0000-4000-8000-000000000003']::uuid[])$$,
+  'P0001',
+  'simulated failure on the third zone',
+  'a reorder that fails on its third zone raises'
+);
+
+select results_eq(
+  $$select id from public.zones
+    where id in ('d0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000002',
+                 'd0000000-0000-4000-8000-000000000003')
+    order by position$$,
+  $$values ('d0000000-0000-4000-8000-000000000003'::uuid),
+           ('d0000000-0000-4000-8000-000000000001'::uuid),
+           ('d0000000-0000-4000-8000-000000000002'::uuid)$$,
+  'a failed reorder leaves no partial order, though two updates ran before it failed'
+);
+
+reset role;
+drop trigger test_fail_on_private_rooms on public.zones;
+drop function public.test_fail_on_private_rooms();
+
+-- Nobody else may reorder them
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+select throws_ok(
+  $$select public.reorder_zones('e0000000-0000-4000-8000-000000000001',
+    array['d0000000-0000-4000-8000-000000000001']::uuid[])$$,
+  '42501',
+  null,
+  'a signed-out visitor cannot call reorder_zones'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+select throws_ok(
+  $$select public.reorder_zones('e0000000-0000-4000-8000-000000000001',
+    array['d0000000-0000-4000-8000-000000000001']::uuid[])$$,
+  '42501',
+  null,
+  'a Seeker cannot reorder a Space''s zones'
+);
+
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+select throws_ok(
+  $$select public.reorder_zones('e0000000-0000-4000-8000-000000000001',
+    array['d0000000-0000-4000-8000-000000000001']::uuid[])$$,
+  '42501',
+  null,
+  'another Host cannot reorder a Space''s zones'
+);
+
+select results_eq(
+  $$select id from public.zones
+    where id in ('d0000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000002',
+                 'd0000000-0000-4000-8000-000000000003')
+    order by position$$,
+  $$values ('d0000000-0000-4000-8000-000000000003'::uuid),
+           ('d0000000-0000-4000-8000-000000000001'::uuid),
+           ('d0000000-0000-4000-8000-000000000002'::uuid)$$,
+  'the refused calls left the order alone'
 );
 
 select * from finish();

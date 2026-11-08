@@ -64,7 +64,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-06 | [STORY-06-testing-qa.md](STORY-06-testing-qa.md)                   | implemented 2026-10-04                                              |
 | STORY-07 | [STORY-07-seat-map-builder.md](STORY-07-seat-map-builder.md)       | approved 2026-11-02                                                 |
 | STORY-08 | [STORY-08-geo-discovery.md](STORY-08-geo-discovery.md)             | draft                                                               |
-| STORY-09 |                                                                    | not written                                                         |
+| STORY-09 | [STORY-09-reserve-now-holds.md](STORY-09-reserve-now-holds.md)     | approved 2026-11-08                                                 |
 | STORY-10 |                                                                    | not written                                                         |
 | STORY-11 | [STORY-11-space-profile.md](STORY-11-space-profile.md)             | approved 2026-11-04                                                 |
 | STORY-12 | [STORY-12-host-occupancy.md](STORY-12-host-occupancy.md)           | approved 2026-10-29                                                 |
