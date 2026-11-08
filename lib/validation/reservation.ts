@@ -42,13 +42,15 @@ export const WAIT_WINDOW_OPTIONS: readonly {
 export function parseIntervalToMinutes(
   interval: string | number | null | undefined,
 ): number {
-  if (typeof interval === 'number') return interval
+  if (typeof interval === 'number') {
+    return Number.isFinite(interval) && interval > 0 ? interval : 60
+  }
   if (!interval || typeof interval !== 'string') return 60
 
   const trimmed = interval.trim()
 
-  // Format: HH:MM:SS or HH:MM
-  const timeMatch = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(trimmed)
+  // Format: HH:MM:SS, HH:MM, or with fractional seconds HH:MM:SS.ffffff
+  const timeMatch = /^(\d{1,2}):(\d{2})(?::\d{2}(?:\.\d+)?)?$/.exec(trimmed)
   if (timeMatch && timeMatch[1] && timeMatch[2]) {
     const hours = parseInt(timeMatch[1], 10)
     const minutes = parseInt(timeMatch[2], 10)

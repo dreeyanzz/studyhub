@@ -25,7 +25,7 @@ export function mapPostgresError(
             'A unit here has an active hold. End it from the occupancy view, or wait for it to end.',
         }
       }
-      const label = options?.unitLabel ?? 'This unit'
+      const label = options?.unitLabel?.trim() || 'This unit'
       if (options?.operation === 'delete') {
         return {
           formError: `${label} has an active hold. End it from the occupancy view, or wait for it to end.`,

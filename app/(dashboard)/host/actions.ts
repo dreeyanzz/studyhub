@@ -167,7 +167,7 @@ export async function deleteSpace(
     p_space_id: spaceId.data,
   })
   if (statesError) return { formError: deleteFailed }
-  if (states && states.some((u) => u.reservation_id !== null)) {
+  if (states && states.some((u) => Boolean(u.reservation_id))) {
     return { formError: deleteHeldError }
   }
 
