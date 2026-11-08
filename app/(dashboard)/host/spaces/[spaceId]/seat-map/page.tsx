@@ -151,6 +151,7 @@ export default async function SeatMapPage({
             </p>
             <Badge variant={status.variant}>{status.label}</Badge>
           </div>
+          {/* Each link is at least 48×48 px, like every control (D-031). */}
           <div
             role="group"
             aria-label="View switcher"
@@ -160,7 +161,7 @@ export default async function SeatMapPage({
               href={gridHref}
               aria-current={!isListView ? 'page' : undefined}
               className={cn(
-                'inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                'inline-flex h-12 min-w-12 items-center justify-center rounded-md px-4 text-sm font-medium ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                 !isListView
                   ? 'bg-background text-foreground shadow-sm'
                   : 'hover:bg-background/50 hover:text-foreground',
@@ -172,7 +173,7 @@ export default async function SeatMapPage({
               href={listHref}
               aria-current={isListView ? 'page' : undefined}
               className={cn(
-                'inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                'inline-flex h-12 min-w-12 items-center justify-center rounded-md px-4 text-sm font-medium ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                 isListView
                   ? 'bg-background text-foreground shadow-sm'
                   : 'hover:bg-background/50 hover:text-foreground',

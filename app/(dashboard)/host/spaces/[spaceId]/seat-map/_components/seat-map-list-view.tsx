@@ -5,6 +5,7 @@ import { ArrowDown, ArrowUp } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   describeCell,
@@ -50,8 +51,13 @@ export function SeatMapListView({
 }: SeatMapListViewProps): ReactNode {
   const router = useRouter()
   const [announcement, setAnnouncement] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
   const focusAfterSave = useRef<string[]>([])
   const removing = useRef<RemovalTarget | null>(null)
+  // The unit whose Edit form was last submitted, and the zone it was in. An edit that
+  // moves a unit to another zone unmounts its form before the form can report back, so
+  // the list view announces that move itself (design §3, Accessibility: Focus).
+  const editing = useRef<{ id: string; zoneId: string } | null>(null)
   const [isPending, startTransition] = useTransition()
 
   const allUnits = zones.flatMap((z) => z.units)
@@ -79,6 +85,18 @@ export function SeatMapListView({
     router.replace(listHref, { scroll: false })
   }, [confirm, zones, listHref, router])
 
+  // An edit that moved its unit to another zone (design §3, Accessibility: Focus)
+  useEffect(() => {
+    const target = editing.current
+    if (!target) return
+    const newZone = zones.find((zone) => zone.units.some((unit) => unit.id === target.id))
+    if (!newZone || newZone.id === target.zoneId) return
+    editing.current = null
+    const unit = newZone.units.find((u) => u.id === target.id)
+    setAnnouncement(`Moved ${unit?.label ?? 'the unit'} to ${newZone.name}.`)
+    focusAfterSave.current = [`unit-heading-${target.id}`]
+  }, [zones])
+
   // Focus management after mutations (design §3)
   useEffect(() => {
     for (const id of focusAfterSave.current) {
@@ -91,22 +109,35 @@ export function SeatMapListView({
     }
   }, [zones])
 
-  function handleMoveZoneUp(zone: SeatMapZone) {
+  /**
+   * Moves a zone up or down. Focus stays on the button pressed, or, once the zone reaches
+   * the top or bottom and that button is disabled, goes to the other one, then the zone's
+   * heading, as the grid view does. A refusal shows in the error banner (design §3).
+   */
+  function moveZone(zone: SeatMapZone, direction: 'up' | 'down') {
+    setError(null)
     startTransition(async () => {
-      const res = await moveZoneUp(spaceId, zone.id)
-      if (res.success) {
-        setAnnouncement(`Moved ${zone.name} up.`)
-        focusAfterSave.current = [`move-up-${zone.id}`]
-      }
-    })
-  }
-
-  function handleMoveZoneDown(zone: SeatMapZone) {
-    startTransition(async () => {
-      const res = await moveZoneDown(spaceId, zone.id)
-      if (res.success) {
-        setAnnouncement(`Moved ${zone.name} down.`)
-        focusAfterSave.current = [`move-down-${zone.id}`]
+      try {
+        const res = await (direction === 'up' ? moveZoneUp : moveZoneDown)(
+          spaceId,
+          zone.id,
+        )
+        if (res.success) {
+          setAnnouncement(`Moved ${zone.name} ${direction}.`)
+          focusAfterSave.current = [
+            `move-${direction}-${zone.id}`,
+            `move-${direction === 'up' ? 'down' : 'up'}-${zone.id}`,
+            `zone-heading-${zone.id}`,
+          ]
+        } else {
+          setError(
+            res.formError ??
+              Object.values(res.fieldErrors ?? {})[0]?.[0] ??
+              'We could not save that change. Please try again.',
+          )
+        }
+      } catch {
+        setError('We could not save that change. Check your connection and try again.')
       }
     })
   }
@@ -144,6 +175,11 @@ export function SeatMapListView({
       <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <div className="space-y-6">
         {zones.map((zone, zoneIndex) => {
           if (confirm?.kind === 'zone' && confirm.id === zone.id) {
@@ -196,7 +232,7 @@ export function SeatMapListView({
                     action={moveZoneUpForm}
                     onSubmit={(e) => {
                       e.preventDefault()
-                      handleMoveZoneUp(zone)
+                      moveZone(zone, 'up')
                     }}
                     className="inline"
                   >
@@ -218,7 +254,7 @@ export function SeatMapListView({
                     action={moveZoneDownForm}
                     onSubmit={(e) => {
                       e.preventDefault()
-                      handleMoveZoneDown(zone)
+                      moveZone(zone, 'down')
                     }}
                     className="inline"
                   >
@@ -236,9 +272,11 @@ export function SeatMapListView({
                     </Button>
                   </form>
 
+                  {/* Open, the panel takes its own row, so it never runs off a 360 px
+                      screen at 200% text (design §3, Responsive check). */}
                   <details
                     id={`rename-details-${zone.id}`}
-                    className="group relative inline-block"
+                    className="group relative inline-block open:w-full"
                   >
                     <summary
                       className={cn(
@@ -248,7 +286,7 @@ export function SeatMapListView({
                     >
                       Rename<span className="sr-only"> {zone.name}</span>
                     </summary>
-                    <div className="mt-2 w-72 rounded-lg border border-border bg-popover p-3 shadow-md sm:w-80">
+                    <div className="mt-2 w-full max-w-80 rounded-lg border border-border bg-popover p-3 shadow-md">
                       <ZoneForm
                         mode="rename"
                         spaceId={spaceId}
@@ -355,7 +393,13 @@ export function SeatMapListView({
                             </div>
                           </div>
 
-                          <details id={`edit-details-${unit.id}`} className="group">
+                          <details
+                            id={`edit-details-${unit.id}`}
+                            className="group"
+                            onSubmit={() => {
+                              editing.current = { id: unit.id, zoneId: zone.id }
+                            }}
+                          >
                             <summary
                               className={cn(
                                 buttonVariants({ variant: 'outline' }),
@@ -383,6 +427,7 @@ export function SeatMapListView({
                                     `edit-details-${unit.id}`,
                                   ) as HTMLDetailsElement | null
                                   if (el) el.open = false
+                                  editing.current = null
                                   setAnnouncement(`Saved ${saved.label}.`)
                                   focusAfterSave.current = [`unit-heading-${saved.id}`]
                                 }}
@@ -403,7 +448,7 @@ export function SeatMapListView({
                 open={count === 0}
                 className="rounded-lg border border-dashed border-border bg-muted/20 p-3 sm:p-4"
               >
-                <summary className="cursor-pointer text-sm font-medium text-foreground hover:underline">
+                <summary className="min-h-12 cursor-pointer py-3.5 text-sm font-medium text-foreground hover:underline">
                   Add a unit to {zone.name}
                 </summary>
                 <div className="mt-3 max-w-lg">
