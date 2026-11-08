@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(74);
+select plan(111);
 
 -- ---------------------------------------------------------------------------
 -- 1. Wait window validation and check constraint on spaces.max_wait_window
@@ -749,5 +749,503 @@ select throws_ok(
   'fee_amount must be greater than 0'
 );
 
+-- ---------------------------------------------------------------------------
+-- 9. public.hold_terms (D-048, D-055, D-067)
+-- ---------------------------------------------------------------------------
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+
+select is_empty(
+  $$select * from public.hold_terms('e0000000-0000-4000-8000-000000000002')$$,
+  'hold_terms for a Pending Space returns 0 rows to anon (D-055)'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is_empty(
+  $$select * from public.hold_terms('e0000000-0000-4000-8000-000000000002')$$,
+  'hold_terms for a Pending Space returns 0 rows to a Seeker (D-055)'
+);
+
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select is_empty(
+  $$select * from public.hold_terms('e0000000-0000-4000-8000-000000000002')$$,
+  'hold_terms for a Pending Space returns 0 rows to another Host (D-055)'
+);
+
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select fee_amount, payment_window_minutes, max_wait_window_minutes from public.hold_terms('e0000000-0000-4000-8000-000000000002')$$,
+  $$values (5000, 10, 60)$$,
+  'space Host can read hold_terms for their own Pending Space'
+);
+
+set local request.jwt.claims =
+  '{"sub": "a0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select fee_amount, payment_window_minutes, max_wait_window_minutes from public.hold_terms('e0000000-0000-4000-8000-000000000002')$$,
+  $$values (5000, 10, 60)$$,
+  'Administrator can read hold_terms for a Pending Space'
+);
+
+-- Sulok Co-working is 24 hours (verified), max_wait_window = 60 min
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+
+select results_eq(
+  $$select fee_amount, payment_window_minutes, max_wait_window_minutes, is_open, wait_window_minutes from public.hold_terms('e0000000-0000-4000-8000-000000000003')$$,
+  $$values (5000, 10, 60, true, array[15, 30, 45, 60])$$,
+  'hold_terms for 24h space returns all wait windows up to max_wait_window'
+);
+
+-- Test space an hour before closing
+set local role postgres;
+update public.reservations
+set status = 'cancelled', ended_at = clock_timestamp()
+where space_id = 'e0000000-0000-4000-8000-000000000001'
+  and status in ('pending_payment', 'reserved', 'occupied');
+
+update public.spaces
+set opens_at = ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '2 hours')::time,
+    closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '1 hour')::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select is_open, wait_window_minutes from public.hold_terms('e0000000-0000-4000-8000-000000000001')$$,
+  $$values (true, array[15, 30, 45])$$,
+  'hold_terms an hour before closing returns only the wait windows that fit (D-048)'
+);
+
+-- Test space closed
+set local role postgres;
+update public.spaces
+set opens_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '2 hours')::time,
+    closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '4 hours')::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select is_open, wait_window_minutes from public.hold_terms('e0000000-0000-4000-8000-000000000001')$$,
+  $$values (false, '{}'::integer[])$$,
+  'hold_terms for closed space returns is_open false and empty wait windows'
+);
+
+-- Reset Kapihan Study Hall back to 07:00-22:00
+set local role postgres;
+update public.spaces
+set opens_at = '07:00'::time,
+    closes_at = '22:00'::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+-- ---------------------------------------------------------------------------
+-- 10. public.hold_unit (R1, N1-N5, FR-2.1, FR-2.5)
+-- ---------------------------------------------------------------------------
+-- Caller must be a Seeker (N5)
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  '42501',
+  null,
+  'a signed-out visitor cannot call hold_unit (Negative N5)'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  '42501',
+  'Only Seeker accounts can hold units.',
+  'a Host cannot call hold_unit (Negative N5)'
+);
+
+set local request.jwt.claims =
+  '{"sub": "a0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  '42501',
+  'Only Seeker accounts can hold units.',
+  'an Administrator cannot call hold_unit (Negative N5)'
+);
+
+-- Refusal a: unit_not_found (non-existent unit)
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-999999999999', 30)$$,
+  'P0001',
+  'unit_not_found',
+  'hold_unit on non-existent unit raises unit_not_found (Negative N4)'
+);
+
+-- Refusal a: unit_not_found (unit in Pending Space)
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000015', 30)$$,
+  'P0001',
+  'unit_not_found',
+  'hold_unit on unit in pending space raises unit_not_found (Negative N4, D-055)'
+);
+
+-- Refusal b: space_closed
+set local role postgres;
+update public.spaces
+set opens_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '2 hours')::time,
+    closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '4 hours')::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000006', 30)$$,
+  'P0001',
+  'space_closed',
+  'hold_unit when Space is closed raises space_closed (Negative N4)'
+);
+
+set local role postgres;
+update public.spaces
+set opens_at = '07:00'::time,
+    closes_at = '22:00'::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+-- Refusal c: wait_window_not_allowed (invalid step)
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 20)$$,
+  'P0001',
+  'wait_window_not_allowed',
+  'hold_unit with invalid wait window raises wait_window_not_allowed (Negative N4)'
+);
+
+-- Refusal c: wait_window_not_allowed (exceeds Space max_wait_window)
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 90)$$,
+  'P0001',
+  'wait_window_not_allowed',
+  'hold_unit with wait window exceeding space max raises wait_window_not_allowed (Negative N4)'
+);
+
+-- Refusal d: wait_window_past_closing
+set local role postgres;
+update public.spaces
+set opens_at = ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '2 hours')::time,
+    closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '20 minutes')::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000006', 15)$$,
+  'P0001',
+  'wait_window_past_closing',
+  'hold_unit with wait window past closing raises wait_window_past_closing (Negative N4, D-048)'
+);
+
+set local role postgres;
+update public.spaces
+set opens_at = '07:00'::time,
+    closes_at = '22:00'::time
+where id = 'e0000000-0000-4000-8000-000000000001';
+
+-- Refusal e: unit_not_available (unit host_state != 'available')
+set local role postgres;
+update public.units
+set host_state = 'occupied'
+where id = 'f0000000-0000-4000-8000-000000000018';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$,
+  'P0001',
+  'unit_not_available',
+  'hold_unit on occupied unit raises unit_not_available (Negative N1)'
+);
+
+set local role postgres;
+update public.units
+set host_state = 'available'
+where id = 'f0000000-0000-4000-8000-000000000018';
+
+-- Success case: Seeker 1 holds U1 (f...0017) at Sulok Co-working
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select status, checkout_url, created from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  $$values ('pending_payment'::public.reservation_status, null::text, true)$$,
+  'Seeker 1 holds an available unit: returns pending_payment, created true'
+);
+
+-- Refusal e: unit_not_available (unit has an active hold)
+-- As Seeker 2: try to hold U1 (already held by Seeker 1)
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  'P0001',
+  'unit_not_available',
+  'hold_unit on already held unit raises unit_not_available (Negative N1)'
+);
+
+-- Refusal f: seeker_has_hold (caller already holds another unit)
+-- As Seeker 1 (who holds U1): try to hold U2
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$,
+  'P0001',
+  'seeker_has_hold',
+  'hold_unit when Seeker already holds a unit raises seeker_has_hold (Negative N2)'
+);
+
+-- Double tap: Seeker 1 calls hold_unit on U1 again (same unit they hold)
+select results_eq(
+  $$select status, checkout_url, created from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  $$values ('pending_payment'::public.reservation_status, null::text, false)$$,
+  'Seeker double-tap on same unit returns existing hold with created false'
+);
+
+-- Seeker whose own hold lapsed can hold another unit
+-- Manually expire Seeker 1's hold on U1
+set local role postgres;
+update public.reservations
+set payment_window_ends_at = clock_timestamp() - interval '1 second'
+where unit_id = 'f0000000-0000-4000-8000-000000000017';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+-- Seeker 1 holds U2: should succeed because lapse on U1 is recorded first
+select results_eq(
+  $$select status, checkout_url, created from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$,
+  $$values ('pending_payment'::public.reservation_status, null::text, true)$$,
+  'Seeker whose own hold lapsed holds another unit succeeds (lapse recorded first)'
+);
+
+-- ---------------------------------------------------------------------------
+-- 11. public.cancel_hold (R4, R8, N8, N11, N21)
+-- ---------------------------------------------------------------------------
+-- Seeker 1 now holds U2 ('f...0018') in pending_payment
+-- Get Seeker 1's reservation id on U2
+set local role postgres;
+create temp table _seeker1_hold as
+select id from public.reservations
+where unit_id = 'f0000000-0000-4000-8000-000000000018'
+  and status = 'pending_payment';
+grant all on _seeker1_hold to public;
+
+-- 1. Non-authenticated cannot call cancel_hold
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+
+select throws_ok(
+  $$select public.cancel_hold((select id from _seeker1_hold), 'pending_payment')$$,
+  '42501',
+  null,
+  'anon cannot call cancel_hold'
+);
+
+-- 2. Another Seeker cannot cancel Seeker 1's hold (Negative N8)
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select throws_ok(
+  $$select public.cancel_hold((select id from _seeker1_hold), 'pending_payment')$$,
+  '42501',
+  'permission denied',
+  'a Seeker cannot cancel another Seeker''s hold (Negative N8)'
+);
+
+-- 3. Host cannot cancel Seeker's hold via cancel_hold (Negative N8)
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select throws_ok(
+  $$select public.cancel_hold((select id from _seeker1_hold), 'pending_payment')$$,
+  '42501',
+  'permission denied',
+  'a Host cannot cancel a Seeker''s hold via cancel_hold (Negative N8)'
+);
+
+-- 4. Refusal: hold_changed (expected_status mismatch, Negative N21)
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select public.cancel_hold((select id from _seeker1_hold), 'reserved')$$,
+  'P0001',
+  'hold_changed',
+  'cancel_hold with mismatched expected_status raises hold_changed (Negative N21)'
+);
+
+-- 5. R4: Seeker 1 cancels their unpaid pending_payment hold
+select lives_ok(
+  $$select public.cancel_hold((select id from _seeker1_hold), 'pending_payment')$$,
+  'Seeker cancels their unpaid pending_payment hold (Move R4)'
+);
+
+-- Verify reservation status is cancelled and payment is pending
+set local role postgres;
+select results_eq(
+  $$select status, ended_at is not null from public.reservations where id = (select id from _seeker1_hold)$$,
+  $$values ('cancelled'::public.reservation_status, true)$$,
+  'cancelled unpaid hold has status cancelled and ended_at set'
+);
+
+select results_eq(
+  $$select status from public.payments where reservation_id = (select id from _seeker1_hold)$$,
+  $$values ('pending'::public.payment_status)$$,
+  'cancelled unpaid hold payment remains pending'
+);
+
+-- Unit U2 is now Available in unit_states
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000003') where unit_id = 'f0000000-0000-4000-8000-000000000018'$$,
+  $$values ('available')$$,
+  'unit reads Available once unpaid hold is cancelled'
+);
+
+-- 6. Refusal: hold_ended (cancelling an already ended hold, Negative N11)
+select throws_ok(
+  $$select public.cancel_hold((select id from _seeker1_hold), 'cancelled')$$,
+  'P0001',
+  'hold_ended',
+  'cancel_hold on an already cancelled hold raises hold_ended (Negative N11)'
+);
+
+-- 7. R8: Paid hold cancellation (reserved -> cancelled, payment forfeited)
+-- Create a reserved hold for Seeker 2 on U3 ('f...0019')
+set local role postgres;
+insert into public.reservations (
+  id, seeker_id, space_id, unit_id, unit_label, status, wait_window,
+  payment_window_ends_at, wait_window_ends_at, booking_token
+) values (
+  '10000000-0000-4000-8000-000000000099',
+  'c0000000-0000-4000-8000-000000000002',
+  'e0000000-0000-4000-8000-000000000003',
+  'f0000000-0000-4000-8000-000000000019',
+  'U3',
+  'reserved',
+  interval '30 minutes',
+  now() - interval '5 minutes',
+  now() + interval '25 minutes',
+  'TK9923456789'
+);
+
+insert into public.payments (
+  id, reservation_id, status, fee_amount, external_payment_id, paid_at
+) values (
+  '20000000-0000-4000-8000-000000000099',
+  '10000000-0000-4000-8000-000000000099',
+  'paid',
+  5000,
+  'pay_test_forfeit_1',
+  now() - interval '5 minutes'
+);
+
+-- As Seeker 2: cancel the paid reservation
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select lives_ok(
+  $$select public.cancel_hold('10000000-0000-4000-8000-000000000099', 'reserved')$$,
+  'Seeker cancels a paid reserved hold (Move R8)'
+);
+
+-- Verify reservation is cancelled, ended_at set, payment forfeited
+set local role postgres;
+select results_eq(
+  $$select status, ended_at is not null from public.reservations where id = '10000000-0000-4000-8000-000000000099'$$,
+  $$values ('cancelled'::public.reservation_status, true)$$,
+  'cancelled paid hold has status cancelled and ended_at set'
+);
+
+select results_eq(
+  $$select status from public.payments where reservation_id = '10000000-0000-4000-8000-000000000099'$$,
+  $$values ('forfeited'::public.payment_status)$$,
+  'cancelled paid hold payment is forfeited (Move R8)'
+);
+
+-- Unit U3 is now Available in unit_states
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select results_eq(
+  $$select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000003') where unit_id = 'f0000000-0000-4000-8000-000000000019'$$,
+  $$values ('available')$$,
+  'unit reads Available once paid hold is cancelled'
+);
+
+-- 8. Refusal: checked_in (when reservation is occupied)
+set local role postgres;
+insert into public.reservations (
+  id, seeker_id, space_id, unit_id, unit_label, status, wait_window,
+  payment_window_ends_at, wait_window_ends_at, booking_token, checked_in_at
+) values (
+  '10000000-0000-4000-8000-000000000088',
+  'c0000000-0000-4000-8000-000000000002',
+  'e0000000-0000-4000-8000-000000000003',
+  'f0000000-0000-4000-8000-000000000019',
+  'U3',
+  'occupied',
+  interval '30 minutes',
+  now() - interval '10 minutes',
+  now() + interval '20 minutes',
+  'WXYZ23456789',
+  now()
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select throws_ok(
+  $$select public.cancel_hold('10000000-0000-4000-8000-000000000088', 'occupied')$$,
+  'P0001',
+  'checked_in',
+  'cancel_hold on occupied reservation raises checked_in'
+);
+
 select * from finish();
 rollback;
+
