@@ -315,6 +315,12 @@ describe('nextSuggestedLabel', () => {
     )
     expect(nextSuggestedLabel([], 'SEAT' as unknown as 'seat')).toBe('S1')
   })
+
+  it('does not treat "desk" or "standingdesk" as standing desk aliases', () => {
+    // Formerly mapped to 'D1', now strictly defaults to 'S1' per Glossary Rule 12
+    expect(nextSuggestedLabel([], 'desk' as unknown as 'seat')).toBe('S1')
+    expect(nextSuggestedLabel([], 'standingdesk' as unknown as 'seat')).toBe('S1')
+  })
 })
 
 describe('getZoneRowCount', () => {

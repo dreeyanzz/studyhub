@@ -29,8 +29,10 @@ const validZoneId = '22222222-2222-4222-8222-222222222222'
 const validUnitId = '33333333-3333-4333-8333-333333333333'
 
 describe('toIntOrUndefined', () => {
-  it('returns undefined for empty strings, null, and undefined', () => {
+  it('returns undefined for empty strings, whitespace, null, and undefined', () => {
     expect(toIntOrUndefined('')).toBeUndefined()
+    expect(toIntOrUndefined('   ')).toBeUndefined()
+    expect(toIntOrUndefined('\t\n')).toBeUndefined()
     expect(toIntOrUndefined(null)).toBeUndefined()
     expect(toIntOrUndefined(undefined)).toBeUndefined()
   })
@@ -47,7 +49,7 @@ describe('toIntOrUndefined', () => {
   })
 
   it('returns non-numeric strings as-is for Zod to reject', () => {
-    expect(toIntOrUndefined('abc')).toBeNaN()
+    expect(toIntOrUndefined('abc')).toBe('abc')
   })
 })
 
@@ -620,6 +622,16 @@ describe('Server Action form schemas', () => {
     expect(
       deleteUnitSchema.safeParse({ spaceId: validSpaceId, unitId: validUnitId }).success,
     ).toBe(true)
+
+    // Rejects legacy snake_case keys
+    expect(
+      deleteZoneSchema.safeParse({ space_id: validSpaceId, zone_id: validZoneId })
+        .success,
+    ).toBe(false)
+    expect(
+      deleteUnitSchema.safeParse({ space_id: validSpaceId, unit_id: validUnitId })
+        .success,
+    ).toBe(false)
   })
 
   it('validates addUnitSchema and updateUnitSchema with string inputs', () => {
@@ -632,6 +644,17 @@ describe('Server Action form schemas', () => {
       col: '0',
     })
     expect(addResult.success).toBe(true)
+
+    // Rejects legacy snake_case keys
+    const snakeAdd = addUnitSchema.safeParse({
+      space_id: validSpaceId,
+      zone_id: validZoneId,
+      unit_type: 'seat',
+      label: 'S1',
+      grid_row: '0',
+      grid_col: '0',
+    })
+    expect(snakeAdd.success).toBe(false)
 
     const updateResult = updateUnitSchema.safeParse({
       spaceId: validSpaceId,
@@ -664,6 +687,17 @@ describe('Server Action form schemas', () => {
       expect(valid.data.unitId).toBe(validUnitId)
       expect(valid.data.zoneId).toBe(validZoneId)
     }
+
+    // Rejects legacy snake_case keys
+    const snakeMove = moveUnitSchema.safeParse({
+      space_id: validSpaceId,
+      unit_id: validUnitId,
+      zone_id: validZoneId,
+      grid_row: '2',
+      grid_col: '4',
+      col_span: '1',
+    })
+    expect(snakeMove.success).toBe(false)
 
     const invalid = moveUnitSchema.safeParse({
       spaceId: validSpaceId,

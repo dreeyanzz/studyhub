@@ -11,11 +11,17 @@ import { z } from 'zod'
 // --- Base Field Schemas & Preprocessors ---
 
 /**
- * Preprocesses empty strings, null, and undefined to undefined, and numeric strings to numbers.
+ * Preprocesses empty strings, whitespace-only strings, null, and undefined to undefined,
+ * numeric strings to numbers, and returns non-numeric strings as-is for Zod to reject.
  */
 export function toIntOrUndefined(val: unknown): unknown {
   if (val === '' || val === null || val === undefined) return undefined
-  if (typeof val === 'string' && val.trim() !== '') return Number(val)
+  if (typeof val === 'string') {
+    const trimmed = val.trim()
+    if (trimmed === '') return undefined
+    const num = Number(trimmed)
+    return Number.isNaN(num) ? val : num
+  }
   return val
 }
 
@@ -90,7 +96,13 @@ export const cellCoordinateSchema = z.preprocess(
     const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
-      if (obj.colSpan === '' || obj.colSpan === null) delete obj.colSpan
+      if (
+        obj.colSpan === '' ||
+        obj.colSpan === null ||
+        (typeof obj.colSpan === 'string' && obj.colSpan.trim() === '')
+      ) {
+        delete obj.colSpan
+      }
       return obj
     }
     return v
@@ -121,7 +133,13 @@ export const zoneSchema = z.preprocess(
     const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
-      if (obj.position === '' || obj.position === null) delete obj.position
+      if (
+        obj.position === '' ||
+        obj.position === null ||
+        (typeof obj.position === 'string' && obj.position.trim() === '')
+      ) {
+        delete obj.position
+      }
       return obj
     }
     return v
@@ -142,10 +160,21 @@ function normalizeUnitInput(val: unknown) {
     const obj = { ...(v as Record<string, unknown>) }
 
     // Empty string colSpan becomes undefined so defaults can apply
-    if (obj.colSpan === '' || obj.colSpan === null) delete obj.colSpan
+    if (
+      obj.colSpan === '' ||
+      obj.colSpan === null ||
+      (typeof obj.colSpan === 'string' && obj.colSpan.trim() === '')
+    ) {
+      delete obj.colSpan
+    }
 
     // Empty string capacity from form input becomes null or undefined
-    if (obj.capacity === '' || obj.capacity === undefined) {
+    if (
+      obj.capacity === '' ||
+      obj.capacity === null ||
+      obj.capacity === undefined ||
+      (typeof obj.capacity === 'string' && obj.capacity.trim() === '')
+    ) {
       if (obj.unitType === 'seat' || obj.unitType === 'standing_desk') {
         obj.capacity = null
       } else {
@@ -249,7 +278,13 @@ export const createZoneSchema = z.preprocess(
     const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
-      if (obj.position === '' || obj.position === null) delete obj.position
+      if (
+        obj.position === '' ||
+        obj.position === null ||
+        (typeof obj.position === 'string' && obj.position.trim() === '')
+      ) {
+        delete obj.position
+      }
       return obj
     }
     return v
@@ -268,7 +303,13 @@ export const updateZoneSchema = z.preprocess(
     const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
-      if (obj.position === '' || obj.position === null) delete obj.position
+      if (
+        obj.position === '' ||
+        obj.position === null ||
+        (typeof obj.position === 'string' && obj.position.trim() === '')
+      ) {
+        delete obj.position
+      }
       return obj
     }
     return v
