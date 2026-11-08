@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(111);
+select plan(113);
 
 -- ---------------------------------------------------------------------------
 -- 1. Wait window validation and check constraint on spaces.max_wait_window
@@ -949,6 +949,14 @@ select throws_ok(
   'hold_unit with wait window exceeding space max raises wait_window_not_allowed (Negative N4)'
 );
 
+-- Refusal c: wait_window_not_allowed (null wait window)
+select throws_ok(
+  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', null)$$,
+  'P0001',
+  'wait_window_not_allowed',
+  'hold_unit with null wait window raises wait_window_not_allowed (Negative N4)'
+);
+
 -- Refusal d: wait_window_past_closing
 set local role postgres;
 update public.spaces
@@ -1006,6 +1014,12 @@ select results_eq(
   'Seeker 1 holds an available unit: returns pending_payment, created true'
 );
 
+select results_eq(
+  $$select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000003') where unit_id = 'f0000000-0000-4000-8000-000000000017'$$,
+  $$values ('pending_payment')$$,
+  'a Seeker holds an Available unit, which reads Pending Payment'
+);
+
 -- Refusal e: unit_not_available (unit has an active hold)
 -- As Seeker 2: try to hold U1 (already held by Seeker 1)
 set local request.jwt.claims =
@@ -1015,7 +1029,7 @@ select throws_ok(
   $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
   'P0001',
   'unit_not_available',
-  'hold_unit on already held unit raises unit_not_available (Negative N1)'
+  'a Seeker cannot hold a unit that is not Available (Negative N1)'
 );
 
 -- Refusal f: seeker_has_hold (caller already holds another unit)
@@ -1027,14 +1041,14 @@ select throws_ok(
   $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$,
   'P0001',
   'seeker_has_hold',
-  'hold_unit when Seeker already holds a unit raises seeker_has_hold (Negative N2)'
+  'a Seeker with an active hold cannot hold a second unit (Negative N2)'
 );
 
 -- Double tap: Seeker 1 calls hold_unit on U1 again (same unit they hold)
 select results_eq(
   $$select status, checkout_url, created from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
   $$values ('pending_payment'::public.reservation_status, null::text, false)$$,
-  'Seeker double-tap on same unit returns existing hold with created false'
+  'a Seeker asking again for the unit they hold gets the same hold back'
 );
 
 -- Seeker whose own hold lapsed can hold another unit
@@ -1109,13 +1123,13 @@ select throws_ok(
   $$select public.cancel_hold((select id from _seeker1_hold), 'reserved')$$,
   'P0001',
   'hold_changed',
-  'cancel_hold with mismatched expected_status raises hold_changed (Negative N21)'
+  'a Seeker''s cancel is refused once their hold has changed (Negative N21)'
 );
 
 -- 5. R4: Seeker 1 cancels their unpaid pending_payment hold
 select lives_ok(
   $$select public.cancel_hold((select id from _seeker1_hold), 'pending_payment')$$,
-  'Seeker cancels their unpaid pending_payment hold (Move R4)'
+  'a Seeker cancels their unpaid hold, and the unit reads Available (Move R4)'
 );
 
 -- Verify reservation status is cancelled and payment is pending
@@ -1148,7 +1162,7 @@ select throws_ok(
   $$select public.cancel_hold((select id from _seeker1_hold), 'cancelled')$$,
   'P0001',
   'hold_ended',
-  'cancel_hold on an already cancelled hold raises hold_ended (Negative N11)'
+  'an ended reservation cannot move again (Negative N11)'
 );
 
 -- 7. R8: Paid hold cancellation (reserved -> cancelled, payment forfeited)
@@ -1188,7 +1202,7 @@ set local request.jwt.claims =
 
 select lives_ok(
   $$select public.cancel_hold('10000000-0000-4000-8000-000000000099', 'reserved')$$,
-  'Seeker cancels a paid reserved hold (Move R8)'
+  'a Seeker who cancels a paid hold forfeits the fee (Move R8)'
 );
 
 -- Verify reservation is cancelled, ended_at set, payment forfeited

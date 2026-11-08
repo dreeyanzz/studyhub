@@ -324,11 +324,17 @@ begin
       using errcode = '42501';
   end if;
 
-  -- 1. Find unit_id and record lapses first (D-047)
-  select r.unit_id into v_unit_id
+  -- 1. Check reservation exists and belongs to caller (N8) before acquiring locks
+  select r.unit_id, r.seeker_id into v_unit_id, v_res_seeker_id
   from public.reservations r
   where r.id = p_reservation_id;
 
+  if v_res_seeker_id is null or v_res_seeker_id is distinct from (select auth.uid()) then
+    raise exception 'permission denied'
+      using errcode = '42501';
+  end if;
+
+  -- Record lapses first for unit (D-047)
   if v_unit_id is not null then
     perform private.record_lapses(array[v_unit_id]);
   end if;
@@ -344,7 +350,7 @@ begin
   where r.id = p_reservation_id
   for update;
 
-  -- N8: Refuses with 42501 if hold isn't caller's
+  -- N8: Re-verify caller ownership under lock
   if v_res_id is null or v_res_seeker_id is distinct from (select auth.uid()) then
     raise exception 'permission denied'
       using errcode = '42501';

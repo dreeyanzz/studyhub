@@ -231,18 +231,19 @@ async function runCase2() {
 }
 
 async function main() {
+  let exitCode = 0
   try {
     await runCase1()
     await runCase2()
     await cleanup()
     console.log('# All race tests passed successfully.')
-    process.exit(0)
   } catch (err) {
     console.error('Race test failed:', err)
     await cleanup().catch(() => {})
-    process.exit(1)
+    exitCode = 1
   } finally {
     await Promise.all([admin.end(), sqlA.end(), sqlB.end()])
+    process.exit(exitCode)
   }
 }
 
