@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { priceTierSchema } from './search'
 
 // 24-hour HH:mm from 00:00 to 23:59, the value an HTML time input submits. Seconds,
 // single-digit hours and impossible times such as 24:00 or 12:60 fail.
@@ -42,6 +43,21 @@ export const spaceSchema = z.object({
     .max(200, { error: 'Address must be 200 characters or fewer' }),
   opensAt: timeOfDay('Opening time is required', 'Enter a valid opening time'),
   closesAt: timeOfDay('Closing time is required', 'Enter a valid closing time'),
+  latitude: z
+    .preprocess(
+      (val) => (val === '' || val === null || val === undefined ? undefined : val),
+      z.coerce.number().min(-90).max(90).optional(),
+    )
+    .optional()
+    .nullable(),
+  longitude: z
+    .preprocess(
+      (val) => (val === '' || val === null || val === undefined ? undefined : val),
+      z.coerce.number().min(-180).max(180).optional(),
+    )
+    .optional()
+    .nullable(),
+  priceTier: priceTierSchema.default('budget'),
 })
 
 export type SpaceInput = z.infer<typeof spaceSchema>

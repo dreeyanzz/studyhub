@@ -8,6 +8,7 @@ const validSpace = {
   address: '2F Timpla Building, 18 Example Street, Cebu City',
   opensAt: '07:00',
   closesAt: '22:00',
+  priceTier: 'budget' as const,
 }
 
 // The messages each field would show, as the form reads them.
@@ -185,6 +186,47 @@ describe('spaceSchema', () => {
       expect(Object.keys(result.data)).not.toContain('host_id')
       expect(Object.keys(result.data)).not.toContain('status')
     }
+  })
+
+  it('validates coordinates and price tier (STORY-08, D-027)', () => {
+    // Valid coordinates and explicit price tier
+    const withGeo = spaceSchema.safeParse({
+      ...validSpace,
+      latitude: '10.3157',
+      longitude: 123.8854,
+      priceTier: 'premium',
+    })
+    expect(withGeo.success).toBe(true)
+    if (withGeo.success) {
+      expect(withGeo.data.latitude).toBe(10.3157)
+      expect(withGeo.data.longitude).toBe(123.8854)
+      expect(withGeo.data.priceTier).toBe('premium')
+    }
+
+    // Preprocesses empty string coordinates to undefined and preserves null
+    const withEmptyGeo = spaceSchema.safeParse({
+      ...validSpace,
+      latitude: '',
+      longitude: null,
+    })
+    expect(withEmptyGeo.success).toBe(true)
+    if (withEmptyGeo.success) {
+      expect(withEmptyGeo.data.latitude).toBeUndefined()
+      expect(withEmptyGeo.data.longitude).toBeNull()
+    }
+
+    // Rejects out-of-bounds coordinates
+    expect(spaceSchema.safeParse({ ...validSpace, latitude: 91 }).success).toBe(false)
+    expect(spaceSchema.safeParse({ ...validSpace, latitude: -90.5 }).success).toBe(false)
+    expect(spaceSchema.safeParse({ ...validSpace, longitude: 181 }).success).toBe(false)
+    expect(spaceSchema.safeParse({ ...validSpace, longitude: -180.5 }).success).toBe(
+      false,
+    )
+
+    // Rejects invalid price tier
+    expect(spaceSchema.safeParse({ ...validSpace, priceTier: 'luxury' }).success).toBe(
+      false,
+    )
   })
 })
 
