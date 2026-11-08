@@ -61,6 +61,53 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          checkout_session_id: string | null
+          checkout_url: string | null
+          created_at: string
+          external_payment_id: string | null
+          fee_amount: number
+          id: string
+          paid_at: string | null
+          reservation_id: string
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          checkout_session_id?: string | null
+          checkout_url?: string | null
+          created_at?: string
+          external_payment_id?: string | null
+          fee_amount: number
+          id?: string
+          paid_at?: string | null
+          reservation_id: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          checkout_session_id?: string | null
+          checkout_url?: string | null
+          created_at?: string
+          external_payment_id?: string | null
+          fee_amount?: number
+          id?: string
+          paid_at?: string | null
+          reservation_id?: string
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: true
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -87,6 +134,82 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reservations: {
+        Row: {
+          booking_token: string | null
+          checked_in_at: string | null
+          checked_out_at: string | null
+          created_at: string
+          ended_at: string | null
+          id: string
+          payment_window_ends_at: string
+          seeker_id: string
+          space_id: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          unit_id: string | null
+          unit_label: string
+          updated_at: string
+          wait_window: string
+          wait_window_ends_at: string | null
+        }
+        Insert: {
+          booking_token?: string | null
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          payment_window_ends_at: string
+          seeker_id: string
+          space_id: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          unit_id?: string | null
+          unit_label: string
+          updated_at?: string
+          wait_window: string
+          wait_window_ends_at?: string | null
+        }
+        Update: {
+          booking_token?: string | null
+          checked_in_at?: string | null
+          checked_out_at?: string | null
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          payment_window_ends_at?: string
+          seeker_id?: string
+          space_id?: string
+          status?: Database["public"]["Enums"]["reservation_status"]
+          unit_id?: string | null
+          unit_label?: string
+          updated_at?: string
+          wait_window?: string
+          wait_window_ends_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reservations_seeker_id_fkey"
+            columns: ["seeker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reservations_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       space_curated_tags: {
         Row: {
@@ -160,6 +283,7 @@ export type Database = {
           id: string
           latitude: number | null
           longitude: number | null
+          max_wait_window: string
           name: string
           opens_at: string
           price_tier: Database["public"]["Enums"]["price_tier"]
@@ -175,6 +299,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          max_wait_window?: string
           name: string
           opens_at: string
           price_tier?: Database["public"]["Enums"]["price_tier"]
@@ -190,6 +315,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           longitude?: number | null
+          max_wait_window?: string
           name?: string
           opens_at?: string
           price_tier?: Database["public"]["Enums"]["price_tier"]
@@ -309,6 +435,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      my_reservation: {
+        Args: { p_reservation_id?: string }
+        Returns: {
+          booking_token: string
+          checkout_session_id: string
+          checkout_url: string
+          created_at: string
+          ended_at: string
+          fee_amount: number
+          id: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          payment_window_ends_at: string
+          space_address: string
+          space_id: string
+          space_name: string
+          status: Database["public"]["Enums"]["reservation_status"]
+          unit_id: string
+          unit_label: string
+          wait_window_ends_at: string
+          wait_window_minutes: number
+          zone_name: string
+        }[]
+      }
       reorder_zones: {
         Args: { p_space_id: string; p_zone_ids: string[] }
         Returns: undefined
@@ -342,7 +491,16 @@ export type Database = {
       }
     }
     Enums: {
+      payment_status: "pending" | "paid" | "forfeited" | "refunded"
       price_tier: "free" | "budget" | "standard" | "premium"
+      reservation_status:
+        | "pending_payment"
+        | "reserved"
+        | "occupied"
+        | "expired"
+        | "no_show"
+        | "completed"
+        | "cancelled"
       space_status: "pending" | "verified" | "rejected"
       unit_type: "seat" | "standing_desk" | "room"
       user_role: "seeker" | "host" | "admin"
@@ -476,7 +634,17 @@ export const Constants = {
   },
   public: {
     Enums: {
+      payment_status: ["pending", "paid", "forfeited", "refunded"],
       price_tier: ["free", "budget", "standard", "premium"],
+      reservation_status: [
+        "pending_payment",
+        "reserved",
+        "occupied",
+        "expired",
+        "no_show",
+        "completed",
+        "cancelled",
+      ],
       space_status: ["pending", "verified", "rejected"],
       unit_type: ["seat", "standing_desk", "room"],
       user_role: ["seeker", "host", "admin"],
