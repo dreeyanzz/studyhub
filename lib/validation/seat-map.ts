@@ -8,7 +8,16 @@ import { z } from 'zod'
  * Error messages count rows and columns from 1, as the page does (design §3).
  */
 
-// --- Base Field Schemas ---
+// --- Base Field Schemas & Preprocessors ---
+
+/**
+ * Preprocesses empty strings, null, and undefined to undefined, and numeric strings to numbers.
+ */
+export function toIntOrUndefined(val: unknown): unknown {
+  if (val === '' || val === null || val === undefined) return undefined
+  if (typeof val === 'string' && val.trim() !== '') return Number(val)
+  return val
+}
 
 export const zoneNameSchema = z
   .string({ error: 'Zone name is required' })
@@ -17,11 +26,7 @@ export const zoneNameSchema = z
   .max(60, { error: 'Zone name must be 60 characters or fewer' })
 
 export const zonePositionSchema = z.preprocess(
-  (val) => {
-    if (val === '' || val === null || val === undefined) return undefined
-    if (typeof val === 'string' && val.trim() !== '') return Number(val)
-    return val
-  },
+  toIntOrUndefined,
   z
     .int({ error: 'Position must be an integer' })
     .min(0, { error: 'Position must be 0 or greater' }),
@@ -38,11 +43,7 @@ export const unitLabelSchema = z
   .max(12, { error: 'Unit label must be 12 characters or fewer' })
 
 export const unitCapacitySchema = z.preprocess(
-  (val) => {
-    if (val === '' || val === null || val === undefined) return undefined
-    if (typeof val === 'string' && val.trim() !== '') return Number(val)
-    return val
-  },
+  toIntOrUndefined,
   z
     .int({ error: 'Capacity must be an integer' })
     .min(1, { error: 'Capacity must be between 1 and 50' })
@@ -50,11 +51,7 @@ export const unitCapacitySchema = z.preprocess(
 )
 
 export const gridRowSchema = z.preprocess(
-  (val) => {
-    if (val === '' || val === null || val === undefined) return undefined
-    if (typeof val === 'string' && val.trim() !== '') return Number(val)
-    return val
-  },
+  toIntOrUndefined,
   z
     .int({ error: 'Row must be an integer' })
     .min(0, { error: 'Row must be between 1 and 50' })
@@ -62,11 +59,7 @@ export const gridRowSchema = z.preprocess(
 )
 
 export const gridColSchema = z.preprocess(
-  (val) => {
-    if (val === '' || val === null || val === undefined) return undefined
-    if (typeof val === 'string' && val.trim() !== '') return Number(val)
-    return val
-  },
+  toIntOrUndefined,
   z
     .int({ error: 'Column must be an integer' })
     .min(0, { error: 'Column must be between 1 and 6' })
@@ -74,32 +67,18 @@ export const gridColSchema = z.preprocess(
 )
 
 export const colSpanSchema = z.preprocess(
-  (val) => {
-    if (val === '' || val === null || val === undefined) return undefined
-    if (typeof val === 'string' && val.trim() !== '') return Number(val)
-    return val
-  },
+  toIntOrUndefined,
   z
     .int({ error: 'Column span must be an integer' })
     .min(1, { error: 'Column span must be between 1 and 3' })
     .max(3, { error: 'Column span must be between 1 and 3' }),
 )
 
-// --- Helper for FormData & Action ID Normalization ---
+// --- Helper for FormData to Plain Object ---
 
-function normalizeActionIds(val: unknown): unknown {
+function toPlainObject(val: unknown): unknown {
   if (typeof FormData !== 'undefined' && val instanceof FormData) {
-    val = Object.fromEntries(val.entries())
-  }
-  if (typeof val === 'object' && val !== null) {
-    const v = { ...(val as Record<string, unknown>) }
-    if ('space_id' in v && !('spaceId' in v)) v.spaceId = v.space_id
-    if ('spaceId' in v && !('space_id' in v)) v.space_id = v.spaceId
-    if ('zone_id' in v && !('zoneId' in v)) v.zoneId = v.zone_id
-    if ('zoneId' in v && !('zone_id' in v)) v.zone_id = v.zoneId
-    if ('unit_id' in v && !('unitId' in v)) v.unitId = v.unit_id
-    if ('unitId' in v && !('unit_id' in v)) v.unit_id = v.unitId
-    return v
+    return Object.fromEntries(val.entries())
   }
   return val
 }
@@ -108,49 +87,22 @@ function normalizeActionIds(val: unknown): unknown {
 
 export const cellCoordinateSchema = z.preprocess(
   (val) => {
-    if (typeof FormData !== 'undefined' && val instanceof FormData) {
-      val = Object.fromEntries(val.entries())
+    const v = toPlainObject(val)
+    if (typeof v === 'object' && v !== null) {
+      const obj = { ...(v as Record<string, unknown>) }
+      if (obj.colSpan === '' || obj.colSpan === null) delete obj.colSpan
+      return obj
     }
-    if (typeof val === 'object' && val !== null) {
-      const v = { ...(val as Record<string, unknown>) }
-      if ('grid_row' in v && !('row' in v)) v.row = v.grid_row
-      if ('row' in v && !('grid_row' in v)) v.grid_row = v.row
-      if ('grid_col' in v && !('col' in v)) v.col = v.grid_col
-      if ('col' in v && !('grid_col' in v)) v.grid_col = v.col
-      if ('col_span' in v && !('colSpan' in v)) v.colSpan = v.col_span
-      if ('colSpan' in v && !('col_span' in v)) v.col_span = v.colSpan
-      if (v.colSpan === '' || v.colSpan === null) delete v.colSpan
-      if (v.col_span === '' || v.col_span === null) delete v.col_span
-      return v
-    }
-    return val
+    return v
   },
   z
     .object({
       row: gridRowSchema,
-      grid_row: gridRowSchema.optional(),
       col: gridColSchema,
-      grid_col: gridColSchema.optional(),
       colSpan: colSpanSchema.default(1),
-      col_span: colSpanSchema.optional(),
-    })
-    .transform((data) => {
-      const span = data.colSpan ?? data.col_span ?? 1
-      const row = data.row ?? data.grid_row ?? 0
-      const col = data.col ?? data.grid_col ?? 0
-      return {
-        row,
-        grid_row: row,
-        col,
-        grid_col: col,
-        colSpan: span,
-        col_span: span,
-      }
     })
     .superRefine((data, ctx) => {
-      const span = data.colSpan
-      const col = data.col
-      if (col + span > 6) {
+      if (data.col + data.colSpan > 6) {
         ctx.addIssue({
           code: 'custom',
           message: 'Unit must fit within the 6 grid columns',
@@ -166,15 +118,13 @@ export type CellCoordinateInput = z.infer<typeof cellCoordinateSchema>
 
 export const zoneSchema = z.preprocess(
   (val) => {
-    if (typeof FormData !== 'undefined' && val instanceof FormData) {
-      val = Object.fromEntries(val.entries())
+    const v = toPlainObject(val)
+    if (typeof v === 'object' && v !== null) {
+      const obj = { ...(v as Record<string, unknown>) }
+      if (obj.position === '' || obj.position === null) delete obj.position
+      return obj
     }
-    if (typeof val === 'object' && val !== null) {
-      const v = { ...(val as Record<string, unknown>) }
-      if (v.position === '' || v.position === null) delete v.position
-      return v
-    }
-    return val
+    return v
   },
   z.object({
     name: zoneNameSchema,
@@ -187,52 +137,32 @@ export type ZoneInput = z.infer<typeof zoneSchema>
 // --- Unit Schema ---
 
 function normalizeUnitInput(val: unknown) {
-  if (typeof FormData !== 'undefined' && val instanceof FormData) {
-    val = Object.fromEntries(val.entries())
-  }
-  if (typeof val === 'object' && val !== null) {
-    const v = { ...(val as Record<string, unknown>) }
-
-    // Normalize unitType / unit_type
-    if ('unit_type' in v && !('unitType' in v)) v.unitType = v.unit_type
-    if ('unitType' in v && !('unit_type' in v)) v.unit_type = v.unitType
-
-    // Normalize coordinates
-    if ('grid_row' in v && !('row' in v)) v.row = v.grid_row
-    if ('row' in v && !('grid_row' in v)) v.grid_row = v.row
-    if ('grid_col' in v && !('col' in v)) v.col = v.grid_col
-    if ('col' in v && !('grid_col' in v)) v.grid_col = v.col
-    if ('col_span' in v && !('colSpan' in v)) v.colSpan = v.col_span
-    if ('colSpan' in v && !('col_span' in v)) v.col_span = v.colSpan
+  const v = toPlainObject(val)
+  if (typeof v === 'object' && v !== null) {
+    const obj = { ...(v as Record<string, unknown>) }
 
     // Empty string colSpan becomes undefined so defaults can apply
-    if (v.colSpan === '' || v.colSpan === null) delete v.colSpan
-    if (v.col_span === '' || v.col_span === null) delete v.col_span
+    if (obj.colSpan === '' || obj.colSpan === null) delete obj.colSpan
 
     // Empty string capacity from form input becomes null or undefined
-    if (v.capacity === '' || v.capacity === undefined) {
-      if (v.unitType === 'seat' || v.unitType === 'standing_desk') {
-        v.capacity = null
+    if (obj.capacity === '' || obj.capacity === undefined) {
+      if (obj.unitType === 'seat' || obj.unitType === 'standing_desk') {
+        obj.capacity = null
       } else {
-        delete v.capacity
+        delete obj.capacity
       }
     }
 
-    return v
+    return obj
   }
-  return val
+  return v
 }
 
 const baseUnitObject = z.object({
   unitType: unitTypeSchema,
-  unit_type: unitTypeSchema.optional(),
   label: unitLabelSchema,
   capacity: z.preprocess(
-    (val) => {
-      if (val === '' || val === null || val === undefined) return val
-      if (typeof val === 'string' && val.trim() !== '') return Number(val)
-      return val
-    },
+    toIntOrUndefined,
     z
       .int({ error: 'Capacity must be an integer' })
       .min(1, { error: 'Capacity must be between 1 and 50' })
@@ -241,11 +171,8 @@ const baseUnitObject = z.object({
       .optional(),
   ),
   row: gridRowSchema,
-  grid_row: gridRowSchema.optional(),
   col: gridColSchema,
-  grid_col: gridColSchema.optional(),
   colSpan: colSpanSchema.optional(),
-  col_span: colSpanSchema.optional(),
 })
 
 export const unitSchema = z.preprocess(
@@ -253,22 +180,18 @@ export const unitSchema = z.preprocess(
   baseUnitObject
     .transform((data) => {
       const type = data.unitType
-      const span = data.colSpan ?? data.col_span ?? (type === 'room' ? 2 : 1)
-      const row = data.row ?? data.grid_row ?? 0
-      const col = data.col ?? data.grid_col ?? 0
+      const span = data.colSpan ?? (type === 'room' ? 2 : 1)
+      const row = data.row
+      const col = data.col
       const cap = data.capacity ?? null
 
       return {
         unitType: type,
-        unit_type: type,
         label: data.label,
         capacity: cap,
         row,
-        grid_row: row,
         col,
-        grid_col: col,
         colSpan: span,
-        col_span: span,
       }
     })
     .superRefine((data, ctx) => {
@@ -323,7 +246,7 @@ export type UnitInput = z.infer<typeof unitSchema>
 
 export const createZoneSchema = z.preprocess(
   (val) => {
-    const v = normalizeActionIds(val)
+    const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
       if (obj.position === '' || obj.position === null) delete obj.position
@@ -342,7 +265,7 @@ export type CreateZoneInput = z.infer<typeof createZoneSchema>
 
 export const updateZoneSchema = z.preprocess(
   (val) => {
-    const v = normalizeActionIds(val)
+    const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
       if (obj.position === '' || obj.position === null) delete obj.position
@@ -363,11 +286,9 @@ export type UpdateZoneInput = z.infer<typeof updateZoneSchema>
 
 export const reorderZonesSchema = z.preprocess(
   (val) => {
-    const v = normalizeActionIds(val)
+    const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
-      if ('zone_orders' in obj && !('zoneOrders' in obj)) obj.zoneOrders = obj.zone_orders
-      if ('zone_ids' in obj && !('zoneIds' in obj)) obj.zoneIds = obj.zone_ids
 
       if (typeof obj.zoneOrders === 'string') {
         const trimmed = obj.zoneOrders.trim()
@@ -398,20 +319,10 @@ export const reorderZonesSchema = z.preprocess(
       spaceId: z.uuid({ error: 'Space ID is required' }),
       zoneOrders: z
         .array(
-          z.preprocess(
-            (item) => {
-              if (typeof item === 'object' && item !== null) {
-                const it = { ...(item as Record<string, unknown>) }
-                if ('zone_id' in it && !('zoneId' in it)) it.zoneId = it.zone_id
-                return it
-              }
-              return item
-            },
-            z.object({
-              zoneId: z.uuid({ error: 'Invalid zone ID' }),
-              position: zonePositionSchema,
-            }),
-          ),
+          z.object({
+            zoneId: z.uuid({ error: 'Invalid zone ID' }),
+            position: zonePositionSchema,
+          }),
         )
         .optional(),
       zoneIds: z.array(z.uuid({ error: 'Invalid zone ID' })).optional(),
@@ -424,7 +335,7 @@ export const reorderZonesSchema = z.preprocess(
 export type ReorderZonesInput = z.infer<typeof reorderZonesSchema>
 
 export const deleteZoneSchema = z.preprocess(
-  normalizeActionIds,
+  toPlainObject,
   z.object({
     spaceId: z.uuid({ error: 'Space ID is required' }),
     zoneId: z.uuid({ error: 'Zone ID is required' }),
@@ -434,7 +345,7 @@ export const deleteZoneSchema = z.preprocess(
 export type DeleteZoneInput = z.infer<typeof deleteZoneSchema>
 
 export const addUnitSchema = z.preprocess(
-  normalizeActionIds,
+  toPlainObject,
   z
     .object({
       spaceId: z.uuid({ error: 'Space ID is required' }),
@@ -446,7 +357,7 @@ export const addUnitSchema = z.preprocess(
 export type AddUnitInput = z.infer<typeof addUnitSchema>
 
 export const updateUnitSchema = z.preprocess(
-  normalizeActionIds,
+  toPlainObject,
   z
     .object({
       spaceId: z.uuid({ error: 'Space ID is required' }),
@@ -462,17 +373,7 @@ export type UpdateUnitInput = z.infer<typeof updateUnitSchema>
 // the right edge (col_bounds: grid_col + col_span <= 6) is checked for a whole
 // room too. It is only for that check: moveUnit writes the position, not the width.
 export const moveUnitSchema = z.preprocess(
-  (val) => {
-    const v = normalizeActionIds(val)
-    if (typeof v === 'object' && v !== null) {
-      const obj = { ...(v as Record<string, unknown>) }
-      if ('grid_row' in obj && !('row' in obj)) obj.row = obj.grid_row
-      if ('grid_col' in obj && !('col' in obj)) obj.col = obj.grid_col
-      if ('col_span' in obj && !('colSpan' in obj)) obj.colSpan = obj.col_span
-      return obj
-    }
-    return v
-  },
+  toPlainObject,
   z
     .object({
       spaceId: z.uuid({ error: 'Space ID is required' }),
@@ -485,18 +386,13 @@ export const moveUnitSchema = z.preprocess(
     .refine((data) => data.col + data.colSpan <= 6, {
       error: 'Unit must fit within the 6 grid columns',
       path: ['col'],
-    })
-    .transform((data) => ({
-      ...data,
-      grid_row: data.row,
-      grid_col: data.col,
-    })),
+    }),
 )
 
 export type MoveUnitInput = z.infer<typeof moveUnitSchema>
 
 export const deleteUnitSchema = z.preprocess(
-  normalizeActionIds,
+  toPlainObject,
   z.object({
     spaceId: z.uuid({ error: 'Space ID is required' }),
     unitId: z.uuid({ error: 'Unit ID is required' }),
@@ -507,7 +403,7 @@ export type DeleteUnitInput = z.infer<typeof deleteUnitSchema>
 
 export const unitFormSchema = z.preprocess(
   (val) => {
-    const v = normalizeActionIds(val)
+    const v = toPlainObject(val)
     if (typeof v === 'object' && v !== null) {
       const obj = { ...(v as Record<string, unknown>) }
       if (typeof obj.spaceId === 'string' && obj.spaceId.trim() === '') delete obj.spaceId

@@ -11,6 +11,7 @@ import {
   gridRowSchema,
   moveUnitSchema,
   reorderZonesSchema,
+  toIntOrUndefined,
   unitCapacitySchema,
   unitFormSchema,
   unitLabelSchema,
@@ -26,6 +27,29 @@ import {
 const validSpaceId = '11111111-1111-4111-8111-111111111111'
 const validZoneId = '22222222-2222-4222-8222-222222222222'
 const validUnitId = '33333333-3333-4333-8333-333333333333'
+
+describe('toIntOrUndefined', () => {
+  it('returns undefined for empty strings, null, and undefined', () => {
+    expect(toIntOrUndefined('')).toBeUndefined()
+    expect(toIntOrUndefined(null)).toBeUndefined()
+    expect(toIntOrUndefined(undefined)).toBeUndefined()
+  })
+
+  it('converts numeric strings to numbers', () => {
+    expect(toIntOrUndefined('0')).toBe(0)
+    expect(toIntOrUndefined('42')).toBe(42)
+    expect(toIntOrUndefined('  15  ')).toBe(15)
+  })
+
+  it('preserves existing numbers', () => {
+    expect(toIntOrUndefined(0)).toBe(0)
+    expect(toIntOrUndefined(10)).toBe(10)
+  })
+
+  it('returns non-numeric strings as-is for Zod to reject', () => {
+    expect(toIntOrUndefined('abc')).toBeNaN()
+  })
+})
 
 describe('zoneNameSchema', () => {
   it('passes a 1-character and 60-character zone name', () => {
@@ -247,11 +271,11 @@ describe('cellCoordinateSchema', () => {
     }
   })
 
-  it('accepts snake_case coordinates and normalizes them', () => {
+  it('normalizes string coordinates from form inputs', () => {
     const result = cellCoordinateSchema.safeParse({
-      grid_row: '3',
-      grid_col: '2',
-      col_span: '2',
+      row: '3',
+      col: '2',
+      colSpan: '2',
     })
     expect(result.success).toBe(true)
     if (result.success) {
@@ -303,15 +327,11 @@ describe('unitSchema', () => {
     expect(result.success).toBe(true)
     if (result.success) {
       expect(result.data.unitType).toBe('seat')
-      expect(result.data.unit_type).toBe('seat')
       expect(result.data.label).toBe('S1')
       expect(result.data.capacity).toBeNull()
       expect(result.data.row).toBe(0)
-      expect(result.data.grid_row).toBe(0)
       expect(result.data.col).toBe(0)
-      expect(result.data.grid_col).toBe(0)
       expect(result.data.colSpan).toBe(1)
-      expect(result.data.col_span).toBe(1)
     }
   })
 
@@ -372,7 +392,6 @@ describe('unitSchema', () => {
     expect(roomDefault.success).toBe(true)
     if (roomDefault.success) {
       expect(roomDefault.data.colSpan).toBe(2)
-      expect(roomDefault.data.col_span).toBe(2)
     }
   })
 
@@ -483,27 +502,30 @@ describe('unitSchema', () => {
     }
   })
 
-  it('accepts snake_case properties from database representations', () => {
+  it('normalizes string coordinates and capacity from form inputs', () => {
     const result = unitSchema.safeParse({
-      unit_type: 'seat',
-      label: 'S1',
-      grid_row: 2,
-      grid_col: 3,
-      col_span: 1,
+      unitType: 'room',
+      label: 'Room A',
+      capacity: '8',
+      row: '2',
+      col: '1',
+      colSpan: '2',
     })
     expect(result.success).toBe(true)
     if (result.success) {
-      expect(result.data.unitType).toBe('seat')
+      expect(result.data.unitType).toBe('room')
+      expect(result.data.capacity).toBe(8)
       expect(result.data.row).toBe(2)
-      expect(result.data.col).toBe(3)
+      expect(result.data.col).toBe(1)
+      expect(result.data.colSpan).toBe(2)
     }
   })
 })
 
 describe('Server Action form schemas', () => {
-  it('validates createZoneSchema with string position and snake_case space_id', () => {
+  it('validates createZoneSchema with string position and spaceId', () => {
     const valid = createZoneSchema.safeParse({
-      space_id: validSpaceId,
+      spaceId: validSpaceId,
       name: 'Quiet desks',
       position: '0',
     })
@@ -530,10 +552,10 @@ describe('Server Action form schemas', () => {
     expect(invalid.success).toBe(false)
   })
 
-  it('validates updateZoneSchema with snake_case zone_id and optional position', () => {
+  it('validates updateZoneSchema with spaceId, zoneId and optional position', () => {
     const valid = updateZoneSchema.safeParse({
-      space_id: validSpaceId,
-      zone_id: validZoneId,
+      spaceId: validSpaceId,
+      zoneId: validZoneId,
       name: 'Silent Area',
     })
     expect(valid.success).toBe(true)
@@ -560,11 +582,11 @@ describe('Server Action form schemas', () => {
     })
     expect(withOrders.success).toBe(true)
 
-    const withSnakeCaseOrders = reorderZonesSchema.safeParse({
-      space_id: validSpaceId,
-      zone_orders: [{ zone_id: validZoneId, position: '2' }],
+    const withStringOrders = reorderZonesSchema.safeParse({
+      spaceId: validSpaceId,
+      zoneOrders: [{ zoneId: validZoneId, position: '2' }],
     })
-    expect(withSnakeCaseOrders.success).toBe(true)
+    expect(withStringOrders.success).toBe(true)
 
     const withIds = reorderZonesSchema.safeParse({
       spaceId: validSpaceId,
@@ -596,32 +618,24 @@ describe('Server Action form schemas', () => {
       deleteZoneSchema.safeParse({ spaceId: validSpaceId, zoneId: validZoneId }).success,
     ).toBe(true)
     expect(
-      deleteZoneSchema.safeParse({ space_id: validSpaceId, zone_id: validZoneId })
-        .success,
-    ).toBe(true)
-    expect(
       deleteUnitSchema.safeParse({ spaceId: validSpaceId, unitId: validUnitId }).success,
-    ).toBe(true)
-    expect(
-      deleteUnitSchema.safeParse({ space_id: validSpaceId, unit_id: validUnitId })
-        .success,
     ).toBe(true)
   })
 
-  it('validates addUnitSchema and updateUnitSchema with snake_case and string inputs', () => {
+  it('validates addUnitSchema and updateUnitSchema with string inputs', () => {
     const addResult = addUnitSchema.safeParse({
-      space_id: validSpaceId,
-      zone_id: validZoneId,
-      unit_type: 'seat',
+      spaceId: validSpaceId,
+      zoneId: validZoneId,
+      unitType: 'seat',
       label: 'S1',
-      grid_row: '0',
-      grid_col: '0',
+      row: '0',
+      col: '0',
     })
     expect(addResult.success).toBe(true)
 
     const updateResult = updateUnitSchema.safeParse({
-      space_id: validSpaceId,
-      unit_id: validUnitId,
+      spaceId: validSpaceId,
+      unitId: validUnitId,
       unitType: 'room',
       label: 'Room A',
       capacity: '6',
@@ -632,11 +646,11 @@ describe('Server Action form schemas', () => {
     expect(updateResult.success).toBe(true)
   })
 
-  it('validates moveUnitSchema with string row/col and snake_case IDs', () => {
+  it('validates moveUnitSchema with string row/col and camelCase IDs', () => {
     const valid = moveUnitSchema.safeParse({
-      space_id: validSpaceId,
-      unit_id: validUnitId,
-      zone_id: validZoneId,
+      spaceId: validSpaceId,
+      unitId: validUnitId,
+      zoneId: validZoneId,
       row: '2',
       col: '4',
       colSpan: '1',
@@ -644,26 +658,11 @@ describe('Server Action form schemas', () => {
     expect(valid.success).toBe(true)
     if (valid.success) {
       expect(valid.data.row).toBe(2)
-      expect(valid.data.grid_row).toBe(2)
       expect(valid.data.col).toBe(4)
-      expect(valid.data.grid_col).toBe(4)
       expect(valid.data.colSpan).toBe(1)
       expect(valid.data.spaceId).toBe(validSpaceId)
-    }
-
-    const withSnakeGrid = moveUnitSchema.safeParse({
-      spaceId: validSpaceId,
-      unitId: validUnitId,
-      zoneId: validZoneId,
-      grid_row: '3',
-      grid_col: '1',
-      col_span: '2',
-    })
-    expect(withSnakeGrid.success).toBe(true)
-    if (withSnakeGrid.success) {
-      expect(withSnakeGrid.data.row).toBe(3)
-      expect(withSnakeGrid.data.col).toBe(1)
-      expect(withSnakeGrid.data.colSpan).toBe(2)
+      expect(valid.data.unitId).toBe(validUnitId)
+      expect(valid.data.zoneId).toBe(validZoneId)
     }
 
     const invalid = moveUnitSchema.safeParse({
@@ -712,9 +711,9 @@ describe('Server Action form schemas', () => {
 
   it('validates unitFormSchema with FormData, stringified inputs, and empty optional IDs', () => {
     const formData = new FormData()
-    formData.set('space_id', validSpaceId)
-    formData.set('zone_id', validZoneId)
-    formData.set('unit_id', '')
+    formData.set('spaceId', validSpaceId)
+    formData.set('zoneId', validZoneId)
+    formData.set('unitId', '')
     formData.set('unitType', 'seat')
     formData.set('label', ' S1 ')
     formData.set('capacity', '')

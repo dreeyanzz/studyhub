@@ -105,7 +105,7 @@ export async function createZone(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrName
@@ -191,7 +191,7 @@ export async function renameZone(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -284,7 +284,7 @@ export async function reorderZones(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrOrders
@@ -351,7 +351,7 @@ export async function moveZoneUp(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -443,7 +443,7 @@ export async function moveZoneDown(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -534,7 +534,7 @@ export async function deleteZone(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -622,7 +622,7 @@ export async function addUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -710,7 +710,7 @@ export async function updateUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrUnitId
@@ -811,7 +811,7 @@ export async function moveUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrUnitId
@@ -820,9 +820,9 @@ export async function moveUnit(
   }
 
   let rawValues = getRawValues(payload)
-  const spaceId = (rawValues.spaceId ?? rawValues.space_id) as string | undefined
-  const unitId = (rawValues.unitId ?? rawValues.unit_id) as string | undefined
-  let currentSpan = rawValues.colSpan ?? rawValues.col_span
+  const spaceId = rawValues.spaceId as string | undefined
+  const unitId = rawValues.unitId as string | undefined
+  let currentSpan = rawValues.colSpan
 
   const { supabase, user } = await signedInClient()
 
@@ -878,7 +878,7 @@ export async function moveUnit(
       ? (() => {
           const fd = new FormData()
           for (const [k, v] of payload.entries()) fd.append(k, v)
-          if (currentSpan !== undefined && !fd.has('colSpan') && !fd.has('col_span')) {
+          if (currentSpan !== undefined && !fd.has('colSpan')) {
             fd.append('colSpan', String(currentSpan))
           }
           return fd
@@ -899,8 +899,8 @@ export async function moveUnit(
     .from('units')
     .update({
       zone_id: parsed.data.zoneId,
-      grid_row: parsed.data.grid_row,
-      grid_col: parsed.data.grid_col,
+      grid_row: parsed.data.row,
+      grid_col: parsed.data.col,
     })
     .eq('id', parsed.data.unitId)
     .eq('space_id', parsed.data.spaceId)
@@ -940,7 +940,7 @@ export async function deleteUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrUnitId

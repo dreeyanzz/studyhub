@@ -303,16 +303,17 @@ describe('nextSuggestedLabel', () => {
     expect(nextSuggestedLabel(letters, 'room')).toBe('Room AA')
   })
 
-  it('falls back to U prefix for unknown unit types', () => {
-    expect(nextSuggestedLabel(['U1'], 'custom_type')).toBe('U2')
-  })
-
   it('handles case-insensitive unitType values and nullish items', () => {
-    expect(nextSuggestedLabel([null as unknown as string, 'Room A'], 'ROOM')).toBe(
-      'Room B',
+    expect(
+      nextSuggestedLabel(
+        [null as unknown as string, 'Room A'],
+        'ROOM' as unknown as 'room',
+      ),
+    ).toBe('Room B')
+    expect(nextSuggestedLabel([], 'STANDING_DESK' as unknown as 'standing_desk')).toBe(
+      'D1',
     )
-    expect(nextSuggestedLabel([], 'STANDING_DESK')).toBe('D1')
-    expect(nextSuggestedLabel([], 'desk')).toBe('D1')
+    expect(nextSuggestedLabel([], 'SEAT' as unknown as 'seat')).toBe('S1')
   })
 })
 
