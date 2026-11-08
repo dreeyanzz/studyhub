@@ -20,7 +20,8 @@ import { cn } from '@/lib/utils'
 
 import { RelativeTime } from './relative-time'
 
-const TYPE_CONFIG: Record<
+/** Shared with the list view (`occupancy-list.tsx`), so both show a unit the same way. */
+export const TYPE_CONFIG: Record<
   UnitType,
   {
     label: string
@@ -32,7 +33,13 @@ const TYPE_CONFIG: Record<
   room: { label: 'Room', icon: DoorClosed },
 }
 
-const STATE_BADGES: Record<
+/**
+ * Seat-state badge colors, the same palette as STORY-07's tiles until Maria picks the
+ * seat-state tokens (design §8, D-031, D-042). Light colors only: the app has no dark
+ * theme, and Tailwind's `dark:` follows the operating system, which would put light
+ * text on a grey badge on the light page.
+ */
+export const STATE_BADGES: Record<
   SeatState,
   {
     label: string
@@ -43,30 +50,26 @@ const STATE_BADGES: Record<
   available: {
     label: 'Available',
     icon: CheckCircle,
-    className:
-      'border-emerald-600/40 bg-emerald-50 text-emerald-950 dark:border-emerald-500/40 dark:bg-emerald-950/40 dark:text-emerald-100',
+    className: 'border-emerald-600/40 bg-emerald-50 text-emerald-950',
   },
   pending_payment: {
     label: 'Pending Payment',
     icon: Hourglass,
-    className:
-      'border-purple-600/40 bg-purple-50 text-purple-950 dark:border-purple-500/40 dark:bg-purple-950/40 dark:text-purple-100',
+    className: 'border-purple-600/40 bg-purple-50 text-purple-950',
   },
   reserved: {
     label: 'Reserved',
     icon: Clock,
-    className:
-      'border-blue-600/40 bg-blue-50 text-blue-950 dark:border-blue-500/40 dark:bg-blue-950/40 dark:text-blue-100',
+    className: 'border-blue-600/40 bg-blue-50 text-blue-950',
   },
   occupied: {
     label: 'Occupied',
     icon: User,
-    className:
-      'border-amber-600/40 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-950/40 dark:text-amber-100',
+    className: 'border-amber-600/40 bg-amber-50 text-amber-950',
   },
 }
 
-const ACTIONS: { state: UnitState; label: string }[] = [
+export const ACTIONS: { state: UnitState; label: string }[] = [
   { state: 'available', label: 'Available' },
   { state: 'reserved', label: 'Reserved' },
   { state: 'occupied', label: 'Occupied' },
@@ -168,7 +171,9 @@ export function UnitControlCard({
                   key={state}
                   type="button"
                   variant={isActive ? 'default' : 'outline'}
+                  // Stays focusable while saving, so focus isn't lost (D-031).
                   disabled={isPending}
+                  focusableWhenDisabled
                   className={cn(
                     'h-12 min-w-12 px-4 py-2 text-xs font-medium transition-all sm:text-sm',
                     isActive && 'ring-2 ring-primary ring-offset-2',

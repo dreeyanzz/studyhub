@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, LayoutGrid, List, RefreshCw } from 'lucide-react'
+import { AlertCircle, Info, LayoutGrid, List, RefreshCw } from 'lucide-react'
 
 import { SeatMapGrid } from '@/components/seat-map/seat-map-grid'
 import { SeatMapTile } from '@/components/seat-map/seat-map-tile'
@@ -39,6 +39,7 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
   const [viewMode, setViewMode] = useState<'seat_map' | 'list'>('seat_map')
   const [error, setError] = useState<string | null>(null)
   const [canRefresh, setCanRefresh] = useState(false)
+  const [notice, setNotice] = useState<string | null>(null)
 
   const allUnits = initialZones.flatMap((z) => z.units)
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(
@@ -49,31 +50,33 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
     allUnits.find((u) => u.id === selectedUnitId) ?? allUnits[0] ?? null
 
   const handleStateTap = async (unit: SeatMapUnit, targetState: UnitState) => {
+    const outcome = tapOutcome(unit.reservationId, unit.seatState, targetState)
+
     // If Seeker hold exists and same state tapped -> no-op (FR-3.2, D-050)
-    if (tapOutcome(unit.reservationId, unit.seatState, targetState) === 'no_op') {
+    if (outcome === 'no_op') {
       return
     }
 
     setError(null)
     setCanRefresh(false)
+    setNotice(null)
+
+    // Another state on a Seeker-held unit overrides the hold, which only the warning
+    // dialog may send, naming the hold the Host saw (design §3, D-050). TSK-12.6 adds
+    // that dialog; until then this tap sends nothing, so one tap can never cancel a
+    // Seeker's hold once set_unit_state's override moves land (TSK-12.4).
+    if (outcome === 'confirm_override') {
+      setNotice(`${unit.label} has a Seeker hold. Overriding a hold isn't available yet.`)
+      return
+    }
 
     startTransition(async () => {
       try {
-        const heldStatus =
-          unit.reservationId &&
-          (unit.seatState === 'pending_payment' ||
-            unit.seatState === 'reserved' ||
-            unit.seatState === 'occupied')
-            ? unit.seatState
-            : undefined
-
+        // A Host-set unit (H2, D-051). If a Seeker held it after this page loaded, the
+        // database refuses with hold_not_named, which offers a refresh (N14).
         const result = await setUnitStateAction(space.id, {
           unitId: unit.id,
           state: targetState,
-          expectedReservationId: heldStatus
-            ? (unit.reservationId ?? undefined)
-            : undefined,
-          expectedReservationStatus: heldStatus,
         })
 
         if (!result.success) {
@@ -169,6 +172,17 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
           ) : null}
         </Alert>
       ) : null}
+
+      {/* Why a tap sent nothing. The live region is always there, so a new notice is
+          announced. */}
+      <div role="status" aria-live="polite">
+        {notice ? (
+          <Alert role="none" className="flex items-center gap-2">
+            <Info className="size-4 shrink-0" aria-hidden="true" />
+            <AlertDescription className="text-sm font-medium">{notice}</AlertDescription>
+          </Alert>
+        ) : null}
+      </div>
 
       {/* Main View Area */}
       {viewMode === 'seat_map' ? (

@@ -11,6 +11,10 @@ let intervalId: ReturnType<typeof setInterval> | null = null
 function subscribe(callback: () => void) {
   listeners.add(callback)
   if (!intervalId) {
+    // The clock stops while nothing shows a time, so restart it from now: coming back
+    // to the page would otherwise show ages from when it was last open, for up to 30 s.
+    // React reads the snapshot again after subscribing, so this new value renders.
+    currentTick = Date.now()
     intervalId = setInterval(() => {
       currentTick = Date.now()
       listeners.forEach((cb) => cb())

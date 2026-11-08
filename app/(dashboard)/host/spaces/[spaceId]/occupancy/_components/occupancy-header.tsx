@@ -54,12 +54,20 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
           Back to Spaces
         </Link>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="px-3 py-1 text-sm font-medium">
+        {/* The Badge primitive is one fixed-height line; these may wrap, so they fit a
+            360 px screen at 200% text (design §3, Accessibility: Responsive design). */}
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="h-auto max-w-full px-3 py-1 text-sm font-medium whitespace-normal"
+          >
             {occupiedUnits} / {totalUnits} units occupied
           </Badge>
           {latestHostUpdatedAt ? (
-            <Badge variant="outline" className="px-3 py-1 text-sm font-medium">
+            <Badge
+              variant="outline"
+              className="h-auto max-w-full flex-wrap px-3 py-1 text-sm font-medium whitespace-normal"
+            >
               Host-updated · <RelativeTime date={latestHostUpdatedAt} className="ml-1" />
             </Badge>
           ) : null}
