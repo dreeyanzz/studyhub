@@ -50,10 +50,10 @@ let mockUser: { id: string } | null = {
 
 type QueryResult = {
   data: unknown
-  error: { code?: string; message?: string } | null
+  error: { code?: string; message?: string; hint?: string } | null
 }
 
-let tableResponses: Record<string, QueryResult> = {}
+let tableResponses: Record<string, QueryResult | ((op: string) => QueryResult)> = {}
 let capturedInserts: { table: string; values: unknown }[] = []
 let capturedUpdates: {
   table: string
@@ -65,6 +65,13 @@ let capturedSelects: { table: string; columns: string }[] = []
 
 function createMockQueryBuilder(table: string) {
   const filters: Record<string, unknown> = {}
+  let lastOp = 'select'
+
+  const getResponse = () => {
+    const resp = tableResponses[table]
+    if (typeof resp === 'function') return resp(lastOp)
+    return resp ?? { data: { id: 'mock-id' }, error: null }
+  }
 
   const builder: Record<string, unknown> = {
     select: vi.fn((cols = '*') => {
@@ -72,14 +79,17 @@ function createMockQueryBuilder(table: string) {
       return builder
     }),
     insert: vi.fn((values: unknown) => {
+      lastOp = 'insert'
       capturedInserts.push({ table, values })
       return builder
     }),
     update: vi.fn((values: unknown) => {
+      lastOp = 'update'
       capturedUpdates.push({ table, values, filters })
       return builder
     }),
     delete: vi.fn(() => {
+      lastOp = 'delete'
       capturedDeletes.push({ table, filters })
       return builder
     }),
@@ -89,25 +99,11 @@ function createMockQueryBuilder(table: string) {
     }),
     order: vi.fn(() => builder),
     limit: vi.fn(() => builder),
-    single: vi.fn(async () => {
-      return (
-        tableResponses[table] ?? {
-          data: { id: 'mock-id' },
-          error: null,
-        }
-      )
-    }),
-    maybeSingle: vi.fn(async () => {
-      return (
-        tableResponses[table] ?? {
-          data: { id: 'mock-id' },
-          error: null,
-        }
-      )
-    }),
+    single: vi.fn(async () => getResponse()),
+    maybeSingle: vi.fn(async () => getResponse()),
     then: (resolve: (val: unknown) => void) => {
       resolve(
-        tableResponses[table] ?? {
+        getResponse() ?? {
           data: [{ id: 'mock-id' }],
           error: null,
         },
@@ -258,6 +254,41 @@ describe('Seat Map Server Actions', () => {
 
       const zoneResult = mapPostgresError({ code: '99999' }, 'zone')
       expect(zoneResult.formError).toBe('We could not save this zone. Please try again.')
+    })
+
+    it('maps P0001 unit_held refusal trigger to design §3 messages by context', () => {
+      // Zone deletion: N17
+      const zoneResult = mapPostgresError({ code: 'P0001', hint: 'unit_held' }, 'zone')
+      expect(zoneResult.formError).toBe(
+        'A unit here has an active hold. End it from the occupancy view, or wait for it to end.',
+      )
+
+      // Unit deletion: N17
+      const unitDeleteResult = mapPostgresError(
+        { code: 'P0001', hint: 'unit_held' },
+        'unit',
+        { unitLabel: 'S4', operation: 'delete' },
+      )
+      expect(unitDeleteResult.formError).toBe(
+        'S4 has an active hold. End it from the occupancy view, or wait for it to end.',
+      )
+
+      // Unit update / move: N23
+      const unitUpdateResult = mapPostgresError(
+        { code: 'P0001', hint: 'unit_held' },
+        'unit',
+        { unitLabel: 'S4', operation: 'update' },
+      )
+      expect(unitUpdateResult.formError).toBe(
+        "S4 has an active hold, so its label, type and place can't change until the hold ends.",
+      )
+    })
+
+    it('maps P0001 hours_cut_hold refusal trigger to design §3 message', () => {
+      const result = mapPostgresError({ code: 'P0001', hint: 'hours_cut_hold' })
+      expect(result.formError).toBe(
+        "A Seeker's hold runs past these hours. Change them after it ends.",
+      )
     })
   })
 
@@ -685,6 +716,18 @@ describe('Seat Map Server Actions', () => {
       const res = await deleteZone(validSpaceId, validZoneId)
       expect(res.formError).toBe('Zone may not exist or you do not have permission')
     })
+
+    it('returns refusal error when deleting a zone with an active hold (N17)', async () => {
+      tableResponses.zones = {
+        data: null,
+        error: { code: 'P0001', hint: 'unit_held' },
+      }
+
+      const res = await deleteZone(validSpaceId, validZoneId)
+      expect(res.formError).toBe(
+        'A unit here has an active hold. End it from the occupancy view, or wait for it to end.',
+      )
+    })
   })
 
   // ---------------------------------------------------------------------------
@@ -1089,6 +1132,65 @@ describe('Seat Map Server Actions', () => {
 
       const res = await deleteUnit(validSpaceId, validUnitId)
       expect(res.formError).toBe('Unit may not exist or you do not have permission')
+    })
+
+    it('returns refusal error when deleting a held unit (N17)', async () => {
+      tableResponses.units = (op) => {
+        if (op === 'delete') {
+          return { data: null, error: { code: 'P0001', hint: 'unit_held' } }
+        }
+        return { data: { id: validUnitId, label: 'S4' }, error: null }
+      }
+
+      const res = await deleteUnit(validSpaceId, validUnitId)
+      expect(res.formError).toBe(
+        'S4 has an active hold. End it from the occupancy view, or wait for it to end.',
+      )
+    })
+
+    it('returns refusal error when updating a held unit (N23)', async () => {
+      tableResponses.units = (op) => {
+        if (op === 'update') {
+          return { data: null, error: { code: 'P0001', hint: 'unit_held' } }
+        }
+        return { data: { id: validUnitId, label: 'S4' }, error: null }
+      }
+
+      const res = await updateUnit({
+        spaceId: validSpaceId,
+        unitId: validUnitId,
+        label: 'S4-renamed',
+        unitType: 'seat',
+        row: 0,
+        col: 0,
+      })
+      expect(res.formError).toBe(
+        "S4 has an active hold, so its label, type and place can't change until the hold ends.",
+      )
+    })
+
+    it('returns refusal error when moving a held unit (N23)', async () => {
+      tableResponses.units = (op) => {
+        if (op === 'update') {
+          return { data: null, error: { code: 'P0001', hint: 'unit_held' } }
+        }
+        return {
+          data: { id: validUnitId, label: 'S4', col_span: 1 },
+          error: null,
+        }
+      }
+
+      const res = await moveUnit({
+        spaceId: validSpaceId,
+        unitId: validUnitId,
+        zoneId: validZoneId,
+        row: 1,
+        col: 1,
+        colSpan: 1,
+      })
+      expect(res.formError).toBe(
+        "S4 has an active hold, so its label, type and place can't change until the hold ends.",
+      )
     })
   })
 

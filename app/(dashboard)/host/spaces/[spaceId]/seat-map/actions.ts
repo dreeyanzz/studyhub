@@ -570,7 +570,7 @@ export async function deleteZone(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'zone')
+    const mapped = mapPostgresError(error, 'zone', { operation: 'delete' })
     return { ...mapped, values: rawValues }
   }
 
@@ -766,7 +766,22 @@ export async function updateUnit(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'unit')
+    let unitLabel = parsed.data.label
+    if (error.code === 'P0001' && error.hint === 'unit_held') {
+      const { data: originalUnit } = await supabase
+        .from('units')
+        .select('label')
+        .eq('id', parsed.data.unitId)
+        .eq('space_id', parsed.data.spaceId)
+        .maybeSingle()
+      if (originalUnit?.label) {
+        unitLabel = originalUnit.label
+      }
+    }
+    const mapped = mapPostgresError(error, 'unit', {
+      unitLabel,
+      operation: 'update',
+    })
     return { ...mapped, values: rawValues }
   }
 
@@ -853,10 +868,10 @@ export async function moveUnit(
     }
   }
 
-  // Lookup the unit to verify existence and get current col_span if omitted
+  // Lookup the unit to verify existence and get current col_span and label
   const { data: existingUnit, error: unitError } = await supabase
     .from('units')
-    .select('col_span')
+    .select('label, col_span')
     .eq('id', unitIdParsed.data)
     .eq('space_id', spaceIdParsed.data)
     .maybeSingle()
@@ -908,7 +923,10 @@ export async function moveUnit(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'unit')
+    const mapped = mapPostgresError(error, 'unit', {
+      unitLabel: existingUnit.label,
+      operation: 'update',
+    })
     return { ...mapped, values: rawValues }
   }
 
@@ -976,7 +994,22 @@ export async function deleteUnit(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'unit')
+    let unitLabel: string | undefined
+    if (error.code === 'P0001' && error.hint === 'unit_held') {
+      const { data: existingUnit } = await supabase
+        .from('units')
+        .select('label')
+        .eq('id', parsed.data.unitId)
+        .eq('space_id', parsed.data.spaceId)
+        .maybeSingle()
+      if (existingUnit?.label) {
+        unitLabel = existingUnit.label
+      }
+    }
+    const mapped = mapPostgresError(error, 'unit', {
+      unitLabel,
+      operation: 'delete',
+    })
     return { ...mapped, values: rawValues }
   }
 

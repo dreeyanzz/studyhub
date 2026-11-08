@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { WAIT_WINDOW_OPTIONS } from '@/lib/validation/reservation'
 import { spaceIdSchema, spaceSchema, type SpaceField } from '@/lib/validation/space'
 
 import type { SpaceFormState, SpaceFormValues } from '../actions'
@@ -28,6 +29,10 @@ type SpaceFormProps =
 const textareaClassName =
   'min-h-32 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
 
+// A native select styled like STORY-02's Input for the wait window picker (design §3).
+const selectClassName =
+  'h-12 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
+
 /**
  * The create and edit form for a Space (STORY-05 design §3.3). spaceSchema runs here
  * before the Server Action, which runs it again. Without JavaScript the form still
@@ -43,7 +48,11 @@ export function SpaceForm(props: SpaceFormProps) {
   // default value, which Base UI warns about (#146). A form posted without JavaScript
   // starts from the values the action sent back.
   const [values, setValues] = useState<SpaceFormValues>(
-    () => state.values ?? (props.mode === 'edit' ? props.initialValues : {}),
+    () =>
+      state.values ??
+      (props.mode === 'edit'
+        ? { maxWaitWindowMinutes: '60', ...props.initialValues }
+        : { maxWaitWindowMinutes: '60' }),
   )
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -173,6 +182,26 @@ export function SpaceForm(props: SpaceFormProps) {
           {(control) => <Input {...control} {...bind('closesAt')} type="time" required />}
         </SpaceFormField>
       </div>
+      <SpaceFormField
+        name="maxWaitWindowMinutes"
+        label="Longest wait window"
+        hint="Seekers can ask you to keep a paid unit for up to this long while they travel."
+        errors={errors.maxWaitWindowMinutes}
+      >
+        {(control) => (
+          <select
+            {...control}
+            {...bind('maxWaitWindowMinutes')}
+            className={selectClassName}
+          >
+            {WAIT_WINDOW_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        )}
+      </SpaceFormField>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={pending} focusableWhenDisabled>
           {creating
