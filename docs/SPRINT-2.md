@@ -310,6 +310,10 @@ reach Seekers; only an Administrator can open `/admin`.
 
 **Waits for:** Adrian's function, for saving. The page and its layout don't wait for it.
 
+> **Update, Mon 9 Nov: STORY-15 is done** (#225, #231, #235). An approved Space is public,
+> but Seekers find it only once STORY-08's search lands, which also marks the Space
+> verification flow `implemented` (design §9).
+
 **Sprint 2 QA.** Turn Maria's two journeys into Playwright tests (D-044), and grow them as
 the stories land: a Host sets up a Space and an Administrator approves it, then a Seeker
 finds it, opens it, and picks a seat. Review both journeys before they merge, so that
