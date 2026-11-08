@@ -1,9 +1,10 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState, useEffect, useId, useRef } from 'react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -12,9 +13,11 @@ import { createZone, renameZone, type SeatMapActionState } from '../actions'
 type ZoneFormProps = {
   spaceId: string
   /** Called once the zone is saved, with its id and its name as saved. */
-  onDone: (zone: { id: string; name: string }) => void
+  onDone?: (zone: { id: string; name: string }) => void
   /** Shows a Cancel button that closes the form without saving. */
   onCancel?: () => void
+  cancelHref?: string
+  shouldFocus?: boolean
 } & (
   | { mode: 'add'; /** Where the new zone goes: after the last one. */ position: number }
   | { mode: 'rename'; zone: { id: string; name: string } }
@@ -42,13 +45,15 @@ export function ZoneForm(props: ZoneFormProps) {
 
   // Focus the name as the form opens, so a keyboard user can type straight away.
   useEffect(() => {
-    inputRef.current?.focus()
-  }, [])
+    if (props.shouldFocus !== false) {
+      inputRef.current?.focus()
+    }
+  }, [props.shouldFocus])
 
   // Runs once per answer from the action: each answer is a new state object.
   useEffect(() => {
     const zone = state.success ? (state.data as { id?: string; name?: string }) : null
-    if (zone?.id) onDoneRef.current({ id: zone.id, name: zone.name ?? '' })
+    if (zone?.id) onDoneRef.current?.({ id: zone.id, name: zone.name ?? '' })
   }, [state])
 
   const nameError = state.fieldErrors?.name?.[0]
@@ -103,6 +108,14 @@ export function ZoneForm(props: ZoneFormProps) {
           <Button type="button" variant="outline" onClick={props.onCancel}>
             Cancel
           </Button>
+        )}
+        {!props.onCancel && props.cancelHref && (
+          <Link
+            href={props.cancelHref}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            Cancel
+          </Link>
         )}
       </div>
     </form>

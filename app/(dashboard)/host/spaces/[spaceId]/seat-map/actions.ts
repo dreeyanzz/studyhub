@@ -1008,6 +1008,14 @@ export const reorderZonesAction = reorderZones
 export const moveZoneUpAction = moveZoneUp
 export const moveZoneDownAction = moveZoneDown
 
+export async function moveZoneUpForm(formData: FormData): Promise<void> {
+  await moveZoneUp(formData)
+}
+
+export async function moveZoneDownForm(formData: FormData): Promise<void> {
+  await moveZoneDown(formData)
+}
+
 export const deleteZoneAction = deleteZone
 
 export const addUnitAction = addUnit
