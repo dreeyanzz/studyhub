@@ -184,6 +184,10 @@ photos.
 unit has a type and a label, and a room has a capacity; another Host gets zero rows and
 can't change them; every builder action works from the list view, by keyboard.
 
+> **Update, Mon 9 Nov: STORY-07 is done** (#214, #215, #217, #232, #234, #246, #247). A
+> Seeker reads the same seat map as the Host. STORY-11's review checks that the Seeker's
+> profile draws it the same way, once its seat map lands (design §9).
+
 **STORY-09, holds and sandbox payment (#58).** A Seeker picks an Available unit, from the
 seat map or the list view, chooses a wait window, and pays a sandbox fee through the
 gateway's hosted checkout. The unit becomes Reserved, with a booking token.

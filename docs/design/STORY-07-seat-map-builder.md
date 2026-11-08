@@ -1,6 +1,6 @@
 # STORY-07: Snap-grid seat map builder
 
-**Status:** approved 2026-11-02 · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1, SRS §3.2.2 ·
+**Status:** implemented 2026-11-09 · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-05 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Host setup journey](../flows/host-setup-journey.md) ·
 **Decisions:** D-002, D-003, D-004, D-006, D-007, D-010, D-011, D-013, D-027, D-031, D-032, D-042, D-044, D-046, D-047, D-051, D-052, D-055, D-057, D-062, D-063
 
@@ -500,9 +500,28 @@ None blocking this story. Integration boundaries are aligned with:
 
 ## 9. After the build
 
-Fill this in when the story is done. Until then, each task's differences from this plan:
+Built in the §6 order: #214 (tables), #215 (photo bucket), #217 (grid and form rules),
+#232 (shared renderer), #234 (Server Actions), #246 (builder) and #247 (list view). Two
+smaller PRs followed: #221 named the N19 tests as the reservation lifecycle does, and
+#258 kept the tiles readable when the operating system is in dark mode.
 
-**TSK-07.6 (the builder):**
+### Different from the plan
+
+**TSK-07.2 (the photo bucket, #215):**
+
+- **Photos stay one folder deep** (`<space_id>/<file name>`). The upload and update policies refuse a deeper path, because `deleteSpace` lists only the Space's own folder and couldn't empty a subfolder. #215 updated §2 and §4 to match.
+- **CI's `e2e` job starts the Storage API**, which `deleteSpace`'s photo cleanup needs.
+
+**TSK-07.3 (the grid and form rules, #217):**
+
+- **Row and column errors count from 1**, as the page does ("Row must be between 1 and 50"). The limits themselves stay 0-based, like the database.
+- **`moveUnitSchema` requires the unit's `colSpan`**, so a move past the right edge is refused in Zod, not by the database as `23514`.
+
+**TSK-07.5 (the Server Actions, #234):**
+
+- **Reordering zones is one call to a new function, `public.reorder_zones(space_id, zone_ids)`**, in its own migration (`20261107003500_reorder_zones.sql`) with 9 pgTAP cases. §2 has no such function. Maria's review asked for reordering to be atomic, so that a failure part-way leaves no partial order. It refuses anyone but the Space's Host (`42501`), and any zone from another Space (`23503`).
+
+**TSK-07.6 (the builder, #246):**
 
 - **The shared grid gained three optional props, used only by the builder.**
   - `renderZoneActions`, for each zone's Move up, Move down, Rename and Delete beside its heading.
@@ -517,13 +536,47 @@ Fill this in when the story is done. Until then, each task's differences from th
 - **In the grid view, the confirmation panel opens above the map**, where a selected unit's panel goes, not inside the unit's 51 px cell. TSK-07.7's list view shows it in place.
 - **Copy:** an empty zone says "Pick a unit type above, then tap an empty cell." The grid view has no form below the grid, as §3's wording assumed.
 
-**TSK-07.7 (the accessible list view alternative):**
+**TSK-07.7 (the list view, #247):**
 
-- **`SeatMapListView`** (`_components/seat-map-list-view.tsx`) renders all zones and units in an accessible list/card structure with live region announcements and focus management.
 - **`SeatMapListView` is a Client Component, not the Server Component §3 names**, because it announces results and moves focus after each change. Its forms still post to Server Actions, so it works before JavaScript loads.
 - **Focus after a zone moves** stays on the button pressed or, once the zone reaches the top or bottom, goes to the other move button, then the zone's heading, as in the grid view. **An edit that moves a unit to another zone** is announced ("Moved S9 to Standing desks.") and focuses the unit there. A refused move shows in the error banner.
-- **The Grid/List segmented switcher** in `page.tsx` maintains current space context and search parameters (e.g. active removal confirmations) across view switches.
-- **All builder actions (add, edit, move, delete unit and zone)** are operable via standard HTML forms and keyboard alone (Tab, Enter, Space), and function before JavaScript loads.
-- **`UnitForm` supports both `edit` and `add` modes**, with `showCoordinates` providing native selects for Row (1–50) and Column (1–6), zone selection when multiple zones exist, and optional `cancelHref`.
-- **`ZoneForm` accepts `shouldFocus?: boolean`**, preventing the bottom "Add a zone" form from stealing focus and scrolling the page on mount.
-- **Confirmation step** (`ConfirmRemoval`) renders in place for unit removals and zone deletions.
+- **The Grid/List switch** in `page.tsx` keeps the page's query, an open removal confirmation included, when it changes view.
+- **`UnitForm` has `edit` and `add` modes.** With `showCoordinates`, it offers native selects for Row (1–50) and Column (1–6), and a zone select when the Space has more than one zone.
+- **`ZoneForm` takes `shouldFocus`**, so the "Add a zone" form at the bottom doesn't take focus and scroll the page when it mounts.
+- **The confirmation step** (`ConfirmRemoval`) shows in place, under the unit or zone it removes.
+
+**After the last task (#258):**
+
+- **The tile and the legend have no `dark:` classes.** Worq ships light mode only (D-031), so `dark:` followed the operating system's setting, and an Available tile turned grey with 2.22:1 text. Tests now fail if a `dark:` class comes back.
+
+### Left open at the close-out
+
+- **The Seeker's half of the first acceptance criterion.** No Seeker page shows a seat map until STORY-11's TSK-11.5. As §4 says, STORY-11's review checks that the Seeker's profile draws the same rows with the same renderer.
+- **#226:** trim the seat map form rules (one numeric helper, only the input shapes the actions send, no `'desk'` alias). It can start now that #234 is merged.
+- **#218 (decision needed):** a Space deleted some other way than `deleteSpace`, such as an account deleted in the dashboard, leaves its photos in the public bucket.
+- **In development only**, the browser console logs a React "unique key" warning from `UnitForm` (#247). Nothing visible is affected, and no issue tracks it yet.
+- **Reviews:** Maria hasn't re-reviewed #234's atomic reorder, a later push dismissed her approval of #247, and #258 merged with no review. Adrian merged each without one. Anything she finds goes in a follow-up PR.
+
+### Docs this story changed
+
+`AGENTS.md` (the layout note, #217), this design's §2 and §4 (#215) and §9 (#246, #247),
+and, at the close-out, the design index and the Sprint 2 brief.
+
+### Final checks
+
+On `main` at `cc77e4d`, with every STORY-07 task merged: `npm run check` (408 of 408
+unit tests), `npm run build` with CI's placeholder settings, `npm run db:test` (411 of 411
+pgTAP tests in 8 files) and `npm run test:e2e` (10 of 10, in Edge).
+
+### Acceptance criteria (#56)
+
+Checked by Adrian's agent (Claude Code) on the local Supabase stack, as the seeded
+accounts: in the PRs named below, and again at the close-out. Nothing was written to the
+shared cloud database.
+
+| Criterion                                                                           | How it was verified                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A saved seat map persists and renders the same for a Host and a Seeker              | The Host's half. In #246 and #247, units placed, edited, moved and removed in the browser, by pointer and by keyboard, were saved and shown again. At the close-out, a room saved as `host@` came back identical in new sessions for `host@` and `seeker@`. The seeded Space's zones, units and states also read the same for `host@`, `seeker@` and a signed-out visitor. The Seeker's screen waits for STORY-11       |
+| Every unit has a type and a label, and a whole room has a capacity                  | `unit_type` and `label` are `not null` (#214). `03-seat-map.sql`: "whole room with null capacity raises 23514", the capacity limits (1 to 50), "seat with non-null capacity raises 23514" and "unit with whitespace-only label raises 23514". The Zod tests in `lib/validation/seat-map.test.ts` (#217)                                                                                                                 |
+| Another Host gets 0 rows for a Space's zones and units, and cannot change them      | `03-seat-map.sql`: for a Pending or a Rejected Space, another Host gets 0 zones, 0 units and 0 `unit_states` rows. For any Space, they can't insert a zone or a unit into it, updating or deleting its zones and units affects 0 rows, and they can't reorder its zones. A Verified Space's seat map is public (D-055), so they read it as a Seeker does. In #246, `host2@` got the not-found page on `host@`'s builder |
+| An accessible list view offers every action the snap grid offers, by keyboard alone | #247's §4 checks, as `host@`: by keyboard alone, add, rename, reorder and delete a zone, and add, edit, move (within and across zones) and remove a unit, each announced, with focus where §3 says. With JavaScript off, removals and a zone move still work. At 360, 768 and 1024 px, at 100% and 200% text, nothing scrolls sideways                                                                                  |
