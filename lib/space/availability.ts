@@ -40,12 +40,10 @@ export function computeZoneAvailability(zone: SeatMapZone): ZoneAvailability {
     let oldestTime = Infinity
 
     for (const unit of availableUnitsList) {
-      if (unit.hostUpdatedAt) {
-        const time = new Date(unit.hostUpdatedAt).getTime()
-        if (!isNaN(time) && time < oldestTime) {
-          oldestTime = time
-          oldestAvailableHostUpdatedAt = unit.hostUpdatedAt
-        }
+      const time = new Date(unit.hostUpdatedAt).getTime()
+      if (time < oldestTime) {
+        oldestTime = time
+        oldestAvailableHostUpdatedAt = unit.hostUpdatedAt
       }
     }
   }

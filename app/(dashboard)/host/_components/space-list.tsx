@@ -84,6 +84,12 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
           Seat map<span className="sr-only"> for {space.name}</span>
         </Link>
         <Link
+          href={`/host/spaces/${space.id}/photos`}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Photos<span className="sr-only"> for {space.name}</span>
+        </Link>
+        <Link
           href={`/host/spaces/${space.id}/edit`}
           className={buttonVariants({ variant: 'outline' })}
         >
