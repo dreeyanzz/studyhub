@@ -545,14 +545,14 @@ smaller PRs followed: #221 named the N19 tests as the reservation lifecycle does
 - **`ZoneForm` takes `shouldFocus`**, so the "Add a zone" form at the bottom doesn't take focus and scroll the page when it mounts.
 - **The confirmation step** (`ConfirmRemoval`) shows in place, under the unit or zone it removes.
 
-**After the last task (#258):**
+**After the last task (#258, #226):**
 
 - **The tile and the legend have no `dark:` classes.** Worq ships light mode only (D-031), so `dark:` followed the operating system's setting, and an Available tile turned grey with 2.22:1 text. Tests now fail if a `dark:` class comes back.
+- **The seat map form rules and grid label helpers are trimmed (#226):** one numeric helper (`toIntOrUndefined`) replaces six copies of the numeric preprocessor, schemas accept only the camelCase input shapes actions and forms send, and `nextSuggestedLabel` handles strictly `seat`, `standing_desk`, and `room` with no unused `'desk'` alias or `U` fallback.
 
 ### Left open at the close-out
 
 - **The Seeker's half of the first acceptance criterion.** No Seeker page shows a seat map until STORY-11's TSK-11.5. As §4 says, STORY-11's review checks that the Seeker's profile draws the same rows with the same renderer.
-- **#226:** trim the seat map form rules (one numeric helper, only the input shapes the actions send, no `'desk'` alias). It can start now that #234 is merged.
 - **#218 (decision needed):** a Space deleted some other way than `deleteSpace`, such as an account deleted in the dashboard, leaves its photos in the public bucket.
 - **In development only**, the browser console logs a React "unique key" warning from `UnitForm` (#247). Nothing visible is affected, and no issue tracks it yet.
 - **Reviews:** Maria hasn't re-reviewed #234's atomic reorder, a later push dismissed her approval of #247, and #258 merged with no review. Adrian merged each without one. Anything she finds goes in a follow-up PR.
