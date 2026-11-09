@@ -108,7 +108,7 @@ your app doesn't use the cloud dev project.
    - the GRANTs for exactly the verbs those policies use
 3. Add negative tests in `supabase/tests/`. The wrong user gets 0 rows, and the owner
    cannot make forbidden writes.
-4. `npm run db:reset && npm run db:test`.
+4. `npm run db:reset && npm run db:test && npm run db:race`.
 5. `npm run db:types`, and commit the regenerated types in the same PR. Two people write
    migrations (D-066), so before the PR merges, merge `origin/main` into your branch and
    check:

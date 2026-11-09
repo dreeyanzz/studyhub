@@ -13,6 +13,25 @@ begin;
 create extension if not exists pgtap with schema extensions;
 select plan(113);
 
+-- pgTAP's throws_ok sees an error's code and message, but not its hint, and the app tells
+-- one refusal from another by the hint (design §2). This runs a statement as the current
+-- role and returns '<code> <hint>' for the error it raises.
+create function pg_temp.refusal(p_sql text)
+returns text
+language plpgsql
+as $$
+declare
+  v_code text;
+  v_hint text;
+begin
+  execute p_sql;
+  return 'no error';
+exception when others then
+  get stacked diagnostics v_code = returned_sqlstate, v_hint = pg_exception_hint;
+  return v_code || ' ' || coalesce(nullif(v_hint, ''), '(no hint)');
+end;
+$$;
+
 -- ---------------------------------------------------------------------------
 -- 1. Wait window validation and check constraint on spaces.max_wait_window
 -- ---------------------------------------------------------------------------
@@ -467,54 +486,47 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$delete from public.units where id = 'f0000000-0000-4000-8000-000000000003'$$,
-  'P0001',
-  'unit has an active hold',
-  'a Host cannot delete a unit with an active hold (Negative N17)'
+select is(
+  pg_temp.refusal($$delete from public.units where id = 'f0000000-0000-4000-8000-000000000003'$$),
+  'P0001 unit_held',
+  'a Host cannot delete a unit, a zone or a Space with an active hold: the unit (Negative N17)'
 );
 
-select throws_ok(
-  $$delete from public.zones where id = 'd0000000-0000-4000-8000-000000000001'$$,
-  'P0001',
-  'zone contains a unit with an active hold',
-  'a Host cannot delete a zone with an active hold (Negative N17)'
+select is(
+  pg_temp.refusal($$delete from public.zones where id = 'd0000000-0000-4000-8000-000000000001'$$),
+  'P0001 unit_held',
+  'a Host cannot delete a unit, a zone or a Space with an active hold: the zone (Negative N17)'
 );
 
-select throws_ok(
-  $$delete from public.spaces where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  'P0001',
-  'space contains a unit with an active hold',
-  'a Host cannot delete a Space with an active hold (Negative N17)'
+select is(
+  pg_temp.refusal($$delete from public.spaces where id = 'e0000000-0000-4000-8000-000000000001'$$),
+  'P0001 unit_held',
+  'a Host cannot delete a unit, a zone or a Space with an active hold: the Space (Negative N17)'
 );
 
 -- As Host 1: attempt N23 updates on held unit layout/label
-select throws_ok(
-  $$update public.units set label = 'S3-Edited' where id = 'f0000000-0000-4000-8000-000000000003'$$,
-  'P0001',
-  'cannot modify held unit',
-  'a Host cannot change a held unit''s label (Negative N23)'
+select is(
+  pg_temp.refusal($$update public.units set label = 'S3-Edited' where id = 'f0000000-0000-4000-8000-000000000003'$$),
+  'P0001 unit_held',
+  'a Host cannot change a held unit''s label, type, capacity or place: the label (Negative N23)'
 );
 
-select throws_ok(
-  $$update public.units set grid_col = 5 where id = 'f0000000-0000-4000-8000-000000000003'$$,
-  'P0001',
-  'cannot modify held unit',
-  'a Host cannot change a held unit''s place (Negative N23)'
+select is(
+  pg_temp.refusal($$update public.units set grid_col = 5 where id = 'f0000000-0000-4000-8000-000000000003'$$),
+  'P0001 unit_held',
+  'a Host cannot change a held unit''s label, type, capacity or place: the place (Negative N23)'
 );
 
-select throws_ok(
-  $$update public.units set unit_type = 'standing_desk' where id = 'f0000000-0000-4000-8000-000000000003'$$,
-  'P0001',
-  'cannot modify held unit',
-  'a Host cannot change a held unit''s type (Negative N23)'
+select is(
+  pg_temp.refusal($$update public.units set unit_type = 'standing_desk' where id = 'f0000000-0000-4000-8000-000000000003'$$),
+  'P0001 unit_held',
+  'a Host cannot change a held unit''s label, type, capacity or place: the type (Negative N23)'
 );
 
-select throws_ok(
-  $$update public.units set capacity = 4 where id = 'f0000000-0000-4000-8000-000000000003'$$,
-  'P0001',
-  'cannot modify held unit',
-  'a Host cannot change a held unit''s capacity (Negative N23)'
+select is(
+  pg_temp.refusal($$update public.units set capacity = 4 where id = 'f0000000-0000-4000-8000-000000000003'$$),
+  'P0001 unit_held',
+  'a Host cannot change a held unit''s label, type, capacity or place: the capacity (Negative N23)'
 );
 
 -- When hold is ended, editing the unit succeeds
@@ -569,24 +581,22 @@ set local request.jwt.claims =
   '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
 -- Case A: Setting hours such that space is closed now
-select throws_ok(
-  $$update public.spaces
+select is(
+  pg_temp.refusal($$update public.spaces
     set opens_at = ((now() at time zone 'Asia/Manila')::time + interval '2 hours')::time,
         closes_at = ((now() at time zone 'Asia/Manila')::time + interval '4 hours')::time
-    where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  'P0001',
-  'new hours cut into active hold',
+    where id = 'e0000000-0000-4000-8000-000000000001'$$),
+  'P0001 hours_cut_hold',
   'a Host cannot change a Space''s hours to cut into a pending or reserved hold (Negative N22)'
 );
 
 -- Case B: Setting hours such that closing time is in 15 minutes (hold ends in 70 min)
-select throws_ok(
-  $$update public.spaces
+select is(
+  pg_temp.refusal($$update public.spaces
     set opens_at = ((now() at time zone 'Asia/Manila')::time - interval '2 hours')::time,
         closes_at = ((now() at time zone 'Asia/Manila')::time + interval '15 minutes')::time
-    where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  'P0001',
-  'new hours cut into active hold',
+    where id = 'e0000000-0000-4000-8000-000000000001'$$),
+  'P0001 hours_cut_hold',
   'closing time before hold ends raises hours_cut_hold (Negative N22)'
 );
 
@@ -600,13 +610,12 @@ select lives_ok(
 );
 
 -- Case D: Setting hours cutting into a reserved hold's wait_window_ends_at
-select throws_ok(
-  $$update public.spaces
+select is(
+  pg_temp.refusal($$update public.spaces
     set opens_at = ((now() at time zone 'Asia/Manila')::time - interval '2 hours')::time,
         closes_at = ((now() at time zone 'Asia/Manila')::time + interval '30 minutes')::time
-    where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  'P0001',
-  'new hours cut into active hold',
+    where id = 'e0000000-0000-4000-8000-000000000001'$$),
+  'P0001 hours_cut_hold',
   'a Host cannot change a Space''s hours to cut into a reserved hold (Negative N22)'
 );
 
@@ -873,7 +882,7 @@ select throws_ok(
   $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
   '42501',
   'Only Seeker accounts can hold units.',
-  'a Host cannot call hold_unit (Negative N5)'
+  'a Host and an Administrator cannot hold a unit: the Host (Negative N5)'
 );
 
 set local request.jwt.claims =
@@ -883,26 +892,24 @@ select throws_ok(
   $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
   '42501',
   'Only Seeker accounts can hold units.',
-  'an Administrator cannot call hold_unit (Negative N5)'
+  'a Host and an Administrator cannot hold a unit: the Administrator (Negative N5)'
 );
 
 -- Refusal a: unit_not_found (non-existent unit)
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-999999999999', 30)$$,
-  'P0001',
-  'unit_not_found',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-999999999999', 30)$$),
+  'P0001 unit_not_found',
   'hold_unit on non-existent unit raises unit_not_found (Negative N4)'
 );
 
 -- Refusal a: unit_not_found (unit in Pending Space)
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000015', 30)$$,
-  'P0001',
-  'unit_not_found',
-  'hold_unit on unit in pending space raises unit_not_found (Negative N4, D-055)'
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000015', 30)$$),
+  'P0001 unit_not_found',
+  'a Seeker cannot hold a unit in a Space that is not Verified (Negative N4, D-055)'
 );
 
 -- Refusal b: space_closed
@@ -916,10 +923,9 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000006', 30)$$,
-  'P0001',
-  'space_closed',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000006', 30)$$),
+  'P0001 space_closed',
   'hold_unit when Space is closed raises space_closed (Negative N4)'
 );
 
@@ -934,26 +940,23 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 20)$$,
-  'P0001',
-  'wait_window_not_allowed',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 20)$$),
+  'P0001 wait_window_not_allowed',
   'hold_unit with invalid wait window raises wait_window_not_allowed (Negative N4)'
 );
 
 -- Refusal c: wait_window_not_allowed (exceeds Space max_wait_window)
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 90)$$,
-  'P0001',
-  'wait_window_not_allowed',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 90)$$),
+  'P0001 wait_window_not_allowed',
   'hold_unit with wait window exceeding space max raises wait_window_not_allowed (Negative N4)'
 );
 
 -- Refusal c: wait_window_not_allowed (null wait window)
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', null)$$,
-  'P0001',
-  'wait_window_not_allowed',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', null)$$),
+  'P0001 wait_window_not_allowed',
   'hold_unit with null wait window raises wait_window_not_allowed (Negative N4)'
 );
 
@@ -968,10 +971,9 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000006', 15)$$,
-  'P0001',
-  'wait_window_past_closing',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000006', 15)$$),
+  'P0001 wait_window_past_closing',
   'hold_unit with wait window past closing raises wait_window_past_closing (Negative N4, D-048)'
 );
 
@@ -991,10 +993,9 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$,
-  'P0001',
-  'unit_not_available',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$),
+  'P0001 unit_not_available',
   'hold_unit on occupied unit raises unit_not_available (Negative N1)'
 );
 
@@ -1025,10 +1026,9 @@ select results_eq(
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
-  'P0001',
-  'unit_not_available',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$),
+  'P0001 unit_not_available',
   'a Seeker cannot hold a unit that is not Available (Negative N1)'
 );
 
@@ -1037,10 +1037,9 @@ select throws_ok(
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$,
-  'P0001',
-  'seeker_has_hold',
+select is(
+  pg_temp.refusal($$select * from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30)$$),
+  'P0001 seeker_has_hold',
   'a Seeker with an active hold cannot hold a second unit (Negative N2)'
 );
 
@@ -1119,10 +1118,9 @@ select throws_ok(
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
-select throws_ok(
-  $$select public.cancel_hold((select id from _seeker1_hold), 'reserved')$$,
-  'P0001',
-  'hold_changed',
+select is(
+  pg_temp.refusal($$select public.cancel_hold((select id from _seeker1_hold), 'reserved')$$),
+  'P0001 hold_changed',
   'a Seeker''s cancel is refused once their hold has changed (Negative N21)'
 );
 
@@ -1158,10 +1156,9 @@ select results_eq(
 );
 
 -- 6. Refusal: hold_ended (cancelling an already ended hold, Negative N11)
-select throws_ok(
-  $$select public.cancel_hold((select id from _seeker1_hold), 'cancelled')$$,
-  'P0001',
-  'hold_ended',
+select is(
+  pg_temp.refusal($$select public.cancel_hold((select id from _seeker1_hold), 'cancelled')$$),
+  'P0001 hold_ended',
   'an ended reservation cannot move again (Negative N11)'
 );
 
@@ -1253,10 +1250,9 @@ set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
 
-select throws_ok(
-  $$select public.cancel_hold('10000000-0000-4000-8000-000000000088', 'occupied')$$,
-  'P0001',
-  'checked_in',
+select is(
+  pg_temp.refusal($$select public.cancel_hold('10000000-0000-4000-8000-000000000088', 'occupied')$$),
+  'P0001 checked_in',
   'cancel_hold on occupied reservation raises checked_in'
 );
 

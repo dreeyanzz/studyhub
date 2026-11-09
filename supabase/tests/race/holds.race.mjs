@@ -20,12 +20,13 @@ const UNIT_U1 = 'f0000000-0000-4000-8000-000000000017'
 const UNIT_U2 = 'f0000000-0000-4000-8000-000000000018'
 const UNIT_U3 = 'f0000000-0000-4000-8000-000000000019'
 
+// Deletes the two Seekers' reservations on U1 to U3 (their payments cascade), so each run
+// starts with the units free and leaves no rows behind on the local stack.
 async function cleanup() {
   await admin`
-    update public.reservations
-    set status = 'cancelled', ended_at = clock_timestamp()
+    delete from public.reservations
     where unit_id in (${UNIT_U1}, ${UNIT_U2}, ${UNIT_U3})
-      and status in ('pending_payment', 'reserved', 'occupied')
+      and seeker_id in (${SEEKER_1}, ${SEEKER_2})
   `
 }
 
