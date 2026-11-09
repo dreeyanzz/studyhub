@@ -10,7 +10,7 @@ import { SeatMapTile } from '@/components/seat-map/seat-map-tile'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { tapOutcome } from '@/lib/occupancy/override'
+import { tapOutcome, toSetUnitStateInput } from '@/lib/occupancy/override'
 import type { SeatMapUnit, SeatMapZone } from '@/lib/seat-map/grid'
 import type { ExpectedReservationStatus, UnitState } from '@/lib/validation/occupancy'
 import { cn } from '@/lib/utils'
@@ -60,16 +60,10 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
   ) => {
     startTransition(async () => {
       try {
-        const result = await setUnitStateAction(space.id, {
-          unitId: unit.id,
-          state: targetState,
-          expectedReservationId: isOverride
-            ? (unit.reservationId ?? undefined)
-            : undefined,
-          expectedReservationStatus: isOverride
-            ? (unit.seatState as ExpectedReservationStatus)
-            : undefined,
+        const payload = toSetUnitStateInput(unit, targetState, {
+          override: isOverride,
         })
+        const result = await setUnitStateAction(space.id, payload)
 
         if (!result.success) {
           setError(result.error)
@@ -86,7 +80,7 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
     })
   }
 
-  const handleStateTap = async (unit: SeatMapUnit, targetState: UnitState) => {
+  const handleStateTap = (unit: SeatMapUnit, targetState: UnitState) => {
     const outcome = tapOutcome(unit.reservationId, unit.seatState, targetState)
 
     // If Seeker hold exists and same state tapped -> no-op (FR-3.2, D-050)
@@ -244,7 +238,7 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
 
       {pendingOverride ? (
         <OverrideWarningDialog
-          open={pendingOverride !== null}
+          open={true}
           onOpenChange={(open) => {
             if (!open && !isPending) {
               setPendingOverride(null)

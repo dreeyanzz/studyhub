@@ -56,10 +56,8 @@ export function OverrideWarningDialog({
           <AlertDialogAction
             variant="destructive"
             disabled={isSubmitting}
-            onClick={(e) => {
-              e.preventDefault()
-              onConfirm()
-            }}
+            focusableWhenDisabled
+            onClick={onConfirm}
           >
             {copy.confirmLabel}
           </AlertDialogAction>
