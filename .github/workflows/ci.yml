@@ -55,6 +55,7 @@ jobs:
           npx supabase start
           -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - run: npm run db:test
+      - run: npm run db:race
       # Every story imports these types, so a stale file would type their code
       # against a schema that no longer exists.
       - name: Generated types match the migrations
