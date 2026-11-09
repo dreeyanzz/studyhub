@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { waitWindowMinutesSchema } from './reservation'
 import { priceTierSchema } from './search'
 
 // 24-hour HH:mm from 00:00 to 23:59, the value an HTML time input submits. Seconds,
@@ -58,6 +59,7 @@ export const spaceSchema = z.object({
     .optional()
     .nullable(),
   priceTier: priceTierSchema.default('budget'),
+  maxWaitWindowMinutes: waitWindowMinutesSchema.default(60),
 })
 
 export type SpaceInput = z.infer<typeof spaceSchema>

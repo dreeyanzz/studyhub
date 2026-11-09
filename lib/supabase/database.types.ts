@@ -435,6 +435,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_hold: {
+        Args: {
+          p_expected_status: Database["public"]["Enums"]["reservation_status"]
+          p_reservation_id: string
+        }
+        Returns: undefined
+      }
+      hold_terms: {
+        Args: { p_space_id: string }
+        Returns: {
+          fee_amount: number
+          is_open: boolean
+          max_wait_window_minutes: number
+          next_closing_at: string
+          payment_window_minutes: number
+          wait_window_minutes: number[]
+        }[]
+      }
+      hold_unit: {
+        Args: { p_unit_id: string; p_wait_window_minutes: number }
+        Returns: {
+          checkout_url: string
+          created: boolean
+          reservation_id: string
+          status: Database["public"]["Enums"]["reservation_status"]
+        }[]
+      }
       my_reservation: {
         Args: { p_reservation_id?: string }
         Returns: {

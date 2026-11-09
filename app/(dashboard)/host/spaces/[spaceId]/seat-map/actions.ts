@@ -105,7 +105,7 @@ export async function createZone(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrName
@@ -191,7 +191,7 @@ export async function renameZone(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -284,7 +284,7 @@ export async function reorderZones(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrOrders
@@ -351,7 +351,7 @@ export async function moveZoneUp(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -443,7 +443,7 @@ export async function moveZoneDown(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -534,7 +534,7 @@ export async function deleteZone(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -570,7 +570,7 @@ export async function deleteZone(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'zone')
+    const mapped = mapPostgresError(error, 'zone', { operation: 'delete' })
     return { ...mapped, values: rawValues }
   }
 
@@ -622,7 +622,7 @@ export async function addUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrZoneId
@@ -710,7 +710,7 @@ export async function updateUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrUnitId
@@ -766,7 +766,22 @@ export async function updateUnit(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'unit')
+    let unitLabel = parsed.data.label
+    if (error.code === 'P0001' && error.hint === 'unit_held') {
+      const { data: originalUnit } = await supabase
+        .from('units')
+        .select('label')
+        .eq('id', parsed.data.unitId)
+        .eq('space_id', parsed.data.spaceId)
+        .maybeSingle()
+      if (originalUnit?.label) {
+        unitLabel = originalUnit.label
+      }
+    }
+    const mapped = mapPostgresError(error, 'unit', {
+      unitLabel,
+      operation: 'update',
+    })
     return { ...mapped, values: rawValues }
   }
 
@@ -811,7 +826,7 @@ export async function moveUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrUnitId
@@ -820,9 +835,9 @@ export async function moveUnit(
   }
 
   let rawValues = getRawValues(payload)
-  const spaceId = (rawValues.spaceId ?? rawValues.space_id) as string | undefined
-  const unitId = (rawValues.unitId ?? rawValues.unit_id) as string | undefined
-  let currentSpan = rawValues.colSpan ?? rawValues.col_span
+  const spaceId = rawValues.spaceId as string | undefined
+  const unitId = rawValues.unitId as string | undefined
+  let currentSpan = rawValues.colSpan
 
   const { supabase, user } = await signedInClient()
 
@@ -853,10 +868,10 @@ export async function moveUnit(
     }
   }
 
-  // Lookup the unit to verify existence and get current col_span if omitted
+  // Lookup the unit to verify existence and get current col_span and label
   const { data: existingUnit, error: unitError } = await supabase
     .from('units')
-    .select('col_span')
+    .select('label, col_span')
     .eq('id', unitIdParsed.data)
     .eq('space_id', spaceIdParsed.data)
     .maybeSingle()
@@ -878,7 +893,7 @@ export async function moveUnit(
       ? (() => {
           const fd = new FormData()
           for (const [k, v] of payload.entries()) fd.append(k, v)
-          if (currentSpan !== undefined && !fd.has('colSpan') && !fd.has('col_span')) {
+          if (currentSpan !== undefined && !fd.has('colSpan')) {
             fd.append('colSpan', String(currentSpan))
           }
           return fd
@@ -899,8 +914,8 @@ export async function moveUnit(
     .from('units')
     .update({
       zone_id: parsed.data.zoneId,
-      grid_row: parsed.data.grid_row,
-      grid_col: parsed.data.grid_col,
+      grid_row: parsed.data.row,
+      grid_col: parsed.data.col,
     })
     .eq('id', parsed.data.unitId)
     .eq('space_id', parsed.data.spaceId)
@@ -908,7 +923,10 @@ export async function moveUnit(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'unit')
+    const mapped = mapPostgresError(error, 'unit', {
+      unitLabel: existingUnit.label,
+      operation: 'update',
+    })
     return { ...mapped, values: rawValues }
   }
 
@@ -940,7 +958,7 @@ export async function deleteUnit(
     !(
       typeof stateOrPayloadOrSpaceId === 'object' &&
       stateOrPayloadOrSpaceId !== null &&
-      ('spaceId' in stateOrPayloadOrSpaceId || 'space_id' in stateOrPayloadOrSpaceId)
+      'spaceId' in stateOrPayloadOrSpaceId
     )
   ) {
     payload = formDataOrUnitId
@@ -976,7 +994,22 @@ export async function deleteUnit(
     .maybeSingle()
 
   if (error) {
-    const mapped = mapPostgresError(error, 'unit')
+    let unitLabel: string | undefined
+    if (error.code === 'P0001' && error.hint === 'unit_held') {
+      const { data: existingUnit } = await supabase
+        .from('units')
+        .select('label')
+        .eq('id', parsed.data.unitId)
+        .eq('space_id', parsed.data.spaceId)
+        .maybeSingle()
+      if (existingUnit?.label) {
+        unitLabel = existingUnit.label
+      }
+    }
+    const mapped = mapPostgresError(error, 'unit', {
+      unitLabel,
+      operation: 'delete',
+    })
     return { ...mapped, values: rawValues }
   }
 

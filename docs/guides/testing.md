@@ -3,12 +3,13 @@
 Tests ride along with the code they test: a feature and its tests land in the same pull
 request.
 
-## Three layers
+## Four layers
 
 | Layer           | Tool       | Where                                | Run                              |
 | --------------- | ---------- | ------------------------------------ | -------------------------------- |
 | Unit            | Vitest     | Next to the code: `lib/**/x.test.ts` | `npm test`                       |
 | Database policy | pgTAP      | `supabase/tests/NN-name.sql`         | `npm run db:test` (local stack)  |
+| Database race   | `postgres` | `supabase/tests/race/x.race.mjs`     | `npm run db:race` (local stack)  |
 | Journey         | Playwright | `e2e/*.spec.ts`                      | `npm run test:e2e` (local stack) |
 
 ## Unit tests (Vitest)
@@ -51,9 +52,19 @@ How a denial shows up depends on the operation:
 - Start each file with `begin; select plan(n);` and end it with `select * from finish(); rollback;`.
 - To act as a user, use `set local role authenticated` together with `set local request.jwt.claims = '{"sub": "<user id>", "role": "authenticated"}'`.
 - The seed users come from `supabase/seed.sql`, which lists each account's fixed id at the top. Act as one by putting its id in `sub`.
+- A function's refusals are told apart by their hint, which `throws_ok` can't see: it checks only the code and the message. Check the hint with a `pg_temp.refusal` helper that returns `'<code> <hint>'`, as `06-host-occupancy.sql` and `07-holds.sql` do.
 
 **Watch a new test fail once before you trust it.** Remove the policy, run the test, see
 it go red, then put the policy back.
+
+## Database race tests
+
+pgTAP runs on one connection, so it can't show two callers at the same moment. A race
+test opens several direct Postgres connections to the local stack, each acting as a
+different user, and holds one transaction open while the other waits on its lock
+(`supabase/tests/race/holds.race.mjs`, FR-2.5). Run `npm run db:race` after
+`npm run db:test`; the CI `db` job runs it in the same order. A race test deletes the rows
+it made, so the local stack keeps only the seed.
 
 ## Journey tests (Playwright)
 

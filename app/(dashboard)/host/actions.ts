@@ -36,6 +36,7 @@ const spaceFields: SpaceField[] = [
   'address',
   'opensAt',
   'closesAt',
+  'maxWaitWindowMinutes',
 ]
 
 function formValues(formData: FormData): SpaceFormValues {
@@ -44,7 +45,7 @@ function formValues(formData: FormData): SpaceFormValues {
   )
 }
 
-// Exactly the five Host-editable columns. id, host_id, status and the timestamps are
+// Exactly the Host-editable columns. id, host_id, status and the timestamps are
 // never sent: the database fills them in, and its column grants refuse them anyway.
 function spaceColumns(space: SpaceInput) {
   return {
@@ -53,6 +54,7 @@ function spaceColumns(space: SpaceInput) {
     address: space.address,
     opens_at: space.opensAt,
     closes_at: space.closesAt,
+    max_wait_window: `${space.maxWaitWindowMinutes} minutes`,
   }
 }
 
@@ -113,6 +115,12 @@ export async function updateSpace(
     .select('id')
     .maybeSingle()
   if (error || !updated) {
+    if (error?.code === 'P0001' && error?.hint === 'hours_cut_hold') {
+      return {
+        formError: "A Seeker's hold runs past these hours. Change them after it ends.",
+        values,
+      }
+    }
     return {
       formError:
         'We could not save this Space. It may no longer exist or you may not have access.',
@@ -129,6 +137,10 @@ export async function updateSpace(
 // D-063).
 const deleteFailed =
   'We could not delete this Space. It may no longer exist or you may not have access.'
+
+// Refusal N17: a Space with an active hold cannot be deleted (STORY-09 design §3, D-052).
+const deleteHeldError =
+  'A unit here has an active hold. End it from the occupancy view, or wait for it to end.'
 
 export async function deleteSpace(
   _state: DeleteSpaceState,
@@ -148,6 +160,16 @@ export async function deleteSpace(
     .eq('host_id', user.id)
     .maybeSingle()
   if (readError || !space) return { formError: deleteFailed }
+
+  // Check for active holds before touching photos (D-052, D-063, STORY-09 design §3).
+  // unit_states records lapses first, and exposes reservation_id strictly to the Space's Host (N25, D-057).
+  const { data: states, error: statesError } = await supabase.rpc('unit_states', {
+    p_space_id: spaceId.data,
+  })
+  if (statesError) return { formError: deleteFailed }
+  if (states && states.some((u) => Boolean(u.reservation_id))) {
+    return { formError: deleteHeldError }
+  }
 
   // The photos go first (D-063): once the row is gone, no storage policy matches
   // them, and the bucket is public. If one won't go, the Space stays. Photos sit one
@@ -176,7 +198,12 @@ export async function deleteSpace(
     .eq('host_id', user.id)
     .select('id')
     .maybeSingle()
-  if (error || !deleted) return { formError: deleteFailed }
+  if (error || !deleted) {
+    if (error?.code === 'P0001' && error?.hint === 'unit_held') {
+      return { formError: deleteHeldError }
+    }
+    return { formError: deleteFailed }
+  }
 
   revalidatePath('/host')
   redirect('/host?notice=deleted')

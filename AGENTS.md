@@ -118,6 +118,7 @@ npm run format         # Prettier, writes changes
 npm run db:start       # local Supabase in Docker (migration writers, and Playwright tests)
 npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
+npm run db:race        # concurrent hold and payment race tests
 npm run db:new <name>  # new migration file
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
