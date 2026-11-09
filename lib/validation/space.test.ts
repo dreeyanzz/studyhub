@@ -9,6 +9,7 @@ const validSpace = {
   opensAt: '07:00',
   closesAt: '22:00',
   priceTier: 'budget' as const,
+  maxWaitWindowMinutes: 60,
 }
 
 // The messages each field would show, as the form reads them.
@@ -227,6 +228,27 @@ describe('spaceSchema', () => {
     expect(spaceSchema.safeParse({ ...validSpace, priceTier: 'luxury' }).success).toBe(
       false,
     )
+
+    // Validates maxWaitWindowMinutes (STORY-09, D-067)
+    const { maxWaitWindowMinutes: _omitted, ...withoutWait } = validSpace
+    const defaulted = spaceSchema.safeParse(withoutWait)
+    expect(defaulted.success).toBe(true)
+    if (defaulted.success) {
+      expect(defaulted.data.maxWaitWindowMinutes).toBe(60)
+    }
+
+    const customWait = spaceSchema.safeParse({
+      ...validSpace,
+      maxWaitWindowMinutes: '45',
+    })
+    expect(customWait.success).toBe(true)
+    if (customWait.success) {
+      expect(customWait.data.maxWaitWindowMinutes).toBe(45)
+    }
+
+    expect(
+      spaceSchema.safeParse({ ...validSpace, maxWaitWindowMinutes: 50 }).success,
+    ).toBe(false)
   })
 })
 

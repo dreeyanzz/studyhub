@@ -5,6 +5,7 @@ import { updateSpace } from '@/app/(dashboard)/host/actions'
 import { SpaceForm } from '@/app/(dashboard)/host/_components/space-form'
 import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
+import { parseIntervalToMinutes } from '@/lib/validation/reservation'
 import { spaceIdSchema } from '@/lib/validation/space'
 
 export const metadata: Metadata = { title: 'Edit Space' }
@@ -32,7 +33,7 @@ export default async function EditSpacePage({
   // Host's Space here either.
   const { data: space } = await supabase
     .from('spaces')
-    .select('id, name, description, address, opens_at, closes_at')
+    .select('id, name, description, address, opens_at, closes_at, max_wait_window')
     .eq('id', spaceId.data)
     .eq('host_id', user.id)
     .maybeSingle()
@@ -61,6 +62,7 @@ export default async function EditSpacePage({
               // Postgres returns HH:mm:ss, and a time input takes HH:mm.
               opensAt: space.opens_at.slice(0, 5),
               closesAt: space.closes_at.slice(0, 5),
+              maxWaitWindowMinutes: String(parseIntervalToMinutes(space.max_wait_window)),
             }}
           />
         </CardContent>
