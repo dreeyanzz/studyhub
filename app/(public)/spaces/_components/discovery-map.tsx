@@ -1,7 +1,7 @@
 'use client'
 
 import type * as LeafletType from 'leaflet'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { PRICE_TIER_LABELS } from '@/components/discovery/price-tier-badge'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 import type { PriceTier } from '@/lib/validation/search'
@@ -67,6 +67,49 @@ function createSvgPin(
   })
 }
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+
+/** Escapes text for HTML, so a Host's name or address can never become markup. */
+export function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch] ?? ch)
+}
+
+/**
+ * The pin popup's HTML. Leaflet inserts it as markup, so every value from the database
+ * is escaped: Hosts write a Space's name and address. Colors are the app's tokens, so the
+ * text meets 4.5:1 (D-031).
+ */
+export function buildPopupHtml(
+  space: Pick<
+    VerifiedSpaceSearchResult,
+    'id' | 'name' | 'address' | 'price_tier' | 'distance_km'
+  >,
+): string {
+  const distance =
+    space.distance_km !== null
+      ? `<div style="font-size: 12px; color: var(--foreground); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
+      : ''
+  return `
+    <div style="font-family: inherit; min-width: 190px; padding: 2px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h4>
+        <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
+      </div>
+      <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
+      ${distance}
+      <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-block; width: 100%; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
+      </div>
+    </div>
+  `
+}
+
 /**
  * DiscoveryMap provides the interactive Leaflet discovery map view (STORY-08, FR-1.1, D-012).
  * Rendered exclusively on the client with dynamic import (ssr: false).
@@ -85,10 +128,14 @@ export default function DiscoveryMap({
   const mapRef = useRef<LeafletType.Map | null>(null)
   const leafletModuleRef = useRef<typeof LeafletType | null>(null)
   const markersRef = useRef<Map<string, LeafletType.Marker>>(new Map())
+  // Leaflet loads asynchronously, after the first render. Setting this once the map
+  // exists re-runs the marker and pan effects, which return early until then.
+  const [mapReady, setMapReady] = useState(false)
 
   // Initialize Leaflet Map once
   useEffect(() => {
     let isMounted = true
+    let resizeObserver: ResizeObserver | null = null
 
     async function initMap() {
       if (!containerRef.current || mapRef.current) return
@@ -110,7 +157,13 @@ export default function DiscoveryMap({
         maxZoom: 19,
       }).addTo(map)
 
+      // On a phone the map starts hidden behind the list (0 × 0), and Leaflet only
+      // measures its container when told to. Re-measure whenever the box changes size.
+      resizeObserver = new ResizeObserver(() => map.invalidateSize())
+      resizeObserver.observe(containerRef.current)
+
       mapRef.current = map
+      setMapReady(true)
     }
 
     void initMap()
@@ -119,6 +172,7 @@ export default function DiscoveryMap({
 
     return () => {
       isMounted = false
+      resizeObserver?.disconnect()
       if (mapRef.current) {
         mapRef.current.remove()
         mapRef.current = null
@@ -162,37 +216,7 @@ export default function DiscoveryMap({
           riseOnHover: true,
         }).addTo(map)
 
-        // Popup template
-        const distanceSnippet =
-          space.distance_km !== null
-            ? `<div style="font-size: 12px; color: #0284c7; font-weight: 600; margin-top: 2px;">${space.distance_km} km away</div>`
-            : ''
-
-        const tierLabel = PRICE_TIER_LABELS[space.price_tier]
-
-        const popupHtml = `
-          <div style="font-family: inherit; min-width: 190px; padding: 2px;">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-              <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; line-height: 1.2;">
-                ${space.name}
-              </h4>
-              <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: #f1f5f9; color: #334155;">
-                ${tierLabel}
-              </span>
-            </div>
-            <div style="font-size: 12px; color: #64748b; margin-top: 4px; line-height: 1.3;">
-              ${space.address}
-            </div>
-            ${distanceSnippet}
-            <div style="margin-top: 10px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
-              <a href="/spaces/${space.id}" style="display: inline-block; width: 100%; text-align: center; background: #0284c7; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">
-                View Space
-              </a>
-            </div>
-          </div>
-        `
-
-        marker.bindPopup(popupHtml, {
+        marker.bindPopup(buildPopupHtml(space), {
           closeButton: true,
           offset: [0, -10],
         })
@@ -221,7 +245,7 @@ export default function DiscoveryMap({
         marker.openPopup()
       }
     }
-  }, [spaces, activeSpaceId, hoveredSpaceId, onSelectSpace, onHoverSpace])
+  }, [mapReady, spaces, activeSpaceId, hoveredSpaceId, onSelectSpace, onHoverSpace])
 
   // Center or pan map when activeSpaceId changes
   useEffect(() => {
@@ -235,7 +259,7 @@ export default function DiscoveryMap({
         duration: 0.5,
       })
     }
-  }, [activeSpaceId, spaces])
+  }, [mapReady, activeSpaceId, spaces])
 
   return (
     <div

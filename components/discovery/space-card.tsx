@@ -55,8 +55,9 @@ export function SpaceCard({
     >
       <div>
         {/* Header: Title + Price Tier */}
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-heading text-lg font-bold tracking-tight text-foreground group-hover:text-primary">
+        {/* Wraps, so at 200% text the badge drops below the name instead of past the edge. */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h3 className="min-w-0 font-heading text-lg font-bold tracking-tight break-words text-foreground group-hover:text-primary">
             <Link
               href={`/spaces/${space.id}`}
               onFocus={() => onHover?.(space.id)}
