@@ -93,10 +93,11 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `components/ui/`
 (STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/occupancy/` (STORY-12's override rules), `lib/seat-map/`
-(STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters),
+(STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
+STORY-11's opening status, freshness and availability),
 `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the generated types),
-`lib/validation/` (the auth, profile, Space, occupancy, seat map and verification
-rules), `scripts/`,
+`lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
+search, tags and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
 test, the form-values test from #146, and STORY-15's space-verification test) and `docs/`. The other route groups and
 `app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts` and

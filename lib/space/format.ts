@@ -16,9 +16,6 @@ export function formatOpeningHours(opensAt: string, closesAt: string): string {
   return `${opens} to ${closes}`
 }
 
-/** Canonical alias matching STORY-11 design §0. */
-export const hoursText = formatOpeningHours
-
 // Assumption: Worq's Spaces are in the Philippines (the seeded ones are in Cebu
 // City), and the server may run in UTC, so times are shown in Philippine time.
 const manilaDateTimeFormat = new Intl.DateTimeFormat('en-PH', {
@@ -50,13 +47,16 @@ function parseHHMM(time: string): number {
   return (h % 24) * 60 + (m % 60)
 }
 
+// Built once, like manilaDateTimeFormat: a results page asks for every Space's status.
+const manilaClockFormat = new Intl.DateTimeFormat('en-PH', {
+  timeZone: 'Asia/Manila',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
 function getManilaMinutes(date: Date): number {
-  const parts = new Intl.DateTimeFormat('en-PH', {
-    timeZone: 'Asia/Manila',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(date)
+  const parts = manilaClockFormat.formatToParts(date)
 
   const hour = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0', 10) % 24
   const minute = parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0', 10) % 60

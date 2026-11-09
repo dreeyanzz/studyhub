@@ -1,13 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import {
-  computeOperatingStatus,
-  formatDateTime,
-  formatOpeningHours,
-  hoursText,
-} from './format'
+import { computeOperatingStatus, formatDateTime, formatOpeningHours } from './format'
 
-describe('formatOpeningHours & hoursText', () => {
+describe('formatOpeningHours', () => {
   it('formats standard daytime hours (D-027)', () => {
     expect(formatOpeningHours('08:00:00', '22:00:00')).toBe('08:00 to 22:00')
     expect(formatOpeningHours('09:30:00', '18:00:00')).toBe('09:30 to 18:00')
@@ -27,10 +22,6 @@ describe('formatOpeningHours & hoursText', () => {
     expect(formatOpeningHours('08:00:45', '22:00:15')).toBe('08:00 to 22:00')
     expect(formatOpeningHours('10:00', '19:00')).toBe('10:00 to 19:00')
   })
-
-  it('provides hoursText as canonical alias matching STORY-11 design', () => {
-    expect(hoursText('08:00', '22:00')).toBe('08:00 to 22:00')
-  })
 })
 
 describe('formatDateTime', () => {
@@ -46,6 +37,7 @@ describe('formatDateTime', () => {
   })
 
   it('handles microsecond ISO timestamps returned by Postgres', () => {
+    // Postgres timestamptz with microseconds
     const isoString = '2026-11-02T10:00:00.123456+00:00'
     expect(formatDateTime(isoString)).toBe('Nov 2, 2026, 18:00')
   })

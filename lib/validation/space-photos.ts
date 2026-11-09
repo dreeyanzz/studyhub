@@ -12,6 +12,8 @@ export const photoFileMetadataSchema = z.object({
     .min(1, { error: 'File name is required' }),
   size: z
     .number({ error: 'File size is required' })
+    .int({ error: 'File size must be a whole number of bytes' })
+    .positive({ error: 'Photo is empty' })
     .max(MAX_PHOTO_FILE_SIZE, { error: 'Photo must be 5 MB or smaller' }),
   type: z
     .string({ error: 'File type is required' })

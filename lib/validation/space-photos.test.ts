@@ -32,6 +32,23 @@ describe('photoFileMetadataSchema', () => {
     }
   })
 
+  it('rejects an empty file, a negative size and a fractional size', () => {
+    const cases: [number, string][] = [
+      [0, 'Photo is empty'],
+      [-1, 'Photo is empty'],
+      [1.5, 'File size must be a whole number of bytes'],
+    ]
+    for (const [size, message] of cases) {
+      const result = photoFileMetadataSchema.safeParse({
+        name: 'x.jpg',
+        size,
+        type: 'image/jpeg',
+      })
+      expect(result.success).toBe(false)
+      if (!result.success) expect(result.error.issues[0]?.message).toBe(message)
+    }
+  })
+
   it('rejects unsupported MIME types (e.g. gif, svg, pdf)', () => {
     const unsupported = ['image/gif', 'image/svg+xml', 'application/pdf', 'text/plain']
     for (const type of unsupported) {
