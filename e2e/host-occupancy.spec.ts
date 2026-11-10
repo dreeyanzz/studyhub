@@ -10,7 +10,6 @@ const databaseUrl =
 
 // Seeded test IDs (supabase/seed.sql)
 const SPACE_ID = 'e0000000-0000-4000-8000-000000000001' // Kapihan Study Hall (verified, host@)
-const OTHER_HOST_SPACE_ID = 'e0000000-0000-4000-8000-000000000003' // Sulok Co-working (host2@)
 
 const UNIT_S1_ID = 'f0000000-0000-4000-8000-000000000001'
 const UNIT_S2_ID = 'f0000000-0000-4000-8000-000000000002'
@@ -184,12 +183,12 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     page,
   }) => {
     await page.goto('/login')
-    await page.getByLabel('Email').fill('otherhost@example.test')
+    await page.getByLabel('Email').fill('host2@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
     await expect(page).toHaveURL(/\/host$/)
 
-    const response = await page.goto(`/host/spaces/${OTHER_HOST_SPACE_ID}/occupancy`)
+    const response = await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
     expect(response?.status()).toBe(404)
   })
 
@@ -288,15 +287,14 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
 
     // Mark unit Occupied directly from list view
     await s1RowControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
-    await expect(
-      page.locator('span').filter({ hasText: 'Occupied' }).first(),
-    ).toBeVisible()
+    const s1Row = page
+      .locator('tr')
+      .filter({ has: page.getByRole('rowheader', { name: 'S1' }) })
+    await expect(s1Row.locator('span').filter({ hasText: 'Occupied' })).toBeVisible()
 
     // Restore back to Available
     await s1RowControls.getByRole('button', { name: 'Mark S1 as Available' }).click()
-    await expect(
-      page.locator('span').filter({ hasText: 'Available' }).first(),
-    ).toBeVisible()
+    await expect(s1Row.locator('span').filter({ hasText: 'Available' })).toBeVisible()
 
     // Toggle back to Seat Map View
     await seatMapToggle.click()
@@ -346,7 +344,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     ).toBeVisible()
 
     // 3. Cancel button dismisses the dialog without mutating the hold
-    const cancelButton = dialog.getByRole('button', { name: 'Cancel' })
+    const cancelButton = dialog.getByRole('button', { name: 'Cancel', exact: true })
     await cancelButton.click()
     await expect(dialog).toHaveCount(0)
     await expect(
