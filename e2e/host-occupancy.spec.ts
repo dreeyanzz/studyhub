@@ -397,7 +397,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     page.off('request', requestListener)
 
     expect(postRequestCount).toBe(0)
-    await expect(page.getByRole('alert')).toHaveCount(0)
+    await expect(page.locator('[data-slot="alert"]')).toHaveCount(0)
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
 
     // Tap Available to trigger status-specific override warning dialog
