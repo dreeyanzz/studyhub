@@ -87,7 +87,7 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/`, STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-04's
+`(public)/` (with STORY-11's Space profile in `spaces/[spaceId]/`), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-04's
 `(dashboard)/seeker/` portal, STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`

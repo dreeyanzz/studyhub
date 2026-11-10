@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { SeatMapZone } from '@/lib/seat-map/grid'
 import SpaceProfilePage, { generateMetadata } from './page'
@@ -57,6 +57,10 @@ vi.mock('@/lib/data/seat-map', () => ({
 
 describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
   beforeEach(() => {
+    // The open/closed badge reads the clock, so pin it to noon in Manila. Without
+    // this, the closed-notice test failed whenever it ran between 01:00 and 02:00.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date('2026-11-11T12:00:00+08:00'))
     mockNotFound.mockClear()
     mockSpace = {
       id: VALID_SPACE_ID,
@@ -89,6 +93,10 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
         ],
       },
     ]
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('returns notFound when spaceId is not a valid UUID', async () => {
@@ -146,14 +154,34 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('123 Colon Street, Cebu City')
     expect(html).toContain('A quiet study haven with premium coffee.')
     expect(html).toContain('Back to search')
+    // Every link back goes to discovery search, which lives at /spaces (STORY-08)
+    expect(html).toContain('href="/spaces"')
+    expect(html).not.toContain('href="/"')
     expect(html).toContain('Open 24 hours')
     // No closed or empty notice
     expect(html).not.toContain('This Space is closed now')
     expect(html).not.toContain('No units are currently Available')
   })
 
+  it('shows no closed notice inside daytime operating hours', async () => {
+    // Noon in Manila (beforeEach) falls inside 08:00 to 22:00
+    mockSpace = {
+      ...mockSpace!,
+      opens_at: '08:00:00',
+      closes_at: '22:00:00',
+    }
+
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('Open now · Closes at 22:00')
+    expect(html).not.toContain('This Space is closed now')
+  })
+
   it('renders closed notice with link to search when space is closed (seeker-space-closed)', async () => {
-    // 01:00 to 02:00 is almost certainly closed during standard daytime / normal hours
+    // Noon in Manila (beforeEach) falls outside 01:00 to 02:00
     mockSpace = {
       ...mockSpace!,
       opens_at: '01:00:00',
@@ -169,8 +197,10 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain(
       'You can review seats and amenities; reservations open during operating hours.',
     )
+    expect(html).toContain('Closed · Opens tomorrow at 01:00')
     expect(html).toContain('Explore other spaces')
     expect(html).toContain('data-testid="seeker-space-closed"')
+    expect(html).not.toContain('href="/"')
   })
 
   it('renders no available units notice when all units are occupied (seeker-profile-no-available-unit)', async () => {
@@ -206,6 +236,7 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('No units are currently Available. Check back later or')
     expect(html).toContain('explore other spaces')
     expect(html).toContain('data-testid="seeker-profile-no-available-unit"')
+    expect(html).not.toContain('href="/"')
   })
 
   describe('generateMetadata', () => {
