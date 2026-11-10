@@ -22,6 +22,25 @@ function getDb() {
 }
 
 /**
+ * Generates a valid 12-character Crockford base32 booking token (D-059).
+ */
+function generateCrockfordToken(): string {
+  const chars = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
+  let token = ''
+  for (let i = 0; i < 12; i++) {
+    token += chars[Math.floor(Math.random() * chars.length)]
+  }
+  return token
+}
+
+/**
+ * Generates an external payment ID for sandbox payments.
+ */
+function generatePaymentId(): string {
+  return `pay_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+/**
  * Resets reservations and host unit states for S1-S3 back to initial seed state.
  */
 async function cleanupOccupancyState() {
@@ -30,7 +49,6 @@ async function cleanupOccupancyState() {
     await sql`
       delete from public.reservations
       where space_id = ${SPACE_ID}
-        and unit_id in (${UNIT_S1_ID}, ${UNIT_S2_ID}, ${UNIT_S3_ID})
     `
     await sql`
       update public.units
@@ -44,7 +62,7 @@ async function cleanupOccupancyState() {
 }
 
 /**
- * Seeds a test reservation with cascading payment for testing override and conflict flows.
+ * Seeds a test reservation with valid constraints for testing override and conflict flows.
  */
 async function createTestReservation(
   unitId: string,
@@ -53,6 +71,7 @@ async function createTestReservation(
 ) {
   const sql = getDb()
   try {
+    const bookingToken = status !== 'pending_payment' ? generateCrockfordToken() : null
     const [res] = await sql`
       insert into public.reservations (
         seeker_id,
@@ -60,6 +79,7 @@ async function createTestReservation(
         unit_id,
         unit_label,
         status,
+        booking_token,
         wait_window,
         payment_window_ends_at,
         wait_window_ends_at
@@ -69,6 +89,7 @@ async function createTestReservation(
         ${unitId},
         ${unitLabel},
         ${status},
+        ${bookingToken},
         interval '30 minutes',
         now() + interval '15 minutes',
         ${status !== 'pending_payment' ? sql`now() + interval '30 minutes'` : null}
@@ -78,16 +99,20 @@ async function createTestReservation(
     if (!res?.id) {
       throw new Error('Failed to insert test reservation')
     }
+
+    const externalPaymentId = status !== 'pending_payment' ? generatePaymentId() : null
     await sql`
       insert into public.payments (
         reservation_id,
         status,
         fee_amount,
+        external_payment_id,
         paid_at
       ) values (
         ${res.id},
         ${status === 'pending_payment' ? 'pending' : 'paid'},
-        50,
+        5000,
+        ${externalPaymentId},
         ${status !== 'pending_payment' ? sql`now()` : null}
       )
     `
@@ -106,10 +131,23 @@ async function mutateReservationStatus(
 ) {
   const sql = getDb()
   try {
+    const bookingToken = generateCrockfordToken()
     await sql`
       update public.reservations
-      set status = ${newStatus}, updated_at = now()
+      set status = ${newStatus},
+          booking_token = ${bookingToken},
+          wait_window_ends_at = now() + interval '30 minutes',
+          updated_at = now()
       where id = ${reservationId}
+    `
+    const externalPaymentId = generatePaymentId()
+    await sql`
+      update public.payments
+      set status = 'paid',
+          external_payment_id = ${externalPaymentId},
+          paid_at = now(),
+          updated_at = now()
+      where reservation_id = ${reservationId}
     `
   } finally {
     await sql.end()
@@ -125,26 +163,28 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await cleanupOccupancyState()
   })
 
-  test('Access control and role isolation (D-032, Negative N13, N24)', async ({
-    page,
-  }) => {
-    // 1. Anonymous visitor is redirected to /login with returnUrl
+  test('Anonymous visitor is redirected to /login with returnUrl', async ({ page }) => {
     await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
-    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fhost$/)
+    await expect(page).toHaveURL(/\/login\?returnUrl=%2Fhost%2Fspaces%2F.*%2Foccupancy/i)
+  })
 
-    // 2. Authenticated Seeker is redirected away to /seeker
+  test('Authenticated Seeker is redirected away to /seeker (D-032)', async ({ page }) => {
+    await page.goto('/login')
     await page.getByLabel('Email').fill('seeker@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
     await expect(page).toHaveURL(/\/seeker$/)
 
+    // Seeker attempts direct navigation to Host occupancy page -> redirected to /seeker
     await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(/\/seeker$/)
+  })
 
-    // 3. Authenticated Host cannot view another Host's space occupancy (N13: 404 notFound)
-    await page.getByRole('button', { name: 'Log out' }).click()
-    await page.goto('/login?returnUrl=%2Fhost')
-    await page.getByLabel('Email').fill('host@example.test')
+  test('Authenticated Host who does not own the space gets 404 (Negative N24)', async ({
+    page,
+  }) => {
+    await page.goto('/login')
+    await page.getByLabel('Email').fill('otherhost@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
     await expect(page).toHaveURL(/\/host$/)
@@ -156,13 +196,14 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
   test('Host marks walk-in as Occupied and performs same-state re-vouch (Moves H2, D-051)', async ({
     page,
   }) => {
-    await page.goto('/login?returnUrl=%2Fhost')
+    await page.goto(
+      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
+    )
     await page.getByLabel('Email').fill('host@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
-    await expect(page).toHaveURL(/\/host$/)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
-    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
     await expect(
       page.getByRole('heading', { level: 1, name: /Kapihan Study Hall Occupancy/i }),
     ).toBeVisible()
@@ -180,34 +221,53 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
       has: page.getByLabel('Occupancy controls for S1'),
     })
     await expect(controlCard).toBeVisible()
-    await expect(controlCard.getByText('Available')).toBeVisible()
+    // Verify status badge and active action button
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Available' }),
+    ).toBeVisible()
+    await expect(
+      controlCard.getByRole('button', { name: 'Mark S1 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
 
     // 2. Mark unit Occupied for a walk-in (Move H2)
     const occupancyControls = controlCard.getByLabel('Occupancy controls for S1')
     await occupancyControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
 
     // No modal appears; unit immediately updates to Occupied
-    await expect(controlCard.getByText('Occupied')).toBeVisible()
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Occupied' }),
+    ).toBeVisible()
+    await expect(
+      controlCard.getByRole('button', { name: 'Mark S1 as Occupied' }),
+    ).toHaveAttribute('aria-pressed', 'true')
     await expect(controlCard.getByText(/Host-updated/i)).toBeVisible()
 
     // 3. Same-state tap on Host-set unit re-vouches freshness (Move H2, D-051)
     await occupancyControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
     // No dialog opens
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect(controlCard.getByText('Occupied')).toBeVisible()
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Occupied' }),
+    ).toBeVisible()
 
     // 4. Reset unit back to Available
     await occupancyControls.getByRole('button', { name: 'Mark S1 as Available' }).click()
-    await expect(controlCard.getByText('Available')).toBeVisible()
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Available' }),
+    ).toBeVisible()
+    await expect(
+      controlCard.getByRole('button', { name: 'Mark S1 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
   })
 
   test('View mode toggling and accessible List View interaction', async ({ page }) => {
-    await page.goto('/login?returnUrl=%2Fhost')
+    await page.goto(
+      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
+    )
     await page.getByLabel('Email').fill('host@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
-
-    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     const seatMapToggle = page.getByRole('button', { name: 'Seat Map View' })
     const listViewToggle = page.getByRole('button', { name: 'List View' })
@@ -228,11 +288,15 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
 
     // Mark unit Occupied directly from list view
     await s1RowControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
-    await expect(page.getByText('Occupied').first()).toBeVisible()
+    await expect(
+      page.locator('span').filter({ hasText: 'Occupied' }).first(),
+    ).toBeVisible()
 
     // Restore back to Available
     await s1RowControls.getByRole('button', { name: 'Mark S1 as Available' }).click()
-    await expect(page.getByText('Available').first()).toBeVisible()
+    await expect(
+      page.locator('span').filter({ hasText: 'Available' }).first(),
+    ).toBeVisible()
 
     // Toggle back to Seat Map View
     await seatMapToggle.click()
@@ -243,12 +307,13 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // Seed an active paid reservation on S2 (reserved)
     await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
 
-    await page.goto('/login?returnUrl=%2Fhost')
+    await page.goto(
+      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
+    )
     await page.getByLabel('Email').fill('host@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
-
-    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     // Select S2 (which is currently held by a Seeker)
     const s2Button = page.getByRole('button', {
@@ -259,7 +324,9 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     const controlCard = page.locator('div[data-slot="card"]').filter({
       has: page.getByLabel('Occupancy controls for S2'),
     })
-    await expect(controlCard.getByText('Reserved')).toBeVisible()
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Reserved' }),
+    ).toBeVisible()
 
     const s2Controls = controlCard.getByLabel('Occupancy controls for S2')
 
@@ -282,7 +349,9 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     const cancelButton = dialog.getByRole('button', { name: 'Cancel' })
     await cancelButton.click()
     await expect(dialog).toHaveCount(0)
-    await expect(controlCard.getByText('Reserved')).toBeVisible()
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Reserved' }),
+    ).toBeVisible()
 
     // 4. Re-open dialog and confirm override (Move R9)
     await s2Controls.getByRole('button', { name: 'Mark S2 as Available' }).click()
@@ -296,7 +365,9 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
 
     // Dialog closes and unit state transitions to Available
     await expect(dialog).toHaveCount(0)
-    await expect(controlCard.getByText('Available')).toBeVisible()
+    await expect(
+      controlCard.locator('span').filter({ hasText: 'Available' }),
+    ).toBeVisible()
   })
 
   test('Conflict alert with one-click refresh on concurrent hold modification (Negative N21)', async ({
@@ -305,12 +376,13 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // Seed an unpaid hold on S3 (pending_payment)
     const resId = await createTestReservation(UNIT_S3_ID, 'S3', 'pending_payment')
 
-    await page.goto('/login?returnUrl=%2Fhost')
+    await page.goto(
+      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
+    )
     await page.getByLabel('Email').fill('host@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
-
-    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     const s3Button = page.getByRole('button', {
       name: /Select S3 .* to manage occupancy/i,
@@ -357,14 +429,15 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // Seed a hold on S2 to verify dialog on mobile viewport
     await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
 
-    await page.goto('/login?returnUrl=%2Fhost')
+    // 1. Mobile viewport: 360 px width
+    await page.setViewportSize({ width: 360, height: 640 })
+    await page.goto(
+      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
+    )
     await page.getByLabel('Email').fill('host@example.test')
     await page.getByLabel('Password').fill(SEED_PASSWORD)
     await page.getByRole('button', { name: 'Log in' }).click()
-
-    // 1. Mobile viewport: 360 px width
-    await page.setViewportSize({ width: 360, height: 640 })
-    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     // Verify document does not horizontally overflow
     const mobileOverflow = await page.evaluate(
