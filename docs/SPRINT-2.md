@@ -301,10 +301,12 @@ stays honest.
 **Done when:** a Host's change shows on the Seeker's side within one refresh; a walk-in
 can be marked Occupied with no reservation; another Host can't change your units.
 
-> **Update, Tue 10 Nov: STORY-12 is done** (#223, #224, #227, #245, #259, #272). A Host
+> **Update, Tue 10 Nov: STORY-12 is done** (#196, #233, #236, #245, #259, #272, #275). A Host
 > sets any unit's state with one tap, marks walk-ins Occupied with no reservation, re-vouches
 > freshness, confirms hold overrides with status-specific consequences, and recovers from
-> concurrent hold modifications with one-click refresh (design §9).
+> concurrent hold modifications with one-click refresh (design §9). A Host state change updates
+> unit availability immediately in the database (`06-host-occupancy.sql`); Seeker-facing UI verification
+> in the browser remains open until STORY-11's Space profile merges.
 
 **Waits for:** STORY-07's tables and actions, and STORY-09's reservations for overriding a
 hold. Build the view with sample data first.

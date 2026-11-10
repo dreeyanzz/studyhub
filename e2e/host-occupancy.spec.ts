@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import postgres from 'postgres'
 
 // The shared seed password for all local test accounts (supabase/seed.sql).
@@ -6,7 +6,9 @@ import postgres from 'postgres'
 const SEED_PASSWORD = 'Worq-demo-2026'
 
 const databaseUrl =
-  process.env.DATABASE_URL || 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+  process.env.DB_URL ||
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
 
 // Seeded test IDs (supabase/seed.sql)
 const SPACE_ID = 'e0000000-0000-4000-8000-000000000001' // Kapihan Study Hall (verified, host@)
@@ -40,7 +42,18 @@ function generatePaymentId(): string {
 }
 
 /**
- * Resets reservations and host unit states for S1-S3 back to initial seed state.
+ * Helper to log in as a specific seeded test user (N4).
+ */
+async function logInAs(page: Page, email: string, returnUrl?: string) {
+  const url = returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/login'
+  await page.goto(url)
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Password').fill(SEED_PASSWORD)
+  await page.getByRole('button', { name: 'Log in' }).click()
+}
+
+/**
+ * Resets reservations and host unit states for S1-S3 back to initial seed state (N2).
  */
 async function cleanupOccupancyState() {
   const sql = getDb()
@@ -48,6 +61,7 @@ async function cleanupOccupancyState() {
     await sql`
       delete from public.reservations
       where space_id = ${SPACE_ID}
+        and unit_id in (${UNIT_S1_ID}, ${UNIT_S2_ID}, ${UNIT_S3_ID})
     `
     await sql`
       update public.units
@@ -61,7 +75,7 @@ async function cleanupOccupancyState() {
 }
 
 /**
- * Seeds a test reservation with valid constraints for testing override and conflict flows.
+ * Seeds a test reservation with valid database constraints for testing override and conflict flows.
  */
 async function createTestReservation(
   unitId: string,
@@ -168,10 +182,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
   })
 
   test('Authenticated Seeker is redirected away to /seeker (D-032)', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByLabel('Email').fill('seeker@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await logInAs(page, 'seeker@example.test')
     await expect(page).toHaveURL(/\/seeker$/)
 
     // Seeker attempts direct navigation to Host occupancy page -> redirected to /seeker
@@ -179,13 +190,10 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await expect(page).toHaveURL(/\/seeker$/)
   })
 
-  test('Authenticated Host who does not own the space gets 404 (Negative N24)', async ({
+  test('Authenticated Host who does not own the space gets 404 (Negative N13)', async ({
     page,
   }) => {
-    await page.goto('/login')
-    await page.getByLabel('Email').fill('host2@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await logInAs(page, 'host2@example.test')
     await expect(page).toHaveURL(/\/host$/)
 
     await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
@@ -196,12 +204,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
   test('Host marks walk-in as Occupied and performs same-state re-vouch (Moves H2, D-051)', async ({
     page,
   }) => {
-    await page.goto(
-      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
-    )
-    await page.getByLabel('Email').fill('host@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     await expect(
@@ -210,63 +213,94 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await expect(page.getByText('Back to Spaces')).toBeVisible()
 
     // 1. Select unit S1 (starts available)
-    const s1Button = page.getByRole('button', {
+    const s1SelectBtn = page.getByRole('button', {
       name: /Select S1 .* to manage occupancy/i,
     })
-    await expect(s1Button).toBeVisible()
-    await s1Button.click()
+    await expect(s1SelectBtn).toBeVisible()
+    await s1SelectBtn.click()
 
-    // Selected Unit Control card appears
-    const controlCard = page.locator('div[data-slot="card"]').filter({
-      has: page.getByLabel('Occupancy controls for S1'),
+    // Selected Unit Control group appears (N1)
+    const s1Controls = page.getByRole('group', { name: 'Occupancy controls for S1' })
+    await expect(s1Controls).toBeVisible()
+
+    const s1AvailableBtn = s1Controls.getByRole('button', {
+      name: 'Mark S1 as Available',
     })
-    await expect(controlCard).toBeVisible()
-    // Verify status badge and active action button
-    await expect(
-      controlCard.locator('span').filter({ hasText: 'Available' }),
-    ).toBeVisible()
-    await expect(
-      controlCard.getByRole('button', { name: 'Mark S1 as Available' }),
-    ).toHaveAttribute('aria-pressed', 'true')
+    const s1OccupiedBtn = s1Controls.getByRole('button', { name: 'Mark S1 as Occupied' })
+
+    // Verify initial status
+    await expect(s1AvailableBtn).toHaveAttribute('aria-pressed', 'true')
+    await expect(s1OccupiedBtn).toHaveAttribute('aria-pressed', 'false')
 
     // 2. Mark unit Occupied for a walk-in (Move H2)
-    const occupancyControls = controlCard.getByLabel('Occupancy controls for S1')
-    await occupancyControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
+    await s1OccupiedBtn.click()
 
     // No modal appears; unit immediately updates to Occupied
-    await expect(
-      controlCard.locator('span').filter({ hasText: 'Occupied' }),
-    ).toBeVisible()
-    await expect(
-      controlCard.getByRole('button', { name: 'Mark S1 as Occupied' }),
-    ).toHaveAttribute('aria-pressed', 'true')
-    await expect(controlCard.getByText(/Host-updated/i)).toBeVisible()
+    await expect(s1OccupiedBtn).toHaveAttribute('aria-pressed', 'true')
+    await expect(s1AvailableBtn).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByText(/Host-updated/i)).toBeVisible()
+
+    // Assert in database that no row was created in public.reservations (S1)
+    const sql = getDb()
+    let initialHostUpdatedAt: string
+    try {
+      const resRows = await sql`
+        select id from public.reservations
+        where space_id = ${SPACE_ID} and unit_id = ${UNIT_S1_ID}
+      `
+      expect(resRows.length).toBe(0)
+
+      const [unitRow] = await sql`
+        select host_updated_at from public.units
+        where space_id = ${SPACE_ID} and id = ${UNIT_S1_ID}
+      `
+      if (!unitRow) {
+        throw new Error('Unit S1 not found in database')
+      }
+      initialHostUpdatedAt = unitRow.host_updated_at
+    } finally {
+      await sql.end()
+    }
 
     // 3. Same-state tap on Host-set unit re-vouches freshness (Move H2, D-051)
-    await occupancyControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
-    // No dialog opens
+    await s1OccupiedBtn.click()
+
+    // No dialog opens; unit remains Occupied
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
-    await expect(
-      controlCard.locator('span').filter({ hasText: 'Occupied' }),
-    ).toBeVisible()
+    await expect(s1OccupiedBtn).toHaveAttribute('aria-pressed', 'true')
+
+    // Verify in database that host_updated_at was updated forward (S1)
+    await expect
+      .poll(async () => {
+        const checkSql = getDb()
+        try {
+          const [updatedRow] = await checkSql`
+            select host_updated_at from public.units
+            where space_id = ${SPACE_ID} and id = ${UNIT_S1_ID}
+          `
+          if (!updatedRow) {
+            throw new Error('Unit S1 not found during poll')
+          }
+          return new Date(updatedRow.host_updated_at).getTime()
+        } finally {
+          await checkSql.end()
+        }
+      })
+      .toBeGreaterThan(new Date(initialHostUpdatedAt).getTime())
 
     // 4. Reset unit back to Available
-    await occupancyControls.getByRole('button', { name: 'Mark S1 as Available' }).click()
-    await expect(
-      controlCard.locator('span').filter({ hasText: 'Available' }),
-    ).toBeVisible()
-    await expect(
-      controlCard.getByRole('button', { name: 'Mark S1 as Available' }),
-    ).toHaveAttribute('aria-pressed', 'true')
+    await s1AvailableBtn.click()
+    await expect(s1AvailableBtn).toHaveAttribute('aria-pressed', 'true')
+    await expect(s1OccupiedBtn).toHaveAttribute('aria-pressed', 'false')
   })
 
-  test('View mode toggling and accessible List View interaction', async ({ page }) => {
-    await page.goto(
-      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
-    )
-    await page.getByLabel('Email').fill('host@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+  test('View mode toggling and accessible List View interaction with keyboard support (D-031)', async ({
+    page,
+  }) => {
+    // Seed an active hold on S2 so it has an interactive confirmation dialog
+    await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
+
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     const seatMapToggle = page.getByRole('button', { name: 'Seat Map View' })
@@ -280,62 +314,96 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await expect(listViewToggle).toHaveAttribute('aria-pressed', 'true')
     await expect(seatMapToggle).toHaveAttribute('aria-pressed', 'false')
 
-    // In List View, unit controls for S1 are present in the table/list
-    const s1RowControls = page
-      .getByLabel('Occupancy controls for S1')
+    // In List View, unit controls for S1 and S2 are present
+    const s1ListControls = page
+      .getByRole('group', { name: 'Occupancy controls for S1' })
       .filter({ visible: true })
-    await expect(s1RowControls).toBeVisible()
+    await expect(s1ListControls).toBeVisible()
 
-    // Mark unit Occupied directly from list view
-    await s1RowControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
-    const s1Row = page
-      .locator('tr')
-      .filter({ has: page.getByRole('rowheader', { name: 'S1' }) })
-    await expect(s1Row.locator('span').filter({ hasText: 'Occupied' })).toBeVisible()
+    // Mark S1 Occupied directly from list view
+    await s1ListControls.getByRole('button', { name: 'Mark S1 as Occupied' }).click()
+    await expect(
+      s1ListControls.getByRole('button', { name: 'Mark S1 as Occupied' }),
+    ).toHaveAttribute('aria-pressed', 'true')
 
-    // Restore back to Available
-    await s1RowControls.getByRole('button', { name: 'Mark S1 as Available' }).click()
-    await expect(s1Row.locator('span').filter({ hasText: 'Available' })).toBeVisible()
+    // Restore S1 back to Available
+    await s1ListControls.getByRole('button', { name: 'Mark S1 as Available' }).click()
+    await expect(
+      s1ListControls.getByRole('button', { name: 'Mark S1 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    // Keyboard navigation in List View (S3):
+    // Focus the 'Mark S2 as Available' pill and trigger override confirmation via Enter key
+    const s2AvailablePill = page
+      .getByRole('group', { name: 'Occupancy controls for S2' })
+      .filter({ visible: true })
+      .getByRole('button', { name: 'Mark S2 as Available' })
+
+    await s2AvailablePill.focus()
+    await expect(s2AvailablePill).toBeFocused()
+    await page.keyboard.press('Enter')
+
+    // Dialog opens with initial focus on Cancel
+    const dialog = page.getByRole('alertdialog')
+    await expect(dialog).toBeVisible()
+    const cancelButton = dialog.getByRole('button', { name: 'Cancel', exact: true })
+    await expect(cancelButton).toBeFocused()
+
+    // Press Escape to dismiss dialog; focus returns to the pill (S3)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toHaveCount(0)
+    await expect(s2AvailablePill).toBeFocused()
 
     // Toggle back to Seat Map View
     await seatMapToggle.click()
     await expect(seatMapToggle).toHaveAttribute('aria-pressed', 'true')
   })
 
-  test('Override active hold warning dialog (Moves R5, R9, D-050)', async ({ page }) => {
-    // Seed an active paid reservation on S2 (reserved)
-    await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
+  test('Override active hold warning dialog on pending, reserved, and occupied units (Moves R5, R9, R11, D-050)', async ({
+    page,
+  }) => {
+    // Seed all 3 statuses across S1, S2, S3 (S2)
+    const resIdS1 = await createTestReservation(UNIT_S1_ID, 'S1', 'pending_payment')
+    const resIdS2 = await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
+    const resIdS3 = await createTestReservation(UNIT_S3_ID, 'S3', 'occupied')
 
-    await page.goto(
-      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
-    )
-    await page.getByLabel('Email').fill('host@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
-    // Select S2 (which is currently held by a Seeker)
-    const s2Button = page.getByRole('button', {
+    // ==========================================
+    // 1. Unit S2: 'reserved' status (Move R9)
+    // ==========================================
+    const s2SelectBtn = page.getByRole('button', {
       name: /Select S2 .* to manage occupancy/i,
     })
-    await s2Button.click()
+    await s2SelectBtn.click()
 
-    const controlCard = page.locator('div[data-slot="card"]').filter({
-      has: page.getByLabel('Occupancy controls for S2'),
-    })
+    const s2Controls = page.getByRole('group', { name: 'Occupancy controls for S2' })
+    await expect(s2Controls).toBeVisible()
     await expect(
-      controlCard.locator('span').filter({ hasText: 'Reserved' }),
-    ).toBeVisible()
+      s2Controls.getByRole('button', { name: 'Mark S2 as Reserved' }),
+    ).toHaveAttribute('aria-pressed', 'true')
 
-    const s2Controls = controlCard.getByLabel('Occupancy controls for S2')
+    // Same-state tap on a Seeker-held unit is a no-op (S1):
+    // verify no Server Action network mutation request is dispatched and no alert appears
+    let postRequestCount = 0
+    const requestListener = (req: { method: () => string }) => {
+      if (req.method() === 'POST') {
+        postRequestCount++
+      }
+    }
+    page.on('request', requestListener)
 
-    // 1. Same-state tap on a Seeker-held unit is a no-op (no modal, no mutation)
     await s2Controls.getByRole('button', { name: 'Mark S2 as Reserved' }).click()
+    await page.waitForTimeout(300)
+    page.off('request', requestListener)
+
+    expect(postRequestCount).toBe(0)
+    await expect(page.getByRole('alert')).toHaveCount(0)
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
 
-    // 2. Different-state tap opens the status-specific override warning dialog
+    // Tap Available to trigger status-specific override warning dialog
     await s2Controls.getByRole('button', { name: 'Mark S2 as Available' }).click()
-
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toBeVisible()
     await expect(dialog.getByText('Override active hold?')).toBeVisible()
@@ -344,29 +412,118 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
       dialog.getByText(/The Seeker has already paid for this hold.*cancel their hold/i),
     ).toBeVisible()
 
-    // 3. Cancel button dismisses the dialog without mutating the hold
-    const cancelButton = dialog.getByRole('button', { name: 'Cancel', exact: true })
-    await cancelButton.click()
+    // Cancel dismisses without mutating
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
     await expect(dialog).toHaveCount(0)
     await expect(
-      controlCard.locator('span').filter({ hasText: 'Reserved' }),
-    ).toBeVisible()
+      s2Controls.getByRole('button', { name: 'Mark S2 as Reserved' }),
+    ).toHaveAttribute('aria-pressed', 'true')
 
-    // 4. Re-open dialog and confirm override (Move R9)
+    // Confirm override for reserved hold (Move R9)
     await s2Controls.getByRole('button', { name: 'Mark S2 as Available' }).click()
     await expect(dialog).toBeVisible()
-
-    const confirmButton = dialog.getByRole('button', {
-      name: 'Cancel hold and mark Available',
-    })
-    await expect(confirmButton).toBeVisible()
-    await confirmButton.click()
-
-    // Dialog closes and unit state transitions to Available
+    await dialog.getByRole('button', { name: 'Cancel hold and mark Available' }).click()
     await expect(dialog).toHaveCount(0)
     await expect(
-      controlCard.locator('span').filter({ hasText: 'Available' }),
+      s2Controls.getByRole('button', { name: 'Mark S2 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    // Database verification for R9: hold cancelled, payment paid (S2)
+    const sql = getDb()
+    try {
+      const [resR9] = await sql`
+        select status from public.reservations where id = ${resIdS2}
+      `
+      const [payR9] = await sql`
+        select status from public.payments where reservation_id = ${resIdS2}
+      `
+      expect(resR9?.status).toBe('cancelled')
+      expect(payR9?.status).toBe('paid')
+    } finally {
+      await sql.end()
+    }
+
+    // ==========================================
+    // 2. Unit S1: 'pending_payment' status (Move R5)
+    // ==========================================
+    const s1SelectBtn = page.getByRole('button', {
+      name: /Select S1 .* to manage occupancy/i,
+    })
+    await s1SelectBtn.click()
+
+    const s1Controls = page.getByRole('group', { name: 'Occupancy controls for S1' })
+    await expect(s1Controls).toBeVisible()
+
+    await s1Controls.getByRole('button', { name: 'Mark S1 as Available' }).click()
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByText('Override active hold?')).toBeVisible()
+    await expect(dialog.getByText('Unit: S1')).toBeVisible()
+    await expect(dialog.getByText(/unpaid hold.*cancel the Seeker's hold/i)).toBeVisible()
+
+    await dialog.getByRole('button', { name: 'Cancel hold and mark Available' }).click()
+    await expect(dialog).toHaveCount(0)
+    await expect(
+      s1Controls.getByRole('button', { name: 'Mark S1 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    // Database verification for R5: hold cancelled, payment pending (S2)
+    const sqlR5 = getDb()
+    try {
+      const [resR5] = await sqlR5`
+        select status from public.reservations where id = ${resIdS1}
+      `
+      const [payR5] = await sqlR5`
+        select status from public.payments where reservation_id = ${resIdS1}
+      `
+      expect(resR5?.status).toBe('cancelled')
+      expect(payR5?.status).toBe('pending')
+    } finally {
+      await sqlR5.end()
+    }
+
+    // ==========================================
+    // 3. Unit S3: 'occupied' status (Move R11)
+    // ==========================================
+    const s3SelectBtn = page.getByRole('button', {
+      name: /Select S3 .* to manage occupancy/i,
+    })
+    await s3SelectBtn.click()
+
+    const s3Controls = page.getByRole('group', { name: 'Occupancy controls for S3' })
+    await expect(s3Controls).toBeVisible()
+    await expect(
+      s3Controls.getByRole('button', { name: 'Mark S3 as Occupied' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    await s3Controls.getByRole('button', { name: 'Mark S3 as Available' }).click()
+    await expect(dialog).toBeVisible()
+    // Occupied visit override uses the specific "End this visit?" title (R11)
+    await expect(dialog.getByText('End this visit?')).toBeVisible()
+    await expect(dialog.getByText('Unit: S3')).toBeVisible()
+    await expect(
+      dialog.getByText(/checked in at this unit.*end their visit/i),
     ).toBeVisible()
+
+    await dialog.getByRole('button', { name: 'End visit and mark Available' }).click()
+    await expect(dialog).toHaveCount(0)
+    await expect(
+      s3Controls.getByRole('button', { name: 'Mark S3 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    // Database verification for R11: visit completed, payment paid (S2)
+    const sqlR11 = getDb()
+    try {
+      const [resR11] = await sqlR11`
+        select status from public.reservations where id = ${resIdS3}
+      `
+      const [payR11] = await sqlR11`
+        select status from public.payments where reservation_id = ${resIdS3}
+      `
+      expect(resR11?.status).toBe('completed')
+      expect(payR11?.status).toBe('paid')
+    } finally {
+      await sqlR11.end()
+    }
   })
 
   test('Conflict alert with one-click refresh on concurrent hold modification (Negative N21)', async ({
@@ -375,12 +532,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // Seed an unpaid hold on S3 (pending_payment)
     const resId = await createTestReservation(UNIT_S3_ID, 'S3', 'pending_payment')
 
-    await page.goto(
-      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
-    )
-    await page.getByLabel('Email').fill('host@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
     const s3Button = page.getByRole('button', {
@@ -388,10 +540,8 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     })
     await s3Button.click()
 
-    const controlCard = page.locator('div[data-slot="card"]').filter({
-      has: page.getByLabel('Occupancy controls for S3'),
-    })
-    const s3Controls = controlCard.getByLabel('Occupancy controls for S3')
+    const s3Controls = page.getByRole('group', { name: 'Occupancy controls for S3' })
+    await expect(s3Controls).toBeVisible()
 
     // Host clicks Available to open confirmation dialog
     await s3Controls.getByRole('button', { name: 'Mark S3 as Available' }).click()
@@ -422,51 +572,57 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await expect(conflictAlert).toHaveCount(0)
   })
 
-  test('Responsive viewports and keyboard navigation (360, 768, 1024 px, D-031)', async ({
+  test('Responsive viewports and 200% text scaling (360, 768, 1024 px, D-031)', async ({
     page,
   }) => {
     // Seed a hold on S2 to verify dialog on mobile viewport
     await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
 
-    // 1. Mobile viewport: 360 px width
+    // 1. Mobile viewport: 360 px width with 200% text scaling (#272, S1)
     await page.setViewportSize({ width: 360, height: 640 })
-    await page.goto(
-      `/login?returnUrl=${encodeURIComponent(`/host/spaces/${SPACE_ID}/occupancy`)}`,
-    )
-    await page.getByLabel('Email').fill('host@example.test')
-    await page.getByLabel('Password').fill(SEED_PASSWORD)
-    await page.getByRole('button', { name: 'Log in' }).click()
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
 
-    // Verify document does not horizontally overflow
+    // Set root font size to 200% (S1)
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '200%'
+    })
+
+    // Verify document does not horizontally overflow at 360 px / 200% font size
     const mobileOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     )
     expect(mobileOverflow).toBe(true)
 
-    // Select S2 and open dialog at 360 px
+    // Select S2 and open dialog at 360 px / 200% text
     const s2Button = page.getByRole('button', {
       name: /Select S2 .* to manage occupancy/i,
     })
     await s2Button.click()
-    const controlCard = page.locator('div[data-slot="card"]').filter({
-      has: page.getByLabel('Occupancy controls for S2'),
-    })
-    await controlCard
-      .getByLabel('Occupancy controls for S2')
-      .getByRole('button', { name: 'Mark S2 as Available' })
-      .click()
+    const s2Controls = page.getByRole('group', { name: 'Occupancy controls for S2' })
+    await s2Controls.getByRole('button', { name: 'Mark S2 as Available' }).click()
 
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toBeVisible()
 
-    // Check dialog fits within viewport
+    // Verify all four sides of dialog box remain within the 360x640 viewport (S1)
     const dialogBox = await dialog.boundingBox()
-    expect(dialogBox?.width).toBeLessThanOrEqual(360)
+    expect(dialogBox).not.toBeNull()
+    if (dialogBox) {
+      expect(dialogBox.x).toBeGreaterThanOrEqual(0)
+      expect(dialogBox.y).toBeGreaterThanOrEqual(0)
+      expect(dialogBox.x + dialogBox.width).toBeLessThanOrEqual(360)
+      expect(dialogBox.y + dialogBox.height).toBeLessThanOrEqual(640)
+    }
 
-    // Keyboard navigation: Escape closes dialog and returns focus
+    // Dismiss dialog
     await page.keyboard.press('Escape')
     await expect(dialog).toHaveCount(0)
+
+    // Reset font size for standard viewport testing
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '100%'
+    })
 
     // 2. Tablet viewport: 768 px width
     await page.setViewportSize({ width: 768, height: 1024 })

@@ -99,7 +99,7 @@ STORY-11's opening status, freshness and availability),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
 search, tags, reservation and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, the form-values test from #146, and STORY-15's space-verification test) and `docs/`. The other route groups and
+test, the form-values test from #146, STORY-15's space-verification test, and STORY-12's host-occupancy test) and `docs/`. The other route groups and
 `app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts` and
 `lib/data/` arrive with the stories that need them.
 
