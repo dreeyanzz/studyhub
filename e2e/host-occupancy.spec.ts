@@ -188,8 +188,9 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await page.getByRole('button', { name: 'Log in' }).click()
     await expect(page).toHaveURL(/\/host$/)
 
-    const response = await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
-    expect(response?.status()).toBe(404)
+    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page.getByText(/404|not found/i).first()).toBeVisible()
+    await expect(page.getByText('Kapihan Study Hall Occupancy')).toHaveCount(0)
   })
 
   test('Host marks walk-in as Occupied and performs same-state re-vouch (Moves H2, D-051)', async ({
