@@ -26,7 +26,8 @@ functions, concurrency races, and what the Seeker sees upon returning to Worq.
   database operations occur.
 - **Atomic payment confirmation (`public.confirm_payment`):** Invoked exclusively by the
   secret key (`service_role`, N7) to transition the reservation and payment in one transaction.
-  It records lapses first, then locks rows in strict order (units → reservations → payments, D-047).
+  It locks the unit, records its lapses, then locks the reservation and the payment, in strict order
+  (units → reservations → payments, D-047).
 - **Successful confirmation (Move R2):** Transitioning `pending_payment` → `reserved` and
   `pending` → `paid`, generating a single booking token in the check-in flow's format, and
   starting the wait window (`wait_window_ends_at` is the confirmation's time plus `reservations.wait_window`).
@@ -126,7 +127,7 @@ sequenceDiagram
                     DB-->>WH: Error, nothing committed
                     WH-->>PM: 500, so PayMongo delivers it again
                 else Database answers
-                    Note over DB: Records lapses first (D-047)<br/>Lock units -> reservations -> payments<br/>Reservation pending_payment, payment pending:<br/>reservation -> reserved<br/>payment -> paid<br/>1 booking token (check-in flow)<br/>wait_window_ends_at = confirmation time + wait_window
+                    Note over DB: Lock the unit, then record its lapses (D-047)<br/>Lock the reservation, then the payment<br/>Reservation pending_payment, payment pending:<br/>reservation -> reserved<br/>payment -> paid<br/>1 booking token (check-in flow)<br/>wait_window_ends_at = confirmation time + wait_window
                     DB-->>WH: outcome='confirmed', reservation_status='reserved'
                     WH-->>PM: 200 OK, with a JSON body
                 end
@@ -178,7 +179,7 @@ sequenceDiagram
     PM->>WH: POST /api/webhooks/paymongo (checkout_session.payment.paid)
     WH->>WH: Verify signature (Valid)
     WH->>DB: public.confirm_payment(p_reservation_id, ...) [Secret Key]
-    Note over DB: Lapse step runs first: reservation -> expired [Move R3], unless another call already did<br/>Lock rows<br/>Current reservation status: 'expired'<br/>Move P2 executes:<br/>payment: pending -> paid<br/>reservation remains 'expired' (no resurrection)<br/>Left for an Administrator's refund (Sprint 3 STORY-14)
+    Note over DB: Lock the unit, then the lapse step: reservation -> expired [Move R3], unless another call already did<br/>Lock the reservation, then the payment<br/>Current reservation status: 'expired'<br/>Move P2 executes:<br/>payment: pending -> paid<br/>reservation remains 'expired' (no resurrection)<br/>Left for an Administrator's refund (Sprint 3 STORY-14)
     DB-->>WH: outcome='late_payment', reservation_status='expired', payment_status='paid'
     WH-->>PM: 200 OK, with a JSON body
 
@@ -371,11 +372,11 @@ Behavioral guarantees:
    - Revoked from `public`, `anon`, and `authenticated`. Granted solely to `service_role`.
 2. **Unknown Reservation:**
    - If no reservation has that id, it changes nothing and returns `{"outcome": "not_found"}`.
-3. **Records Lapses First (D-047):**
-   - It reads the reservation's `unit_id` without a lock, then calls `private.record_lapses` for that unit, so a payment window that has passed reads `expired`, not `pending_payment` (W18).
+3. **Records Lapses Under the Unit's Lock (D-047):**
+   - It reads the reservation's `unit_id` without a lock, locks that unit, then calls `private.record_lapses` for it, so a payment window that has passed reads `expired`, not `pending_payment` (W18). That holds for a window that passed while the call waited for the unit's lock, as behind a Host's tap, so a late payment never reserves. The check-in flow's `check_in` locks and records in the same order.
    - An ended reservation whose unit was deleted has a null `unit_id` (D-052), so there is nothing to record and no unit to lock (W20).
 4. **Deterministic Locking Order (D-047):**
-   - Locks the associated unit row first (`SELECT id FROM public.units WHERE id = ... FOR UPDATE`).
+   - Locks the associated unit row first (`SELECT id FROM public.units WHERE id = ... FOR UPDATE`), before step 3 records its lapses.
    - Locks the reservation row second (`SELECT id, status FROM public.reservations WHERE id = ... FOR UPDATE`).
    - Locks the payment row third (`SELECT id, status FROM public.payments WHERE reservation_id = ... FOR UPDATE`).
 5. **Only a Pending Payment Moves:**
@@ -416,7 +417,7 @@ public.attach_checkout_session(
    - Declared `security definer set search_path = ''`.
    - Revoked from `public`, `anon`, and `authenticated`. Granted to `authenticated` only (N24).
    - Refuses with `42501` unless the caller is the hold's Seeker (W16). A Seeker calling it directly can only change the checkout of their own unpaid hold.
-2. **Lapses and Locks:** It records lapses first, then locks in the same order as `confirm_payment` (D-047).
+2. **Lapses and Locks:** Like `confirm_payment`, it locks the unit, records its lapses, then locks the reservation and the payment (D-047).
 3. **Hold Ended:** Unless the reservation is `pending_payment` and its payment `pending`, it refuses with `P0001`, hint `hold_ended` (W17). The Server Action then expires the session it just made, and tells the Seeker the hold ended.
 4. **First Attach Wins:**
    - If `payments.checkout_session_id` is null, it stores the session id and URL, and returns `{"attached": true, "checkout_url": ...}`.
@@ -479,6 +480,8 @@ Any other status (`occupied`, `completed`, `no_show`) redirects to `/seeker`, wh
   _Rejected:_ Indefinite timestamp tolerance (vulnerable to replay attacks) and standard string equality `===` (vulnerable to timing attacks).
 - **Deterministic transaction lock ordering (D-047):** Chose ordering locks units → reservations → payments.
   _Rejected:_ Unordered or reverse row locking, which causes Postgres deadlocks during concurrent webhook and cancellation transactions.
+- **Recording lapses under the unit's lock:** Chose to lock the unit before `private.record_lapses` runs in `confirm_payment` and `attach_checkout_session`, as `check_in` does, so a payment window that passes while the call waits for the lock still counts (W18). STORY-09's race test proves it: its webhook waits behind another lock on the unit until the window has passed, and the payment stays late.
+  _Rejected:_ Recording lapses before taking the lock, as this flow first had it: a webhook waiting behind a Host's tap would then reserve a hold whose window had passed. Recording lapses again after the locks would also work, but it runs the lapse step twice.
 - **Return URL polling over server push:** Chose client-side short polling and Server Action revalidation on `/seeker/reservations/[id]/confirmation`.
   _Rejected:_ WebSocket or SSE connections, which require persistent server state not suited for Vercel serverless.
 

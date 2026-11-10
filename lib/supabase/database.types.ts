@@ -435,12 +435,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      attach_checkout_session: {
+        Args: {
+          p_checkout_session_id: string
+          p_checkout_url: string
+          p_reservation_id: string
+        }
+        Returns: Json
+      }
       cancel_hold: {
         Args: {
           p_expected_status: Database["public"]["Enums"]["reservation_status"]
           p_reservation_id: string
         }
         Returns: undefined
+      }
+      confirm_payment: {
+        Args: {
+          p_checkout_session_id: string
+          p_external_payment_id: string
+          p_reservation_id: string
+        }
+        Returns: Json
       }
       hold_terms: {
         Args: { p_space_id: string }
