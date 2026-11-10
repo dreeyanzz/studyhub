@@ -3,14 +3,45 @@
 // export only async functions: Next refuses to build one that exports anything else
 // once a Client Component imports it (TSK-07.6).
 
+export interface MapPostgresErrorOptions {
+  unitLabel?: string
+  operation?: 'create' | 'update' | 'delete'
+}
+
 /**
- * Maps PostgreSQL error codes from constraint violations and RLS refusals to
- * user-friendly error messages (STORY-07 design §1 sequence diagram).
+ * Maps PostgreSQL error codes from constraint violations, RLS refusals, and STORY-09
+ * hold refusal triggers to user-friendly error messages (STORY-07 design §1, STORY-09 design §3).
  */
 export function mapPostgresError(
-  error: { code?: string; message?: string },
+  error: { code?: string; message?: string; hint?: string },
   context: 'unit' | 'zone' = 'unit',
+  options?: MapPostgresErrorOptions,
 ): { formError: string; fieldErrors?: Record<string, string[]> } {
+  if (error.code === 'P0001') {
+    if (error.hint === 'unit_held') {
+      if (context === 'zone') {
+        return {
+          formError:
+            'A unit here has an active hold. End it from the occupancy view, or wait for it to end.',
+        }
+      }
+      const label = options?.unitLabel?.trim() || 'This unit'
+      if (options?.operation === 'delete') {
+        return {
+          formError: `${label} has an active hold. End it from the occupancy view, or wait for it to end.`,
+        }
+      }
+      return {
+        formError: `${label} has an active hold, so its label, type and place can't change until the hold ends.`,
+      }
+    }
+    if (error.hint === 'hours_cut_hold') {
+      return {
+        formError: "A Seeker's hold runs past these hours. Change them after it ends.",
+      }
+    }
+  }
+
   switch (error.code) {
     case '23P01':
       // Exclusion violation: overlapping cells on the snap grid

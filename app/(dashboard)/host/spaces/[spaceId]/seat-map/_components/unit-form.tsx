@@ -73,9 +73,7 @@ export function UnitForm(props: UnitFormProps) {
   const submittedType =
     typeof state.values?.unitType === 'string'
       ? (state.values.unitType as UnitType)
-      : typeof state.values?.unit_type === 'string'
-        ? (state.values.unit_type as UnitType)
-        : undefined
+      : undefined
   const [userType, setUserType] = useState<UnitType | null>(null)
   const unitType: UnitType =
     userType ??

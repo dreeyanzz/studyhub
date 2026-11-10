@@ -186,7 +186,7 @@ function roomIndexToLetters(index: number): string {
  */
 export function nextSuggestedLabel(
   existingLabelsOrUnits?: Iterable<string | { label?: string }> | null,
-  unitType: UnitType | string = 'seat',
+  unitType: UnitType = 'seat',
 ): string {
   const taken = new Set<string>()
   if (existingLabelsOrUnits) {
@@ -199,22 +199,11 @@ export function nextSuggestedLabel(
     }
   }
 
-  const normalizedType =
+  const normalized = (
     typeof unitType === 'string' ? unitType.trim().toLowerCase() : 'seat'
+  ) as UnitType
 
-  if (normalizedType === 'seat') {
-    let n = 1
-    while (taken.has(`s${n}`)) {
-      n++
-    }
-    return `S${n}`
-  }
-
-  if (
-    normalizedType === 'standing_desk' ||
-    normalizedType === 'standingdesk' ||
-    normalizedType === 'desk'
-  ) {
+  if (normalized === 'standing_desk') {
     let n = 1
     while (taken.has(`d${n}`)) {
       n++
@@ -222,7 +211,7 @@ export function nextSuggestedLabel(
     return `D${n}`
   }
 
-  if (normalizedType === 'room') {
+  if (normalized === 'room') {
     let n = 1
     while (taken.has(`room ${roomIndexToLetters(n).toLowerCase()}`)) {
       n++
@@ -231,10 +220,10 @@ export function nextSuggestedLabel(
   }
 
   let n = 1
-  while (taken.has(`u${n}`)) {
+  while (taken.has(`s${n}`)) {
     n++
   }
-  return `U${n}`
+  return `S${n}`
 }
 
 /**

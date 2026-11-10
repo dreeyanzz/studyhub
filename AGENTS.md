@@ -91,12 +91,13 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `(dashboard)/seeker/` portal, STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
-(STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
+(STORY-02's six primitives and STORY-12's `alert-dialog`), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/occupancy/` (STORY-12's override rules), `lib/seat-map/`
-(STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters),
+(STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
+STORY-11's opening status, freshness and availability),
 `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts` and the generated types),
-`lib/validation/` (the auth, profile, Space, occupancy, seat map and verification
-rules), `scripts/`,
+`lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
+search, tags, reservation and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
 test, the form-values test from #146, and STORY-15's space-verification test) and `docs/`. The other route groups and
 `app/api/` routes, `components/<domain>/`, `hooks/`, `lib/supabase/admin.ts` and
@@ -117,6 +118,7 @@ npm run format         # Prettier, writes changes
 npm run db:start       # local Supabase in Docker (migration writers, and Playwright tests)
 npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
+npm run db:race        # concurrent hold and payment race tests
 npm run db:new <name>  # new migration file
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
