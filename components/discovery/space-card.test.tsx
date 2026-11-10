@@ -25,6 +25,7 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
   it('renders space details, price tier badge, distance, and tags', () => {
     const html = renderToStaticMarkup(<SpaceCard space={mockSpace} />)
 
+    expect(html).toContain('<h2')
     expect(html).toContain('Quiet Nook Cafe')
     expect(html).toContain('123 Gorordo Ave, Cebu City')
     expect(html).toContain('0.8 km away')

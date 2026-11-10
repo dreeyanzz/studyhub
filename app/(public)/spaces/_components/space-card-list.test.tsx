@@ -64,6 +64,9 @@ describe('SpaceCardList component (STORY-08, FR-1.1, D-003)', () => {
       />,
     )
 
+    expect(html).toContain('0 study spaces found')
+    expect(html).toContain('aria-live="polite"')
+    expect(html).toContain('<h2')
     expect(html).toContain('No study spaces found')
     expect(html).toContain('Reset all filters')
     expect(html).toContain('space-card-list-empty')

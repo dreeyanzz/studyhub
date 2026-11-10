@@ -49,7 +49,7 @@ function createSvgPin(
   const zIndex = isActive ? 1000 : isHovered ? 900 : 500
 
   const svg = `
-    <div style="transform: scale(${scale}); transform-origin: 50% 100%; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; flex-direction: column; align-items: center;">
+    <div style="width: 48px; height: 48px; transform: scale(${scale}); transform-origin: 50% 100%; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; align-items: center; justify-content: center;">
       <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.35));">
         <path d="M17 0C7.611 0 0 7.611 0 17C0 28.5 17 44 17 44C17 44 34 28.5 34 17C34 7.611 26.389 0 17 0Z" fill="${color}" stroke="${isElevated ? '#ffffff' : 'rgba(255,255,255,0.7)'}" stroke-width="${isElevated ? '2.5' : '1.5'}"/>
         <circle cx="17" cy="16" r="8" fill="#ffffff"/>
@@ -61,9 +61,9 @@ function createSvgPin(
   return L.divIcon({
     className: 'custom-discovery-pin',
     html: svg,
-    iconSize: [34, 44],
-    iconAnchor: [17, 44],
-    popupAnchor: [0, -42],
+    iconSize: [48, 48],
+    iconAnchor: [24, 46],
+    popupAnchor: [0, -44],
   })
 }
 
@@ -88,23 +88,33 @@ export function escapeHtml(text: string): string {
 export function buildPopupHtml(
   space: Pick<
     VerifiedSpaceSearchResult,
-    'id' | 'name' | 'address' | 'price_tier' | 'distance_km'
+    'id' | 'name' | 'address' | 'price_tier' | 'distance_km' | 'curated_tags'
   >,
 ): string {
   const distance =
     space.distance_km !== null
       ? `<div style="font-size: 12px; color: var(--foreground); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
       : ''
+  const tags =
+    space.curated_tags.length > 0
+      ? `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">${space.curated_tags
+          .map(
+            (tag) =>
+              `<span style="font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--secondary); color: var(--secondary-foreground);">${escapeHtml(tag.label)}</span>`,
+          )
+          .join('')}</div>`
+      : ''
   return `
     <div style="font-family: inherit; min-width: 190px; padding: 2px;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-        <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h4>
+        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h3>
         <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
       </div>
       <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
       ${distance}
+      ${tags}
       <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
-        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-block; width: 100%; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
       </div>
     </div>
   `
@@ -128,6 +138,7 @@ export default function DiscoveryMap({
   const mapRef = useRef<LeafletType.Map | null>(null)
   const leafletModuleRef = useRef<typeof LeafletType | null>(null)
   const markersRef = useRef<Map<string, LeafletType.Marker>>(new Map())
+  const prevActiveSpaceIdRef = useRef<string | null>(null)
   // Leaflet loads asynchronously, after the first render. Setting this once the map
   // exists re-runs the marker and pan effects, which return early until then.
   const [mapReady, setMapReady] = useState(false)
@@ -151,7 +162,7 @@ export default function DiscoveryMap({
         zoomControl: true,
       })
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
         maxZoom: 19,
@@ -235,22 +246,31 @@ export default function DiscoveryMap({
 
         currentMarkers.set(space.id, marker)
       } else {
-        // Update marker icon and coordinates if changed
+        // Update marker icon, coordinates, and popup content if changed
         marker.setIcon(icon)
         marker.setLatLng([space.latitude, space.longitude])
-      }
-
-      // If this space is currently active, ensure its popup is open
-      if (isActive && !marker.isPopupOpen()) {
-        marker.openPopup()
+        marker.setPopupContent(buildPopupHtml(space))
       }
     }
   }, [mapReady, spaces, activeSpaceId, hoveredSpaceId, onSelectSpace, onHoverSpace])
 
-  // Center or pan map when activeSpaceId changes
+  // Open popup and pan map only when activeSpaceId changes
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !activeSpaceId) return
+    if (!map) return
+
+    if (!activeSpaceId) {
+      prevActiveSpaceIdRef.current = null
+      return
+    }
+
+    if (prevActiveSpaceIdRef.current === activeSpaceId) return
+    prevActiveSpaceIdRef.current = activeSpaceId
+
+    const marker = markersRef.current.get(activeSpaceId)
+    if (marker && !marker.isPopupOpen()) {
+      marker.openPopup()
+    }
 
     const activeSpace = spaces.find((s) => s.id === activeSpaceId)
     if (activeSpace && activeSpace.latitude !== null && activeSpace.longitude !== null) {
@@ -267,8 +287,6 @@ export default function DiscoveryMap({
       className={className}
       ref={containerRef}
       style={{ minHeight: '360px' }}
-      aria-label="Interactive Discovery Map"
-      role="region"
     />
   )
 }

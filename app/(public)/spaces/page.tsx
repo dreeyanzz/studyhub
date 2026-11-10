@@ -5,7 +5,7 @@ import { searchVerifiedSpaces } from '@/lib/data/spaces'
 import { createClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
-  title: 'Explore Study Spaces | Worq',
+  title: 'Explore Study Spaces',
   description:
     'Find verified study and co-working spaces in Metro Cebu, on a map or in a list.',
 }
