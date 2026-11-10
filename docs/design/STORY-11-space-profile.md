@@ -49,8 +49,8 @@
 - **[Seeker journey](../flows/seeker-journey.md):**
   - Implements step S7 (`Review photos, hours, tags and unit availability`), step S8 (`Space open now?`), step S10 (`Available unit?`), and step S14 (`Choose an Available unit`).
   - Covers path `seeker-search-matches`: selecting a search result opens `/spaces/[spaceId]`.
-  - Covers path `seeker-space-closed`: displays closed status badge and operating hours. The selected-unit panel suppresses the hold slot and offers a link back to discovery search (`/`).
-  - Covers path `seeker-profile-no-available-unit`: when no units are Available, displays "No units are currently Available." with a link back to discovery search (`/`).
+  - Covers path `seeker-space-closed`: displays closed status badge and operating hours. The selected-unit panel suppresses the hold slot and offers a link back to discovery search (`/spaces`, STORY-08 design §1 step S1).
+  - Covers path `seeker-profile-no-available-unit`: when no units are Available, displays "No units are currently Available." with a link back to discovery search (`/spaces`).
   - Covers path `seeker-select-available-unit`: selecting an Available unit highlights the unit and displays its details and freshness.
   - Respects D-058: return targets from authentication drop any pre-selected `?unit=` parameter, ensuring the Seeker re-reads availability and makes a fresh selection.
 - **[Host setup journey](../flows/host-setup-journey.md):**
@@ -225,7 +225,7 @@ Maria owns the user experience (D-042). This section defines every screen, compo
 Sits in the public route group `app/(public)/spaces/[spaceId]/page.tsx`, wrapped by `app/(public)/layout.tsx` with `SiteHeader` and `SiteFooter`.
 
 - **Top Navigation & Back Link:**
-  - `← Back to search` (links to discovery search at `/`).
+  - `← Back to search` (links to discovery search at `/spaces`, STORY-08 design §1 step S1).
 - **Space Header Section:**
   - **Title:** `h1` with Space name (`text-2xl font-bold sm:text-3xl`).
   - **Address:** secondary text with a map-pin icon (`MapPin`), wrapped with `min-w-0 wrap-anywhere`.
@@ -235,7 +235,7 @@ Sits in the public route group `app/(public)/spaces/[spaceId]/page.tsx`, wrapped
     - Manila clock time in 24-hour format matching `space-list.tsx` (`hourCycle: 'h23'`).
     - Green badge: `Open now · Closes at 22:00` (or `Closes at 02:00 next day`).
     - Muted badge: `Closed · Opens at 08:00` (or `Closed · Opens tomorrow at 08:00` if closing time has already passed for the day).
-    - If closed now, a friendly alert note informs the Seeker: "This Space is closed now. You can review seats and amenities; reservations open during operating hours." Contains a link to explore other spaces at `/` (`seeker-space-closed`).
+    - If closed now, a friendly alert note informs the Seeker: "This Space is closed now. You can review seats and amenities; reservations open during operating hours." Contains a link to explore other spaces at `/spaces` (`seeker-space-closed`).
   - **Description:** readable whitespace-pre-line paragraph.
 - **Space Photo Gallery & Carousel (`space-photo-gallery.tsx`):**
   - **Next.js Image integration:** uses `next/image` configured with `images.remotePatterns` for Supabase Storage domains in `next.config.ts`.
