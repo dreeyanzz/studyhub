@@ -1,4 +1,8 @@
-import type { ExpectedReservationStatus, UnitState } from '@/lib/validation/occupancy'
+import type {
+  ExpectedReservationStatus,
+  SetUnitStateInput,
+  UnitState,
+} from '@/lib/validation/occupancy'
 
 export type TapOutcome = 'no_op' | 'confirm_override' | 'set_state'
 
@@ -102,4 +106,47 @@ export function mapRefusalError(
     return 'Hold status has changed. Please refresh.'
   }
   return 'We could not save that change. Check your connection and try again.'
+}
+
+/**
+ * Builds the validated payload for set_unit_state (STORY-12 design §2, D-050).
+ *
+ * For a confirmed override, names expectedReservationId and expectedReservationStatus
+ * to guard against concurrent hold transitions (Negative N14, N21).
+ * For a direct Host-set tap, leaves both fields undefined.
+ */
+export function toSetUnitStateInput(
+  unit: {
+    id: string
+    seatState: SeatState
+    reservationId?: string | null
+  },
+  targetState: UnitState,
+  options?: { override?: boolean },
+): SetUnitStateInput {
+  if (options?.override) {
+    if (
+      unit.seatState !== 'pending_payment' &&
+      unit.seatState !== 'reserved' &&
+      unit.seatState !== 'occupied'
+    ) {
+      throw new Error(`Cannot override a unit with seatState "${unit.seatState}"`)
+    }
+    if (!unit.reservationId) {
+      throw new Error('Cannot override a hold without a reservationId')
+    }
+    return {
+      unitId: unit.id,
+      state: targetState,
+      expectedReservationId: unit.reservationId,
+      expectedReservationStatus: unit.seatState,
+    }
+  }
+
+  return {
+    unitId: unit.id,
+    state: targetState,
+    expectedReservationId: undefined,
+    expectedReservationStatus: undefined,
+  }
 }

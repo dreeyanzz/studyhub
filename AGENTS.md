@@ -91,7 +91,7 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `(dashboard)/seeker/` portal, STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
-(STORY-02's six primitives), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
+(STORY-02's six primitives and STORY-12's `alert-dialog`), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/occupancy/` (STORY-12's override rules), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
