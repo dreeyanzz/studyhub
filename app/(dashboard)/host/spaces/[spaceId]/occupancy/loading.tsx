@@ -10,25 +10,26 @@ export default function OccupancyLoading() {
     <div role="status" aria-busy="true" aria-live="polite" className="space-y-6">
       <span className="sr-only">Loading space occupancy...</span>
 
-      {/* Header Skeleton */}
+      {/* Header Skeleton. The placeholders may wrap and shrink, like the header they
+          stand for, so they fit a 360 px screen at 200% text (design §3). */}
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="h-12 w-36 animate-pulse rounded-md bg-muted" />
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-32 animate-pulse rounded-full bg-muted" />
-            <div className="h-7 w-40 animate-pulse rounded-full bg-muted" />
+          <div className="h-12 w-36 max-w-full animate-pulse rounded-md bg-muted" />
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="h-7 w-32 max-w-full animate-pulse rounded-full bg-muted" />
+            <div className="h-7 w-40 max-w-full animate-pulse rounded-full bg-muted" />
           </div>
         </div>
         <div className="space-y-2">
-          <div className="h-8 w-64 animate-pulse rounded-md bg-muted" />
+          <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-muted" />
           <div className="h-4 w-96 max-w-full animate-pulse rounded-md bg-muted" />
         </div>
       </div>
 
       {/* View Toggle Skeleton */}
-      <div className="flex items-center gap-2">
-        <div className="h-12 w-36 animate-pulse rounded-md bg-muted" />
-        <div className="h-12 w-32 animate-pulse rounded-md bg-muted" />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="h-12 w-36 max-w-full animate-pulse rounded-md bg-muted" />
+        <div className="h-12 w-32 max-w-full animate-pulse rounded-md bg-muted" />
       </div>
 
       {/* Layout Grid Skeleton */}

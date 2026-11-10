@@ -1,6 +1,6 @@
 # STORY-12: Host occupancy control
 
-**Status:** approved 2026-10-29 · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
+**Status:** implemented 2026-11-10 · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
 **Depends on:** STORY-05, STORY-07, STORY-09 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md) ·
 **Decisions:** D-002, D-004, D-010, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-050, D-051, D-052, D-057
 
@@ -294,9 +294,54 @@ One PR per row, and every PR targets `main`:
 
 ## 9. After the build
 
-Fill this in when the story is done:
+Implemented 2026-11-10. All seven tasks are built:
 
-- what turned out different from this plan, and why
-- the status line changed to `implemented YYYY-MM-DD`
-- the docs this story changed
-- who verified each acceptance criterion
+| Task         | PR   | What it added                                                                                                                                                                                                          | Who built it       |
+| :----------- | :--- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------- |
+| **TSK-12.1** | #233 | `public.set_unit_state` for Host-set states (H2, N12, N13, N24), pgTAP tests, and regenerated `db:types`                                                                                                               | @dreeyanzz         |
+| **TSK-12.2** | #196 | Zod schema `setUnitStateSchema` and pure override logic helpers in `lib/occupancy/override.ts` with Vitest unit tests                                                                                                  | @JamesNino-Mandawe |
+| **TSK-12.3** | #236 | Server Action `setUnitStateAction` calling `set_unit_state` with refusal error code and hint mapping                                                                                                                   | @JamesNino-Mandawe |
+| **TSK-12.4** | #259 | `public.set_unit_state` hold override moves (R5, R9, R11, N14, N21) with canonical locking order and pgTAP tests                                                                                                       | @dreeyanzz         |
+| **TSK-12.5** | #245 | Host occupancy screen: Seat map view integration, accessible list view, and one-tap state pills with relative time freshness                                                                                           | @JamesNino-Mandawe |
+| **TSK-12.6** | #272 | `AlertDialog` primitive, status-specific override warning dialog, and conflict alert banner with one-click refresh on N14 / N21                                                                                        | @JamesNino-Mandawe |
+| **TSK-12.7** | #275 | Playwright journey tests in `e2e/host-occupancy.spec.ts` covering walk-ins, re-vouching, the three hold overrides, both refusals (N14 and N21), same-state taps, the keyboard, and responsive layouts; story close-out | @JamesNino-Mandawe |
+
+### What differed from this plan
+
+- **Hold override execution:** TSK-12.4 consolidated all override transitions (R5, R9, R11, N14, N21) directly within `public.set_unit_state` with pessimistic locks in canonical order (`units` → `reservations` → `payments`), rather than using separate helper functions.
+- **Payload safety helper:** TSK-12.6 extracted payload construction into a tested pure helper `toSetUnitStateInput` in `lib/occupancy/override.ts` to strictly validate and type `expectedReservationId` and `expectedReservationStatus`.
+- **Responsive dialog scaling:** Enhanced `AlertDialogContent` and its buttons with `max-h-[calc(100dvh-2rem)]`, vertical scrolling, and `whitespace-normal` so that all titles, copy, and buttons fit cleanly on 360 px viewports with 200% text zoom without sideways scrolling.
+- **Focus retention during transitions:** Added `focusableWhenDisabled` to `AlertDialogAction` to keep screen reader focus steady while an override server action is in flight.
+- **Two fixes at the close-out (#275):** the page's intro line said "Manage real-time seat states and walk-ins", and the glossary rules "real-time" out for Host-maintained availability (D-002), so the word is gone. The loading placeholder had fixed widths that came to 624 px on a 360 px screen at 200% text; its placeholders now wrap and shrink like the header they stand for.
+
+### Left open at the close-out
+
+- **"A host state change appears in the Seeker-facing availability within one refresh"** in a browser remains open until STORY-11's Space profile merges, because no Seeker-facing Space profile page exists yet (design §4's last manual row). Today, unit availability calculation is fully verified in database logic (`06-host-occupancy.sql`: "a signed-out visitor reads updated state and host_updated_at within one read").
+- **Another Host gets the not-found page with HTTP status 200** on the occupancy page, where the edit and seat map pages answer 404. `loading.tsx` starts the response before the page can refuse. The body is the same not-found page, so nothing leaks. `e2e/host-occupancy.spec.ts` checks the page, not the status.
+
+### Final checks
+
+On `feature/STORY-12-qa`, on top of `main` at `4aff1df` with every other STORY-12 task merged:
+
+- `npm run check`: typecheck, lint, Prettier, and all 511 Vitest unit tests pass across the repository with zero errors.
+- `npm run db:test`: all 450 pgTAP tests in 8 files pass, including `06-host-occupancy.sql`.
+- `npm run db:race`: all 7 concurrency race assertions pass.
+- `npm run test:e2e`: all 24 Playwright tests pass, including the 14 in `e2e/host-occupancy.spec.ts`.
+
+### Acceptance criteria (#77)
+
+Checked by James Niño Mandawe (@JamesNino-Mandawe, Portal Shells and QA Engineer) on branch `feature/STORY-12-qa`, on the local Supabase stack as the seeded accounts. The same tests ran in CI on PR #275. Nothing was written to the shared cloud database.
+
+| Criterion                                                                            | How it was verified                                                                                                                                                                                                                                                                                                                                                                   |
+| :----------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **A host state change appears in the Seeker-facing availability within one refresh** | Verified in database logic by pgTAP in `06-host-occupancy.sql` ("a signed-out visitor reads updated state and host_updated_at within one read"). When a Host updates a unit, `units.host_state` and `units.host_updated_at` update immediately, reflecting in public reads. Browser verification remains open until STORY-11's Space profile merges (see Left open at the close-out). |
+| **A Host can mark a walk-in Occupied with no reservation in the system**             | Verified in `06-host-occupancy.sql` (Move H2) and Playwright journey ("Host marks walk-in as Occupied and performs same-state re-vouch"). Tapping Occupied sets `units.host_state = 'occupied'` directly, verified by query with 0 rows created in `public.reservations`.                                                                                                             |
+| **Only Available, Reserved and Occupied states can be set (D-004)**                  | Verified by Zod schema `unitStateEnum` in `lib/validation/occupancy.test.ts`, pgTAP check constraint `23514` (Negative N12 in `06-host-occupancy.sql`), and UI one-tap state controls. `pending_payment` cannot be set by a Host.                                                                                                                                                     |
+| **pgTAP: a Host cannot change a unit's state in a Space they do not own**            | Verified in `06-host-occupancy.sql` (Negative N13: refused with `42501`) and Playwright journeys ("Authenticated Host who does not own the space gets 404 (Negative N13)" and "Administrator gets the same not-found page").                                                                                                                                                          |
+
+### Docs changed by this story
+
+- `docs/design/STORY-12-host-occupancy.md` (this doc, status `implemented`)
+- `docs/design/README.md` (status updated to `implemented`)
+- `docs/SPRINT-2.md` (story update noted)
+- `AGENTS.md` (added `alert-dialog` primitive to `components/ui/` layout, and `e2e/host-occupancy.spec.ts` to `e2e/` layout)
