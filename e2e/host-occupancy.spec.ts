@@ -238,7 +238,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // No modal appears; unit immediately updates to Occupied
     await expect(s1OccupiedBtn).toHaveAttribute('aria-pressed', 'true')
     await expect(s1AvailableBtn).toHaveAttribute('aria-pressed', 'false')
-    await expect(page.getByText(/Host-updated/i)).toBeVisible()
+    await expect(page.getByText(/Host-updated/i).first()).toBeVisible()
 
     // Assert in database that no row was created in public.reservations (S1)
     const sql = getDb()
@@ -362,10 +362,8 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
   test('Override active hold warning dialog on pending, reserved, and occupied units (Moves R5, R9, R11, D-050)', async ({
     page,
   }) => {
-    // Seed all 3 statuses across S1, S2, S3 (S2)
-    const resIdS1 = await createTestReservation(UNIT_S1_ID, 'S1', 'pending_payment')
+    // 1. Seed active hold on S2 ('reserved', Move R9)
     const resIdS2 = await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
-    const resIdS3 = await createTestReservation(UNIT_S3_ID, 'S3', 'occupied')
 
     await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
@@ -446,6 +444,10 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // ==========================================
     // 2. Unit S1: 'pending_payment' status (Move R5)
     // ==========================================
+    // Now that S2 hold is cancelled, seed hold on S1 (maintains 1 active hold per seeker constraint)
+    const resIdS1 = await createTestReservation(UNIT_S1_ID, 'S1', 'pending_payment')
+    await page.reload()
+
     const s1SelectBtn = page.getByRole('button', {
       name: /Select S1 .* to manage occupancy/i,
     })
@@ -484,6 +486,10 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     // ==========================================
     // 3. Unit S3: 'occupied' status (Move R11)
     // ==========================================
+    // Now that S1 hold is cancelled, seed occupied visit on S3
+    const resIdS3 = await createTestReservation(UNIT_S3_ID, 'S3', 'occupied')
+    await page.reload()
+
     const s3SelectBtn = page.getByRole('button', {
       name: /Select S3 .* to manage occupancy/i,
     })
