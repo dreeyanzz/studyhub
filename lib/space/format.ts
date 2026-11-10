@@ -58,8 +58,8 @@ const manilaClockFormat = new Intl.DateTimeFormat('en-PH', {
 function getManilaMinutes(date: Date): number {
   const parts = manilaClockFormat.formatToParts(date)
 
-  const hour = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0', 10) % 24
-  const minute = parseInt(parts.find((p) => p.type === 'minute')?.value ?? '0', 10) % 60
+  const hour = parseInt(parts.find((p) => p.type === 'hour')!.value, 10) % 24
+  const minute = parseInt(parts.find((p) => p.type === 'minute')!.value, 10) % 60
   return hour * 60 + minute
 }
 
