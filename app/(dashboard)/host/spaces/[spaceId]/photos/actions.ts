@@ -10,6 +10,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { spaceIdSchema } from '@/lib/validation/space'
 import {
+  type ALLOWED_PHOTO_MIME_TYPES,
   deletePhotoSchema,
   uploadPhotosRequestSchema,
 } from '@/lib/validation/space-photos'
@@ -28,17 +29,11 @@ export interface SignedUploadInfo {
   token: string
 }
 
-function getExtension(mimeType: string, fileName?: string): string {
-  if (mimeType === 'image/jpeg') return 'jpg'
-  if (mimeType === 'image/png') return 'png'
-  if (mimeType === 'image/webp') return 'webp'
-  if (fileName) {
-    const ext = fileName.split('.').pop()?.toLowerCase()
-    if (ext === 'jpeg' || ext === 'jpg') return 'jpg'
-    if (ext === 'png') return 'png'
-    if (ext === 'webp') return 'webp'
-  }
-  return 'jpg'
+// The schema only lets these three types through, so every upload has an extension.
+const PHOTO_EXTENSIONS: Record<(typeof ALLOWED_PHOTO_MIME_TYPES)[number], string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
 }
 
 async function verifySpaceOwner(
@@ -97,7 +92,7 @@ export async function createPhotoUploadUrls(
   const uploads: SignedUploadInfo[] = []
 
   for (const file of files) {
-    const ext = getExtension(file.type, file.name)
+    const ext = PHOTO_EXTENSIONS[file.type as keyof typeof PHOTO_EXTENSIONS]
     const fileId = crypto.randomUUID()
     const fileName = `${fileId}.${ext}`
     const destinationPath = `${spaceId}/${fileName}`
@@ -167,27 +162,17 @@ export async function revalidatePhotos(spaceIdInput: unknown): Promise<PhotoActi
 }
 
 /**
- * Deletes a photo from the space-photos storage bucket.
- * Supports both FormData form action submission and programmatic calls.
+ * Deletes a photo from the space-photos storage bucket: the confirmation step's form
+ * action (useActionState). On success it returns the Host to the photos page.
  */
 export async function deletePhoto(
-  stateOrPayloadOrFormData: unknown,
-  maybeFormData?: FormData,
+  _prevState: PhotoActionState,
+  formData: FormData,
 ): Promise<PhotoActionState> {
-  let isFormSubmit = false
-  let rawPayload: unknown = stateOrPayloadOrFormData
-
-  if (typeof FormData !== 'undefined') {
-    if (stateOrPayloadOrFormData instanceof FormData) {
-      isFormSubmit = true
-      rawPayload = Object.fromEntries(stateOrPayloadOrFormData.entries())
-    } else if (maybeFormData instanceof FormData) {
-      isFormSubmit = true
-      rawPayload = Object.fromEntries(maybeFormData.entries())
-    }
-  }
-
-  const parsed = deletePhotoSchema.safeParse(rawPayload)
+  const parsed = deletePhotoSchema.safeParse({
+    spaceId: formData.get('spaceId'),
+    fileName: formData.get('fileName'),
+  })
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors
     const firstErrorMessage =
@@ -205,13 +190,7 @@ export async function deletePhoto(
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login?returnUrl=%2Fhost')
-    return {
-      success: false,
-      formError: 'You must be signed in to manage photos.',
-    }
-  }
+  if (!user) redirect('/login?returnUrl=%2Fhost')
 
   const isOwner = await verifySpaceOwner(supabase, spaceId, user.id)
   if (!isOwner) {
@@ -233,10 +212,5 @@ export async function deletePhoto(
 
   revalidatePath(`/host/spaces/${spaceId}/photos`)
   revalidatePath(`/spaces/${spaceId}`)
-
-  if (isFormSubmit) {
-    redirect(`/host/spaces/${spaceId}/photos`)
-  }
-
-  return { success: true }
+  redirect(`/host/spaces/${spaceId}/photos`)
 }

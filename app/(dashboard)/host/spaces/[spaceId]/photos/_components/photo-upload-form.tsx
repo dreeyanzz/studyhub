@@ -6,7 +6,14 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, CheckCircle2, ImagePlus, Loader2, UploadCloud } from 'lucide-react'
+import {
+  AlertCircle,
+  CheckCircle2,
+  ImagePlus,
+  Loader2,
+  RotateCcw,
+  UploadCloud,
+} from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -15,10 +22,60 @@ import {
   ALLOWED_PHOTO_MIME_TYPES,
   MAX_PHOTO_FILE_SIZE,
 } from '@/lib/validation/space-photos'
-import { createPhotoUploadUrls, revalidatePhotos } from '../actions'
+import {
+  createPhotoUploadUrls,
+  revalidatePhotos,
+  type SignedUploadInfo,
+} from '../actions'
 
 interface PhotoUploadFormProps {
   spaceId: string
+}
+
+export interface UploadOutcome {
+  uploadedCount: number
+  failed: { file: File; reason: string }[]
+}
+
+type UploadToSignedUrl = (
+  path: string,
+  token: string,
+  file: File,
+) => Promise<{ error: { message: string } | null }>
+
+/**
+ * Uploads each file to its signed URL, in order. One failure doesn't stop the rest, and
+ * every failed file is returned, so the Host can retry just those (design §3 Screen 2).
+ */
+export async function uploadToSignedUrls(
+  files: File[],
+  uploads: SignedUploadInfo[],
+  upload: UploadToSignedUrl,
+  onProgress?: (done: number) => void,
+): Promise<UploadOutcome> {
+  const failed: UploadOutcome['failed'] = []
+  let uploadedCount = 0
+
+  for (const [i, file] of files.entries()) {
+    const uploadInfo = uploads[i]
+    if (!uploadInfo) {
+      failed.push({ file, reason: 'No upload link was prepared' })
+    } else {
+      try {
+        const { error } = await upload(uploadInfo.path, uploadInfo.token, file)
+        if (error) failed.push({ file, reason: error.message })
+        else uploadedCount++
+      } catch (err) {
+        failed.push({
+          file,
+          reason: err instanceof Error ? err.message : 'Network error',
+        })
+      }
+    }
+    onProgress?.(i + 1)
+  }
+
+  return { uploadedCount, failed }
 }
 
 export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
@@ -28,6 +85,8 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  // The files whose upload failed last time, kept for "Retry failed uploads".
+  const [failedFiles, setFailedFiles] = useState<File[]>([])
   const [uploadProgress, setUploadProgress] = useState<{
     current: number
     total: number
@@ -36,6 +95,7 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
   async function handleFiles(selectedFiles: FileList | File[]) {
     setErrorMessage(null)
     setSuccessMessage(null)
+    setFailedFiles([])
 
     const filesArray = Array.from(selectedFiles)
     if (filesArray.length === 0) return
@@ -89,39 +149,14 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
         return
       }
 
-      const { uploads } = res.data
-      const supabase = createClient()
-      const failedFiles: { name: string; reason: string }[] = []
-      let uploadedCount = 0
-
       // Step 2: Upload each file directly from browser to Supabase Storage
-      for (let i = 0; i < filesArray.length; i++) {
-        const file = filesArray[i]
-        const uploadInfo = uploads[i]
-        if (!file || !uploadInfo) continue
-
-        try {
-          const { error: uploadError } = await supabase.storage
-            .from('space-photos')
-            .uploadToSignedUrl(uploadInfo.path, uploadInfo.token, file)
-
-          if (uploadError) {
-            failedFiles.push({
-              name: file.name,
-              reason: uploadError.message,
-            })
-          } else {
-            uploadedCount++
-          }
-        } catch (err) {
-          failedFiles.push({
-            name: file.name,
-            reason: err instanceof Error ? err.message : 'Network error',
-          })
-        }
-
-        setUploadProgress({ current: i + 1, total: filesArray.length })
-      }
+      const bucket = createClient().storage.from('space-photos')
+      const { uploadedCount, failed } = await uploadToSignedUrls(
+        filesArray,
+        res.data.uploads,
+        (path, token, file) => bucket.uploadToSignedUrl(path, token, file),
+        (done) => setUploadProgress({ current: done, total: filesArray.length }),
+      )
 
       // Step 3: Revalidate server cache if any files succeeded
       if (uploadedCount > 0) {
@@ -134,9 +169,10 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
         fileInputRef.current.value = ''
       }
 
-      if (failedFiles.length > 0) {
-        const failedSummary = failedFiles
-          .map((f) => `"${f.name}" (${f.reason})`)
+      if (failed.length > 0) {
+        setFailedFiles(failed.map((f) => f.file))
+        const failedSummary = failed
+          .map((f) => `"${f.file.name}" (${f.reason})`)
           .join(', ')
 
         if (uploadedCount > 0) {
@@ -189,7 +225,24 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
         <Alert variant="destructive" role="alert">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Upload error</AlertTitle>
-          <AlertDescription className="wrap-anywhere">{errorMessage}</AlertDescription>
+          <AlertDescription className="wrap-anywhere">
+            <p>{errorMessage}</p>
+            {failedFiles.length > 0 && (
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isPending}
+                focusableWhenDisabled
+                onClick={() => handleFiles(failedFiles)}
+                className="h-auto min-h-12 min-w-12 px-4 py-2 text-sm font-medium whitespace-normal"
+              >
+                <RotateCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+                {failedFiles.length === 1
+                  ? 'Retry failed upload'
+                  : 'Retry failed uploads'}
+              </Button>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 
@@ -218,12 +271,14 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
           <UploadCloud className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h3 className="text-base font-semibold text-foreground">Upload Space Photos</h3>
+        <h2 className="text-base font-semibold text-foreground">Upload Space Photos</h2>
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
           Drag and drop images here, or browse files from your device. Up to 5 MB per
           photo (JPEG, PNG, WebP). Maximum 10 photos per upload.
         </p>
 
+        {/* "Browse photos" is the control; the input itself stays out of the tab
+            order, so keyboard focus never lands on an invisible element. */}
         <input
           ref={fileInputRef}
           type="file"
@@ -231,6 +286,8 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
           multiple
           accept="image/jpeg,image/png,image/webp"
           className="sr-only"
+          tabIndex={-1}
+          aria-hidden="true"
           disabled={isPending}
           onChange={(e) => {
             if (e.target.files) handleFiles(e.target.files)
@@ -242,7 +299,8 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
             type="button"
             disabled={isPending}
             onClick={() => fileInputRef.current?.click()}
-            className="h-12 min-w-12 px-5 text-sm font-medium"
+            // Wraps at 200% text instead of running past the drop zone's edge.
+            className="h-auto min-h-12 max-w-full min-w-12 shrink px-5 py-2 text-sm font-medium whitespace-normal"
           >
             {isPending ? (
               <>

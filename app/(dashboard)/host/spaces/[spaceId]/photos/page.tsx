@@ -10,6 +10,7 @@ import { statusBadges } from '@/app/(dashboard)/host/_components/space-list'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 import { spaceIdSchema } from '@/lib/validation/space'
 
 import { ConfirmPhotoRemoval } from './_components/confirm-photo-removal'
@@ -80,9 +81,9 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
       createdAt: f.created_at ?? undefined,
     }))
 
-  const photoToRemove = removeTarget
-    ? photos.find((p) => p.name === removeTarget)
-    : undefined
+  // A name that isn't in this Space's folder is ignored, so a stale link shows the grid.
+  const removeIndex = removeTarget ? photos.findIndex((p) => p.name === removeTarget) : -1
+  const photoToRemove = removeIndex >= 0 ? photos[removeIndex] : undefined
 
   const status = statusBadges[space.status]
 
@@ -118,10 +119,12 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
 
           <Link
             href="/host"
-            className={buttonVariants({
-              variant: 'outline',
-              className: 'h-12 min-w-12 px-4 text-sm font-medium',
-            })}
+            // Wraps at 200% text, so the page never scrolls sideways at 360 px (§3).
+            // cn() lets these win over the button's shrink-0 and whitespace-nowrap.
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'h-auto min-h-12 max-w-full min-w-12 shrink px-4 py-2 text-sm font-medium whitespace-normal',
+            )}
           >
             <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
             Back to Spaces
@@ -132,14 +135,17 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
       {photoToRemove && (
         <ConfirmPhotoRemoval
           spaceId={space.id}
+          spaceName={space.name}
           fileName={photoToRemove.name}
           photoUrl={photoToRemove.url}
+          position={removeIndex + 1}
+          total={photos.length}
         />
       )}
 
       <PhotoUploadForm spaceId={space.id} />
 
-      <PhotoGrid spaceId={space.id} photos={photos} />
+      <PhotoGrid spaceId={space.id} spaceName={space.name} photos={photos} />
     </div>
   )
 }

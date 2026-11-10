@@ -17,6 +17,7 @@ export interface PhotoItem {
 
 interface PhotoGridProps {
   spaceId: string
+  spaceName: string
   photos: PhotoItem[]
 }
 
@@ -27,7 +28,7 @@ function formatBytes(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function PhotoGrid({ spaceId, photos }: PhotoGridProps) {
+export function PhotoGrid({ spaceId, spaceName, photos }: PhotoGridProps) {
   if (photos.length === 0) {
     return (
       <Card className="border-dashed">
@@ -35,9 +36,9 @@ export function PhotoGrid({ spaceId, photos }: PhotoGridProps) {
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <ImageOff className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h4 className="text-base font-semibold text-foreground">
+          <h2 className="text-base font-semibold text-foreground">
             No Space photos uploaded yet
-          </h4>
+          </h2>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
             Add photos to showcase your study spots, amenities, and seating options to
             Seekers.
@@ -62,7 +63,9 @@ export function PhotoGrid({ spaceId, photos }: PhotoGridProps) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={photo.url}
-                alt={`Venue view ${index + 1} of ${photos.length}`}
+                // Design §2/§3: generic alt text, numbered in upload order. No "Photo of":
+                // screen readers already say "image" (jsx-a11y/img-redundant-alt).
+                alt={`${spaceName}, ${index + 1} of ${photos.length}`}
                 className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
                 loading="lazy"
               />
@@ -94,7 +97,10 @@ export function PhotoGrid({ spaceId, photos }: PhotoGridProps) {
                 >
                   <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />
                   Delete photo
-                  <span className="sr-only"> ({photo.name})</span>
+                  <span className="sr-only">
+                    {' '}
+                    {index + 1} of {photos.length}
+                  </span>
                 </Link>
               </div>
             </CardContent>

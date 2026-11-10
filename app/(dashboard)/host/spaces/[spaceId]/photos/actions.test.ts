@@ -10,8 +10,12 @@ vi.mock('next/cache', () => ({
   revalidatePath: (path: string) => mockRevalidatePath(path),
 }))
 
+// Like Next's redirect(), the mock throws, so nothing after it runs.
 vi.mock('next/navigation', () => ({
-  redirect: (url: string) => mockRedirect(url),
+  redirect: (url: string) => {
+    mockRedirect(url)
+    throw new Error(`NEXT_REDIRECT:${url}`)
+  },
 }))
 
 // --- Mock Supabase setup ---
@@ -212,75 +216,65 @@ describe('Host photo management Server Actions (STORY-11, TSK-11.2)', () => {
   describe('deletePhoto', () => {
     const validFileName = '550e8400-e29b-41d4-a716-446655440000.jpg'
 
-    it('rejects unauthenticated caller by redirecting to login', async () => {
+    // The confirmation step's form posts spaceId and fileName (useActionState).
+    function form(spaceId: string, fileName: string): FormData {
+      const formData = new FormData()
+      formData.set('spaceId', spaceId)
+      formData.set('fileName', fileName)
+      return formData
+    }
+
+    it('redirects an unauthenticated caller to login and removes nothing', async () => {
       mockUser = null
-      await deletePhoto({
-        spaceId: VALID_SPACE_ID,
-        fileName: validFileName,
-      })
-      expect(mockRedirect).toHaveBeenCalledWith('/login?returnUrl=%2Fhost')
+      await expect(deletePhoto({}, form(VALID_SPACE_ID, validFileName))).rejects.toThrow(
+        'NEXT_REDIRECT:/login?returnUrl=%2Fhost',
+      )
+      expect(capturedRemovedPaths).toHaveLength(0)
     })
 
     it('rejects directory traversal in fileName', async () => {
-      const res = await deletePhoto({
-        spaceId: VALID_SPACE_ID,
-        fileName: '..secret.jpg',
-      })
+      const res = await deletePhoto({}, form(VALID_SPACE_ID, '..secret.jpg'))
       expect(res.success).toBe(false)
       expect(res.formError).toContain('Directory traversal')
+      expect(capturedRemovedPaths).toHaveLength(0)
+    })
+
+    it('rejects a form with no file name', async () => {
+      const formData = new FormData()
+      formData.set('spaceId', VALID_SPACE_ID)
+      const res = await deletePhoto({}, formData)
+      expect(res.success).toBe(false)
       expect(capturedRemovedPaths).toHaveLength(0)
     })
 
     it('rejects non-owner', async () => {
       mockUser = { id: OTHER_USER_ID }
       isSpaceOwned = false
-      const res = await deletePhoto({
-        spaceId: VALID_SPACE_ID,
-        fileName: validFileName,
-      })
+      const res = await deletePhoto({}, form(VALID_SPACE_ID, validFileName))
       expect(res.success).toBe(false)
       expect(res.formError).toContain('do not have permission')
       expect(capturedRemovedPaths).toHaveLength(0)
     })
 
-    it('deletes photo from storage and revalidates paths when invoked programmatically', async () => {
-      const res = await deletePhoto({
-        spaceId: VALID_SPACE_ID,
-        fileName: validFileName,
-      })
+    it('deletes the photo, revalidates both pages and returns to the photos page', async () => {
+      await expect(deletePhoto({}, form(VALID_SPACE_ID, validFileName))).rejects.toThrow(
+        `NEXT_REDIRECT:/host/spaces/${VALID_SPACE_ID}/photos`,
+      )
 
-      expect(res.success).toBe(true)
       expect(capturedRemovedPaths).toEqual([[`${VALID_SPACE_ID}/${validFileName}`]])
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${VALID_SPACE_ID}/photos`,
       )
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/spaces/${VALID_SPACE_ID}`)
-      expect(mockRedirect).not.toHaveBeenCalled()
-    })
-
-    it('handles FormData submission and redirects back to photos page', async () => {
-      const formData = new FormData()
-      formData.set('spaceId', VALID_SPACE_ID)
-      formData.set('fileName', validFileName)
-
-      await deletePhoto(formData)
-
-      expect(capturedRemovedPaths).toEqual([[`${VALID_SPACE_ID}/${validFileName}`]])
-      expect(mockRevalidatePath).toHaveBeenCalledWith(
-        `/host/spaces/${VALID_SPACE_ID}/photos`,
-      )
-      expect(mockRedirect).toHaveBeenCalledWith(`/host/spaces/${VALID_SPACE_ID}/photos`)
     })
 
     it('returns error if storage deletion fails', async () => {
       storageRemoveError = { message: 'Object not found in storage' }
-      const res = await deletePhoto({
-        spaceId: VALID_SPACE_ID,
-        fileName: validFileName,
-      })
+      const res = await deletePhoto({}, form(VALID_SPACE_ID, validFileName))
 
       expect(res.success).toBe(false)
       expect(res.formError).toContain('Object not found in storage')
+      expect(mockRedirect).not.toHaveBeenCalled()
     })
   })
 })
