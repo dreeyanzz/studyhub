@@ -167,6 +167,53 @@ async function mutateReservationStatus(
   }
 }
 
+/**
+ * Reads where a hold and its payment stand, for refusals that must leave both untouched.
+ */
+async function readHoldAndPayment(reservationId: string) {
+  const sql = getDb()
+  try {
+    const [res] = await sql`
+      select status from public.reservations where id = ${reservationId}
+    `
+    const [pay] = await sql`
+      select status from public.payments where reservation_id = ${reservationId}
+    `
+    return {
+      reservation: res?.status as string | undefined,
+      payment: pay?.status as string | undefined,
+    }
+  } finally {
+    await sql.end()
+  }
+}
+
+/**
+ * Reads the state the Host has set on a unit.
+ */
+async function readHostState(unitId: string) {
+  const sql = getDb()
+  try {
+    const [unit] = await sql`
+      select host_state from public.units where id = ${unitId}
+    `
+    return unit?.host_state as string | undefined
+  } finally {
+    await sql.end()
+  }
+}
+
+/**
+ * Waits for the occupancy page itself. Its loading placeholder is streamed first, and at
+ * 200% text the placeholder is wider than a 360 px screen, so a layout check that runs
+ * too early measures the placeholder.
+ */
+async function expectOccupancyPage(page: Page) {
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Kapihan Study Hall Occupancy/i }),
+  ).toBeVisible()
+}
+
 test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () => {
   test.beforeEach(async () => {
     await cleanupOccupancyState()
@@ -197,7 +244,9 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await expect(page).toHaveURL(/\/host$/)
 
     await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
-    await expect(page.getByText(/404|not found/i).first()).toBeVisible()
+    await expect(
+      page.getByRole('heading', { name: 'This page could not be found.' }),
+    ).toBeVisible()
     await expect(page.getByText('Kapihan Study Hall Occupancy')).toHaveCount(0)
   })
 
@@ -397,7 +446,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     page.off('request', requestListener)
 
     expect(postRequestCount).toBe(0)
-    await expect(page.locator('[data-slot="alert"]')).toHaveCount(0)
+    await expect(page.getByRole('main').getByRole('alert')).toHaveCount(0)
     await expect(page.getByRole('alertdialog')).toHaveCount(0)
 
     // Tap Available to trigger status-specific override warning dialog
@@ -570,6 +619,12 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     })
     await expect(conflictAlert).toBeVisible()
 
+    // The refused override left the hold as the Seeker has it: reserved and paid
+    expect(await readHoldAndPayment(resId)).toEqual({
+      reservation: 'reserved',
+      payment: 'paid',
+    })
+
     const refreshButton = conflictAlert.getByRole('button', { name: 'Refresh' })
     await expect(refreshButton).toBeVisible()
     await refreshButton.click()
@@ -588,6 +643,7 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     await page.setViewportSize({ width: 360, height: 640 })
     await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
     await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
+    await expectOccupancyPage(page)
 
     // Set root font size to 200% (S1)
     await page.evaluate(() => {
@@ -643,5 +699,202 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
       () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
     )
     expect(desktopOverflow).toBe(true)
+  })
+
+  // An Administrator may open the Host portal (D-032), but a Space's occupancy page is
+  // its Host's alone, like the edit page (STORY-05 §1.3).
+  test('Administrator gets the same not-found page', async ({ page }) => {
+    await logInAs(page, 'admin@example.test', '/host')
+    await expect(page).toHaveURL(/\/host$/)
+
+    await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(
+      page.getByRole('heading', { name: 'This page could not be found.' }),
+    ).toBeVisible()
+    await expect(page.getByText('Kapihan Study Hall Occupancy')).toHaveCount(0)
+  })
+
+  test('Hold made after the page loaded is refused, not overridden (Negative N14)', async ({
+    page,
+  }) => {
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
+
+    // Select S3 while nobody holds it
+    await page.getByRole('button', { name: /Select S3 .* to manage occupancy/i }).click()
+    const s3Controls = page.getByRole('group', { name: 'Occupancy controls for S3' })
+    await expect(
+      s3Controls.getByRole('button', { name: 'Mark S3 as Available' }),
+    ).toHaveAttribute('aria-pressed', 'true')
+
+    // A Seeker holds S3 while the Host's page still shows it free
+    const resId = await createTestReservation(UNIT_S3_ID, 'S3', 'pending_payment')
+
+    // The page knows of no hold, so it opens no dialog. The tap names no hold, and the
+    // database refuses it.
+    await s3Controls.getByRole('button', { name: 'Mark S3 as Occupied' }).click()
+    const refusal = page.getByRole('main').getByRole('alert')
+    await expect(refusal).toContainText(
+      'A Seeker has just held this unit. Please review the hold.',
+    )
+    await expect(page.getByRole('alertdialog')).toHaveCount(0)
+
+    // The Seeker's hold and the unit are as they were
+    expect(await readHoldAndPayment(resId)).toEqual({
+      reservation: 'pending_payment',
+      payment: 'pending',
+    })
+    expect(await readHostState(UNIT_S3_ID)).toBe('available')
+
+    // One-click Refresh clears the alert and shows the hold
+    await refusal.getByRole('button', { name: 'Refresh' }).click()
+    await expect(refusal).toHaveCount(0)
+    const selectedUnit = page.getByRole('complementary', {
+      name: 'Selected unit control',
+    })
+    await expect(selectedUnit.getByText('Seeker hold')).toBeVisible()
+    await expect(selectedUnit.getByText('Pending Payment')).toBeVisible()
+  })
+
+  // The Sprint 2 Definition of Done's seat map parity: what the map can do, the list view
+  // can do by keyboard alone.
+  test('List View marks a walk-in by keyboard alone (Tab, Enter and Space)', async ({
+    page,
+  }) => {
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
+
+    const listViewToggle = page.getByRole('button', { name: 'List View' })
+    await listViewToggle.focus()
+    await page.keyboard.press('Enter')
+    await expect(listViewToggle).toHaveAttribute('aria-pressed', 'true')
+
+    const s1Available = page.getByRole('button', { name: 'Mark S1 as Available' })
+    const s1Reserved = page.getByRole('button', { name: 'Mark S1 as Reserved' })
+    const s1Occupied = page.getByRole('button', { name: 'Mark S1 as Occupied' })
+
+    // Tab walks from the toggle into the list: S1 is the first unit, and its three pills
+    // come in order. Nothing has to be selected first.
+    await page.keyboard.press('Tab')
+    await expect(s1Available).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(s1Reserved).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(s1Occupied).toBeFocused()
+
+    // Enter marks the walk-in. The pill stays focusable while it saves, so the Host
+    // keeps their place (D-031).
+    await page.keyboard.press('Enter')
+    await expect(s1Occupied).toHaveAttribute('aria-pressed', 'true')
+    await expect(s1Occupied).toBeFocused()
+    expect(await readHostState(UNIT_S1_ID)).toBe('occupied')
+
+    // Shift+Tab goes back, and Space works as well as Enter
+    await page.keyboard.press('Shift+Tab')
+    await page.keyboard.press('Shift+Tab')
+    await expect(s1Available).toBeFocused()
+    await page.keyboard.press('Space')
+    await expect(s1Available).toHaveAttribute('aria-pressed', 'true')
+    expect(await readHostState(UNIT_S1_ID)).toBe('available')
+  })
+
+  test('Override dialog keeps Tab and Shift+Tab inside it (design §3, focus trap)', async ({
+    page,
+  }) => {
+    const resId = await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
+
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
+    await page.getByRole('button', { name: 'List View' }).click()
+
+    // Open the dialog from the keyboard
+    const s2AvailablePill = page.getByRole('button', { name: 'Mark S2 as Available' })
+    await s2AvailablePill.focus()
+    await page.keyboard.press('Enter')
+
+    const dialog = page.getByRole('alertdialog')
+    const cancelButton = dialog.getByRole('button', { name: 'Cancel', exact: true })
+    const confirmButton = dialog.getByRole('button', {
+      name: 'Cancel hold and mark Available',
+    })
+    await expect(cancelButton).toBeFocused()
+
+    // Tab and Shift+Tab move between the dialog's two buttons and never reach the page
+    await page.keyboard.press('Tab')
+    await expect(confirmButton).toBeFocused()
+    await page.keyboard.press('Tab')
+    await expect(cancelButton).toBeFocused()
+    await page.keyboard.press('Shift+Tab')
+    await expect(confirmButton).toBeFocused()
+
+    // Escape changes nothing
+    await page.keyboard.press('Escape')
+    await expect(dialog).toHaveCount(0)
+    expect(await readHoldAndPayment(resId)).toEqual({
+      reservation: 'reserved',
+      payment: 'paid',
+    })
+  })
+
+  test('200% text at 768 and 1024 px: no sideways scroll, and the dialog stays on screen (D-031)', async ({
+    page,
+  }) => {
+    // Seed a hold on S2, so the dialog can be opened at each size
+    await createTestReservation(UNIT_S2_ID, 'S2', 'reserved')
+
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
+
+    const viewports = [
+      { width: 768, height: 1024 },
+      { width: 1024, height: 768 },
+    ]
+    for (const viewport of viewports) {
+      const where = `${viewport.width} px with text at 200%`
+      await page.setViewportSize(viewport)
+      await page.goto(`/host/spaces/${SPACE_ID}/occupancy`)
+      await expectOccupancyPage(page)
+      await page.evaluate(() => {
+        document.documentElement.style.fontSize = '200%'
+      })
+
+      // Neither view scrolls sideways
+      const seatMapFits = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      )
+      expect(seatMapFits, `seat map view at ${where}`).toBe(true)
+
+      await page.getByRole('button', { name: 'List View' }).click()
+      const s2AvailablePill = page.getByRole('button', { name: 'Mark S2 as Available' })
+      await expect(s2AvailablePill).toBeVisible()
+      const listFits = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      )
+      expect(listFits, `list view at ${where}`).toBe(true)
+
+      // The dialog sits inside the screen on all four sides
+      await s2AvailablePill.click()
+      const dialog = page.getByRole('alertdialog')
+      await expect(dialog).toBeVisible()
+      const dialogBox = await dialog.boundingBox()
+      expect(dialogBox, `dialog at ${where}`).not.toBeNull()
+      if (dialogBox) {
+        expect(dialogBox.x, `dialog's left edge at ${where}`).toBeGreaterThanOrEqual(0)
+        expect(dialogBox.y, `dialog's top edge at ${where}`).toBeGreaterThanOrEqual(0)
+        expect(
+          dialogBox.x + dialogBox.width,
+          `dialog's right edge at ${where}`,
+        ).toBeLessThanOrEqual(viewport.width)
+        expect(
+          dialogBox.y + dialogBox.height,
+          `dialog's bottom edge at ${where}`,
+        ).toBeLessThanOrEqual(viewport.height)
+      }
+
+      await page.keyboard.press('Escape')
+      await expect(dialog).toHaveCount(0)
+    }
   })
 })
