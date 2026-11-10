@@ -701,6 +701,24 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     expect(desktopOverflow).toBe(true)
   })
 
+  // Availability here is what the Host last set, so the page must never call it
+  // "real-time" or "live" (D-002, Glossary; Sprint 2 Definition of Done, freshness honesty).
+  test('Occupancy page never calls its data real-time or live (D-002)', async ({
+    page,
+  }) => {
+    await logInAs(page, 'host@example.test', `/host/spaces/${SPACE_ID}/occupancy`)
+    await expect(page).toHaveURL(new RegExp(`/host/spaces/${SPACE_ID}/occupancy$`))
+    await expectOccupancyPage(page)
+
+    const forbidden = /real[- ]?time|\blive\b/i
+    await expect(page.getByRole('main')).not.toContainText(forbidden)
+    await expect(page.getByRole('main')).toContainText('Host-updated')
+
+    // The list view words the same data the same way
+    await page.getByRole('button', { name: 'List View' }).click()
+    await expect(page.getByRole('main')).not.toContainText(forbidden)
+  })
+
   // An Administrator may open the Host portal (D-032), but a Space's occupancy page is
   // its Host's alone, like the edit page (STORY-05 §1.3).
   test('Administrator gets the same not-found page', async ({ page }) => {

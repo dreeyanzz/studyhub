@@ -79,8 +79,7 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
           {space.name} Occupancy
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Manage real-time seat states and walk-ins. Tap any state to update unit
-          occupancy.
+          Manage seat states and walk-ins. Tap any state to update unit occupancy.
         </p>
       </div>
     </header>

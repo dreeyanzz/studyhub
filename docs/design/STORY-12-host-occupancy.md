@@ -312,12 +312,11 @@ Implemented 2026-11-10. All seven tasks are built:
 - **Payload safety helper:** TSK-12.6 extracted payload construction into a tested pure helper `toSetUnitStateInput` in `lib/occupancy/override.ts` to strictly validate and type `expectedReservationId` and `expectedReservationStatus`.
 - **Responsive dialog scaling:** Enhanced `AlertDialogContent` and its buttons with `max-h-[calc(100dvh-2rem)]`, vertical scrolling, and `whitespace-normal` so that all titles, copy, and buttons fit cleanly on 360 px viewports with 200% text zoom without sideways scrolling.
 - **Focus retention during transitions:** Added `focusableWhenDisabled` to `AlertDialogAction` to keep screen reader focus steady while an override server action is in flight.
+- **Two fixes at the close-out (#275):** the page's intro line said "Manage real-time seat states and walk-ins", and the glossary rules "real-time" out for Host-maintained availability (D-002), so the word is gone. The loading placeholder had fixed widths that came to 624 px on a 360 px screen at 200% text; its placeholders now wrap and shrink like the header they stand for.
 
 ### Left open at the close-out
 
 - **"A host state change appears in the Seeker-facing availability within one refresh"** in a browser remains open until STORY-11's Space profile merges, because no Seeker-facing Space profile page exists yet (design §4's last manual row). Today, unit availability calculation is fully verified in database logic (`06-host-occupancy.sql`: "a signed-out visitor reads updated state and host_updated_at within one read").
-- **The page's intro line says "real-time"** ("Manage real-time seat states and walk-ins", `occupancy-header.tsx`). The glossary rules that word out for Host-maintained availability (D-002), and the Sprint 2 Definition of Done asks for the same ("freshness honesty"). The replacement wording is Maria's (D-042).
-- **The loading placeholder scrolls sideways at 360 px with text at 200%.** `loading.tsx`'s header placeholders have fixed widths (`w-32` beside `w-40`, and `w-64`), which come to 624 px on a 360 px screen at that text size. It lasts only until the page arrives, and the page itself fits. `e2e/host-occupancy.spec.ts` waits for the page before it measures.
 - **Another Host gets the not-found page with HTTP status 200** on the occupancy page, where the edit and seat map pages answer 404. `loading.tsx` starts the response before the page can refuse. The body is the same not-found page, so nothing leaks. `e2e/host-occupancy.spec.ts` checks the page, not the status.
 
 ### Final checks
@@ -327,7 +326,7 @@ On `feature/STORY-12-qa`, on top of `main` at `4aff1df` with every other STORY-1
 - `npm run check`: typecheck, lint, Prettier, and all 511 Vitest unit tests pass across the repository with zero errors.
 - `npm run db:test`: all 450 pgTAP tests in 8 files pass, including `06-host-occupancy.sql`.
 - `npm run db:race`: all 7 concurrency race assertions pass.
-- `npm run test:e2e`: all 23 Playwright tests pass, including the 13 in `e2e/host-occupancy.spec.ts`.
+- `npm run test:e2e`: all 24 Playwright tests pass, including the 14 in `e2e/host-occupancy.spec.ts`.
 
 ### Acceptance criteria (#77)
 
