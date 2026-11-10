@@ -1,0 +1,292 @@
+'use client'
+
+import type * as LeafletType from 'leaflet'
+import { useEffect, useRef, useState } from 'react'
+import { PRICE_TIER_LABELS } from '@/components/discovery/price-tier-badge'
+import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
+import type { PriceTier } from '@/lib/validation/search'
+
+interface DiscoveryMapProps {
+  spaces: VerifiedSpaceSearchResult[]
+  activeSpaceId: string | null
+  hoveredSpaceId: string | null
+  onSelectSpace: (id: string) => void
+  onHoverSpace: (id: string | null) => void
+  center?: [number, number]
+  zoom?: number
+  className?: string
+}
+
+const DEFAULT_CENTER: [number, number] = [10.3157, 123.8854] // Cebu City center (D-012)
+const DEFAULT_ZOOM = 13
+
+function getPinColor(tier: PriceTier): string {
+  switch (tier) {
+    case 'free':
+      return '#059669' // emerald-600
+    case 'premium':
+      return '#7c3aed' // purple-600
+    case 'standard':
+      return '#d97706' // amber-600
+    case 'budget':
+    default:
+      return '#0284c7' // sky-600
+  }
+}
+
+/**
+ * Creates an SVG map pin DivIcon to avoid broken default PNG asset paths in Next.js bundlers.
+ */
+function createSvgPin(
+  L: typeof LeafletType,
+  tier: PriceTier,
+  isActive: boolean,
+  isHovered: boolean,
+) {
+  const color = getPinColor(tier)
+  const isElevated = isActive || isHovered
+  const scale = isActive ? 1.3 : isHovered ? 1.15 : 1.0
+  const zIndex = isActive ? 1000 : isHovered ? 900 : 500
+
+  const svg = `
+    <div style="width: 48px; height: 48px; transform: scale(${scale}); transform-origin: 50% 100%; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+      <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.35));">
+        <path d="M17 0C7.611 0 0 7.611 0 17C0 28.5 17 44 17 44C17 44 34 28.5 34 17C34 7.611 26.389 0 17 0Z" fill="${color}" stroke="${isElevated ? '#ffffff' : 'rgba(255,255,255,0.7)'}" stroke-width="${isElevated ? '2.5' : '1.5'}"/>
+        <circle cx="17" cy="16" r="8" fill="#ffffff"/>
+        <circle cx="17" cy="16" r="5" fill="${color}"/>
+      </svg>
+    </div>
+  `
+
+  return L.divIcon({
+    className: 'custom-discovery-pin',
+    html: svg,
+    iconSize: [48, 48],
+    iconAnchor: [24, 46],
+    popupAnchor: [0, -44],
+  })
+}
+
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}
+
+/** Escapes text for HTML, so a Host's name or address can never become markup. */
+export function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (ch) => HTML_ESCAPES[ch] ?? ch)
+}
+
+/**
+ * The pin popup's HTML. Leaflet inserts it as markup, so every value from the database
+ * is escaped: Hosts write a Space's name and address. Colors are the app's tokens, so the
+ * text meets 4.5:1 (D-031).
+ */
+export function buildPopupHtml(
+  space: Pick<
+    VerifiedSpaceSearchResult,
+    'id' | 'name' | 'address' | 'price_tier' | 'distance_km' | 'curated_tags'
+  >,
+): string {
+  const distance =
+    space.distance_km !== null
+      ? `<div style="font-size: 12px; color: var(--foreground); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
+      : ''
+  const tags =
+    space.curated_tags.length > 0
+      ? `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">${space.curated_tags
+          .map(
+            (tag) =>
+              `<span style="font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--secondary); color: var(--secondary-foreground);">${escapeHtml(tag.label)}</span>`,
+          )
+          .join('')}</div>`
+      : ''
+  return `
+    <div style="font-family: inherit; min-width: 190px; padding: 2px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h3>
+        <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
+      </div>
+      <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
+      ${distance}
+      ${tags}
+      <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
+      </div>
+    </div>
+  `
+}
+
+/**
+ * DiscoveryMap provides the interactive Leaflet discovery map view (STORY-08, FR-1.1, D-012).
+ * Rendered exclusively on the client with dynamic import (ssr: false).
+ */
+export default function DiscoveryMap({
+  spaces,
+  activeSpaceId,
+  hoveredSpaceId,
+  onSelectSpace,
+  onHoverSpace,
+  center = DEFAULT_CENTER,
+  zoom = DEFAULT_ZOOM,
+  className = 'h-full w-full',
+}: DiscoveryMapProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<LeafletType.Map | null>(null)
+  const leafletModuleRef = useRef<typeof LeafletType | null>(null)
+  const markersRef = useRef<Map<string, LeafletType.Marker>>(new Map())
+  const prevActiveSpaceIdRef = useRef<string | null>(null)
+  // Leaflet loads asynchronously, after the first render. Setting this once the map
+  // exists re-runs the marker and pan effects, which return early until then.
+  const [mapReady, setMapReady] = useState(false)
+
+  // Initialize Leaflet Map once
+  useEffect(() => {
+    let isMounted = true
+    let resizeObserver: ResizeObserver | null = null
+
+    async function initMap() {
+      if (!containerRef.current || mapRef.current) return
+
+      const L = await import('leaflet')
+      if (!isMounted || !containerRef.current || mapRef.current) return
+
+      leafletModuleRef.current = L
+
+      const map = L.map(containerRef.current, {
+        center,
+        zoom,
+        zoomControl: true,
+      })
+
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map)
+
+      // On a phone the map starts hidden behind the list (0 × 0), and Leaflet only
+      // measures its container when told to. Re-measure whenever the box changes size.
+      resizeObserver = new ResizeObserver(() => map.invalidateSize())
+      resizeObserver.observe(containerRef.current)
+
+      mapRef.current = map
+      setMapReady(true)
+    }
+
+    void initMap()
+
+    const currentMarkers = markersRef.current
+
+    return () => {
+      isMounted = false
+      resizeObserver?.disconnect()
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+      currentMarkers.clear()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sync Markers and Popups when spaces, activeSpaceId, or hoveredSpaceId changes
+  useEffect(() => {
+    const map = mapRef.current
+    const L = leafletModuleRef.current
+    if (!map || !L) return
+
+    const currentMarkers = markersRef.current
+
+    // Remove obsolete markers
+    const newSpaceIds = new Set(spaces.map((s) => s.id))
+    for (const [id, marker] of currentMarkers.entries()) {
+      if (!newSpaceIds.has(id)) {
+        marker.remove()
+        currentMarkers.delete(id)
+      }
+    }
+
+    // Add or update markers for spaces with coordinates
+    for (const space of spaces) {
+      if (space.latitude === null || space.longitude === null) continue
+
+      const isActive = space.id === activeSpaceId
+      const isHovered = space.id === hoveredSpaceId
+      const icon = createSvgPin(L, space.price_tier, isActive, isHovered)
+
+      let marker = currentMarkers.get(space.id)
+
+      if (!marker) {
+        marker = L.marker([space.latitude, space.longitude], {
+          icon,
+          title: space.name,
+          riseOnHover: true,
+        }).addTo(map)
+
+        marker.bindPopup(buildPopupHtml(space), {
+          closeButton: true,
+          offset: [0, -10],
+        })
+
+        marker.on('click', () => {
+          onSelectSpace(space.id)
+        })
+
+        marker.on('mouseover', () => {
+          onHoverSpace(space.id)
+        })
+
+        marker.on('mouseout', () => {
+          onHoverSpace(null)
+        })
+
+        currentMarkers.set(space.id, marker)
+      } else {
+        // Update marker icon, coordinates, and popup content if changed
+        marker.setIcon(icon)
+        marker.setLatLng([space.latitude, space.longitude])
+        marker.setPopupContent(buildPopupHtml(space))
+      }
+    }
+  }, [mapReady, spaces, activeSpaceId, hoveredSpaceId, onSelectSpace, onHoverSpace])
+
+  // Open popup and pan map only when activeSpaceId changes
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    if (!activeSpaceId) {
+      prevActiveSpaceIdRef.current = null
+      return
+    }
+
+    if (prevActiveSpaceIdRef.current === activeSpaceId) return
+    prevActiveSpaceIdRef.current = activeSpaceId
+
+    const marker = markersRef.current.get(activeSpaceId)
+    if (marker && !marker.isPopupOpen()) {
+      marker.openPopup()
+    }
+
+    const activeSpace = spaces.find((s) => s.id === activeSpaceId)
+    if (activeSpace && activeSpace.latitude !== null && activeSpace.longitude !== null) {
+      map.panTo([activeSpace.latitude, activeSpace.longitude], {
+        animate: true,
+        duration: 0.5,
+      })
+    }
+  }, [mapReady, activeSpaceId, spaces])
+
+  return (
+    <div
+      data-testid="discovery-map-container"
+      className={className}
+      ref={containerRef}
+      style={{ minHeight: '360px' }}
+    />
+  )
+}
