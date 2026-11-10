@@ -301,6 +301,11 @@ stays honest.
 **Done when:** a Host's change shows on the Seeker's side within one refresh; a walk-in
 can be marked Occupied with no reservation; another Host can't change your units.
 
+> **Update, Tue 10 Nov: STORY-12 is done** (#223, #224, #227, #245, #259, #272). A Host
+> sets any unit's state with one tap, marks walk-ins Occupied with no reservation, re-vouches
+> freshness, confirms hold overrides with status-specific consequences, and recovers from
+> concurrent hold modifications with one-click refresh (design §9).
+
 **Waits for:** STORY-07's tables and actions, and STORY-09's reservations for overriding a
 hold. Build the view with sample data first.
 
