@@ -5,6 +5,7 @@ import {
   isOverrideRequired,
   mapRefusalError,
   tapOutcome,
+  toSetUnitStateInput,
 } from '@/lib/occupancy/override'
 
 describe('formatStateLabel', () => {
@@ -117,5 +118,131 @@ describe('mapRefusalError', () => {
     expect(mapRefusalError('500', null)).toBe(
       'We could not save that change. Check your connection and try again.',
     )
+  })
+})
+
+describe('toSetUnitStateInput', () => {
+  const mockUnitId = '11111111-1111-4111-a111-111111111111'
+  const mockReservationId = '22222222-2222-4222-a222-222222222222'
+
+  it('names reservation ID and hold status for confirmed override on held units', () => {
+    // S2 pending_payment -> available (R5)
+    expect(
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'pending_payment',
+          reservationId: mockReservationId,
+        },
+        'available',
+        { override: true },
+      ),
+    ).toEqual({
+      unitId: mockUnitId,
+      state: 'available',
+      expectedReservationId: mockReservationId,
+      expectedReservationStatus: 'pending_payment',
+    })
+
+    // S3 reserved -> occupied (R9)
+    expect(
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'reserved',
+          reservationId: mockReservationId,
+        },
+        'occupied',
+        { override: true },
+      ),
+    ).toEqual({
+      unitId: mockUnitId,
+      state: 'occupied',
+      expectedReservationId: mockReservationId,
+      expectedReservationStatus: 'reserved',
+    })
+
+    // S4 occupied -> available (R11)
+    expect(
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'occupied',
+          reservationId: mockReservationId,
+        },
+        'available',
+        { override: true },
+      ),
+    ).toEqual({
+      unitId: mockUnitId,
+      state: 'available',
+      expectedReservationId: mockReservationId,
+      expectedReservationStatus: 'occupied',
+    })
+  })
+
+  it('omits expected reservation fields for direct Host-set taps', () => {
+    // Direct tap without override option
+    expect(
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'available',
+          reservationId: null,
+        },
+        'occupied',
+      ),
+    ).toEqual({
+      unitId: mockUnitId,
+      state: 'occupied',
+      expectedReservationId: undefined,
+      expectedReservationStatus: undefined,
+    })
+
+    // Explicit override: false
+    expect(
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'occupied',
+          reservationId: null,
+        },
+        'available',
+        { override: false },
+      ),
+    ).toEqual({
+      unitId: mockUnitId,
+      state: 'available',
+      expectedReservationId: undefined,
+      expectedReservationStatus: undefined,
+    })
+  })
+
+  it('throws an error if override is requested on an available unit', () => {
+    expect(() =>
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'available',
+          reservationId: mockReservationId,
+        },
+        'occupied',
+        { override: true },
+      ),
+    ).toThrow('Cannot override a unit with seatState "available"')
+  })
+
+  it('throws an error if override is requested without a reservationId', () => {
+    expect(() =>
+      toSetUnitStateInput(
+        {
+          id: mockUnitId,
+          seatState: 'reserved',
+          reservationId: null,
+        },
+        'available',
+        { override: true },
+      ),
+    ).toThrow('Cannot override a hold without a reservationId')
   })
 })
