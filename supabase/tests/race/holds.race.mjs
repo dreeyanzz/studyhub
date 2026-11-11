@@ -1,6 +1,7 @@
-// STORY-09, TSK-09.2: Concurrent race test for hold_unit.
-// Design: docs/design/STORY-09-reserve-now-holds.md §4 (Row 2).
-// Proves FR-2.5 (N3) and N2 using direct PostgreSQL connections.
+// STORY-09: Concurrent race tests for hold_unit (TSK-09.2) and confirm_payment (TSK-09.3).
+// Design: docs/design/STORY-09-reserve-now-holds.md §4 (Rows 2 and 3).
+// Proves FR-2.5 (N3), N2, and the payment flow's W6, W10, W11 and W18, using direct
+// PostgreSQL connections.
 
 import postgres from 'postgres'
 import assert from 'node:assert/strict'
@@ -231,11 +232,295 @@ async function runCase2() {
   console.log('ok 7 - Exactly one active hold exists for the Seeker')
 }
 
+// ---------------------------------------------------------------------------
+// TSK-09.3: confirm_payment races (payment confirmation flow §1.2, Cases B and C)
+// ---------------------------------------------------------------------------
+
+const SECRET_KEY = { role: 'service_role' }
+const asSeeker = (id) => ({ sub: id, role: 'authenticated' })
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+// Acts as a role for the rest of the transaction, as PostgREST would.
+async function actAs(tx, claims) {
+  await tx.unsafe(`set local role ${claims.role}`)
+  await tx`select set_config('request.jwt.claims', ${JSON.stringify(claims)}, true)`
+}
+
+// Seeker holds the unit for 30 minutes, committed, and gets the reservation's id.
+async function holdAs(seekerId, unitId) {
+  const [hold] = await admin.begin(async (tx) => {
+    await actAs(tx, asSeeker(seekerId))
+    return tx`select reservation_id from public.hold_unit(${unitId}, 30)`
+  })
+  return hold.reservation_id
+}
+
+// Runs work in a transaction on sql and keeps it open, with its locks, until release().
+// claims null runs it as postgres.
+function openTransaction(sql, claims, work) {
+  let release
+  const released = new Promise((resolve) => {
+    release = resolve
+  })
+  let markStarted
+  const started = new Promise((resolve) => {
+    markStarted = resolve
+  })
+  const done = sql
+    .begin(async (tx) => {
+      if (claims) await actAs(tx, claims)
+      const result = await work(tx)
+      markStarted()
+      await released
+      return result
+    })
+    .finally(() => markStarted())
+  return { started, release, done }
+}
+
+// Runs work in a transaction on sql, and records how it ended without throwing.
+function runTransaction(sql, claims, work) {
+  const state = { finished: false, result: null, error: null }
+  state.done = sql
+    .begin(async (tx) => {
+      await actAs(tx, claims)
+      return work(tx)
+    })
+    .then(
+      (result) => {
+        state.finished = true
+        state.result = result
+      },
+      (error) => {
+        state.finished = true
+        state.error = error
+      },
+    )
+  return state
+}
+
+// True once pg_stat_activity shows a call to fnName waiting on a lock.
+async function waitsOnLock(fnName, state) {
+  for (let attempt = 0; attempt < 40; attempt++) {
+    await sleep(50)
+    if (state.finished) return false
+    const waiting = await admin`
+      select pid
+      from pg_stat_activity
+      where wait_event_type = 'Lock'
+        and query like ${`%${fnName}%`}
+    `
+    if (waiting.length > 0) return true
+  }
+  return false
+}
+
+async function reservationState(reservationId) {
+  const [row] = await admin`
+    select r.status, r.booking_token, p.status as payment_status, p.external_payment_id
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = ${reservationId}
+  `
+  return row
+}
+
+const confirmPayment = (reservationId, n) => (tx) =>
+  tx`select public.confirm_payment(${reservationId}, ${`cs_test_race_${n}`}, ${`pay_test_race_${n}`}) as result`
+
+const cancelUnpaidHold = (reservationId) => (tx) =>
+  tx`select public.cancel_hold(${reservationId}, 'pending_payment')`
+
+async function runCase3() {
+  console.log('# Case 3: Two webhook deliveries for one payment at the same moment (W6)')
+  await cleanup()
+  const reservationId = await holdAs(SEEKER_1, UNIT_U1)
+
+  const first = openTransaction(sqlA, SECRET_KEY, confirmPayment(reservationId, 3))
+  await first.started
+  const second = runTransaction(sqlB, SECRET_KEY, confirmPayment(reservationId, 3))
+
+  assert.equal(
+    await waitsOnLock('confirm_payment', second),
+    true,
+    'The second delivery must wait on the lock the first one holds',
+  )
+  console.log('ok 8 - The second delivery waited on the lock the first one held')
+
+  first.release()
+  const [firstRow] = await first.done
+  await second.done
+  assert.ifError(second.error)
+  assert.equal(firstRow.result.outcome, 'confirmed')
+  assert.deepEqual(second.result[0].result, {
+    outcome: 'already_processed',
+    reservation_status: 'reserved',
+    payment_status: 'paid',
+  })
+  console.log(
+    'ok 9 - The first delivery confirmed the payment, and the second changed nothing',
+  )
+
+  const state = await reservationState(reservationId)
+  assert.equal(state.status, 'reserved')
+  assert.equal(state.payment_status, 'paid')
+  assert.match(state.booking_token, /^[0-9A-HJKMNP-TV-Z]{12}$/)
+  const [tokens] = await admin`
+    select count(*)::int as n from public.reservations where booking_token = ${state.booking_token}
+  `
+  assert.equal(tokens.n, 1, 'Exactly one reservation must have the booking token')
+  console.log('ok 10 - The unit is Reserved, with exactly one booking token')
+}
+
+async function runCase4() {
+  console.log('# Case 4: A cancel and a confirmation at the same moment (W10, W11)')
+
+  // The Seeker's cancel commits first (W10)
+  await cleanup()
+  let reservationId = await holdAs(SEEKER_1, UNIT_U1)
+
+  let cancel = openTransaction(sqlA, asSeeker(SEEKER_1), cancelUnpaidHold(reservationId))
+  await cancel.started
+  let confirm = runTransaction(sqlB, SECRET_KEY, confirmPayment(reservationId, 4))
+
+  assert.equal(
+    await waitsOnLock('confirm_payment', confirm),
+    true,
+    'The confirmation must wait on the lock the cancel holds',
+  )
+  console.log('ok 11 - The confirmation waited on the lock the cancel held')
+
+  cancel.release()
+  await cancel.done
+  await confirm.done
+  assert.ifError(confirm.error)
+  assert.deepEqual(confirm.result[0].result, {
+    outcome: 'late_payment',
+    reservation_status: 'cancelled',
+    payment_status: 'paid',
+  })
+  let state = await reservationState(reservationId)
+  assert.equal(state.status, 'cancelled')
+  assert.equal(state.payment_status, 'paid')
+  assert.equal(state.booking_token, null)
+  console.log(
+    'ok 12 - With the cancel first, the hold stays cancelled and the payment is late',
+  )
+
+  // The confirmation commits first (W11)
+  await cleanup()
+  reservationId = await holdAs(SEEKER_1, UNIT_U1)
+
+  confirm = openTransaction(sqlA, SECRET_KEY, confirmPayment(reservationId, 5))
+  await confirm.started
+  cancel = runTransaction(sqlB, asSeeker(SEEKER_1), cancelUnpaidHold(reservationId))
+
+  assert.equal(
+    await waitsOnLock('cancel_hold', cancel),
+    true,
+    'The cancel must wait on the lock the confirmation holds',
+  )
+  console.log('ok 13 - The cancel waited on the lock the confirmation held')
+
+  confirm.release()
+  const [confirmRow] = await confirm.done
+  await cancel.done
+  assert.equal(confirmRow.result.outcome, 'confirmed')
+  assert.ok(cancel.error, 'The cancel must be refused')
+  assert.equal(
+    cancel.error.hint,
+    'hold_changed',
+    `The cancel must be refused with hold_changed, got: ${cancel.error.message}`,
+  )
+  state = await reservationState(reservationId)
+  assert.equal(state.status, 'reserved')
+  assert.equal(state.payment_status, 'paid')
+  console.log(
+    'ok 14 - With the confirmation first, the cancel is refused with hold_changed',
+  )
+}
+
+async function runCase5() {
+  console.log(
+    '# Case 5: The payment window ends while the webhook waits for the unit (W18)',
+  )
+  await cleanup()
+  const reservationId = await holdAs(SEEKER_1, UNIT_U1)
+
+  // The payment window now ends 3 seconds from now.
+  await admin`
+    update public.reservations
+    set payment_window_ends_at = clock_timestamp() + interval '3 seconds'
+    where id = ${reservationId}
+  `
+
+  // Something else holds the unit's lock, as a Host's tap does inside set_unit_state.
+  const unitLock = openTransaction(
+    sqlA,
+    null,
+    (tx) => tx`select id from public.units where id = ${UNIT_U1} for update`,
+  )
+  await unitLock.started
+  const confirm = runTransaction(sqlB, SECRET_KEY, confirmPayment(reservationId, 6))
+
+  assert.equal(
+    await waitsOnLock('confirm_payment', confirm),
+    true,
+    'The webhook must wait on the lock on the unit',
+  )
+  const [paymentWindow] = await admin`
+    select payment_window_ends_at > clock_timestamp() as open
+    from public.reservations
+    where id = ${reservationId}
+  `
+  assert.equal(
+    paymentWindow.open,
+    true,
+    'The webhook must start waiting before the payment window ends',
+  )
+  console.log(
+    'ok 15 - The webhook waited on the unit while the payment window was still open',
+  )
+
+  // Let the payment window end, then free the unit.
+  let passed = false
+  for (let attempt = 0; attempt < 50 && !passed; attempt++) {
+    await sleep(100)
+    const [row] = await admin`
+      select payment_window_ends_at <= clock_timestamp() as passed
+      from public.reservations
+      where id = ${reservationId}
+    `
+    passed = row.passed
+  }
+  assert.equal(passed, true, 'The payment window must have ended')
+  unitLock.release()
+  await unitLock.done
+  await confirm.done
+
+  assert.ifError(confirm.error)
+  assert.deepEqual(confirm.result[0].result, {
+    outcome: 'late_payment',
+    reservation_status: 'expired',
+    payment_status: 'paid',
+  })
+  const state = await reservationState(reservationId)
+  assert.equal(state.status, 'expired')
+  assert.equal(state.payment_status, 'paid')
+  assert.equal(state.booking_token, null)
+  console.log(
+    'ok 16 - The webhook recorded the lapse once it had the unit, so the late payment did not reserve',
+  )
+}
+
 async function main() {
   let exitCode = 0
   try {
     await runCase1()
     await runCase2()
+    await runCase3()
+    await runCase4()
+    await runCase5()
     await cleanup()
     console.log('# All race tests passed successfully.')
   } catch (err) {
