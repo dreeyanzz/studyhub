@@ -290,6 +290,8 @@ describe('Host Space Actions (STORY-05, STORY-09 TSK-09.7)', () => {
         }),
       )
       expect(mockRevalidatePath).toHaveBeenCalledWith('/host')
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/spaces')
+      expect(mockRevalidatePath).toHaveBeenCalledWith(`/spaces/${validSpaceId}`)
     })
 
     it('clears a saved pin when both coordinates are emptied (STORY-08, TSK-08.5)', async () => {
@@ -409,6 +411,8 @@ describe('Host Space Actions (STORY-05, STORY-09 TSK-09.7)', () => {
         }),
       )
       expect(mockRevalidatePath).toHaveBeenCalledWith('/host')
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/spaces')
+      expect(mockRevalidatePath).toHaveBeenCalledWith(`/spaces/${validSpaceId}`)
     })
   })
 })

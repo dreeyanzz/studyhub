@@ -76,6 +76,7 @@ describe('TagForm (STORY-08, TSK-08.5)', () => {
     )
     expect(html).toContain('<input type="hidden" name="customTagNames" value="Rooftop"/>')
     expect(html).toContain('aria-label="Remove tag Pet friendly"')
+    expect(html).toContain('size-12')
     expect(html).not.toContain('No custom tags yet.')
   })
 

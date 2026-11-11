@@ -26,6 +26,15 @@ function timeOfDay(required: string, invalid: string) {
  * An empty description stays '' so form fields keep string values; the Server
  * Actions store it as null.
  */
+function coordinateInput(val: unknown) {
+  if (val === null || val === undefined) return undefined
+  if (typeof val === 'string') {
+    const trimmed = val.trim()
+    return trimmed === '' ? undefined : trimmed
+  }
+  return val
+}
+
 export const spaceSchema = z
   .object({
     name: z
@@ -49,7 +58,7 @@ export const spaceSchema = z
     // below refuses one without the other. Messages match the database checks.
     latitude: z
       .preprocess(
-        (val) => (val === '' || val === null || val === undefined ? undefined : val),
+        coordinateInput,
         z.coerce
           .number({ error: 'Enter the latitude as a number' })
           .min(-90, { error: 'Latitude must be between -90 and 90' })
@@ -60,7 +69,7 @@ export const spaceSchema = z
       .nullable(),
     longitude: z
       .preprocess(
-        (val) => (val === '' || val === null || val === undefined ? undefined : val),
+        coordinateInput,
         z.coerce
           .number({ error: 'Enter the longitude as a number' })
           .min(-180, { error: 'Longitude must be between -180 and 180' })

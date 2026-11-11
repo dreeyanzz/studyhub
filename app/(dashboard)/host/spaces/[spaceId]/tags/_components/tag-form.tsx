@@ -49,16 +49,21 @@ export function TagForm({
   initialCuratedTagIds,
   initialCustomTagNames,
 }: TagFormProps) {
+  const [dirty, setDirty] = useState(false)
   const [state, formAction, pending] = useActionState<SpaceTagsState, FormData>(
-    saveSpaceTagsAction,
+    async (prevState, formData) => {
+      const result = await saveSpaceTagsAction(prevState, formData)
+      if (result.success) {
+        setDirty(false)
+      }
+      return result
+    },
     {},
   )
   const [curated, setCurated] = useState(() => new Set(initialCuratedTagIds))
   const [customNames, setCustomNames] = useState(initialCustomTagNames)
   const [draft, setDraft] = useState('')
   const [draftError, setDraftError] = useState<string>()
-  // Any change after a save hides "Tags saved", so it never describes stale choices.
-  const [dirty, setDirty] = useState(false)
 
   function toggleCurated(id: string, checked: boolean) {
     setCurated((current) => {
@@ -109,13 +114,7 @@ export function TagForm({
   const customErrorId = 'custom-tags-error'
 
   return (
-    <form
-      action={(formData) => {
-        setDirty(false)
-        formAction(formData)
-      }}
-      className="flex flex-col gap-6"
-    >
+    <form action={formAction} className="flex flex-col gap-6">
       <input type="hidden" name="spaceId" value={spaceId} />
 
       {formError && (
@@ -246,7 +245,7 @@ export function TagForm({
                   type="button"
                   onClick={() => removeCustomTag(name)}
                   aria-label={`Remove tag ${name}`}
-                  className="inline-flex size-10 items-center justify-center rounded-full hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
+                  className="inline-flex size-12 items-center justify-center rounded-full hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                 >
                   <X className="size-4" aria-hidden="true" />
                 </button>

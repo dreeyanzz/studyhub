@@ -285,6 +285,30 @@ describe('spaceSchema', () => {
       expect(result.data.priceTier).toBe('budget')
     }
   })
+
+  it('treats whitespace coordinates as blank, avoiding Null Island (0, 0)', () => {
+    const result = spaceSchema.safeParse({
+      ...validSpace,
+      latitude: '   ',
+      longitude: '   ',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.latitude).toBeUndefined()
+      expect(result.data.longitude).toBeUndefined()
+    }
+
+    expect(fieldErrors({ ...validSpace, latitude: '10.3157', longitude: '   ' })).toEqual(
+      {
+        longitude: ['Enter the longitude too, or clear the latitude'],
+      },
+    )
+    expect(
+      fieldErrors({ ...validSpace, latitude: '   ', longitude: '123.8854' }),
+    ).toEqual({
+      latitude: ['Enter the latitude too, or clear the longitude'],
+    })
+  })
 })
 
 describe('spaceIdSchema', () => {

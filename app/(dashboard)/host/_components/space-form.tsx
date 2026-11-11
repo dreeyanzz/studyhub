@@ -220,9 +220,11 @@ export function SpaceForm(props: SpaceFormProps) {
         )}
       </SpaceFormField>
       {/* One tier per Space (STORY-08 design §3). ARIA puts the invalid state on the
-          radiogroup, not on each radio (as in RegisterForm). */}
+          radiogroup, not on each radio (as in RegisterForm). tabIndex={-1} allows
+          the error-focus effect to programmatically focus the fieldset if invalid. */}
       <fieldset
         role="radiogroup"
+        tabIndex={-1}
         aria-labelledby="space-priceTier-legend"
         aria-invalid={errors.priceTier?.[0] ? true : undefined}
         aria-describedby={
@@ -230,7 +232,7 @@ export function SpaceForm(props: SpaceFormProps) {
             .filter(Boolean)
             .join(' ') || undefined
         }
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-2 outline-none"
       >
         <legend
           id="space-priceTier-legend"

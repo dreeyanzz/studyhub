@@ -137,6 +137,8 @@ export async function updateSpace(
   }
 
   revalidatePath('/host')
+  revalidatePath('/spaces')
+  revalidatePath(`/spaces/${spaceId.data}`)
   redirect('/host?notice=updated')
 }
 
@@ -214,5 +216,7 @@ export async function deleteSpace(
   }
 
   revalidatePath('/host')
+  revalidatePath('/spaces')
+  revalidatePath(`/spaces/${spaceId.data}`)
   redirect('/host?notice=deleted')
 }

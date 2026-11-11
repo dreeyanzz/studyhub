@@ -66,6 +66,7 @@ describe('SpaceForm component (STORY-05, STORY-09 TSK-09.7)', () => {
     const html = renderToStaticMarkup(<SpaceForm mode="create" action={dummyAction} />)
 
     expect(html).toContain('>Price tier</legend>')
+    expect(html).toContain('tabindex="-1"')
     expect(html.match(/name="priceTier"/g)).toHaveLength(4)
     for (const label of ['Free', 'Budget', 'Standard', 'Premium']) {
       expect(html).toContain(`/>${label}</label>`)
