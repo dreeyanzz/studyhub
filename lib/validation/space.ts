@@ -32,7 +32,8 @@ function coordinateInput(val: unknown) {
     const trimmed = val.trim()
     return trimmed === '' ? undefined : trimmed
   }
-  return val
+  if (typeof val === 'number') return val
+  return NaN
 }
 
 export const spaceSchema = z

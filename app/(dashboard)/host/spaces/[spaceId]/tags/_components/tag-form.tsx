@@ -51,15 +51,16 @@ export function TagForm({
 }: TagFormProps) {
   const [dirty, setDirty] = useState(false)
   const [state, formAction, pending] = useActionState<SpaceTagsState, FormData>(
-    async (prevState, formData) => {
-      const result = await saveSpaceTagsAction(prevState, formData)
-      if (result.success) {
-        setDirty(false)
-      }
-      return result
-    },
+    saveSpaceTagsAction,
     {},
   )
+  const [lastState, setLastState] = useState(state)
+  if (state !== lastState) {
+    setLastState(state)
+    if (state.success) {
+      setDirty(false)
+    }
+  }
   const [curated, setCurated] = useState(() => new Set(initialCuratedTagIds))
   const [customNames, setCustomNames] = useState(initialCustomTagNames)
   const [draft, setDraft] = useState('')

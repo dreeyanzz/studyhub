@@ -309,6 +309,18 @@ describe('spaceSchema', () => {
       latitude: ['Enter the latitude too, or clear the longitude'],
     })
   })
+
+  it('fails non-numeric and boolean coordinate inputs without coercing to numbers', () => {
+    expect(fieldErrors({ ...validSpace, latitude: true, longitude: 123.8854 })).toEqual({
+      latitude: ['Enter the latitude as a number'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: 10.3157, longitude: false })).toEqual({
+      longitude: ['Enter the longitude as a number'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: [], longitude: 123.8854 })).toEqual({
+      latitude: ['Enter the latitude as a number'],
+    })
+  })
 })
 
 describe('spaceIdSchema', () => {
