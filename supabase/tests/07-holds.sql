@@ -11,7 +11,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(113);
+select plan(148);
 
 -- pgTAP's throws_ok sees an error's code and message, but not its hint, and the app tells
 -- one refusal from another by the hint (design §2). This runs a statement as the current
@@ -1254,6 +1254,492 @@ select is(
   pg_temp.refusal($$select public.cancel_hold('10000000-0000-4000-8000-000000000088', 'occupied')$$),
   'P0001 checked_in',
   'cancel_hold on occupied reservation raises checked_in'
+);
+
+-- ---------------------------------------------------------------------------
+-- 12. public.attach_checkout_session (W12, W13, W15 to W17; payment flow §4.2)
+-- ---------------------------------------------------------------------------
+-- TSK-09.3. Seeker 1, who holds nothing now, holds Sulok's U1 and U2 in turn. Sulok is
+-- open 24 hours, so hold_unit works at any time. Seeker 2's occupied visit on U3 stays.
+-- _pay keeps each hold's id across the role changes below.
+set local role postgres;
+create temp table _pay (name text primary key, id uuid not null);
+grant all on _pay to public;
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+insert into _pay
+select 'a', h.reservation_id
+from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30) h;
+
+-- W16: only the hold's Seeker attaches a checkout
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+
+select throws_ok(
+  $$select public.attach_checkout_session((select id from _pay where name = 'a'), 'cs_test_intruder', 'https://checkout.paymongo.test/cs_test_intruder')$$,
+  '42501',
+  null,
+  'a signed-out visitor cannot call attach_checkout_session'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select throws_ok(
+  $$select public.attach_checkout_session((select id from _pay where name = 'a'), 'cs_test_intruder', 'https://checkout.paymongo.test/cs_test_intruder')$$,
+  '42501',
+  null,
+  'a Seeker cannot attach a checkout to another Seeker''s hold'
+);
+
+select throws_ok(
+  $$select public.attach_checkout_session('10000000-0000-4000-8000-00000000dead', 'cs_test_intruder', 'https://checkout.paymongo.test/cs_test_intruder')$$,
+  '42501',
+  null,
+  'attach_checkout_session refuses an unknown reservation as it refuses another Seeker''s'
+);
+
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select throws_ok(
+  $$select public.attach_checkout_session((select id from _pay where name = 'a'), '', 'https://checkout.paymongo.test/cs_test_empty')$$,
+  '22023',
+  null,
+  'attach_checkout_session refuses an empty checkout session'
+);
+
+-- W15: the first attach wins
+select is(
+  public.attach_checkout_session((select id from _pay where name = 'a'), 'cs_test_first', 'https://checkout.paymongo.test/cs_test_first'),
+  '{"attached": true, "checkout_url": "https://checkout.paymongo.test/cs_test_first"}'::jsonb,
+  'the first attach_checkout_session stores its checkout'
+);
+
+select is(
+  public.attach_checkout_session((select id from _pay where name = 'a'), 'cs_test_first', 'https://checkout.paymongo.test/cs_test_first'),
+  '{"attached": true, "checkout_url": "https://checkout.paymongo.test/cs_test_first"}'::jsonb,
+  'the same checkout attached again still reads as attached'
+);
+
+select is(
+  public.attach_checkout_session((select id from _pay where name = 'a'), 'cs_test_second', 'https://checkout.paymongo.test/cs_test_second'),
+  '{"attached": false, "checkout_url": "https://checkout.paymongo.test/cs_test_first"}'::jsonb,
+  'a second attach_checkout_session keeps the first checkout'
+);
+
+select results_eq(
+  $$select checkout_session_id, checkout_url from public.my_reservation((select id from _pay where name = 'a'))$$,
+  $$values ('cs_test_first'::text, 'https://checkout.paymongo.test/cs_test_first'::text)$$,
+  'the hold still has the first checkout after a second attach'
+);
+
+-- Payment flow §4.2 step 5: a second tab gets the checkout from hold_unit (W2)
+select results_eq(
+  $$select checkout_url, created from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30)$$,
+  $$values ('https://checkout.paymongo.test/cs_test_first'::text, false)$$,
+  'hold_unit returns the hold''s checkout once it has one'
+);
+
+-- W12: a checkout nobody pays leaves the hold to its lapse (R3)
+select results_eq(
+  $$select status, payment_status from public.my_reservation((select id from _pay where name = 'a'))$$,
+  $$values ('pending_payment'::public.reservation_status, 'pending'::public.payment_status)$$,
+  'uncompleted gateway payment leaves reservation pending_payment until lapse'
+);
+
+set local role postgres;
+update public.reservations
+set payment_window_ends_at = now() - interval '1 minute'
+where id = (select id from _pay where name = 'a');
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select results_eq(
+  $$select status, payment_status from public.my_reservation((select id from _pay where name = 'a'))$$,
+  $$values ('expired'::public.reservation_status, 'pending'::public.payment_status)$$,
+  'a hold with an unpaid checkout expires when its payment window lapses'
+);
+
+-- W17
+select is(
+  pg_temp.refusal($$select public.attach_checkout_session((select id from _pay where name = 'a'), 'cs_test_late', 'https://checkout.paymongo.test/cs_test_late')$$),
+  'P0001 hold_ended',
+  'attach_checkout_session refuses a hold that has ended'
+);
+
+-- W13: Seeker 1 holds U2, attaches a checkout, then cancels from the return page (R4)
+insert into _pay
+select 'b', h.reservation_id
+from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30) h;
+
+do $$
+begin
+  perform public.attach_checkout_session(
+    (select id from _pay where name = 'b'),
+    'cs_test_b',
+    'https://checkout.paymongo.test/cs_test_b'
+  );
+  perform public.cancel_hold((select id from _pay where name = 'b'), 'pending_payment');
+end;
+$$;
+
+select results_eq(
+  $$select
+      (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000003')
+       where unit_id = 'f0000000-0000-4000-8000-000000000018'),
+      r.status,
+      r.payment_status
+    from public.my_reservation((select id from _pay where name = 'b')) r$$,
+  $$values ('available'::text, 'cancelled'::public.reservation_status, 'pending'::public.payment_status)$$,
+  'Seeker cancel from return page releases hold'
+);
+
+-- ---------------------------------------------------------------------------
+-- 13. public.confirm_payment (R2, P2, N7, W5 to W8, W10, W11, W18 to W21; flow §4.1)
+-- ---------------------------------------------------------------------------
+-- N7: only the secret key confirms a payment. Each caller's refusal goes into _n7, so
+-- the three make one test.
+set local role postgres;
+create temp table _n7 (caller text, result text);
+grant all on _n7 to public;
+
+set local role anon;
+set local request.jwt.claims = '{"role": "anon"}';
+insert into _n7
+select 'a signed-out visitor', pg_temp.refusal($$select public.confirm_payment((select id from _pay where name = 'b'), 'cs_test_b', 'pay_test_intruder')$$);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+insert into _n7
+select 'a Seeker', pg_temp.refusal($$select public.confirm_payment((select id from _pay where name = 'b'), 'cs_test_b', 'pay_test_intruder')$$);
+
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+insert into _n7
+select 'a Host', pg_temp.refusal($$select public.confirm_payment((select id from _pay where name = 'b'), 'cs_test_b', 'pay_test_intruder')$$);
+
+set local role postgres;
+select results_eq(
+  $$select caller, result from _n7 order by caller$$,
+  $$values
+      ('a Host'::text, '42501 (no hint)'::text),
+      ('a Seeker', '42501 (no hint)'),
+      ('a signed-out visitor', '42501 (no hint)')$$,
+  'a signed-out visitor, a Seeker and a Host cannot confirm a payment'
+);
+
+-- The rest of this section is the payment webhook, which uses the secret key.
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+-- W21
+select is(
+  public.confirm_payment('10000000-0000-4000-8000-00000000dead', 'cs_test_unknown', 'pay_test_unknown'),
+  '{"outcome": "not_found"}'::jsonb,
+  'confirm_payment for an unknown reservation changes nothing'
+);
+
+select throws_ok(
+  $$select public.confirm_payment((select id from _pay where name = 'b'), 'cs_test_b', '')$$,
+  '22023',
+  null,
+  'confirm_payment refuses an empty payment id'
+);
+
+-- W7 (P2): hold a expired with cs_test_first attached. The delivery names another
+-- checkout, and the stored one stays (flow §4.1).
+select is(
+  public.confirm_payment((select id from _pay where name = 'a'), 'cs_test_second', 'pay_test_a'),
+  '{"outcome": "late_payment", "reservation_status": "expired", "payment_status": "paid"}'::jsonb,
+  'confirm_payment answers late_payment for an expired hold'
+);
+
+set local role postgres;
+select results_eq(
+  $$select r.status, p.status, p.external_payment_id, p.checkout_session_id, r.booking_token
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'a')$$,
+  $$values ('expired'::public.reservation_status, 'paid'::public.payment_status, 'pay_test_a'::text, 'cs_test_first'::text, null::text)$$,
+  'confirming a payment on an expired hold moves payment to paid and stays expired'
+);
+
+-- W8 and W10 (P2): hold b was cancelled before its payment arrived
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+select is(
+  public.confirm_payment((select id from _pay where name = 'b'), 'cs_test_b', 'pay_test_b'),
+  '{"outcome": "late_payment", "reservation_status": "cancelled", "payment_status": "paid"}'::jsonb,
+  'confirm_payment answers late_payment for a cancelled hold'
+);
+
+set local role postgres;
+select results_eq(
+  $$select p.status, r.status
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'b')$$,
+  $$values ('paid'::public.payment_status, 'cancelled'::public.reservation_status)$$,
+  'confirming a payment on a cancelled hold moves payment to paid and stays cancelled'
+);
+
+select results_eq(
+  $$select
+      r.status,
+      r.booking_token is null,
+      r.wait_window_ends_at is null,
+      (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000003')
+       where unit_id = 'f0000000-0000-4000-8000-000000000018')
+    from public.reservations r
+    where r.id = (select id from _pay where name = 'b')$$,
+  $$values ('cancelled'::public.reservation_status, true, true, 'available'::text)$$,
+  'cancel racing before confirm_payment preserves cancelled reservation state'
+);
+
+-- W5 (R2): Seeker 1 holds U1 again, and its tab closes before it attaches a checkout
+create temp table _host_time as
+select host_updated_at from public.units where id = 'f0000000-0000-4000-8000-000000000017';
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+insert into _pay
+select 'c', h.reservation_id
+from public.hold_unit('f0000000-0000-4000-8000-000000000017', 30) h;
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+select is(
+  public.confirm_payment((select id from _pay where name = 'c'), 'cs_test_c', 'pay_test_c'),
+  '{"outcome": "confirmed", "reservation_status": "reserved", "payment_status": "paid"}'::jsonb,
+  'confirm_payment answers confirmed for an unpaid hold'
+);
+
+set local role postgres;
+select results_eq(
+  $$select
+      r.status,
+      p.status,
+      p.external_payment_id,
+      r.booking_token is not null,
+      r.wait_window_ends_at = p.paid_at + r.wait_window,
+      (select count(*)::int from public.reservations t where t.booking_token = r.booking_token),
+      (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000003')
+       where unit_id = 'f0000000-0000-4000-8000-000000000017')
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'c')$$,
+  $$values ('reserved'::public.reservation_status, 'paid'::public.payment_status, 'pay_test_c'::text, true, true, 1, 'reserved'::text)$$,
+  'a confirmed payment reserves the unit and gives it one booking token'
+);
+
+select matches(
+  (select booking_token from public.reservations where id = (select id from _pay where name = 'c')),
+  '^[0-9A-HJKMNP-TV-Z]{12}$',
+  'confirm_payment makes a token that matches the Crockford pattern'
+);
+
+select is(
+  (select checkout_session_id from public.payments where reservation_id = (select id from _pay where name = 'c')),
+  'cs_test_c',
+  'confirm_payment fills in a checkout the Seeker''s tab never attached'
+);
+
+-- N16
+select is(
+  (select host_updated_at from public.units where id = 'f0000000-0000-4000-8000-000000000017'),
+  (select host_updated_at from _host_time),
+  'a confirmed payment leaves the Host-updated time alone'
+);
+
+-- W6: the same delivery again
+create temp table _confirmed_c as
+select r.booking_token, r.wait_window_ends_at, p.paid_at
+from public.reservations r
+join public.payments p on p.reservation_id = r.id
+where r.id = (select id from _pay where name = 'c');
+grant all on _confirmed_c to public;
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+select is(
+  public.confirm_payment((select id from _pay where name = 'c'), 'cs_test_c', 'pay_test_c'),
+  '{"outcome": "already_processed", "reservation_status": "reserved", "payment_status": "paid"}'::jsonb,
+  'duplicate confirm_payment calls are idempotent and return success'
+);
+
+set local role postgres;
+select results_eq(
+  $$select r.booking_token, r.wait_window_ends_at, p.paid_at
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'c')$$,
+  $$select booking_token, wait_window_ends_at, paid_at from _confirmed_c$$,
+  'a repeated confirmation keeps the booking token, the wait window and the payment time'
+);
+
+-- W11: the Seeker's cancel was for the unpaid hold, and the payment won (N21)
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is(
+  pg_temp.refusal($$select public.cancel_hold((select id from _pay where name = 'c'), 'pending_payment')$$),
+  'P0001 hold_changed',
+  'cancel with pending_payment expected status fails once payment is confirmed'
+);
+
+-- W19: Seeker 1 cancels the paid hold (R8), so its fee is forfeited
+do $$
+begin
+  perform public.cancel_hold((select id from _pay where name = 'c'), 'reserved');
+end;
+$$;
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+select is(
+  public.confirm_payment((select id from _pay where name = 'c'), 'cs_test_c', 'pay_test_c'),
+  '{"outcome": "already_processed", "reservation_status": "cancelled", "payment_status": "forfeited"}'::jsonb,
+  'confirm_payment answers already_processed for a forfeited fee'
+);
+
+-- An Administrator's refund is STORY-14's (P1); here it is set by hand.
+set local role postgres;
+update public.payments
+set status = 'refunded'
+where reservation_id = (select id from _pay where name = 'c');
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+do $$
+begin
+  perform public.confirm_payment((select id from _pay where name = 'c'), 'cs_test_c', 'pay_test_c');
+end;
+$$;
+
+set local role postgres;
+select results_eq(
+  $$select r.status, p.status
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'c')$$,
+  $$values ('cancelled'::public.reservation_status, 'refunded'::public.payment_status)$$,
+  'a repeated confirm_payment leaves a forfeited or refunded payment alone'
+);
+
+-- W18: hold d's payment window passes, and nothing records the lapse before the webhook
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+insert into _pay
+select 'd', h.reservation_id
+from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30) h;
+
+set local role postgres;
+update public.reservations
+set payment_window_ends_at = now() - interval '1 minute'
+where id = (select id from _pay where name = 'd');
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+select is(
+  public.confirm_payment((select id from _pay where name = 'd'), 'cs_test_d', 'pay_test_d'),
+  '{"outcome": "late_payment", "reservation_status": "expired", "payment_status": "paid"}'::jsonb,
+  'confirm_payment answers late_payment for a lapse nobody had recorded'
+);
+
+set local role postgres;
+select results_eq(
+  $$select r.status, r.booking_token is null, r.ended_at is not null, p.status
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'd')$$,
+  $$values ('expired'::public.reservation_status, true, true, 'paid'::public.payment_status)$$,
+  'confirm_payment records the lapse first, so a late payment never reserves'
+);
+
+-- No move leaves a pending payment on a no_show (or completed, reserved, occupied)
+-- reservation. If one turns up, confirm_payment fails, and the route answers 500.
+insert into public.reservations (
+  id, seeker_id, space_id, unit_id, unit_label, status, wait_window,
+  payment_window_ends_at, ended_at
+) values (
+  '10000000-0000-4000-8000-0000000000e1',
+  'c0000000-0000-4000-8000-000000000002',
+  'e0000000-0000-4000-8000-000000000003',
+  'f0000000-0000-4000-8000-000000000019',
+  'U3',
+  'no_show',
+  interval '30 minutes',
+  now() - interval '1 hour',
+  now()
+);
+
+insert into public.payments (reservation_id, status, fee_amount)
+values ('10000000-0000-4000-8000-0000000000e1', 'pending', 5000);
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+select throws_ok(
+  $$select public.confirm_payment('10000000-0000-4000-8000-0000000000e1', 'cs_test_e', 'pay_test_e')$$,
+  'XX000',
+  null,
+  'confirm_payment fails on a pending payment that no move leaves'
+);
+
+-- W20 (D-052): hold f is cancelled unpaid, then its Host deletes U2
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+insert into _pay
+select 'f', h.reservation_id
+from public.hold_unit('f0000000-0000-4000-8000-000000000018', 30) h;
+
+do $$
+begin
+  perform public.cancel_hold((select id from _pay where name = 'f'), 'pending_payment');
+end;
+$$;
+
+set local role postgres;
+delete from public.units where id = 'f0000000-0000-4000-8000-000000000018';
+
+set local role service_role;
+set local request.jwt.claims = '{"role": "service_role"}';
+
+do $$
+begin
+  perform public.confirm_payment((select id from _pay where name = 'f'), 'cs_test_f', 'pay_test_f');
+end;
+$$;
+
+set local role postgres;
+select results_eq(
+  $$select r.unit_id is null, r.unit_label, r.status, p.status, p.external_payment_id
+    from public.reservations r
+    join public.payments p on p.reservation_id = r.id
+    where r.id = (select id from _pay where name = 'f')$$,
+  $$values (true, 'U2'::text, 'cancelled'::public.reservation_status, 'paid'::public.payment_status, 'pay_test_f'::text)$$,
+  'a late payment is recorded even when its unit was deleted'
 );
 
 select * from finish();

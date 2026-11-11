@@ -84,7 +84,7 @@ jobs:
       - run: >-
           npx supabase start
           -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: npm run test:e2e
       # In CI, Playwright retries a failed test once and records a trace of the retry
       # in test-results/ (playwright.config.ts). Upload it, or it is lost with the runner.
