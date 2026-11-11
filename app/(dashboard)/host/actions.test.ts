@@ -202,6 +202,62 @@ describe('Host Space Actions (STORY-05, STORY-09 TSK-09.7)', () => {
       expect(capturedInserts).toHaveLength(0)
     })
 
+    it('stores the map pin and price tier (STORY-08, TSK-08.5)', async () => {
+      const fd = createValidSpaceFormData({
+        latitude: '10.3157',
+        longitude: '123.8854',
+        priceTier: 'standard',
+      })
+
+      await expect(createSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=created')
+      expect(capturedInserts[0]?.values).toEqual(
+        expect.objectContaining({
+          latitude: 10.3157,
+          longitude: 123.8854,
+          price_tier: 'standard',
+        }),
+      )
+    })
+
+    it('stores no pin as nulls and defaults the tier to budget (STORY-08, TSK-08.5)', async () => {
+      const fd = createValidSpaceFormData({ latitude: '', longitude: '' })
+
+      await expect(createSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=created')
+      expect(capturedInserts[0]?.values).toEqual(
+        expect.objectContaining({
+          latitude: null,
+          longitude: null,
+          price_tier: 'budget',
+        }),
+      )
+    })
+
+    it('refuses a half pin and keeps what the Host typed (STORY-08, TSK-08.5)', async () => {
+      const fd = createValidSpaceFormData({ latitude: '10.3157', priceTier: 'free' })
+
+      const res = await createSpace({}, fd)
+      expect(res.fieldErrors?.longitude).toEqual([
+        'Enter the longitude too, or clear the latitude',
+      ])
+      expect(res.values).toEqual(
+        expect.objectContaining({
+          latitude: '10.3157',
+          longitude: '',
+          priceTier: 'free',
+        }),
+      )
+      expect(capturedInserts).toHaveLength(0)
+    })
+
+    it('never sends status or host_id, even when the form carries them', async () => {
+      const fd = createValidSpaceFormData({ status: 'verified', host_id: 'someone-else' })
+
+      await expect(createSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=created')
+      const values = capturedInserts[0]?.values as Record<string, unknown>
+      expect(values).not.toHaveProperty('status')
+      expect(values).not.toHaveProperty('host_id')
+    })
+
     it('returns formError when database insert fails', async () => {
       tableResponses.spaces = {
         data: null,
@@ -234,6 +290,25 @@ describe('Host Space Actions (STORY-05, STORY-09 TSK-09.7)', () => {
         }),
       )
       expect(mockRevalidatePath).toHaveBeenCalledWith('/host')
+    })
+
+    it('clears a saved pin when both coordinates are emptied (STORY-08, TSK-08.5)', async () => {
+      const fd = createValidSpaceFormData({
+        spaceId: validSpaceId,
+        latitude: '',
+        longitude: '',
+        priceTier: 'premium',
+      })
+
+      await expect(updateSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=updated')
+      expect(capturedUpdates[0]?.values).toEqual(
+        expect.objectContaining({
+          latitude: null,
+          longitude: null,
+          price_tier: 'premium',
+        }),
+      )
+      expect(capturedUpdates[0]?.values).not.toHaveProperty('status')
     })
 
     it('returns friendly refusal error when hours cut into active hold (N22)', async () => {

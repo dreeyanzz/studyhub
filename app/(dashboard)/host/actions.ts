@@ -37,6 +37,9 @@ const spaceFields: SpaceField[] = [
   'opensAt',
   'closesAt',
   'maxWaitWindowMinutes',
+  'latitude',
+  'longitude',
+  'priceTier',
 ]
 
 function formValues(formData: FormData): SpaceFormValues {
@@ -47,6 +50,8 @@ function formValues(formData: FormData): SpaceFormValues {
 
 // Exactly the Host-editable columns. id, host_id, status and the timestamps are
 // never sent: the database fills them in, and its column grants refuse them anyway.
+// An empty pin is stored as null, so clearing both coordinates removes it
+// (STORY-08 design §2).
 function spaceColumns(space: SpaceInput) {
   return {
     name: space.name,
@@ -55,6 +60,9 @@ function spaceColumns(space: SpaceInput) {
     opens_at: space.opensAt,
     closes_at: space.closesAt,
     max_wait_window: `${space.maxWaitWindowMinutes} minutes`,
+    latitude: space.latitude ?? null,
+    longitude: space.longitude ?? null,
+    price_tier: space.priceTier,
   }
 }
 

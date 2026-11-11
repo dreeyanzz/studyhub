@@ -640,6 +640,10 @@ Every PR targets `main` and includes its relevant tests.
 _(To be completed when the story is merged and implemented)_
 
 - What turned out different from this plan, and why:
+  - **TSK-08.5:** `SpaceForm` lives at `app/(dashboard)/host/_components/space-form.tsx` (STORY-05's location), not under `host/spaces/_components/` as §3 lists; the change went to the existing file rather than a copy.
+  - **TSK-08.5:** `spaceSchema` now refuses one coordinate without the other, so no Space is stored with half a pin, and its coordinate errors read in plain words. The form takes typed coordinates; a map pin picker was left out (§0 allowed either).
+  - **TSK-08.5:** The Host portal's Space cards gained a "Tags" link to `/host/spaces/[spaceId]/tags`, next to Seat map and Photos, so step H8 is reachable.
+  - **TSK-08.5:** `saveSpaceTagsAction` writes only the differences (deletes, then inserts), and checks curated ids against `curated_tags` first, so an unknown id changes nothing.
 - Status line changed to: `implemented YYYY-MM-DD`
 - Docs this story changed:
 - Who verified each acceptance criterion:
