@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { DiscoveryShell } from './_components/discovery-shell'
 import { searchVerifiedSpaces } from '@/lib/data/spaces'
 import { createClient } from '@/lib/supabase/server'
+import { discoverySearchQuerySchema } from '@/lib/validation/search'
 
 export const metadata: Metadata = {
   title: 'Explore Study Spaces',
@@ -21,6 +22,8 @@ interface SpacesPageProps {
  */
 export default async function SpacesPage(props: SpacesPageProps) {
   const searchParams = await props.searchParams
+  const parsedQuery = discoverySearchQuerySchema.safeParse(searchParams)
+  const initialQuery = parsedQuery.success ? parsedQuery.data : undefined
   const supabase = await createClient()
   const spaces = await searchVerifiedSpaces(supabase, searchParams)
 
@@ -37,7 +40,7 @@ export default async function SpacesPage(props: SpacesPageProps) {
           </p>
         </header>
 
-        <DiscoveryShell spaces={spaces} />
+        <DiscoveryShell spaces={spaces} initialQuery={initialQuery} />
       </div>
     </div>
   )

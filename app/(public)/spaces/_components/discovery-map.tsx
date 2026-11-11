@@ -139,6 +139,11 @@ export default function DiscoveryMap({
   const leafletModuleRef = useRef<typeof LeafletType | null>(null)
   const markersRef = useRef<Map<string, LeafletType.Marker>>(new Map())
   const prevActiveSpaceIdRef = useRef<string | null>(null)
+  const prevViewRef = useRef<{ lat: number; lng: number; zoom: number }>({
+    lat: center[0],
+    lng: center[1],
+    zoom,
+  })
   // Leaflet loads asynchronously, after the first render. Setting this once the map
   // exists re-runs the marker and pan effects, which return early until then.
   const [mapReady, setMapReady] = useState(false)
@@ -280,6 +285,19 @@ export default function DiscoveryMap({
       })
     }
   }, [mapReady, activeSpaceId, spaces])
+
+  // Re-center map when search center or geolocation coordinates change (STORY-08, FR-1.1)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const [lat, lng] = center
+    const prev = prevViewRef.current
+    if (prev.lat === lat && prev.lng === lng && prev.zoom === zoom) return
+
+    prevViewRef.current = { lat, lng, zoom }
+    map.setView([lat, lng], zoom, { animate: true })
+  }, [mapReady, center, zoom])
 
   return (
     <div
