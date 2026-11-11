@@ -90,6 +90,12 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
           Photos<span className="sr-only"> for {space.name}</span>
         </Link>
         <Link
+          href={`/host/spaces/${space.id}/tags`}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Tags<span className="sr-only"> for {space.name}</span>
+        </Link>
+        <Link
           href={`/host/spaces/${space.id}/edit`}
           className={buttonVariants({ variant: 'outline' })}
         >

@@ -61,4 +61,53 @@ describe('SpaceForm component (STORY-05, STORY-09 TSK-09.7)', () => {
     expect(html).toContain('value="Kapihan Study Hall"')
     expect(html).toMatch(/<option[^>]*value="45"[^>]*selected[^>]*>45 min<\/option>/)
   })
+
+  it('renders the price tier as a named radio group, defaulting to Budget (STORY-08)', () => {
+    const html = renderToStaticMarkup(<SpaceForm mode="create" action={dummyAction} />)
+
+    expect(html).toContain('>Price tier</legend>')
+    expect(html).toContain('tabindex="-1"')
+    expect(html.match(/name="priceTier"/g)).toHaveLength(4)
+    for (const label of ['Free', 'Budget', 'Standard', 'Premium']) {
+      expect(html).toContain(`/>${label}</label>`)
+    }
+    expect(html).toMatch(/<input[^>]*name="priceTier"[^>]*checked=""[^>]*value="budget"/)
+  })
+
+  it('renders empty, optional latitude and longitude fields on create (STORY-08)', () => {
+    const html = renderToStaticMarkup(<SpaceForm mode="create" action={dummyAction} />)
+
+    expect(html).toContain('>Map pin</legend>')
+    expect(html).toMatch(
+      /<input[^>]*id="space-latitude"[^>]*name="latitude"[^>]*value=""/,
+    )
+    expect(html).toMatch(
+      /<input[^>]*id="space-longitude"[^>]*name="longitude"[^>]*value=""/,
+    )
+    expect(html).toContain('inputMode="decimal"')
+  })
+
+  it('fills the saved pin and price tier in edit mode (STORY-08)', () => {
+    const html = renderToStaticMarkup(
+      <SpaceForm
+        mode="edit"
+        action={dummyAction}
+        spaceId="e0000000-0000-4000-8000-000000000001"
+        initialValues={{
+          name: 'Kapihan Study Hall',
+          address: '123 Cebu St',
+          opensAt: '08:00',
+          closesAt: '22:00',
+          latitude: '10.3157',
+          longitude: '123.8854',
+          priceTier: 'premium',
+        }}
+      />,
+    )
+
+    expect(html).toContain('value="10.3157"')
+    expect(html).toContain('value="123.8854"')
+    expect(html).toMatch(/<input[^>]*name="priceTier"[^>]*checked=""[^>]*value="premium"/)
+    expect(html).not.toMatch(/checked=""[^>]*value="budget"/)
+  })
 })

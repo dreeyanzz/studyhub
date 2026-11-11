@@ -250,6 +250,77 @@ describe('spaceSchema', () => {
       spaceSchema.safeParse({ ...validSpace, maxWaitWindowMinutes: 50 }).success,
     ).toBe(false)
   })
+
+  it('shows readable messages for out-of-range or non-numeric coordinates (TSK-08.5)', () => {
+    expect(fieldErrors({ ...validSpace, latitude: '91', longitude: '123.9' })).toEqual({
+      latitude: ['Latitude must be between -90 and 90'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: '10.3', longitude: '-181' })).toEqual({
+      longitude: ['Longitude must be between -180 and 180'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: 'north', longitude: '123.9' })).toEqual(
+      {
+        latitude: ['Enter the latitude as a number'],
+      },
+    )
+  })
+
+  it('refuses one coordinate without the other, naming the missing one (TSK-08.5)', () => {
+    expect(fieldErrors({ ...validSpace, latitude: '10.3157', longitude: '' })).toEqual({
+      longitude: ['Enter the longitude too, or clear the latitude'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: '', longitude: '123.8854' })).toEqual({
+      latitude: ['Enter the latitude too, or clear the longitude'],
+    })
+  })
+
+  it('passes no pin at all, and defaults the price tier to budget (TSK-08.5)', () => {
+    const { priceTier: _priceTier, ...withoutTier } = validSpace
+    const result = spaceSchema.safeParse({ ...withoutTier, latitude: '', longitude: '' })
+
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.latitude).toBeUndefined()
+      expect(result.data.longitude).toBeUndefined()
+      expect(result.data.priceTier).toBe('budget')
+    }
+  })
+
+  it('treats whitespace coordinates as blank, avoiding Null Island (0, 0)', () => {
+    const result = spaceSchema.safeParse({
+      ...validSpace,
+      latitude: '   ',
+      longitude: '   ',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.latitude).toBeUndefined()
+      expect(result.data.longitude).toBeUndefined()
+    }
+
+    expect(fieldErrors({ ...validSpace, latitude: '10.3157', longitude: '   ' })).toEqual(
+      {
+        longitude: ['Enter the longitude too, or clear the latitude'],
+      },
+    )
+    expect(
+      fieldErrors({ ...validSpace, latitude: '   ', longitude: '123.8854' }),
+    ).toEqual({
+      latitude: ['Enter the latitude too, or clear the longitude'],
+    })
+  })
+
+  it('fails non-numeric and boolean coordinate inputs without coercing to numbers', () => {
+    expect(fieldErrors({ ...validSpace, latitude: true, longitude: 123.8854 })).toEqual({
+      latitude: ['Enter the latitude as a number'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: 10.3157, longitude: false })).toEqual({
+      longitude: ['Enter the longitude as a number'],
+    })
+    expect(fieldErrors({ ...validSpace, latitude: [], longitude: 123.8854 })).toEqual({
+      latitude: ['Enter the latitude as a number'],
+    })
+  })
 })
 
 describe('spaceIdSchema', () => {

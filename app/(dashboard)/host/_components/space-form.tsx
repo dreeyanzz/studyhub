@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { WAIT_WINDOW_OPTIONS } from '@/lib/validation/reservation'
+import type { PriceTier } from '@/lib/validation/search'
 import { spaceIdSchema, spaceSchema, type SpaceField } from '@/lib/validation/space'
 
 import type { SpaceFormState, SpaceFormValues } from '../actions'
@@ -33,6 +34,22 @@ const textareaClassName =
 const selectClassName =
   'h-12 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
 
+// The four price tiers, in order, with the words Seekers see on pins and cards
+// (STORY-08 design §3). One per Space, so a radio group rather than checkboxes.
+const priceTierOptions: { value: PriceTier; label: string }[] = [
+  { value: 'free', label: 'Free' },
+  { value: 'budget', label: 'Budget' },
+  { value: 'standard', label: 'Standard' },
+  { value: 'premium', label: 'Premium' },
+]
+
+// What a new Space starts with: a one-hour wait window (D-067) and the Budget tier,
+// the column's default (STORY-08 design §2).
+const createDefaults: SpaceFormValues = {
+  maxWaitWindowMinutes: '60',
+  priceTier: 'budget',
+}
+
 /**
  * The create and edit form for a Space (STORY-05 design §3.3). spaceSchema runs here
  * before the Server Action, which runs it again. Without JavaScript the form still
@@ -51,8 +68,8 @@ export function SpaceForm(props: SpaceFormProps) {
     () =>
       state.values ??
       (props.mode === 'edit'
-        ? { maxWaitWindowMinutes: '60', ...props.initialValues }
-        : { maxWaitWindowMinutes: '60' }),
+        ? { ...createDefaults, ...props.initialValues }
+        : createDefaults),
   )
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -202,6 +219,93 @@ export function SpaceForm(props: SpaceFormProps) {
           </select>
         )}
       </SpaceFormField>
+      {/* One tier per Space (STORY-08 design §3). ARIA puts the invalid state on the
+          radiogroup, not on each radio (as in RegisterForm). tabIndex={-1} allows
+          the error-focus effect to programmatically focus the fieldset if invalid. */}
+      <fieldset
+        role="radiogroup"
+        tabIndex={-1}
+        aria-labelledby="space-priceTier-legend"
+        aria-invalid={errors.priceTier?.[0] ? true : undefined}
+        aria-describedby={
+          ['space-priceTier-hint', errors.priceTier?.[0] && 'space-priceTier-error']
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
+        className="flex flex-col gap-2 outline-none"
+      >
+        <legend
+          id="space-priceTier-legend"
+          className="mb-2 text-sm leading-none font-medium"
+        >
+          Price tier
+        </legend>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {priceTierOptions.map((option) => (
+            <label
+              key={option.value}
+              className="flex min-h-12 cursor-pointer items-center gap-2 rounded-lg border border-input px-3 text-sm has-checked:border-primary has-focus-visible:ring-3 has-focus-visible:ring-ring"
+            >
+              <input
+                type="radio"
+                name="priceTier"
+                value={option.value}
+                checked={values.priceTier === option.value}
+                onChange={(event) =>
+                  setValues((current) => ({ ...current, priceTier: event.target.value }))
+                }
+                className="size-4 accent-primary"
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+        <p id="space-priceTier-hint" className="text-sm text-muted-foreground">
+          Seekers see this on your map pin and can filter by it.
+        </p>
+        {errors.priceTier?.[0] && (
+          <p id="space-priceTier-error" className="text-sm text-destructive">
+            {errors.priceTier[0]}
+          </p>
+        )}
+      </fieldset>
+      {/* The map pin (STORY-08 design §3). Optional, but both or neither: the schema
+          refuses one coordinate on its own. A Space with no pin is left off the map. */}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-2 text-sm leading-none font-medium">Map pin</legend>
+        <p className="text-sm text-muted-foreground">
+          Optional. Without a pin, Seekers won&apos;t find your Space on the map. To get
+          the numbers, right-click your Space on openstreetmap.org, choose Show address,
+          and copy the two numbers from the search box.
+        </p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <SpaceFormField
+            name="latitude"
+            label="Latitude"
+            hint="For example, 10.3157"
+            errors={errors.latitude}
+          >
+            {(control) => (
+              <Input {...control} {...bind('latitude')} type="text" inputMode="decimal" />
+            )}
+          </SpaceFormField>
+          <SpaceFormField
+            name="longitude"
+            label="Longitude"
+            hint="For example, 123.8854"
+            errors={errors.longitude}
+          >
+            {(control) => (
+              <Input
+                {...control}
+                {...bind('longitude')}
+                type="text"
+                inputMode="decimal"
+              />
+            )}
+          </SpaceFormField>
+        </div>
+      </fieldset>
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={pending} focusableWhenDisabled>
           {creating

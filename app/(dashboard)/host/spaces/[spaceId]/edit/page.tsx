@@ -33,7 +33,9 @@ export default async function EditSpacePage({
   // Host's Space here either.
   const { data: space } = await supabase
     .from('spaces')
-    .select('id, name, description, address, opens_at, closes_at, max_wait_window')
+    .select(
+      'id, name, description, address, opens_at, closes_at, max_wait_window, latitude, longitude, price_tier',
+    )
     .eq('id', spaceId.data)
     .eq('host_id', user.id)
     .maybeSingle()
@@ -63,6 +65,10 @@ export default async function EditSpacePage({
               opensAt: space.opens_at.slice(0, 5),
               closesAt: space.closes_at.slice(0, 5),
               maxWaitWindowMinutes: String(parseIntervalToMinutes(space.max_wait_window)),
+              // A Space with no pin shows two empty fields (STORY-08 design §3).
+              latitude: space.latitude === null ? '' : String(space.latitude),
+              longitude: space.longitude === null ? '' : String(space.longitude),
+              priceTier: space.price_tier,
             }}
           />
         </CardContent>

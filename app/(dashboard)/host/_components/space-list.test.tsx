@@ -27,6 +27,19 @@ describe('SpaceList component (STORY-05, STORY-11 TSK-11.2)', () => {
     },
   ]
 
+  it('renders a "Tags" link for each space card with accessible context (STORY-08)', () => {
+    const html = renderToStaticMarkup(<SpaceList spaces={mockSpaces} canCreate={true} />)
+
+    expect(html).toContain(
+      'href="/host/spaces/e0000000-0000-4000-8000-000000000001/tags"',
+    )
+    expect(html).toContain('Tags<span class="sr-only"> for Kapihan Study Hub</span>')
+    expect(html).toContain(
+      'href="/host/spaces/e0000000-0000-4000-8000-000000000002/tags"',
+    )
+    expect(html).toContain('Tags<span class="sr-only"> for Night Owls Coworking</span>')
+  })
+
   it('renders "Photos" action link for each space card with accessible context', () => {
     const html = renderToStaticMarkup(<SpaceList spaces={mockSpaces} canCreate={true} />)
 
