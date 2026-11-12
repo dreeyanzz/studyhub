@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
-import { ArrowLeft, Clock, Info } from 'lucide-react'
+import { ArrowLeft, Clock } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getSeatMap } from '@/lib/data/seat-map'
@@ -10,8 +10,10 @@ import { computeSpaceAvailability } from '@/lib/space/availability'
 import { computeOperatingStatus } from '@/lib/space/format'
 import { createClient } from '@/lib/supabase/server'
 import { spaceIdSchema } from '@/lib/validation/space'
+import { AvailabilitySummary } from './_components/availability-summary'
 import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
+import { SpaceSeatMapView } from './_components/space-seat-map-view'
 
 // Discovery search lives at /spaces (STORY-08 design §1, step S1), so the back
 // link and the closed and no-units notices return there.
@@ -58,15 +60,24 @@ export async function generateMetadata({
  * invalid UUIDs, or hidden (pending/rejected) spaces, leaking no information
  * even to their owning Host or Administrators.
  *
- * Renders header with open/closed status badge, back navigation link,
- * and closed / no-available-unit notices with discovery search links.
+ * Renders header with open/closed status badge, photo gallery, availability overview,
+ * seat map grid / list view with unit selection, and closed / no-available-unit notices.
  */
 export default async function SpaceProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ spaceId: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const { spaceId } = await params
+  const resolvedSearchParams = searchParams ? await searchParams : {}
+  const viewParam =
+    typeof resolvedSearchParams.view === 'string' ? resolvedSearchParams.view : undefined
+  const unitParam =
+    typeof resolvedSearchParams.unit === 'string' ? resolvedSearchParams.unit : undefined
+  const initialView = viewParam === 'list' ? 'list' : 'grid'
+
   const space = await getVerifiedSpace(spaceId)
   if (!space) {
     notFound()
@@ -131,28 +142,16 @@ export default async function SpaceProfilePage({
         </Alert>
       )}
 
-      {availability.availableUnits === 0 && (
-        <Alert
-          data-testid="seeker-profile-no-available-unit"
-          variant="default"
-          className="border-muted-foreground/20 bg-muted/30"
-        >
-          <Info className="size-4 shrink-0" aria-hidden="true" />
-          <AlertTitle>No units available</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>
-              No units are currently Available. Check back later or{' '}
-              <Link
-                href={DISCOVERY_HREF}
-                className="inline-flex min-h-12 items-center rounded-xs font-medium underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-              >
-                explore other spaces
-              </Link>
-              .
-            </p>
-          </AlertDescription>
-        </Alert>
-      )}
+      {/* Zone availability overview with oldest-available freshness rule (D-051) */}
+      <AvailabilitySummary summary={availability} />
+
+      {/* Synchronized Seat Map & Accessible List View with Unit Selection (TSK-11.5) */}
+      <SpaceSeatMapView
+        zones={zones}
+        isOpen={operatingStatus.isOpen}
+        initialView={initialView}
+        initialSelectedUnitId={unitParam}
+      />
     </div>
   )
 }
