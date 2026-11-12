@@ -10,6 +10,7 @@ import { computeSpaceAvailability } from '@/lib/space/availability'
 import { computeOperatingStatus } from '@/lib/space/format'
 import { createClient } from '@/lib/supabase/server'
 import { spaceIdSchema } from '@/lib/validation/space'
+import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
 
 // Discovery search lives at /spaces (STORY-08 design §1, step S1), so the back
@@ -72,9 +73,22 @@ export default async function SpaceProfilePage({
   }
 
   const supabase = await createClient()
-  const zones = await getSeatMap(supabase, space.id)
+  const [zones, { data: storageFiles }] = await Promise.all([
+    getSeatMap(supabase, space.id),
+    supabase.storage.from('space-photos').list(space.id, {
+      sortBy: { column: 'created_at', order: 'asc' },
+    }),
+  ])
   const availability = computeSpaceAvailability(zones)
   const operatingStatus = computeOperatingStatus(space.opens_at, space.closes_at)
+
+  const photos: SpacePhoto[] = (storageFiles ?? [])
+    .filter((f) => f.name && !f.name.startsWith('.'))
+    .map((f) => ({
+      name: f.name,
+      url: supabase.storage.from('space-photos').getPublicUrl(`${space.id}/${f.name}`)
+        .data.publicUrl,
+    }))
 
   return (
     <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6">
@@ -89,6 +103,8 @@ export default async function SpaceProfilePage({
       </nav>
 
       <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
+
+      <SpacePhotoGallery spaceName={space.name} photos={photos} />
 
       {!operatingStatus.isOpen && (
         <Alert

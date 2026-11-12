@@ -27,6 +27,7 @@ interface MockSpaceData {
 
 let mockSpace: MockSpaceData | null = null
 let mockZones: SeatMapZone[] = []
+let mockStorageFiles: Array<{ name: string; created_at?: string }> = []
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
@@ -48,6 +49,19 @@ vi.mock('@/lib/supabase/server', () => ({
       }
       return builder
     }),
+    storage: {
+      from: vi.fn((bucket: string) => {
+        if (bucket !== 'space-photos') throw new Error(`Unexpected bucket ${bucket}`)
+        return {
+          list: vi.fn(async () => ({ data: mockStorageFiles, error: null })),
+          getPublicUrl: vi.fn((path: string) => ({
+            data: {
+              publicUrl: `https://example.supabase.co/storage/v1/object/public/space-photos/${path}`,
+            },
+          })),
+        }
+      }),
+    },
   })),
 }))
 
@@ -62,6 +76,7 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-11-11T12:00:00+08:00'))
     mockNotFound.mockClear()
+    mockStorageFiles = []
     mockSpace = {
       id: VALID_SPACE_ID,
       name: 'Kapihan Study Hall',
@@ -237,6 +252,34 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('explore other spaces')
     expect(html).toContain('data-testid="seeker-profile-no-available-unit"')
     expect(html).not.toContain('href="/"')
+  })
+
+  it('renders photo gallery empty fallback when space has no uploaded photos', async () => {
+    mockStorageFiles = []
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('data-testid="space-photos-empty"')
+    expect(html).toContain('No Space photos uploaded yet')
+  })
+
+  it('renders photo gallery carousel with cover image when storage photos exist', async () => {
+    mockStorageFiles = [
+      { name: 'cover.jpg', created_at: '2026-11-01T00:00:00Z' },
+      { name: 'interior.jpg', created_at: '2026-11-02T00:00:00Z' },
+    ]
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('role="region"')
+    expect(html).toContain('aria-roledescription="carousel"')
+    expect(html).toContain(`alt="Photo of ${mockSpace!.name} (1 of 2)"`)
+    expect(html).toContain('1 / 2')
+    expect(html).toContain('aria-label="Photo thumbnails"')
   })
 
   describe('generateMetadata', () => {
