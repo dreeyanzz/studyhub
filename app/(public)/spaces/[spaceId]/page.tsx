@@ -12,6 +12,7 @@ import { createClient } from '@/lib/supabase/server'
 import { spaceIdSchema } from '@/lib/validation/space'
 import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
+import { SpaceTags, type CuratedTagData } from './_components/space-tags'
 
 // Discovery search lives at /spaces (STORY-08 design §1, step S1), so the back
 // link and the closed and no-units notices return there.
@@ -51,15 +52,24 @@ export async function generateMetadata({
   return { title: space ? space.name : 'Space Not Found' }
 }
 
+interface CuratedTagJoinRow {
+  tag_id: string
+  curated_tags: {
+    id: string
+    category: string
+    label: string
+  } | null
+}
+
 /**
- * Public Space Profile Server Component (STORY-11 design §0, §1, §3 Screen 1, FR-1.3, D-055).
+ * Public Space Profile Server Component (STORY-11 design §0, §1, §3 Screen 1, FR-1.3, D-055, TSK-11.6).
  *
  * Enforces verified check (D-055): returns 404 notFound() for missing spaces,
  * invalid UUIDs, or hidden (pending/rejected) spaces, leaking no information
  * even to their owning Host or Administrators.
  *
- * Renders header with open/closed status badge, back navigation link,
- * and closed / no-available-unit notices with discovery search links.
+ * Renders header with open/closed status badge, photo gallery, curated and custom tag
+ * presentation (D-006), and closed / no-available-unit notices with discovery search links.
  */
 export default async function SpaceProfilePage({
   params,
@@ -73,11 +83,25 @@ export default async function SpaceProfilePage({
   }
 
   const supabase = await createClient()
-  const [zones, { data: storageFiles }] = await Promise.all([
+  const [
+    zones,
+    { data: storageFiles },
+    { data: curatedTagRows },
+    { data: customTagRows },
+  ] = await Promise.all([
     getSeatMap(supabase, space.id),
     supabase.storage.from('space-photos').list(space.id, {
       sortBy: { column: 'created_at', order: 'asc' },
     }),
+    supabase
+      .from('space_curated_tags')
+      .select('tag_id, curated_tags(id, category, label)')
+      .eq('space_id', space.id),
+    supabase
+      .from('space_custom_tags')
+      .select('name')
+      .eq('space_id', space.id)
+      .order('created_at'),
   ])
   const availability = computeSpaceAvailability(zones)
   const operatingStatus = computeOperatingStatus(space.opens_at, space.closes_at)
@@ -89,6 +113,20 @@ export default async function SpaceProfilePage({
       url: supabase.storage.from('space-photos').getPublicUrl(`${space.id}/${f.name}`)
         .data.publicUrl,
     }))
+
+  const curatedTags: CuratedTagData[] = (
+    (curatedTagRows as unknown as CuratedTagJoinRow[]) ?? []
+  )
+    .filter((row) => row.curated_tags?.id && row.curated_tags?.label)
+    .map((row) => ({
+      id: row.curated_tags!.id,
+      category: row.curated_tags!.category,
+      label: row.curated_tags!.label,
+    }))
+
+  const customTags: string[] = (customTagRows ?? [])
+    .map((row) => row.name)
+    .filter(Boolean)
 
   return (
     <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6">
@@ -105,6 +143,9 @@ export default async function SpaceProfilePage({
       <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
 
       <SpacePhotoGallery spaceName={space.name} photos={photos} />
+
+      {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
+      <SpaceTags curatedTags={curatedTags} customTags={customTags} />
 
       {!operatingStatus.isOpen && (
         <Alert

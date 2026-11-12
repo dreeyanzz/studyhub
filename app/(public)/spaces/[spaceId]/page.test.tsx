@@ -28,10 +28,27 @@ interface MockSpaceData {
 let mockSpace: MockSpaceData | null = null
 let mockZones: SeatMapZone[] = []
 let mockStorageFiles: Array<{ name: string; created_at?: string }> = []
+let mockCuratedTags: unknown[] = []
+let mockCustomTags: unknown[] = []
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(async () => ({
     from: vi.fn((table: string) => {
+      if (table === 'space_curated_tags') {
+        const builder = {
+          select: vi.fn(() => builder),
+          eq: vi.fn(() => Promise.resolve({ data: mockCuratedTags, error: null })),
+        }
+        return builder
+      }
+      if (table === 'space_custom_tags') {
+        const builder = {
+          select: vi.fn(() => builder),
+          eq: vi.fn(() => builder),
+          order: vi.fn(() => Promise.resolve({ data: mockCustomTags, error: null })),
+        }
+        return builder
+      }
       if (table !== 'spaces') throw new Error(`Unexpected table ${table}`)
       const filters: Record<string, unknown> = {}
       const builder = {
@@ -77,6 +94,8 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     vi.setSystemTime(new Date('2026-11-11T12:00:00+08:00'))
     mockNotFound.mockClear()
     mockStorageFiles = []
+    mockCuratedTags = []
+    mockCustomTags = []
     mockSpace = {
       id: VALID_SPACE_ID,
       name: 'Kapihan Study Hall',
@@ -280,6 +299,31 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain(`alt="Photo of ${mockSpace!.name} (1 of 2)"`)
     expect(html).toContain('1 / 2')
     expect(html).toContain('aria-label="Photo thumbnails"')
+  })
+
+  it('renders curated and custom tags on space profile (TSK-11.6)', async () => {
+    mockCuratedTags = [
+      {
+        tag_id: 'wifi_fast',
+        curated_tags: {
+          id: 'wifi_fast',
+          category: 'wifi',
+          label: 'Wi-Fi: Fast (50+ Mbps)',
+        },
+      },
+    ]
+    mockCustomTags = [{ name: 'coffee-available' }]
+
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('data-testid="space-tags"')
+    expect(html).toContain('data-testid="curated-tags"')
+    expect(html).toContain('Wi-Fi: Fast (50+ Mbps)')
+    expect(html).toContain('data-testid="custom-tags"')
+    expect(html).toContain('#coffee-available')
   })
 
   describe('generateMetadata', () => {
