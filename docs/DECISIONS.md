@@ -113,6 +113,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-010 · How the app reads and writes
 
+**Superseded in part by D-060**: the QR check-in scan is a Server Action on the Host's check-in page, not a route handler.
+
 **Decision:**
 
 - Server Components read, and Server Actions mutate (one `actions.ts` per route segment).

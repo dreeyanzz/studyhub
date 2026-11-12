@@ -57,7 +57,7 @@ into a chat tool that cannot see the repository.
 
 ## How the app fits together
 
-- **Server Components read. Server Actions mutate.** There is one `actions.ts` per route segment. Route handlers in `app/api/` exist only for callers outside the app: the payment webhook, the QR check-in scan, scheduled jobs, and the Supabase auth callback (D-010).
+- **Server Components read. Server Actions mutate.** There is one `actions.ts` per route segment. Route handlers in `app/api/` exist only for callers outside the app: the payment webhook, scheduled jobs, and the Supabase auth callback (D-010). The QR check-in scan is a Server Action on the Host's check-in page (D-060).
 - **Postgres Row-Level Security is the security boundary.** `proxy.ts` (Next 16's replacement for `middleware.ts`) only refreshes the session and redirects. Delete it and the data must still be safe.
 - **The app reaches the database only through the Supabase client** (D-007). No ORM, no direct connection.
 - **The secret key bypasses RLS.** It never appears in client code or behind `NEXT_PUBLIC_`. ESLint blocks importing a secret-key client outside `app/api/`.
