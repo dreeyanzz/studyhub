@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { SpaceCard } from '@/components/discovery/space-card'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
+import { cn } from '@/lib/utils'
 
 interface SpaceCardListProps {
   spaces: VerifiedSpaceSearchResult[]
@@ -30,6 +31,14 @@ export function SpaceCardList({
   className,
 }: SpaceCardListProps) {
   const itemRefs = useRef<Map<string, HTMLElement>>(new Map())
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // "Reset all filters" disappears once results come back, so move focus to the list,
+  // which stays mounted, instead of letting it drop to the top of the page (TSK-08.6).
+  const handleResetFilters = () => {
+    onClearFilters?.()
+    listRef.current?.focus()
+  }
 
   // Scroll active card into view when selected on map
   useEffect(() => {
@@ -42,7 +51,12 @@ export function SpaceCardList({
   }, [activeSpaceId])
 
   return (
-    <div className={className} data-testid="space-card-list">
+    <div
+      ref={listRef}
+      tabIndex={-1}
+      className={cn('outline-none', className)}
+      data-testid="space-card-list"
+    >
       {/* Screen Reader polite announcement (always mounted so empty transitions are announced) */}
       <div aria-live="polite" className="sr-only">
         {spaces.length} study {spaces.length === 1 ? 'space' : 'spaces'} found
@@ -51,9 +65,7 @@ export function SpaceCardList({
       {spaces.length === 0 ? (
         <div
           data-testid="seeker-search-no-results"
-          id="seeker-search-no-results"
-          data-empty-container="space-card-list-empty"
-          className="space-card-list-empty flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center"
+          className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center"
         >
           <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <SearchX className="size-7" aria-hidden="true" />
@@ -68,7 +80,7 @@ export function SpaceCardList({
             {onClearFilters ? (
               <button
                 type="button"
-                onClick={onClearFilters}
+                onClick={handleResetFilters}
                 data-testid="reset-all-filters-button"
                 className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-xs outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >

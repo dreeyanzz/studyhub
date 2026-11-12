@@ -7,7 +7,37 @@ import { SearchBar } from './search-bar'
 import { SpaceCardList } from './space-card-list'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 
-describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6, WCAG 2.1 AA, D-003, D-031)', () => {
+// These tests read server-rendered markup: classes, live regions and copy. Markup can't
+// show a size, an overflow or where focus goes, so e2e/discovery-a11y.spec.ts measures
+// those in a browser at 360, 768 and 1024 px (TSK-08.6).
+
+/** The opening tag of the element with this data-testid. */
+function tagOf(html: string, testId: string): string {
+  const tag = new RegExp(`<[^>]*data-testid="${testId}"[^>]*>`).exec(html)?.[0]
+  if (!tag) throw new Error(`no element with data-testid="${testId}"`)
+  return tag
+}
+
+/** The class attribute of the element with this data-testid. */
+function classOf(html: string, testId: string): string {
+  return /class="([^"]*)"/.exec(tagOf(html, testId))?.[1] ?? ''
+}
+
+/** Every data-testid in the markup that starts with this prefix. */
+function testIdsStartingWith(html: string, prefix: string): string[] {
+  return [...html.matchAll(new RegExp(`data-testid="(${prefix}[^"]*)"`, 'g'))].map(
+    (m) => m[1] ?? '',
+  )
+}
+
+/** The element carries both 48 px minimums (D-031). */
+function expect48pxClasses(html: string, testId: string) {
+  const classes = classOf(html, testId).split(/\s+/)
+  expect(classes, testId).toContain('min-h-12')
+  expect(classes, testId).toContain('min-w-12')
+}
+
+describe('Discovery accessibility markup (TSK-08.6, D-003, D-031)', () => {
   const sampleSpaces: VerifiedSpaceSearchResult[] = [
     {
       id: 'space-test-1',
@@ -49,11 +79,11 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
     },
   ]
 
-  describe('1. Responsive Layout & Split-Screen Reflow (360px, 768px, 1024px)', () => {
-    it('applies responsive classes for mobile (<1024px) single-pane view and desktop (>=1024px) split-screen', () => {
+  describe('1. Layout classes for one pane below 1024 px and two from 1024 px', () => {
+    it('renders the stacked layout below 1024 px and the split layout from 1024 px', () => {
       const html = renderToStaticMarkup(<DiscoveryShell spaces={sampleSpaces} />)
 
-      // Main container supports responsive flex-col on mobile and flex-row on desktop (>=1024px)
+      // Main container: a column on mobile and tablet, a row from 1024 px
       expect(html).toContain('flex flex-col lg:flex-row')
       expect(html).toContain('lg:items-start lg:gap-8')
 
@@ -63,21 +93,17 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
       // Map section: full width on mobile/tablet, sticky 52% / 55% on desktop
       expect(html).toContain('w-full lg:sticky lg:top-20 lg:w-[52%] xl:w-[55%]')
 
-      // Desktop filter panel hidden on <1024px mobile/tablet, visible on desktop
+      // Desktop filter panel hidden below 1024 px, the mobile drawer from 1024 px
       expect(html).toContain('hidden lg:block')
-
-      // Mobile filter drawer trigger visible on <1024px, hidden on desktop
-      expect(html).toContain('filter-drawer-wrapper')
+      expect(classOf(html, 'filter-drawer-wrapper')).toContain('lg:hidden')
     })
   })
 
-  describe('2. Mobile Toggle Between Map and List View', () => {
-    it('renders mobile floating toggle button with D-031 48px touch target and keeps both view sections mounted', () => {
+  describe('2. Mobile Map/List toggle', () => {
+    it('keeps both views mounted, and gives the toggle the 48 px classes', () => {
       const html = renderToStaticMarkup(<DiscoveryShell spaces={sampleSpaces} />)
 
-      // Mobile floating toggle button
-      expect(html).toContain('data-testid="mobile-view-toggle"')
-      expect(html).toContain('min-h-12 min-w-12')
+      expect48pxClasses(html, 'mobile-view-toggle')
       expect(html).toContain('Map view')
 
       // Both sections exist in the DOM simultaneously so state is never lost on view switch
@@ -89,8 +115,8 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
     })
   })
 
-  describe('3. Minimum 48×48px Touch Targets (D-031)', () => {
-    it('verifies touch target size on SearchBar input, submit, clear, location button, and campus chips', () => {
+  describe('3. 48 px classes on every control (D-031)', () => {
+    it('gives each search bar control the 48 px classes', () => {
       const html = renderToStaticMarkup(
         <SearchBar
           query="USC TC"
@@ -102,14 +128,16 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
         />,
       )
 
-      expect(html).toContain('min-h-12 w-full') // Search input
-      expect(html).toContain('min-h-12 min-w-12') // Submit, Clear, and Location buttons
-      expect(html).toContain('data-testid="search-submit-button"')
-      expect(html).toContain('data-testid="use-my-location-button"')
-      expect(html).toContain('data-testid="clear-search-button"')
+      expect(classOf(html, 'discovery-search-input')).toContain('min-h-12')
+      expect48pxClasses(html, 'search-submit-button')
+      expect48pxClasses(html, 'clear-search-button')
+      expect48pxClasses(html, 'use-my-location-button')
+      const chips = testIdsStartingWith(html, 'campus-chip-')
+      expect(chips.length).toBeGreaterThan(0)
+      for (const chip of chips) expect48pxClasses(html, chip)
     })
 
-    it('verifies touch target size on FilterPanel criteria buttons and clear all', () => {
+    it('gives each filter panel control the 48 px classes', () => {
       const html = renderToStaticMarkup(
         <FilterPanel
           filters={{ tags: ['wifi_fast'], price: ['budget'], hours: [], unitType: [] }}
@@ -121,11 +149,13 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
         />,
       )
 
-      expect(html).toContain('data-testid="clear-all-filters"')
-      expect(html).toContain('min-h-12 min-w-12')
+      expect48pxClasses(html, 'clear-all-filters')
+      for (const id of testIdsStartingWith(html, 'filter-(?:tag|hours|price|unit)-')) {
+        expect48pxClasses(html, id)
+      }
     })
 
-    it('verifies touch target size on FilterDrawer triggers and option buttons', () => {
+    it('gives each filter drawer control the 48 px classes', () => {
       const html = renderToStaticMarkup(
         <FilterDrawer
           filters={{ tags: ['wifi_fast'], price: [], hours: [], unitType: [] }}
@@ -139,11 +169,18 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
         />,
       )
 
-      expect(html).toContain('data-testid="filter-drawer-trigger"')
-      expect(html).toContain('data-testid="filter-drawer-close"')
-      expect(html).toContain('data-testid="drawer-clear-all"')
-      expect(html).toContain('data-testid="drawer-apply-button"')
-      expect(html).toContain('min-h-12 min-w-12')
+      for (const id of [
+        'filter-drawer-trigger',
+        'mobile-clear-all-filters',
+        'filter-drawer-close',
+        'drawer-clear-all',
+        'drawer-apply-button',
+      ]) {
+        expect48pxClasses(html, id)
+      }
+      const options = testIdsStartingWith(html, 'drawer-filter-')
+      expect(options.length).toBeGreaterThan(0)
+      for (const id of options) expect48pxClasses(html, id)
     })
   })
 
@@ -217,14 +254,14 @@ describe('Discovery Accessibility, Responsive Reflow, and Empty States (TSK-08.6
       )
 
       expect(html).toContain('data-testid="seeker-search-no-results"')
-      expect(html).toContain('id="seeker-search-no-results"')
       expect(html).toContain('No study spaces found matching your criteria.')
       expect(html).toContain('Try expanding your search area or clearing some filters.')
-      expect(html).toContain('data-testid="reset-all-filters-button"')
       expect(html).toContain('Reset all filters')
-      expect(html).toContain('min-h-12 min-w-12')
+      expect48pxClasses(html, 'reset-all-filters-button')
       expect(html).toContain('aria-live="polite"')
       expect(html).toContain('0 study spaces found')
+      // The list can take focus once the reset button is gone (TSK-08.6)
+      expect(tagOf(html, 'space-card-list')).toContain('tabindex="-1"')
     })
 
     it('renders empty state in DiscoveryShell when query filters out all spaces', () => {

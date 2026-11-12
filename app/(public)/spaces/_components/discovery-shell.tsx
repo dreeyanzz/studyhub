@@ -487,9 +487,15 @@ export function DiscoveryShell({
 
       {/* Floating Mobile Toggle Button (Visible only on < 1024px, D-031 48px touch target) */}
       <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 lg:hidden">
-        {/* Screen reader polite announcement for mobile view mode (§3 Accessibility) */}
+        {/* Screen reader polite announcement for mobile view mode (§3 Accessibility).
+            In map view the list, and its own result count, are hidden, so this one says
+            the count, and announces it again when a filter changes it. */}
         <div aria-live="polite" className="sr-only">
-          {mobileView === 'list' ? 'Showing list view' : 'Showing map view'}
+          {mobileView === 'list'
+            ? 'Showing list view'
+            : `Showing map view, ${displayedSpaces.length} study ${
+                displayedSpaces.length === 1 ? 'space' : 'spaces'
+              } found`}
         </div>
 
         <button
