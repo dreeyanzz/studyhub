@@ -3,6 +3,13 @@ import { describe, expect, it } from 'vitest'
 
 import { SpacePhotoGallery, type SpacePhoto } from './space-photo-gallery'
 
+/** The class attribute of the element with this aria-label. */
+function classOfLabelled(html: string, label: string): string {
+  const tag = new RegExp(`<[^>]*aria-label="${label}"[^>]*>`).exec(html)?.[0]
+  if (!tag) throw new Error(`no element with aria-label="${label}"`)
+  return /class="([^"]*)"/.exec(tag)?.[1] ?? ''
+}
+
 describe('SpacePhotoGallery (STORY-11, TSK-11.4)', () => {
   const spaceName = 'Kapihan Study Hall'
 
@@ -27,10 +34,12 @@ describe('SpacePhotoGallery (STORY-11, TSK-11.4)', () => {
     )
 
     expect(html).toContain('data-testid="space-photos-empty"')
-    expect(html).toContain('No Space photos uploaded yet')
+    expect(html).toContain('No Space photos uploaded yet.')
     expect(html).toContain(
-      'Photos of this space will appear here once the host uploads them.',
+      'Photos of this Space will appear here once the Host uploads them.',
     )
+    // No heading of its own: one would sit straight under the page's h1
+    expect(html).not.toMatch(/<h[1-6]/)
     expect(html).not.toContain('role="region"')
     expect(html).not.toContain('aria-roledescription="carousel"')
   })
@@ -65,9 +74,12 @@ describe('SpacePhotoGallery (STORY-11, TSK-11.4)', () => {
     expect(html).toContain('aria-label="Previous slide"')
     expect(html).toContain('aria-label="Next slide"')
 
-    // Touch targets meet 48x48 px requirement (D-031, SRS §3.2.2)
-    expect(html).toContain('min-h-12')
-    expect(html).toContain('min-w-12')
+    // Each navigation button carries the 48x48 px minimums (D-031, SRS §3.2.2)
+    for (const label of ['Previous slide', 'Next slide']) {
+      const classes = classOfLabelled(html, label).split(/\s+/)
+      expect(classes, label).toContain('min-h-12')
+      expect(classes, label).toContain('min-w-12')
+    }
 
     // Thumbnail strip
     expect(html).toContain('aria-label="Photo thumbnails"')
@@ -85,5 +97,9 @@ describe('SpacePhotoGallery (STORY-11, TSK-11.4)', () => {
     expect(html).toContain('role="region"')
     expect(html).toContain('aria-roledescription="carousel"')
     expect(html).toContain('aria-live="polite"')
+
+    // The live counter is read once: "Slide 1 of 3", with the visible "1 / 3" hidden
+    expect(html).toContain('<span aria-hidden="true">1 / 3</span>')
+    expect(html).toContain('<span class="sr-only">Slide 1 of 3</span>')
   })
 })

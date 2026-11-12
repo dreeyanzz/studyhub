@@ -76,11 +76,12 @@ export function SpacePhotoGallery({
         <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <ImageOff className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h3 className="text-base font-semibold text-foreground">
-          No Space photos uploaded yet
-        </h3>
+        {/* A paragraph, not a heading: an h3 here came straight after the page's h1 */}
+        <p className="text-base font-semibold text-foreground">
+          No Space photos uploaded yet.
+        </p>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Photos of this space will appear here once the host uploads them.
+          Photos of this Space will appear here once the Host uploads them.
         </p>
       </div>
     )
@@ -97,7 +98,7 @@ export function SpacePhotoGallery({
       role="region"
       aria-roledescription="carousel"
       aria-label={`Photos of ${spaceName}`}
-      className={cn('group relative min-w-0 space-y-3 rounded-xl', className)}
+      className={cn('relative min-w-0 space-y-3 rounded-xl', className)}
     >
       {/* Hero Image Container with Touch Navigation */}
       <div
@@ -129,7 +130,7 @@ export function SpacePhotoGallery({
           src={currentPhoto.url}
           alt={`Photo of ${spaceName} (${safeIndex + 1} of ${totalPhotos})`}
           fill
-          priority={safeIndex === 0}
+          preload={safeIndex === 0}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1024px"
           className="object-cover"
         />
@@ -140,11 +141,12 @@ export function SpacePhotoGallery({
           aria-live="polite"
           className="absolute top-3 right-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground shadow-xs backdrop-blur-xs"
         >
-          <span>
+          {/* Screen readers hear only "Slide 1 of 3", not the visible "1 / 3" as well */}
+          <span aria-hidden="true">
             {safeIndex + 1} / {totalPhotos}
           </span>
           <span className="sr-only">
-            , Slide {safeIndex + 1} of {totalPhotos}
+            Slide {safeIndex + 1} of {totalPhotos}
           </span>
         </div>
 
