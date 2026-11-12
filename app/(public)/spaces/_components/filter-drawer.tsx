@@ -60,6 +60,11 @@ export function FilterDrawer({
 
   return (
     <div data-testid="filter-drawer-wrapper" className={cn('lg:hidden', className)}>
+      {/* Screen reader polite announcement for active filter count in mobile drawer (§3 Accessibility) */}
+      <div aria-live="polite" className="sr-only">
+        {activeCount} active {activeCount === 1 ? 'filter' : 'filters'} applied
+      </div>
+
       {/* Mobile Filter Trigger Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button

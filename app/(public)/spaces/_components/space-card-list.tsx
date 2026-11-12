@@ -50,24 +50,26 @@ export function SpaceCardList({
 
       {spaces.length === 0 ? (
         <div
-          data-testid="space-card-list-empty"
-          className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center"
+          data-testid="seeker-search-no-results"
+          id="seeker-search-no-results"
+          data-empty-container="space-card-list-empty"
+          className="space-card-list-empty flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center"
         >
           <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <SearchX className="size-7" aria-hidden="true" />
           </div>
           <h2 className="mt-4 font-heading text-lg font-bold text-foreground">
-            No study spaces found
+            No study spaces found matching your criteria.
           </h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            No spaces match all of your selected criteria. Try adjusting your amenity
-            tags, price tier, or expanding your search area.
+            Try expanding your search area or clearing some filters.
           </p>
           <div className="mt-6">
             {onClearFilters ? (
               <button
                 type="button"
                 onClick={onClearFilters}
+                data-testid="reset-all-filters-button"
                 className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-xs outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Reset all filters
@@ -75,6 +77,7 @@ export function SpaceCardList({
             ) : (
               <Link
                 href="/spaces"
+                data-testid="reset-all-filters-button"
                 className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-xs outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Reset all filters

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { FilterDrawer } from './filter-drawer'
 
 describe('FilterDrawer component (STORY-08, FR-1.2, D-031)', () => {
-  it('renders mobile filter trigger button with 48px touch target', () => {
+  it('renders mobile filter trigger button with 48px touch target and aria-live region', () => {
     const html = renderToStaticMarkup(
       <FilterDrawer
         filters={{ tags: [], price: [], hours: [], unitType: [] }}
@@ -19,6 +19,8 @@ describe('FilterDrawer component (STORY-08, FR-1.2, D-031)', () => {
     expect(html).toContain('filter-drawer-trigger')
     expect(html).toContain('Filters')
     expect(html).toContain('min-h-12 min-w-12')
+    expect(html).toContain('aria-live="polite"')
+    expect(html).toContain('0 active filters applied')
     expect(html).not.toContain('filter-drawer-dialog')
   })
 
