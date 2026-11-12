@@ -1,6 +1,6 @@
 # STORY-10: Booking token, QR check-in and unit release
 
-**Status:** draft · **Owner:** @lukedongque · **Story:** #59 · **FR:** FR-2.3, FR-2.4, FR-3.3 ·
+**Status:** approved 2026-11-13 · **Owner:** @lukedongque · **Story:** #59 · **FR:** FR-2.3, FR-2.4, FR-3.3 ·
 **Depends on:** STORY-01, STORY-03, STORY-05, STORY-07, STORY-09, STORY-12 ·
 **Flows:** [Check-in](../flows/check-in.md) (approved), [Reservation lifecycle](../flows/reservation-lifecycle.md) (approved), [Seeker journey](../flows/seeker-journey.md) (approved) ·
 **Decisions:** D-002, D-004, D-008, D-009, D-010, D-011, D-027, D-031, D-042, D-044, D-046 to D-052, D-057, D-059, D-060, D-066, D-067, D-068
