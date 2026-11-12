@@ -644,6 +644,11 @@ _(To be completed when the story is merged and implemented)_
   - **TSK-08.5:** `spaceSchema` now refuses one coordinate without the other, so no Space is stored with half a pin, and its coordinate errors read in plain words. The form takes typed coordinates; a map pin picker was left out (§0 allowed either).
   - **TSK-08.5:** The Host portal's Space cards gained a "Tags" link to `/host/spaces/[spaceId]/tags`, next to Seat map and Photos, so step H8 is reachable.
   - **TSK-08.5:** `saveSpaceTagsAction` writes only the differences (deletes, then inserts), and checks curated ids against `curated_tags` first, so an unknown id changes nothing.
+  - **TSK-08.6:** Leaflet draws its zoom buttons at 30×30 px. `app/(public)/spaces/leaflet-overrides.css`, loaded after `leaflet.css`, makes them 48×48 (D-031). Tailwind classes can't: `leaflet.css` isn't in a cascade layer, so it beats Tailwind's utilities.
+  - **TSK-08.6:** Two kinds of target stay below 48 px on purpose. Each card's title link is 21 px tall, but the card's 48 px "View Space" link goes to the same page (WCAG's equivalent-control exception). The map's OpenStreetMap attribution links are inline text that the map tiles' licence requires.
+  - **TSK-08.6:** At 200% text the search row wrapped past the screen edge at 360 and 768 px. The Search button now drops under the field instead.
+  - **TSK-08.6:** The mobile filter drawer is modal for the keyboard too: focus moves into it, Tab stays inside it, and closing it returns focus to the Filters button. "Reset all filters" moves focus to the results list, since the button itself disappears.
+  - **TSK-08.6:** `e2e/discovery-a11y.spec.ts` measures sideways scrolling at 360, 768 and 1024 px with text at 100% and 200%, the size of every control, and keyboard focus. The unit tests only read the markup.
 - Status line changed to: `implemented YYYY-MM-DD`
 - Docs this story changed:
 - Who verified each acceptance criterion:

@@ -130,9 +130,11 @@ export function SearchBar({
           role="search"
           aria-label="Search study spaces"
           onSubmit={handleSubmit}
-          className="flex flex-1 items-center gap-2"
+          // Wraps, so at 200% text the Search button drops under the field instead of
+          // running off the screen (SRS §3.2.2: no horizontal scrolling from 360 px).
+          className="flex min-w-0 flex-1 flex-wrap items-center gap-2"
         >
-          <div className="relative flex-1">
+          <div className="relative min-w-0 flex-1 basis-48">
             <label htmlFor="discovery-search-input" className="sr-only">
               Search by campus, city, or space name
             </label>

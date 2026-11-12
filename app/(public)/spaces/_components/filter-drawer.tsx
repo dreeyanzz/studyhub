@@ -1,7 +1,7 @@
 'use client'
 
 import { RotateCcw, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type ActiveFilterState,
   CURATED_TAG_GROUPS,
@@ -42,13 +42,43 @@ export function FilterDrawer({
 }: FilterDrawerProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const activeCount = countActiveFilters(filters)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
 
+  // Every way of closing the drawer hands focus back to the Filters button, so a
+  // keyboard user isn't dropped at the top of the page (TSK-08.6, WCAG 2.4.3).
+  const closeDrawer = useCallback(() => {
+    setIsOpen(false)
+    triggerRef.current?.focus()
+  }, [])
+
+  // While open, the drawer is modal (aria-modal): focus starts on its Close button, and
+  // Tab and Shift+Tab cycle through its own controls instead of the page behind it.
   useEffect(() => {
     if (!isOpen) return
 
+    const dialog = dialogRef.current
+    dialog?.querySelector<HTMLElement>('[data-testid="filter-drawer-close"]')?.focus()
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsOpen(false)
+        closeDrawer()
+        return
+      }
+      if (event.key !== 'Tab' || !dialog) return
+
+      const controls = dialog.querySelectorAll<HTMLElement>('button:not([disabled])')
+      const first = controls[0]
+      const last = controls[controls.length - 1]
+      if (!first || !last) return
+
+      const focusInside = dialog.contains(document.activeElement)
+      if (event.shiftKey && (!focusInside || document.activeElement === first)) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && (!focusInside || document.activeElement === last)) {
+        event.preventDefault()
+        first.focus()
       }
     }
 
@@ -56,13 +86,19 @@ export function FilterDrawer({
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [isOpen])
+  }, [isOpen, closeDrawer])
 
   return (
     <div data-testid="filter-drawer-wrapper" className={cn('lg:hidden', className)}>
+      {/* Screen reader polite announcement for active filter count in mobile drawer (§3 Accessibility) */}
+      <div aria-live="polite" className="sr-only">
+        {activeCount} active {activeCount === 1 ? 'filter' : 'filters'} applied
+      </div>
+
       {/* Mobile Filter Trigger Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <button
+          ref={triggerRef}
           type="button"
           onClick={() => setIsOpen(true)}
           aria-expanded={isOpen}
@@ -108,10 +144,11 @@ export function FilterDrawer({
             tabIndex={-1}
             aria-label="Close filter drawer overlay"
             data-testid="filter-drawer-backdrop"
-            onClick={() => setIsOpen(false)}
+            onClick={closeDrawer}
             className="fixed inset-0 bg-black/50 backdrop-blur-xs"
           />
           <div
+            ref={dialogRef}
             id="mobile-filter-drawer"
             role="dialog"
             aria-modal="true"
@@ -134,7 +171,7 @@ export function FilterDrawer({
               </div>
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={closeDrawer}
                 aria-label="Close filter drawer"
                 data-testid="filter-drawer-close"
                 className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
@@ -282,7 +319,7 @@ export function FilterDrawer({
 
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={closeDrawer}
                 data-testid="drawer-apply-button"
                 className="inline-flex min-h-12 min-w-12 flex-1 items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
               >

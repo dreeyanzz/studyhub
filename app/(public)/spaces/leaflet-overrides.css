@@ -1,0 +1,12 @@
+/*
+ * Leaflet draws its zoom buttons at 26 px, or 30 px on touch screens. D-031 and SRS
+ * §3.2.2 ask for 48×48 px targets (TSK-08.6). Tailwind classes can't override them:
+ * leaflet.css is not in a cascade layer, so it beats Tailwind's utilities layer. These
+ * selectors add `.leaflet-container`, so they win whatever order the stylesheets load in.
+ */
+.leaflet-container .leaflet-bar a,
+.leaflet-container.leaflet-touch .leaflet-bar a {
+  width: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+}
