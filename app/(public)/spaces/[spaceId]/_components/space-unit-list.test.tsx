@@ -84,8 +84,14 @@ describe('SpaceUnitList (STORY-11, TSK-11.5)', () => {
     expect(html).toContain('href="?view=list&amp;unit=u1"')
     expect(html).toContain('href="?view=list&amp;unit=u2"')
 
-    // Selected state on u1
+    // Selected state on u1 uses aria-current rather than aria-pressed on <Link>
     expect(html).toContain('Selected')
+    expect(html).toContain('aria-current="true"')
+    expect(html).not.toContain('aria-pressed')
+
+    // Avoid clipping long zone names / unit labels at 360px / 200% zoom
+    expect(html).not.toContain('overflow-hidden')
+    expect(html).not.toContain('truncate')
 
     // Touch targets meet 48x48 px minimum (D-031)
     const touchMatches = [...html.matchAll(/min-h-12\s+min-w-12/g)]

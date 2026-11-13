@@ -35,6 +35,21 @@ function getServerSnapshot() {
   return 0
 }
 
+export function useFreshnessNow(): number {
+  return useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot)
+}
+
+export function formatFreshnessLabel(
+  date: string | null | undefined,
+  now: number,
+): string {
+  if (!date) {
+    return 'Never'
+  }
+  // During SSR or before client mount (now === 0), render localized Manila date/time (D-002).
+  return now === 0 ? formatDateTime(date) : formatHostFreshness(date, new Date(now))
+}
+
 export interface FreshnessBadgeProps {
   date: string | null | undefined
   prefix?: string
@@ -50,15 +65,13 @@ export interface FreshnessBadgeProps {
  * Never uses the forbidden words "real-time" or "live" (Glossary).
  */
 export function FreshnessBadge({ date, prefix = '', className }: FreshnessBadgeProps) {
-  const now = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot)
+  const now = useFreshnessNow()
 
   if (!date) {
     return <span className={className}>Never</span>
   }
 
-  // During SSR or before client mount, render localized Manila date/time (D-002)
-  const displayText =
-    now === 0 ? formatDateTime(date) : formatHostFreshness(date, new Date(now))
+  const displayText = formatFreshnessLabel(date, now)
 
   return (
     <time dateTime={date} className={className}>

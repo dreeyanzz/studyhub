@@ -21,7 +21,10 @@ export interface AvailabilitySummaryProps {
  */
 export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
   return (
-    <section aria-labelledby="availability-overview-heading" className="space-y-3">
+    <section
+      aria-labelledby="availability-overview-heading"
+      className="min-w-0 space-y-3"
+    >
       <h2
         id="availability-overview-heading"
         className="text-base font-semibold text-foreground"
@@ -43,13 +46,15 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
               <div
                 key={zone.zoneId}
                 role="listitem"
-                className={`flex flex-wrap items-center gap-1.5 rounded-lg border px-3 py-2 text-xs shadow-xs sm:text-sm ${
+                className={`flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-lg border px-3 py-2 text-xs shadow-xs sm:text-sm ${
                   hasAvailable
                     ? 'border-border bg-card text-foreground'
                     : 'border-border/60 bg-muted/40 text-muted-foreground'
                 }`}
               >
-                <span className="font-semibold text-foreground">{zone.zoneName}:</span>
+                <span className="min-w-0 font-semibold wrap-anywhere text-foreground">
+                  {zone.zoneName}:
+                </span>
                 <span
                   className={
                     hasAvailable ? 'font-medium text-emerald-700' : 'font-medium'

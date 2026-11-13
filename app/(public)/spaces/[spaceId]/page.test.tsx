@@ -322,6 +322,23 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('Main Hall')
   })
 
+  it('emits data-testid="seeker-space-closed" only once when closed and a unit is selected', async () => {
+    mockSpace = {
+      ...mockSpace!,
+      opens_at: '01:00:00',
+      closes_at: '02:00:00',
+    }
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ unit: 'u1' }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    const closedMatches = [...html.matchAll(/data-testid="seeker-space-closed"/g)]
+    expect(closedMatches).toHaveLength(1)
+    expect(html).toContain('data-testid="selected-unit-space-closed"')
+  })
+
   describe('generateMetadata', () => {
     it('returns Space Not Found for malformed UUID', async () => {
       const meta = await generateMetadata({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { AlertCircle, Clock, LayoutGrid, List } from 'lucide-react'
 
@@ -8,8 +8,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SeatMapGrid } from '@/components/seat-map/seat-map-grid'
 import { SeatMapTile } from '@/components/seat-map/seat-map-tile'
-import { FreshnessBadge } from '@/components/space/freshness-badge'
-import { formatHostFreshness } from '@/lib/space/freshness'
+import {
+  FreshnessBadge,
+  formatFreshnessLabel,
+  useFreshnessNow,
+} from '@/components/space/freshness-badge'
 import type { SeatMapUnit, SeatMapZone, SeatState, UnitType } from '@/lib/seat-map/grid'
 import { cn } from '@/lib/utils'
 import { SpaceUnitList } from './space-unit-list'
@@ -62,44 +65,41 @@ export function SpaceSeatMapView({
   renderSelectedUnitAction,
   selectedUnitActionSlot,
 }: SpaceSeatMapViewProps) {
-  const [view, setView] = useState<'grid' | 'list'>(initialView)
+  const now = useFreshnessNow()
+  const view = initialView
 
-  // Find initial unit from all zones
+  // Resolve selected unit from server-synced URL prop so selectedUnitActionSlot
+  // always matches the current ?unit=<id> (STORY-09 design §8).
   const allUnits = zones.flatMap((z) => z.units)
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(
-    initialSelectedUnitId ?? null,
-  )
-
-  const selectedUnit = allUnits.find((u) => u.id === selectedUnitId) ?? null
+  const selectedUnit = allUnits.find((u) => u.id === initialSelectedUnitId) ?? null
   const selectedZone = selectedUnit
     ? zones.find((z) => z.units.some((u) => u.id === selectedUnit.id))
     : null
+  const selectedUnitId = selectedUnit?.id ?? null
 
-  function handleSelectUnit(unit: SeatMapUnit) {
-    setSelectedUnitId(unit.id)
-  }
+  const gridHref = selectedUnit
+    ? `?view=grid&unit=${encodeURIComponent(selectedUnit.id)}`
+    : '?view=grid'
+  const listHref = selectedUnit
+    ? `?view=list&unit=${encodeURIComponent(selectedUnit.id)}`
+    : '?view=list'
 
   return (
-    <div className="space-y-6" data-testid="space-seat-map-view">
+    <div className="min-w-0 space-y-6" data-testid="space-seat-map-view">
       {/* View Switcher: Seat map vs Accessible list */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+        <h2 className="min-w-0 text-lg font-semibold tracking-tight wrap-anywhere text-foreground">
           Seat Selection
         </h2>
 
         <div
-          role="tablist"
-          aria-label="Seat view options"
-          className="inline-flex rounded-lg border border-border bg-muted/50 p-1"
+          role="group"
+          aria-label="View switcher"
+          className="inline-flex max-w-full flex-wrap rounded-lg border border-border bg-muted/50 p-1"
         >
           <Link
-            href={`?view=grid${selectedUnitId ? `&unit=${encodeURIComponent(selectedUnitId)}` : ''}`}
-            onClick={(e) => {
-              e.preventDefault()
-              setView('grid')
-            }}
-            role="tab"
-            aria-selected={view === 'grid'}
+            href={gridHref}
+            scroll={false}
             aria-current={view === 'grid' ? 'page' : undefined}
             className={cn(
               'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
@@ -113,13 +113,8 @@ export function SpaceSeatMapView({
           </Link>
 
           <Link
-            href={`?view=list${selectedUnitId ? `&unit=${encodeURIComponent(selectedUnitId)}` : ''}`}
-            onClick={(e) => {
-              e.preventDefault()
-              setView('list')
-            }}
-            role="tab"
-            aria-selected={view === 'list'}
+            href={listHref}
+            scroll={false}
             aria-current={view === 'list' ? 'page' : undefined}
             className={cn(
               'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
@@ -144,15 +139,15 @@ export function SpaceSeatMapView({
               const isSelected = unit.id === selectedUnitId
               const typeLabel = TYPE_LABELS[unit.unitType] ?? unit.unitType
               const stateLabel = STATE_LABELS[unit.seatState] ?? unit.seatState
-              const freshnessLabel = formatHostFreshness(unit.hostUpdatedAt)
+              const freshnessLabel = formatFreshnessLabel(unit.hostUpdatedAt, now)
               const tileAria = `${unit.label}, ${typeLabel}, ${stateLabel}, ${freshnessLabel}`
 
               return (
-                <button
-                  type="button"
-                  onClick={() => handleSelectUnit(unit)}
+                <Link
+                  href={`?view=grid&unit=${encodeURIComponent(unit.id)}`}
+                  scroll={false}
                   aria-label={tileAria}
-                  aria-pressed={isSelected}
+                  aria-current={isSelected ? 'true' : undefined}
                   className={cn(
                     'group relative flex h-full min-h-12 w-full min-w-[48px] items-stretch rounded-md p-0 text-left transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                     isSelected && 'ring-2 ring-primary ring-offset-2',
@@ -167,17 +162,13 @@ export function SpaceSeatMapView({
                         : 'group-hover:shadow-xs',
                     )}
                   />
-                </button>
+                </Link>
               )
             }}
           />
         </div>
       ) : (
-        <SpaceUnitList
-          zones={zones}
-          selectedUnitId={selectedUnitId}
-          onSelectUnit={handleSelectUnit}
-        />
+        <SpaceUnitList zones={zones} selectedUnitId={selectedUnitId} />
       )}
 
       {/* Selected Unit Panel */}
@@ -187,52 +178,52 @@ export function SpaceSeatMapView({
           className="rounded-xl border-primary/30 bg-card shadow-sm"
         >
           <CardHeader className="pb-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-base font-semibold text-foreground">
+            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+              <CardTitle className="min-w-0 text-base font-semibold wrap-anywhere text-foreground">
                 Selected Unit: {selectedUnit.label}
               </CardTitle>
-              <span className="text-xs text-muted-foreground">
+              <span className="min-w-0 text-xs wrap-anywhere text-muted-foreground">
                 {selectedZone?.name ?? 'Zone'}
               </span>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4 sm:text-sm">
-              <div>
+              <div className="min-w-0">
                 <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
                   Type
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="font-medium wrap-anywhere text-foreground">
                   {TYPE_LABELS[selectedUnit.unitType] ?? selectedUnit.unitType}
                 </span>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
                   Capacity
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="font-medium wrap-anywhere text-foreground">
                   {selectedUnit.capacity ?? 1}{' '}
                   {selectedUnit.capacity === 1 ? 'person' : 'people'}
                 </span>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
                   Status
                 </span>
-                <span className="font-medium text-foreground">
+                <span className="font-medium wrap-anywhere text-foreground">
                   {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
                 </span>
               </div>
 
-              <div>
+              <div className="min-w-0">
                 <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
                   Freshness
                 </span>
                 <FreshnessBadge
                   date={selectedUnit.hostUpdatedAt}
-                  className="font-medium text-foreground"
+                  className="font-medium wrap-anywhere text-foreground"
                 />
               </div>
             </div>
@@ -240,7 +231,7 @@ export function SpaceSeatMapView({
             {/* Actions & Status Notices */}
             {!isOpen ? (
               <Alert
-                data-testid="seeker-space-closed"
+                data-testid="selected-unit-space-closed"
                 variant="default"
                 className="border-muted-foreground/20 bg-muted/30"
               >
@@ -265,7 +256,9 @@ export function SpaceSeatMapView({
               <div data-testid="selected-unit-hold-action" className="pt-2">
                 {renderSelectedUnitAction
                   ? renderSelectedUnitAction(selectedUnit)
-                  : (selectedUnitActionSlot ?? (
+                  : ((selectedUnit.id === initialSelectedUnitId
+                      ? selectedUnitActionSlot
+                      : undefined) ?? (
                       <p className="text-xs text-muted-foreground">
                         Ready for reservation hold.
                       </p>

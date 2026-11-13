@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 
 import { FreshnessBadge } from '@/components/space/freshness-badge'
-import type { SeatMapUnit, SeatMapZone, SeatState, UnitType } from '@/lib/seat-map/grid'
+import type { SeatMapZone, SeatState, UnitType } from '@/lib/seat-map/grid'
 import { cn } from '@/lib/utils'
 
 const TYPE_CONFIG: Record<
@@ -60,7 +60,6 @@ const STATE_CONFIG: Record<
 export interface SpaceUnitListProps {
   zones: SeatMapZone[]
   selectedUnitId?: string | null
-  onSelectUnit?: (unit: SeatMapUnit) => void
 }
 
 /**
@@ -69,11 +68,7 @@ export interface SpaceUnitListProps {
  * Grouped by Zone, displaying Label, Type, Capacity, State, individual freshness timestamp,
  * and Select action. Fully operable by keyboard before JavaScript loads via standard links.
  */
-export function SpaceUnitList({
-  zones,
-  selectedUnitId,
-  onSelectUnit,
-}: SpaceUnitListProps) {
+export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
   if (zones.length === 0) {
     return (
       <p className="text-sm text-muted-foreground">No units available in this Space.</p>
@@ -81,21 +76,21 @@ export function SpaceUnitList({
   }
 
   return (
-    <div className="space-y-6" data-testid="space-unit-list">
+    <div className="min-w-0 space-y-6" data-testid="space-unit-list">
       {zones.map((zone) => (
         <section
           key={zone.id}
           aria-labelledby={`unit-list-zone-${zone.id}`}
-          className="space-y-3"
+          className="min-w-0 space-y-3"
         >
           <h3
             id={`unit-list-zone-${zone.id}`}
-            className="text-base font-semibold tracking-tight text-foreground"
+            className="min-w-0 text-base font-semibold tracking-tight wrap-anywhere text-foreground"
           >
             {zone.name}
           </h3>
 
-          <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-xs">
+          <div className="divide-y divide-border rounded-xl border border-border bg-card shadow-xs">
             {zone.units.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">No units in this zone.</p>
             ) : (
@@ -118,7 +113,7 @@ export function SpaceUnitList({
                   <div
                     key={unit.id}
                     className={cn(
-                      'flex flex-col gap-3 p-3 transition-colors sm:flex-row sm:items-center sm:justify-between',
+                      'flex flex-col gap-3 p-3 transition-colors first:rounded-t-xl last:rounded-b-xl sm:flex-row sm:items-center sm:justify-between',
                       isSelected
                         ? 'bg-primary/5 ring-1 ring-primary ring-inset'
                         : 'hover:bg-muted/30',
@@ -130,8 +125,8 @@ export function SpaceUnitList({
                       </div>
 
                       <div className="min-w-0 space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate font-semibold text-foreground">
+                        <div className="flex min-w-0 flex-wrap items-center gap-2">
+                          <span className="min-w-0 font-semibold wrap-anywhere text-foreground">
                             {unit.label}
                           </span>
                           {unit.unitType === 'room' && unit.capacity && (
@@ -141,13 +136,13 @@ export function SpaceUnitList({
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="min-w-0 text-xs wrap-anywhere text-muted-foreground">
                           {typeInfo.label} · <FreshnessBadge date={unit.hostUpdatedAt} />
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2.5 self-end sm:self-center">
+                    <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2.5 self-end sm:self-center">
                       <span
                         className={cn(
                           'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
@@ -160,19 +155,14 @@ export function SpaceUnitList({
 
                       <Link
                         href={`?view=list&unit=${encodeURIComponent(unit.id)}`}
-                        onClick={(e) => {
-                          if (onSelectUnit) {
-                            e.preventDefault()
-                            onSelectUnit(unit)
-                          }
-                        }}
+                        scroll={false}
                         className={cn(
                           'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                           isSelected
                             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                             : 'border border-border bg-background text-foreground hover:bg-muted',
                         )}
-                        aria-pressed={isSelected}
+                        aria-current={isSelected ? 'true' : undefined}
                       >
                         {isSelected ? 'Selected' : 'Select'}
                         <span className="sr-only"> {unit.label}</span>
