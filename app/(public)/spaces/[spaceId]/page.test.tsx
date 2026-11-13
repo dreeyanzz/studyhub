@@ -282,6 +282,63 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('aria-label="Photo thumbnails"')
   })
 
+  it('renders zone availability summary and seat map on profile page (TSK-11.5)', async () => {
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('Current Availability')
+    expect(html).toContain('Main Hall:')
+    expect(html).toContain('1 available')
+    expect(html).toContain('1 total')
+    expect(html).toContain('data-testid="space-seat-map-view"')
+    expect(html).toContain('Seat Selection')
+    expect(html).toContain('Seat map')
+    expect(html).toContain('Accessible list')
+  })
+
+  it('renders accessible list view when searchParams contains view=list (SRS §3.2.2)', async () => {
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ view: 'list' }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('data-testid="space-unit-list"')
+    expect(html).toContain('Main Hall')
+    expect(html).toContain('D1')
+  })
+
+  it('renders selected unit panel when searchParams contains unit=<id>', async () => {
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ unit: 'u1' }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('data-testid="selected-unit-panel"')
+    expect(html).toContain('Selected Unit: D1')
+    expect(html).toContain('Main Hall')
+  })
+
+  it('emits data-testid="seeker-space-closed" only once when closed and a unit is selected', async () => {
+    mockSpace = {
+      ...mockSpace!,
+      opens_at: '01:00:00',
+      closes_at: '02:00:00',
+    }
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ unit: 'u1' }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    const closedMatches = [...html.matchAll(/data-testid="seeker-space-closed"/g)]
+    expect(closedMatches).toHaveLength(1)
+    expect(html).toContain('data-testid="selected-unit-space-closed"')
+  })
+
   describe('generateMetadata', () => {
     it('returns Space Not Found for malformed UUID', async () => {
       const meta = await generateMetadata({
