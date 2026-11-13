@@ -15,7 +15,7 @@ const mockZones: SeatMapZone[] = [
         id: 'u1',
         unitType: 'seat',
         label: 'S1',
-        capacity: 1,
+        capacity: null,
         row: 0,
         col: 0,
         colSpan: 1,
@@ -34,6 +34,19 @@ const mockZones: SeatMapZone[] = [
         colSpan: 1,
         seatState: 'occupied',
         hostUpdatedAt: '2026-11-11T09:00:00Z',
+        waitWindowEndsAt: null,
+        reservationId: null,
+      },
+      {
+        id: 'u3',
+        unitType: 'room',
+        label: 'Room A',
+        capacity: 4,
+        row: 0,
+        col: 2,
+        colSpan: 2,
+        seatState: 'reserved',
+        hostUpdatedAt: '2026-11-11T08:30:00Z',
         waitWindowEndsAt: null,
         reservationId: null,
       },
@@ -216,5 +229,27 @@ describe('SpaceSeatMapView (STORY-11, TSK-11.5)', () => {
     // Hold slots suppressed
     expect(html).not.toContain('Hold')
     expect(html).not.toContain('data-testid="server-hold-panel"')
+  })
+
+  it('formats null capacity as singular "1 person" and multi-person room capacity as "4 people"', () => {
+    const nullCapHtml = renderToStaticMarkup(
+      <SpaceSeatMapView zones={mockZones} isOpen={true} initialSelectedUnitId="u1" />,
+    )
+    expect(nullCapHtml).toContain('1 person')
+    expect(nullCapHtml).not.toContain('1 people')
+
+    const roomHtml = renderToStaticMarkup(
+      <SpaceSeatMapView
+        zones={mockZones}
+        isOpen={true}
+        initialSelectedUnitId="u3"
+        renderSelectedUnitAction={() => <button type="button">Hold</button>}
+        selectedUnitActionSlot={<div data-testid="server-hold-panel">Server hold</div>}
+      />,
+    )
+    expect(roomHtml).toContain('4 people')
+    expect(roomHtml).toContain('Reserved')
+    expect(roomHtml).not.toContain('Hold')
+    expect(roomHtml).not.toContain('data-testid="server-hold-panel"')
   })
 })

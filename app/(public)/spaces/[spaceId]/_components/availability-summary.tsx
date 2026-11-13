@@ -73,7 +73,7 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
                     </span>
                     <FreshnessBadge
                       date={zone.oldestAvailableHostUpdatedAt}
-                      className="text-muted-foreground"
+                      className="min-w-0 wrap-anywhere text-muted-foreground"
                     />
                   </>
                 ) : (

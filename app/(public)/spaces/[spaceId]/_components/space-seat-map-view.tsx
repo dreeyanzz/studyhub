@@ -131,7 +131,7 @@ export function SpaceSeatMapView({
 
       {/* Main View Area */}
       {view === 'grid' ? (
-        <div className="w-full overflow-x-auto pb-2">
+        <div className="w-full overflow-x-auto px-1 pt-1 pb-2">
           {/* Direct embedding without extra card padding to fit 328px at 360px viewport (D-062) */}
           <SeatMapGrid
             zones={zones}
@@ -157,9 +157,7 @@ export function SpaceSeatMapView({
                     unit={unit}
                     className={cn(
                       'pointer-events-none transition-shadow',
-                      isSelected
-                        ? 'shadow-md ring-2 ring-primary ring-offset-1'
-                        : 'group-hover:shadow-xs',
+                      isSelected ? 'shadow-md' : 'group-hover:shadow-xs',
                     )}
                   />
                 </Link>
@@ -204,7 +202,7 @@ export function SpaceSeatMapView({
                 </span>
                 <span className="font-medium wrap-anywhere text-foreground">
                   {selectedUnit.capacity ?? 1}{' '}
-                  {selectedUnit.capacity === 1 ? 'person' : 'people'}
+                  {(selectedUnit.capacity ?? 1) === 1 ? 'person' : 'people'}
                 </span>
               </div>
 
@@ -270,10 +268,10 @@ export function SpaceSeatMapView({
                   className="size-4 shrink-0 text-amber-700"
                   aria-hidden="true"
                 />
-                <span>
+                <span className="min-w-0 wrap-anywhere">
                   This unit is currently{' '}
                   <strong className="font-semibold">
-                    {STATE_LABELS[selectedUnit.seatState]}
+                    {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
                   </strong>
                   . It is not available to hold right now.
                 </span>

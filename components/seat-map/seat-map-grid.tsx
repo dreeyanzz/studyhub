@@ -158,7 +158,7 @@ export function SeatMapGrid({
                 <h3
                   id={`zone-heading-${zone.id}`}
                   tabIndex={-1}
-                  className="text-base font-semibold tracking-tight text-foreground"
+                  className="min-w-0 text-base font-semibold tracking-tight wrap-anywhere text-foreground"
                 >
                   {zone.name}
                 </h3>
