@@ -20,6 +20,14 @@ import { SpaceSeatMapView } from './_components/space-seat-map-view'
 // link and the closed and no-units notices return there.
 const DISCOVERY_HREF = '/spaces'
 
+// Canonical curated amenity category order matching the Host tagging form (STORY-08 design §3).
+const CATEGORY_ORDER: Record<string, number> = {
+  wifi: 0,
+  power: 1,
+  noise: 2,
+  ac: 3,
+}
+
 /**
  * The Space, or null when the id is malformed, the Space is missing, or it isn't
  * Verified. D-055: only Verified Spaces are public, so a Hidden Space reads as
@@ -37,7 +45,7 @@ const getVerifiedSpace = cache(async (rawSpaceId: string) => {
   const supabase = await createClient()
   const { data: space } = await supabase
     .from('spaces')
-    .select('id, name, description, address, opens_at, closes_at, status')
+    .select('id, name, description, address, opens_at, closes_at, price_tier, status')
     .eq('id', parsedId.data)
     .maybeSingle()
 
@@ -52,15 +60,6 @@ export async function generateMetadata({
   const { spaceId } = await params
   const space = await getVerifiedSpace(spaceId)
   return { title: space ? space.name : 'Space Not Found' }
-}
-
-interface CuratedTagJoinRow {
-  tag_id: string
-  curated_tags: {
-    id: string
-    category: string
-    label: string
-  } | null
 }
 
 /**
@@ -107,7 +106,7 @@ export default async function SpaceProfilePage({
     }),
     supabase
       .from('space_curated_tags')
-      .select('tag_id, curated_tags(id, category, label)')
+      .select('tag_id, curated_tags(id, category, label, display_order)')
       .eq('space_id', space.id),
     supabase
       .from('space_custom_tags')
@@ -126,15 +125,18 @@ export default async function SpaceProfilePage({
         .data.publicUrl,
     }))
 
-  const curatedTags: CuratedTagData[] = (
-    (curatedTagRows as unknown as CuratedTagJoinRow[]) ?? []
-  )
-    .filter((row) => row.curated_tags?.id && row.curated_tags?.label)
-    .map((row) => ({
-      id: row.curated_tags!.id,
-      category: row.curated_tags!.category,
-      label: row.curated_tags!.label,
-    }))
+  const curatedTags: CuratedTagData[] = (curatedTagRows ?? [])
+    .map((row) => row.curated_tags)
+    .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag?.id && tag?.label))
+    .sort((a, b) => {
+      const catDiff =
+        (CATEGORY_ORDER[a.category] ?? 99) - (CATEGORY_ORDER[b.category] ?? 99)
+      if (catDiff !== 0) return catDiff
+      const orderDiff = (a.display_order ?? 0) - (b.display_order ?? 0)
+      if (orderDiff !== 0) return orderDiff
+      return a.label.localeCompare(b.label)
+    })
+    .map(({ id, category, label }) => ({ id, category, label }))
 
   const customTags: string[] = (customTagRows ?? [])
     .map((row) => row.name)

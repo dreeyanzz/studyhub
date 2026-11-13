@@ -1,8 +1,10 @@
 import { Clock, MapPin } from 'lucide-react'
 
+import { PriceTierBadge } from '@/components/discovery/price-tier-badge'
 import { Badge } from '@/components/ui/badge'
 import { formatOpeningHours, type SpaceOperatingStatus } from '@/lib/space/format'
 import { cn } from '@/lib/utils'
+import type { PriceTier } from '@/lib/validation/search'
 
 export interface SpaceProfileHeaderProps {
   space: {
@@ -12,14 +14,15 @@ export interface SpaceProfileHeaderProps {
     address: string
     opens_at: string
     closes_at: string
+    price_tier: PriceTier
   }
   operatingStatus: SpaceOperatingStatus
 }
 
 /**
- * Public Space profile header section (STORY-11 design §3 Screen 1, FR-1.3, D-027, D-048).
+ * Public Space profile header section (STORY-11 design §0, §3 Screen 1, FR-1.3, D-027, D-048).
  * Renders Space name (h1), address with map pin icon, operating hours with open/closed status badge,
- * and description.
+ * curated price tier badge (₱ / ₱₱ / ₱₱₱ / Free), and description.
  */
 export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeaderProps) {
   const hoursText = formatOpeningHours(space.opens_at, space.closes_at)
@@ -55,6 +58,7 @@ export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeade
         >
           {operatingStatus.displayText}
         </Badge>
+        <PriceTierBadge tier={space.price_tier} showSymbol />
       </div>
 
       {space.description && (

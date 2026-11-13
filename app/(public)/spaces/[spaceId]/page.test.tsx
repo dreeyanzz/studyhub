@@ -22,6 +22,7 @@ interface MockSpaceData {
   address: string
   opens_at: string
   closes_at: string
+  price_tier: 'free' | 'budget' | 'standard' | 'premium'
   status: 'verified' | 'pending' | 'rejected'
 }
 
@@ -37,15 +38,29 @@ vi.mock('@/lib/supabase/server', () => ({
       if (table === 'space_curated_tags') {
         const builder = {
           select: vi.fn(() => builder),
-          eq: vi.fn(() => Promise.resolve({ data: mockCuratedTags, error: null })),
+          eq: vi.fn((col: string, val: unknown) =>
+            Promise.resolve({
+              data: col === 'space_id' && val === mockSpace?.id ? mockCuratedTags : [],
+              error: null,
+            }),
+          ),
         }
         return builder
       }
       if (table === 'space_custom_tags') {
+        const filters: Record<string, unknown> = {}
         const builder = {
           select: vi.fn(() => builder),
-          eq: vi.fn(() => builder),
-          order: vi.fn(() => Promise.resolve({ data: mockCustomTags, error: null })),
+          eq: vi.fn((col: string, val: unknown) => {
+            filters[col] = val
+            return builder
+          }),
+          order: vi.fn(() =>
+            Promise.resolve({
+              data: filters.space_id === mockSpace?.id ? mockCustomTags : [],
+              error: null,
+            }),
+          ),
         }
         return builder
       }
@@ -103,6 +118,7 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
       address: '123 Colon Street, Cebu City',
       opens_at: '00:00:00',
       closes_at: '00:00:00', // Open 24 hours so it's open by default
+      price_tier: 'budget',
       status: 'verified',
     }
     mockZones = [
@@ -192,6 +208,8 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('href="/spaces"')
     expect(html).not.toContain('href="/"')
     expect(html).toContain('Open 24 hours')
+    expect(html).toContain('data-testid="price-tier-badge-budget"')
+    expect(html).toContain('Budget (₱)')
     // No closed or empty notice
     expect(html).not.toContain('This Space is closed now')
     expect(html).not.toContain('No units are currently Available')
@@ -301,14 +319,33 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('aria-label="Photo thumbnails"')
   })
 
-  it('renders curated and custom tags on space profile (TSK-11.6)', async () => {
+  it('renders curated and custom tags on space profile in deterministic category and display_order sequence (TSK-11.6)', async () => {
     mockCuratedTags = [
+      {
+        tag_id: 'ac_full',
+        curated_tags: {
+          id: 'ac_full',
+          category: 'ac',
+          label: 'Air Conditioning',
+          display_order: 1,
+        },
+      },
       {
         tag_id: 'wifi_fast',
         curated_tags: {
           id: 'wifi_fast',
           category: 'wifi',
           label: 'Wi-Fi: Fast (50+ Mbps)',
+          display_order: 2,
+        },
+      },
+      {
+        tag_id: 'wifi_basic',
+        curated_tags: {
+          id: 'wifi_basic',
+          category: 'wifi',
+          label: 'Wi-Fi: Basic',
+          display_order: 1,
         },
       },
     ]
@@ -321,9 +358,25 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
 
     expect(html).toContain('data-testid="space-tags"')
     expect(html).toContain('data-testid="curated-tags"')
+    expect(html).toContain('Wi-Fi: Basic')
     expect(html).toContain('Wi-Fi: Fast (50+ Mbps)')
+    expect(html).toContain('Air Conditioning')
+    // Deterministic order: wifi (display_order 1 -> 2) before ac
+    expect(html.indexOf('Wi-Fi: Basic')).toBeLessThan(
+      html.indexOf('Wi-Fi: Fast (50+ Mbps)'),
+    )
+    expect(html.indexOf('Wi-Fi: Fast (50+ Mbps)')).toBeLessThan(
+      html.indexOf('Air Conditioning'),
+    )
     expect(html).toContain('data-testid="custom-tags"')
     expect(html).toContain('#coffee-available')
+
+    // Heading hierarchy invariant (axe-core heading-order): h1 -> h2 without skipping levels
+    const headingLevels = [...html.matchAll(/<h([1-6])\b/g)].map((m) => Number(m[1]))
+    expect(headingLevels[0]).toBe(1)
+    for (let i = 1; i < headingLevels.length; i++) {
+      expect(headingLevels[i]).toBeLessThanOrEqual(headingLevels[i - 1]! + 1)
+    }
   })
 
   it('renders zone availability summary and seat map on profile page (TSK-11.5)', async () => {
