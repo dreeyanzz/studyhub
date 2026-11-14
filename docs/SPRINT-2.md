@@ -280,6 +280,12 @@ last updated; custom tags look different from curated ones; the list view shows 
 unit's state and works by keyboard alone; the page fits 360, 768 and 1024 px without
 scrolling sideways.
 
+> **Update, Sat 14 Nov: STORY-11 is done** (#271, #274, #276, #283, #284, #285). A Seeker
+> opens a Verified Space's profile from the map: its photos, its hours and open or closed
+> badge, its price tier, its curated and custom tags (shown differently, never as filters),
+> and each zone's Available units with "Host-updated · X min ago", as the seat map and as a
+> keyboard-friendly list. A Host adds and removes the Space's photos (design §9).
+
 **Waits for:** STORY-07's tables and photo bucket. Start with the layout and the
 components, with sample data.
 
