@@ -1,6 +1,7 @@
 -- STORY-10, TSK-10.1: Booking token check-in, check-out, complete lapse recording, and closing-time protection.
 -- Tests docs/design/STORY-10-check-in-release.md §2 & §4, docs/flows/check-in.md, and
--- docs/flows/reservation-lifecycle.md (R5, R6, R7, H2, C1-C7, C-N1-C-N4, N8, N11, N18, N22, N25).
+-- docs/flows/reservation-lifecycle.md (C1-C7, C-N1 to C-N4, R6, R7, R10, R12, H3, N8 to N11, N16, N20,
+-- N22, N24).
 --
 -- Seed accounts:
 --   admin   a0000000-0000-4000-8000-000000000001
@@ -11,7 +12,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(61);
+select plan(73);
 
 -- Captures SQLSTATE and HINT for functions/triggers that distinguish refusals by hint (design §2).
 create function pg_temp.refusal(p_sql text)
@@ -31,7 +32,7 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 1. private.last_closing_time (FR-2.8, D-048) & direct access checks
+-- 1. private.last_closing_time (D-027, D-048) & direct access checks
 -- ---------------------------------------------------------------------------
 select is(
   private.last_closing_time(null, '22:00'::time, '2026-11-14 15:00+08'::timestamptz),
@@ -67,6 +68,12 @@ select is(
   private.last_closing_time('18:00'::time, '02:00'::time, '2026-11-14 23:00:00+08'::timestamptz),
   '2026-11-14 02:00:00+08'::timestamptz,
   'overnight space in evening shift returns that morning closing time'
+);
+
+select is(
+  private.last_closing_time('18:00'::time, '02:00'::time, '2026-11-14 03:00:00+08'::timestamptz),
+  '2026-11-14 02:00:00+08'::timestamptz,
+  'overnight space after early-morning closing returns that morning closing time'
 );
 
 -- Seed deterministic reservations/payments as postgres
@@ -135,8 +142,14 @@ insert into public.payments (
   clock_timestamp() - interval '5 minutes'
 );
 
+-- f...01's Host-updated time before its check-in and check-out (N16)
+create temp table _f01_freshness as
+select host_updated_at
+from public.units
+where id = 'f0000000-0000-4000-8000-000000000001';
+
 -- ---------------------------------------------------------------------------
--- 2. Grants & authorization boundaries (N8, N25, C-N1, C-N2)
+-- 2. Grants & authorization boundaries (C7, N9, N20, N24)
 -- ---------------------------------------------------------------------------
 set local role anon;
 set local request.jwt.claims = '{"role": "anon"}';
@@ -145,28 +158,28 @@ select throws_ok(
   $$select private.last_closing_time('07:00'::time, '22:00'::time, now())$$,
   '42501',
   null,
-  'signed-out visitor cannot call private.last_closing_time'
+  'a signed-out visitor cannot call private.last_closing_time (N24)'
 );
 
 select throws_ok(
   $$select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'signed-out visitor cannot call check_in'
+  'a signed-out visitor cannot call check_in (C7, N24)'
 );
 
 select throws_ok(
   $$select public.check_out('11000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'signed-out visitor cannot call check_out'
+  'a signed-out visitor cannot call check_out (N24)'
 );
 
 select is(
   (select wait_window_ends_at from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   null::timestamptz,
-  'unit_states hides wait_window_ends_at from signed-out visitors (N25)'
+  'only the Space''s Host sees when a wait window ends: not a signed-out visitor (N20)'
 );
 
 -- Seeker 1 cannot check in or read wait_window_ends_at in unit_states
@@ -178,20 +191,20 @@ select throws_ok(
   $$select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'a Seeker cannot call check_in'
+  'a Seeker cannot check in their own reservation (C7, N9)'
 );
 
 select is(
   (select wait_window_ends_at from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   null::timestamptz,
-  'unit_states hides wait_window_ends_at from Seekers (N25)'
+  'only the Space''s Host sees when a wait window ends: not a Seeker (N20)'
 );
 
 select is(
   pg_temp.refusal($$select public.check_out('11000000-0000-4000-8000-000000000001')$$),
   'P0001 not_checked_in',
-  'check_out refuses a reserved hold that has not checked in (N11)'
+  'a Seeker cannot check out a hold they have not checked in to'
 );
 
 -- Host 2 and Admin cannot check in at Host 1 space or read wait_window_ends_at
@@ -202,14 +215,14 @@ select throws_ok(
   $$select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'another Host cannot call check_in for a Space they do not own'
+  'another Host cannot check in a Space they do not own (C7)'
 );
 
 select is(
   (select wait_window_ends_at from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   null::timestamptz,
-  'unit_states hides wait_window_ends_at from another Host (N25)'
+  'only the Space''s Host sees when a wait window ends: not another Host (N20)'
 );
 
 set local request.jwt.claims =
@@ -219,14 +232,14 @@ select throws_ok(
   $$select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'an Administrator cannot call check_in for another Host Space'
+  'an Administrator cannot check in at a Space they do not own (C7)'
 );
 
 select is(
   (select wait_window_ends_at from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   null::timestamptz,
-  'unit_states hides wait_window_ends_at from Administrators (N25)'
+  'only the Space''s Host sees when a wait window ends: not an Administrator (N20)'
 );
 
 -- Host 1 sees wait_window_ends_at on reserved hold in unit_states
@@ -237,56 +250,89 @@ select ok(
   (select wait_window_ends_at is not null
    from public.unit_states('e0000000-0000-4000-8000-000000000001')
    where unit_id = 'f0000000-0000-4000-8000-000000000001'),
-  'unit_states exposes wait_window_ends_at to the Space Host while reserved'
+  'only the Space''s Host sees when a wait window ends: the Host does, while Reserved (N20)'
 );
 
 -- ---------------------------------------------------------------------------
--- 3. public.check_in token validation, wrong space, and check-in transition (C1-C3, C-N1, C-N2)
+-- 3. public.check_in token validation, wrong space, and check-in transition (C1, C3, C5, C6, C-N1, C-N2, C-N4, R6)
 -- ---------------------------------------------------------------------------
 select is(
   pg_temp.refusal($$select public.check_in('N9PE1234N9PE', 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 invalid_token',
-  'check_in refuses an unknown token with invalid_token (C-N1)'
+  'an invalid token string is rejected (C6)'
 );
 
 select is(
   pg_temp.refusal($$select public.check_in(null, 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 invalid_token',
-  'check_in refuses a null token with invalid_token (C-N1)'
+  'an invalid token string is rejected: a null token (C6)'
 );
 
 select is(
   pg_temp.refusal($$select public.check_in('WXYZ9876KMNP', 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 wrong_space',
-  'check_in refuses a valid token from another Space with wrong_space (C-N2)'
+  'a Host cannot check in a token for another Space (C5, C-N1)'
+);
+
+set local role postgres;
+select ok(
+  (select r.status = 'reserved' and p.status = 'paid'
+   from public.reservations r
+   join public.payments p on p.reservation_id = r.id
+   where r.id = '11000000-0000-4000-8000-000000000002'),
+  'a Host cannot check in a token for another Space: its reservation stays reserved, its payment paid (C5)'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is(
+  (select set_config(
+    'test.check_in_result',
+    public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')::text,
+    true
+  )::jsonb ->> 'outcome'),
+  'success',
+  'a Host checks in a Reserved unit, which reads Occupied (C1, R6)'
 );
 
 select is(
-  (select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001') ->> 'outcome'),
-  'success',
-  'check_in succeeds on an active reserved hold at the matching Space (C3)'
+  (select array_agg(k order by k)
+   from jsonb_object_keys(current_setting('test.check_in_result')::jsonb) k),
+  array['outcome', 'unit_id', 'unit_label', 'zone_name'],
+  'check_in returns unit and zone labels without Seeker identity (C-N4)'
 );
 
 select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   'occupied',
-  'unit_states reflects occupied immediately after check_in'
+  'a Host checks in a Reserved unit, which reads Occupied: unit_states reads occupied (C1, R6)'
 );
 
 select is(
   (select wait_window_ends_at from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   null::timestamptz,
-  'unit_states clears wait_window_ends_at for the Host once checked in'
+  'only the Space''s Host sees when a wait window ends: not once checked in (N20)'
 );
 
 -- Verify checked-in state as postgres and via Seeker my_reservation
 set local role postgres;
 select ok(
-  (select status = 'occupied' and checked_in_at is not null and ended_at is null
-   from public.reservations where id = '11000000-0000-4000-8000-000000000001'),
-  'check_in sets status=occupied, checked_in_at non-null, and keeps ended_at null'
+  (select r.status = 'occupied' and r.checked_in_at is not null and r.ended_at is null
+     and p.status = 'paid'
+   from public.reservations r
+   join public.payments p on p.reservation_id = r.id
+   where r.id = '11000000-0000-4000-8000-000000000001'),
+  'a Host checks in a Reserved unit, which reads Occupied: checked_in_at stamped, payment stays paid (C1, R6)'
+);
+
+select is(
+  (select host_updated_at from public.units where id = 'f0000000-0000-4000-8000-000000000001'),
+  (select host_updated_at from _f01_freshness),
+  'a check-in, a check-out and closing time leave the Host-updated time alone: check-in (N16)'
 );
 
 set local role authenticated;
@@ -296,7 +342,16 @@ set local request.jwt.claims =
 select ok(
   (select status = 'occupied' and booking_token is null and checked_in_at is not null
    from public.my_reservation()),
-  'my_reservation returns checked_in_at and omits booking_token once occupied'
+  'my_reservation returns checked_in_at: the caller''s visit has it, with no booking token once occupied'
+);
+
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
+
+select is(
+  (select count(*)::int from public.my_reservation('11000000-0000-4000-8000-000000000001')),
+  0,
+  'my_reservation returns checked_in_at: another Seeker asking for that id gets 0 rows'
 );
 
 set local request.jwt.claims =
@@ -308,16 +363,16 @@ select is(
   'Host tap without naming active occupied hold refuses with hold_not_named (N14, D-050)'
 );
 
--- Re-scanning occupied reservation token refuses (C5)
+-- Re-scanning occupied reservation token refuses (C3, C-N2)
 
 select is(
   pg_temp.refusal($$select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 token_already_used',
-  'check_in refuses a token that is already occupied with token_already_used (C5)'
+  'a token cannot be checked in twice: while occupied (C3, C-N2)'
 );
 
 -- ---------------------------------------------------------------------------
--- 4. public.check_out authorization, release, and invalid states (R5, N8, N11)
+-- 4. public.check_out authorization, release, and invalid states (R10, N8, N11, N16)
 -- ---------------------------------------------------------------------------
 -- Other Seeker and Host cannot check out Seeker 1's occupied reservation (N8)
 set local request.jwt.claims =
@@ -327,7 +382,7 @@ select throws_ok(
   $$select public.check_out('11000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'another Seeker cannot check out Seeker 1 occupied reservation (N8)'
+  'a Seeker cannot check out another Seeker''s visit (N8)'
 );
 
 set local request.jwt.claims =
@@ -337,24 +392,24 @@ select throws_ok(
   $$select public.check_out('11000000-0000-4000-8000-000000000001')$$,
   '42501',
   null,
-  'a Host cannot check out a Seeker reservation (N8)'
+  'a Seeker cannot check out another Seeker''s visit: nor can the Host (N8)'
 );
 
--- Seeker 1 checks out of occupied reservation r1 (R5)
+-- Seeker 1 checks out of occupied reservation r1 (R10)
 set local request.jwt.claims =
   '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
 
 select is(
   (select public.check_out('11000000-0000-4000-8000-000000000001') ->> 'outcome'),
   'success',
-  'Seeker can check out of their occupied reservation (R5)'
+  'a Seeker checks out, and the unit reads Available (R10)'
 );
 
 select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000001'),
   'available',
-  'unit becomes immediately available in unit_states after check_out (FR-2.8)'
+  'a Seeker checks out, and the unit reads Available: unit_states reads available (R10)'
 );
 
 select is(
@@ -375,7 +430,13 @@ select ok(
    from public.reservations r
    join public.payments p on p.reservation_id = r.id
    where r.id = '11000000-0000-4000-8000-000000000001'),
-  'check_out sets completed, checked_out_at, ended_at and leaves payment paid'
+  'a Seeker checks out, and the unit reads Available: completed, checked_out_at and ended_at stamped, payment stays paid (R10)'
+);
+
+select is(
+  (select host_updated_at from public.units where id = 'f0000000-0000-4000-8000-000000000001'),
+  (select host_updated_at from _f01_freshness),
+  'a check-in, a check-out and closing time leave the Host-updated time alone: check-out (N16)'
 );
 
 set local role authenticated;
@@ -400,7 +461,7 @@ where seeker_id = 'c0000000-0000-4000-8000-000000000001'
   and unit_id = 'f0000000-0000-4000-8000-000000000001'
   and status = 'pending_payment';
 
--- Re-scanning completed token refuses (C5)
+-- Re-scanning completed token refuses (C3, C-N2)
 set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
@@ -408,15 +469,15 @@ set local request.jwt.claims =
 select is(
   pg_temp.refusal($$select public.check_in('ABCD1234EFGH', 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 token_already_used',
-  'check_in refuses a completed reservation token with token_already_used (C5)'
+  'a token cannot be checked in twice: after check-out (C3, C-N2)'
 );
 
 -- ---------------------------------------------------------------------------
--- 5. Wait window lapse on check_in (C4, R7), cancelled (C6), expired (invalid_state), and Step 2 on read
+-- 5. Wait window lapse on check_in (C2, N10, R7), cancelled (C4), expired (C-N3), and Step 2 on read
 -- ---------------------------------------------------------------------------
 set local role postgres;
 
--- Wait-window expired reserved hold r3 for check_in test (C4)
+-- Wait-window expired reserved hold r3 for check_in test (C2)
 insert into public.reservations (
   id, seeker_id, space_id, unit_id, unit_label, status,
   wait_window, payment_window_ends_at, wait_window_ends_at, booking_token
@@ -444,7 +505,7 @@ insert into public.payments (
   clock_timestamp() - interval '35 minutes'
 );
 
--- Cancelled reservation with null unit_id (C6 edge case: unit deleted after cancel)
+-- Cancelled reservation with null unit_id (C4 edge case: unit deleted after cancel)
 insert into public.reservations (
   id, seeker_id, space_id, unit_id, unit_label, status,
   wait_window, payment_window_ends_at, wait_window_ends_at, booking_token, ended_at
@@ -473,7 +534,7 @@ insert into public.payments (
   clock_timestamp() - interval '19 minutes'
 );
 
--- Expired reservation carrying a token (defensive invalid_state branch)
+-- Expired reservation carrying a token (C-N3: an expired hold paid late, P2)
 insert into public.reservations (
   id, seeker_id, space_id, unit_id, unit_label, status,
   wait_window, payment_window_ends_at, wait_window_ends_at, booking_token, ended_at
@@ -498,7 +559,7 @@ set local request.jwt.claims =
 select is(
   (select public.check_in('W8AT00008APS', 'e0000000-0000-4000-8000-000000000001') ->> 'outcome'),
   'wait_window_lapsed',
-  'check_in on a lapsed reserved hold returns wait_window_lapsed (C4)'
+  'a booking token cannot check in once its wait window has lapsed (C2, N10)'
 );
 
 set local role postgres;
@@ -507,7 +568,14 @@ select ok(
    from public.reservations r
    join public.payments p on p.reservation_id = r.id
    where r.id = '11000000-0000-4000-8000-000000000003'),
-  'wait_window_lapsed commits no_show and forfeits payment (C4, R7)'
+  'a booking token cannot check in once its wait window has lapsed: no_show and forfeited (C2, R7)'
+);
+
+select is(
+  (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
+    where unit_id = 'f0000000-0000-4000-8000-000000000002'),
+  'available',
+  'a booking token cannot check in once its wait window has lapsed: the unit reads Available (C2)'
 );
 
 set local role authenticated;
@@ -517,19 +585,86 @@ set local request.jwt.claims =
 select is(
   (select public.check_in('W8AT00008APS', 'e0000000-0000-4000-8000-000000000001') ->> 'outcome'),
   'wait_window_lapsed',
-  'scanning an already-recorded no_show token still returns wait_window_lapsed'
+  'a booking token cannot check in once its wait window has lapsed: a second scan says the same (C2)'
 );
 
 select is(
   pg_temp.refusal($$select public.check_in('CANC0000VN9T', 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 reservation_cancelled',
-  'check_in refuses a cancelled reservation token with reservation_cancelled (C6)'
+  'a cancelled reservation cannot be checked in (C4)'
 );
 
 select is(
   pg_temp.refusal($$select public.check_in('EXPR0000T9KN', 'e0000000-0000-4000-8000-000000000001')$$),
   'P0001 invalid_state',
-  'check_in refuses a non-reserved non-terminal token state with invalid_state'
+  'a pending_payment hold cannot be checked in: a token on an expired hold gets invalid_state (C-N3)'
+);
+
+set local role postgres;
+
+select throws_ok(
+  $$insert into public.reservations (
+      seeker_id, space_id, unit_id, unit_label, status,
+      wait_window, payment_window_ends_at, booking_token
+    ) values (
+      'c0000000-0000-4000-8000-000000000001',
+      'e0000000-0000-4000-8000-000000000001',
+      'f0000000-0000-4000-8000-000000000003',
+      'A3',
+      'pending_payment',
+      interval '30 minutes',
+      clock_timestamp() + interval '10 minutes',
+      'PEND00000001'
+    )$$,
+  '23514',
+  null,
+  'a pending_payment hold cannot be checked in: a pending_payment hold has no token (C-N3)'
+);
+
+-- Cancelling at the counter before the scan (C4): reserved hold r10, cancelled by its Seeker
+insert into public.reservations (
+  id, seeker_id, space_id, unit_id, unit_label, status,
+  wait_window, payment_window_ends_at, wait_window_ends_at, booking_token
+) values (
+  '11000000-0000-4000-8000-000000000010',
+  'c0000000-0000-4000-8000-000000000001',
+  'e0000000-0000-4000-8000-000000000001',
+  'f0000000-0000-4000-8000-000000000003',
+  'A3',
+  'reserved',
+  interval '60 minutes',
+  clock_timestamp() - interval '5 minutes',
+  clock_timestamp() + interval '55 minutes',
+  'CNTR00000001'
+);
+
+insert into public.payments (
+  id, reservation_id, status, fee_amount, external_payment_id, paid_at
+) values (
+  '21000000-0000-4000-8000-000000000010',
+  '11000000-0000-4000-8000-000000000010',
+  'paid',
+  5000,
+  'pi_test_10_10',
+  clock_timestamp() - interval '5 minutes'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "c0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select lives_ok(
+  $$select public.cancel_hold('11000000-0000-4000-8000-000000000010', 'reserved')$$,
+  'cancelling at counter before scan refuses check-in: the Seeker cancels first (C4)'
+);
+
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is(
+  pg_temp.refusal($$select public.check_in('CNTR00000001', 'e0000000-0000-4000-8000-000000000001')$$),
+  'P0001 reservation_cancelled',
+  'cancelling at counter before scan refuses check-in (C4)'
 );
 
 -- Step 2 (R7) on read via unit_states: expired wait window becomes no_show without touching host_updated_at
@@ -573,7 +708,7 @@ select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000002'),
   'available',
-  'unit_states frees unit immediately when wait window expires (R7)'
+  'a no-show releases the unit and forfeits the fee: the unit reads Available (R7)'
 );
 
 set local role postgres;
@@ -582,17 +717,17 @@ select ok(
    from public.reservations r
    join public.payments p on p.reservation_id = r.id
    where r.id = '11000000-0000-4000-8000-000000000006'),
-  'unit_states lapse records no_show and forfeits payment (Step 2, R7)'
+  'a no-show releases the unit and forfeits the fee (R7)'
 );
 
 select is(
   (select host_updated_at from public.units where id = 'f0000000-0000-4000-8000-000000000002'),
   (select host_updated_at from _unit_freshness),
-  'reservation no_show lapse does not change unit host_updated_at (D-051)'
+  'a no-show leaves the Host-updated time alone (N16, D-051)'
 );
 
 -- ---------------------------------------------------------------------------
--- 6. Closing-time lapses: Step 3 (R6 occupied -> completed) & Step 4 (H2 host override reset)
+-- 6. Closing-time lapses: Step 3 (R12 occupied -> completed) & Step 4 (H3 host override reset)
 -- ---------------------------------------------------------------------------
 -- Configure e...01 to fixed hours (open now for +/- 2 hours in Asia/Manila)
 update public.spaces
@@ -658,7 +793,7 @@ set local request.jwt.claims =
 select is(
   pg_temp.refusal($$select public.check_out('11000000-0000-4000-8000-000000000007')$$),
   'P0001 hold_ended',
-  'check_out refuses an occupied visit whose Space has already passed closing time (N11)'
+  'check-out after closing time finds the visit already completed (N11)'
 );
 
 -- Reading unit_states records Step 3 and Step 4 lapses
@@ -669,28 +804,28 @@ select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000004'),
   'available',
-  'unit_states frees unit after closing time for stale occupied visit (Step 3, R6)'
+  'closing time completes a visit, and the unit reads Available (R12)'
 );
 
 select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000005'),
   'available',
-  'unit_states resets stale host occupied override to available at closing time (Step 4, H2)'
+  'closing time resets a Host-set state without moving the Host-updated time: Occupied (H3)'
 );
 
 select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000006'),
   'available',
-  'unit_states resets stale host reserved override to available at closing time (Step 4, H2)'
+  'closing time resets a Host-set state without moving the Host-updated time: Reserved (H3)'
 );
 
 select is(
   (select seat_state from public.unit_states('e0000000-0000-4000-8000-000000000001')
     where unit_id = 'f0000000-0000-4000-8000-000000000007'),
   'occupied',
-  'unit_states keeps fresh host occupied override updated after last closing time'
+  'closing time resets a Host-set state without moving the Host-updated time: a state set after closing stays (H3)'
 );
 
 set local role postgres;
@@ -699,13 +834,13 @@ select ok(
    from public.reservations r
    join public.payments p on p.reservation_id = r.id
    where r.id = '11000000-0000-4000-8000-000000000007'),
-  'closing-time lapse sets status=completed, ended_at non-null, keeps checked_out_at null and payment paid (R6)'
+  'closing time completes a visit, and the unit reads Available: completed, checked_out_at null, payment paid (R12)'
 );
 
 select is(
   (select host_updated_at from public.units where id = 'f0000000-0000-4000-8000-000000000005'),
   (select host_updated_at from _stale_override_time),
-  'closing-time host override reset leaves host_updated_at untouched (D-051)'
+  'a check-in, a check-out and closing time leave the Host-updated time alone: closing time (N16, D-051)'
 );
 
 -- 24-hour Space (e...03): stale occupied visit & host override NEVER lapse at closing time
@@ -762,7 +897,7 @@ select is(
 -- ---------------------------------------------------------------------------
 -- 7. check_space_hours_on_update protects occupied visits (N22)
 -- ---------------------------------------------------------------------------
--- Check-out r8 on 24h Space still works cleanly? Let's test N22 on e...03 first while r8 is occupied!
+-- N22 on the 24-hour Space e...03, while visit r8 is occupied
 set local role authenticated;
 set local request.jwt.claims =
   '{"sub": "b0000000-0000-4000-8000-000000000002", "role": "authenticated"}';
@@ -773,7 +908,7 @@ select is(
         closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '4 hours')::time
     where id = 'e0000000-0000-4000-8000-000000000003'$$),
   'P0001 hours_cut_hold',
-  '24-hour Space with occupied visit cannot switch to closing hours (N22)'
+  'a Host cannot change a Space''s hours to end a visit early: 24 hours to fixed hours (N22)'
 );
 
 -- Fixed-hours Space e...01: release seeker 2's earlier r2 hold before creating occupied visit r9
@@ -827,7 +962,7 @@ select is(
         closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '2 hours')::time
     where id = 'e0000000-0000-4000-8000-000000000001'$$),
   'P0001 hours_cut_hold',
-  'moving closing time earlier while a visit is occupied refuses with hours_cut_hold (N22)'
+  'a Host cannot change a Space''s hours to end a visit early: an earlier next closing time (N22)'
 );
 
 -- Setting hours so Space is closed right now (+1h .. +4h) refused
@@ -837,7 +972,7 @@ select is(
         closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '4 hours')::time
     where id = 'e0000000-0000-4000-8000-000000000001'$$),
   'P0001 hours_cut_hold',
-  'setting hours so Space is currently closed while occupied refuses with hours_cut_hold (N22)'
+  'a Host cannot change a Space''s hours to end a visit early: hours under which the Space is closed now (N22)'
 );
 
 -- Closing before check-in time (so last_closing_time > checked_in_at and closed now) refused
@@ -847,7 +982,32 @@ select is(
         closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '5 minutes')::time
     where id = 'e0000000-0000-4000-8000-000000000001'$$),
   'P0001 hours_cut_hold',
-  'moving closing time into an already-checked-in visit refuses with hours_cut_hold (N22)'
+  'a Host cannot change a Space''s hours to end a visit early: a closing time since the check-in, with the Space closed now (N22)'
+);
+
+-- New hours that opened 2 minutes ago and closed 5 minutes ago, 10 minutes after r9's check-in.
+-- The Space still reads open, so only the last-closing-time rule refuses them (design §2, N22).
+set local role postgres;
+select ok(
+  private.is_open(
+    ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '2 minutes')::time,
+    ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '5 minutes')::time,
+    clock_timestamp()
+  ),
+  'a Host cannot change a Space''s hours to end a visit early: under the next hours the Space still reads open (N22)'
+);
+
+set local role authenticated;
+set local request.jwt.claims =
+  '{"sub": "b0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is(
+  pg_temp.refusal($$update public.spaces
+    set opens_at = ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '2 minutes')::time,
+        closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '5 minutes')::time
+    where id = 'e0000000-0000-4000-8000-000000000001'$$),
+  'P0001 hours_cut_hold',
+  'a Host cannot change a Space''s hours to end a visit early: a last closing time after the check-in, with the Space open (N22)'
 );
 
 -- Extending closing time later (+4h -> +6h) succeeds
@@ -856,7 +1016,7 @@ select lives_ok(
     set opens_at = ((clock_timestamp() at time zone 'Asia/Manila')::time - interval '2 hours')::time,
         closes_at = ((clock_timestamp() at time zone 'Asia/Manila')::time + interval '6 hours')::time
     where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  'extending closing time while a visit is occupied is allowed'
+  'a Host cannot change a Space''s hours to end a visit early: a later closing time is accepted (N22)'
 );
 
 -- Switching from fixed hours to 24 hours succeeds
@@ -865,7 +1025,7 @@ select lives_ok(
     set opens_at = '00:00'::time,
         closes_at = '00:00'::time
     where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  'switching to 24-hour operation while a visit is occupied is allowed'
+  'a Host cannot change a Space''s hours to end a visit early: switching to 24 hours is accepted (N22)'
 );
 
 select * from finish();

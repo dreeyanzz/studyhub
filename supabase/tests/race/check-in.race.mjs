@@ -1,6 +1,6 @@
 // STORY-10: Concurrent race tests for public.check_in (TSK-10.1).
 // Design: docs/design/STORY-10-check-in-release.md §4.
-// Proves serialization of simultaneous check-in scans (C5) and check_in vs cancel_hold
+// Proves serialization of simultaneous check-in scans (C3, C-N2) and check_in vs cancel_hold (C4)
 // using direct PostgreSQL connections.
 
 import postgres from 'postgres'
@@ -67,7 +67,7 @@ async function createReservedHold(unitId, seekerId, suffix) {
 
 async function runCase1() {
   console.log(
-    '# Case 1: Two concurrent check_in calls on the same reserved token (C3, C5)',
+    '# Case 1: Two concurrent check_in calls on the same reserved token (C3, C-N2)',
   )
   await cleanup()
 

@@ -1,8 +1,9 @@
 -- STORY-10, TSK-10.1: Check-in, check-out, complete lapse recording, and closing-time protection.
--- Implements docs/design/STORY-10-check-in-release.md §2, docs/flows/check-in.md, and
--- docs/flows/reservation-lifecycle.md (R5, R6, R7, H2, C1-C7, C-N1-C-N4, N22, D-047, D-048, D-051, D-062).
+-- Implements docs/design/STORY-10-check-in-release.md §2 (FR-2.4, FR-3.3), docs/flows/check-in.md
+-- (C1-C7, C-N1 to C-N4) and docs/flows/reservation-lifecycle.md (R6, R7, R10, R12, H3, N20, N22;
+-- D-047, D-048, D-051, D-060).
 
--- 1. private.last_closing_time(opens_at, closes_at, at) (FR-2.8, D-048)
+-- 1. private.last_closing_time(opens_at, closes_at, at) (D-027, D-048)
 create or replace function private.last_closing_time(
   p_opens_at time,
   p_closes_at time,
@@ -38,11 +39,11 @@ end;
 $$;
 
 comment on function private.last_closing_time(time, time, timestamptz) is
-  'Most recent closing timestamp in Asia/Manila at or before p_at, or null for 24-hour spaces. STORY-10 (FR-2.8, D-048).';
+  'Most recent closing timestamp in Asia/Manila at or before p_at, or null for 24-hour spaces. STORY-10 (D-027, D-048).';
 
 revoke all on function private.last_closing_time(time, time, timestamptz) from public, anon, authenticated;
 
--- 2. Complete private.record_lapses (steps 1-4: R3, R7, R6, H2; D-047, D-048, D-051)
+-- 2. Complete private.record_lapses (steps 1-4: R3, R7, R12, H3; D-047, D-048, D-051)
 create or replace function private.record_lapses(p_unit_ids uuid[])
 returns void
 language plpgsql
@@ -125,7 +126,7 @@ begin
   where p.reservation_id = l.id
     and p.status = 'paid';
 
-  -- Step 3 (R6): occupied -> completed at closing time (checked_out_at stays null, D-048)
+  -- Step 3 (R12): occupied -> completed at closing time (checked_out_at stays null, D-048)
   update public.reservations r
   set status = 'completed',
       ended_at = v_now
@@ -136,7 +137,7 @@ begin
     and private.last_closing_time(s.opens_at, s.closes_at, v_now) is not null
     and r.checked_in_at < private.last_closing_time(s.opens_at, s.closes_at, v_now);
 
-  -- Step 4 (H2): host override reset to available at closing time (host_updated_at untouched, D-051)
+  -- Step 4 (H3): host override reset to available at closing time (host_updated_at untouched, D-051)
   update public.units u
   set host_state = 'available'
   from public.spaces s
@@ -149,11 +150,11 @@ end;
 $$;
 
 comment on function private.record_lapses(uuid[]) is
-  'Records lapses for units across all 4 steps: expired unpaid holds (R3), no-shows (R7), closing-time completed visits (R6), and closing-time host override resets (H2). STORY-09/STORY-10 (D-047, D-048, D-051).';
+  'Records lapses for units across all 4 steps: expired unpaid holds (R3), no-shows (R7), closing-time completed visits (R12), and closing-time host override resets (H3). STORY-09/STORY-10 (D-047, D-048, D-051).';
 
 revoke all on function private.record_lapses(uuid[]) from public, anon, authenticated;
 
--- 3. public.check_in(token, space_id) (FR-2.7, C1-C7, C-N1-C-N4, D-062)
+-- 3. public.check_in(token, space_id) (FR-2.4, C1-C7, C-N1 to C-N4, D-060)
 create or replace function public.check_in(
   p_token text,
   p_space_id uuid
@@ -190,7 +191,7 @@ begin
       using errcode = 'P0001', hint = 'invalid_token';
   end if;
 
-  -- 1. Unlocked probe by booking token (C-N1, C-N2)
+  -- 1. Unlocked probe by booking token (C6), then the Space boundary (C5, C-N1)
   select r.id, r.space_id, r.unit_id
   into v_probe_id, v_probe_space_id, v_probe_unit_id
   from public.reservations r
@@ -206,7 +207,7 @@ begin
       using errcode = 'P0001', hint = 'wrong_space';
   end if;
 
-  -- 2. Lock unit (if present) then reservation (D-047, D-062)
+  -- 2. Lock unit (if present) then reservation (D-047)
   if v_probe_unit_id is not null then
     select u.id, u.label, z.name
     into v_unit_id, v_unit_label, v_zone_name
@@ -222,7 +223,7 @@ begin
   where r.id = v_probe_id
   for update;
 
-  -- 3. Record lapses under lock so expired wait windows commit as no_show (C4, R7)
+  -- 3. Record lapses under lock so expired wait windows commit as no_show (C2, R7)
   if v_unit_id is not null then
     perform private.record_lapses(array[v_unit_id]);
 
@@ -232,7 +233,7 @@ begin
     where r.id = v_probe_id;
   end if;
 
-  -- 4. Branch on status under lock (C3-C7)
+  -- 4. Branch on status under lock (C2, C3, C4, C-N2, C-N3)
   if v_res.status = 'no_show' then
     return jsonb_build_object(
       'outcome', 'wait_window_lapsed',
@@ -256,7 +257,7 @@ begin
       using errcode = 'P0001', hint = 'invalid_state';
   end if;
 
-  -- 5. Check in: reserved -> occupied (R2, C3)
+  -- 5. Check in: reserved -> occupied (R6, C1)
   update public.reservations
   set status = 'occupied',
       checked_in_at = clock_timestamp()
@@ -272,12 +273,12 @@ end;
 $$;
 
 comment on function public.check_in(text, uuid) is
-  'Checks a reserved Seeker into their held unit by booking token for the Host''s Space. STORY-10 (FR-2.7, D-060, D-062).';
+  'Checks a reserved Seeker into their held unit by booking token for the Host''s Space. STORY-10 (FR-2.4, D-060).';
 
 revoke all on function public.check_in(text, uuid) from public, anon, authenticated;
 grant execute on function public.check_in(text, uuid) to authenticated;
 
--- 4. public.check_out(reservation_id) (FR-2.8, R5, N8, N11)
+-- 4. public.check_out(reservation_id) (FR-2.4, R10, N8, N11)
 create or replace function public.check_out(p_reservation_id uuid)
 returns jsonb
 language plpgsql
@@ -329,7 +330,7 @@ begin
       using errcode = '42501';
   end if;
 
-  -- 3. Record lapses under lock so closing-time completed visits are caught before check-out (D-047, R6)
+  -- 3. Record lapses under lock so closing-time completed visits are caught before check-out (D-047, R12)
   if v_res.unit_id is not null then
     perform private.record_lapses(array[v_res.unit_id]);
 
@@ -350,7 +351,7 @@ begin
       using errcode = 'P0001', hint = 'not_checked_in';
   end if;
 
-  -- 5. Release unit: occupied -> completed (R5)
+  -- 5. Release unit: occupied -> completed (R10)
   v_now := clock_timestamp();
 
   update public.reservations
@@ -368,7 +369,7 @@ end;
 $$;
 
 comment on function public.check_out(uuid) is
-  'Checks out a checked-in Seeker from their occupied unit, releasing it immediately. STORY-10 (FR-2.8, R5, N8, N11).';
+  'Checks out a checked-in Seeker from their occupied unit, releasing it immediately. STORY-10 (FR-2.4, R10, N8, N11).';
 
 revoke all on function public.check_out(uuid) from public, anon, authenticated;
 grant execute on function public.check_out(uuid) to authenticated;
@@ -418,7 +419,7 @@ begin
     perform private.record_lapses(v_unit_ids);
   end if;
 
-  -- Only the Space's Host sees reservation_id and wait_window_ends_at (N25, D-057)
+  -- Only the Space's Host sees reservation_id (N25, D-057) and wait_window_ends_at (N20, FR-3.3)
   v_is_host := ((select auth.uid()) is not distinct from v_host_id);
 
   return query
