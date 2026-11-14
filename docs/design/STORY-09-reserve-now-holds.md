@@ -1,6 +1,6 @@
 # STORY-09: Reserve-now holds and sandbox payments
 
-**Status:** approved 2026-11-08 · **Owner:** @dreeyanzz · **Story:** #58 · **FR:** FR-2.1, FR-2.2, FR-2.3, FR-2.5, SRS §3.2.2, SRS §3.8 ·
+**Status:** implemented 2026-11-14 · **Owner:** @dreeyanzz · **Story:** #58 · **FR:** FR-2.1, FR-2.2, FR-2.3, FR-2.5, SRS §3.2.2, SRS §3.8 ·
 **Depends on:** STORY-01, STORY-03, STORY-05, STORY-07, STORY-11 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md), [Check-in](../flows/check-in.md), [Seeker journey](../flows/seeker-journey.md) ·
 **Decisions:** D-001, D-004, D-005, D-008, D-010, D-011, D-042, D-046 to D-052, D-055 to D-059, D-064, D-067, D-068, D-070
@@ -649,9 +649,60 @@ STORY-10's functions wait for its tables. Row 7 can go at any time after row 1 a
 
 ## 9. After the build
 
-Fill this in when the story is done:
+Implemented 2026-11-14. All seven tasks are built, in the §6 order except that row 7 went
+right after row 2, which §6 allows. #293 switched the gateway to Stripe (D-070) between
+rows 3 and 4. Adrian built every task with his agents: Antigravity on #255, #262 and
+#263, and Claude Code on the rest and on #262's review fixes.
 
-- what turned out different from this plan, and why
-- the status line changed to `implemented YYYY-MM-DD`
-- the docs this story changed
-- who verified each acceptance criterion
+| Task     | PR   | What it added                                                                                                                                                                                                                                        |
+| -------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TSK-09.1 | #255 | The reservations migration: both enums and tables, the settings, `spaces.max_wait_window`, the time and token helpers, the lapse step's first step, `unit_states` with holds, `my_reservation`, the N17, N22 and N23 triggers, `seeker2@`, and pgTAP |
+| TSK-09.2 | #262 | `hold_terms`, `hold_unit` and `cancel_hold`, with pgTAP, and the race test with `db:race`                                                                                                                                                            |
+| TSK-09.7 | #263 | The longest wait window on the Space form, the Host's held-unit messages, and `deleteSpace`'s hold check                                                                                                                                             |
+| TSK-09.3 | #277 | `attach_checkout_session` and `confirm_payment`, with pgTAP and three more race cases                                                                                                                                                                |
+| (docs)   | #293 | The switch from PayMongo to Stripe (D-070) in this design and the three flows                                                                                                                                                                        |
+| TSK-09.4 | #295 | `lib/payments/`, `lib/supabase/admin.ts`, the webhook route, the webhook script, and the Stripe settings                                                                                                                                             |
+| TSK-09.5 | #296 | The hold page, the return page, `startCheckout` and `cancelHold`, the countdown, the poller, and the "Your hold" card                                                                                                                                |
+| TSK-09.6 | #297 | The hold panel and `holdUnit` in STORY-11's slot, and registration that returns to the profile (D-058)                                                                                                                                               |
+
+### What turned out different from this plan, and why
+
+- **The gateway is Stripe, not PayMongo (#293, D-070).** PayMongo's account setup took too long to have test keys in time for the demo, and a Stripe sandbox needs no business activation while Worq stays in test mode (D-005). The database was already gateway-neutral, so TSK-09.1 to TSK-09.3 needed no change. #293 updated this design and the payment confirmation flow, the reservation lifecycle and the Seeker journey; every move and test stayed.
+- **`attach_checkout_session` and `confirm_payment` lock the unit before they record its lapses (#277).** In the payment flow's old order, a webhook that waited behind another lock on the unit, such as a Host's tap, would reserve a hold whose payment window ran out while it waited. Race Case 5 fails on the old order and passes on this one. `check_in` already works this way, and D-047 allows it. #277 updated the flow.
+- **The token's groups and the seconds left come from STORY-10's `lib/check-in/` (#296)**, not from a second copy in `lib/reservations/format.ts`, so the two stories show them the same way.
+- **A hold refusal shows above the seat map, not in the panel (#297).** STORY-11's seat map hides the panel once the unit isn't Available, which is exactly when "Someone else just took U3" matters. `holdUnit` returns to the same unit with `?refused=<reason>`, and the page shows the message in an alert with the unit's new state below it.
+- **New wording (#296, #297), waiting for Maria's approval (D-042):** "Holds aren't open for this Space right now." when `hold_terms` gives no row, the pending page's "Hold U1" heading, the failed-cancel message, the "Back to <Space>" link after a cancel, and "Your ₱50.00 payment was refunded." for when STORY-14 adds refunds.
+- **§8's hold slot.** TSK-11.5 (#284) added the server-rendered `selectedUnitActionSlot` beside the function prop, and the profile passes the panel there for the `?unit=<id>` unit.
+
+### Left open at the close-out
+
+- **Reviews:** #293, #295, #296 and #297 merged with no review. Maria hasn't approved the Seeker-facing wording of #296 and #297 (D-042), and Luke hasn't looked at #297's `returnUrl` changes. Any change either asks for goes in a follow-up PR.
+- **For Maria (#297):** on a `seeker_has_hold` refusal the same sentence shows twice, in the alert and in the panel below it. Still so at the close-out.
+- **The deployed flow** on worqph.vercel.app hasn't been tried with a test card in any review. #297's review confirmed its Stripe and Supabase settings are set for production on Vercel.
+- **A real card payment through `stripe listen`** ran once, in #295, before the API version was pinned. The close-out used the webhook script instead, because its worktree has no Stripe keys.
+- **PayMongo strings:** the comments on `attach_checkout_session` and `confirm_payment` in applied migration `20261110193129_confirm_payment.sql` still say PayMongo, and so do fixture URLs on 15 lines of `07-holds.sql` and one of `check-in.race.mjs` (`paymongo.test`). They are harmless strings, for a later comment-only migration.
+
+### Docs this story changed
+
+- This design: the switch to Stripe (#293), and the status line and §9 at the close-out.
+- `docs/DECISIONS.md`: D-067 and D-068 (with this design, #237) and D-070 (#293).
+- The flows: the payment confirmation flow (#277, #293), the reservation lifecycle and the Seeker journey (#293).
+- `AGENTS.md`: the `db:race` command (#262); the layout note's `lib/payments/`, `admin.ts` and webhook route, and the `stripe:listen` and `webhook:simulate` commands (#295). At the close-out, the layout note gained `lib/reservations/`, the hold panel and the hold and return pages.
+- `docs/DEVELOPMENT.md` (#262, #293, #295), `docs/guides/testing.md` (#262) and `.env.example` (#295).
+- `docs/SPRINT-2.md`: the switch to Stripe (#293), and the "STORY-09 is done" note at the close-out. The design index, at the close-out.
+
+### Final checks
+
+On `main` at `fbb27f8`, with every STORY-09 task merged: `npm run check` (865 of 865 unit tests), all 558 pgTAP tests in 9 files on the local stack (148 of 148 in `07-holds.sql`), and `npm run db:race` (16 of 16 in `holds.race.mjs`, and STORY-10's 6 of 6). CI's `checks`, `db` and `e2e` jobs passed on `fbb27f8`.
+
+### Acceptance criteria (#58)
+
+Checked by Adrian's agents in the PRs named below, and again at the close-out on 14 Nov by Adrian's agent (Claude Code), on `main` at `fbb27f8`, on the local stack as `seeker@`, `seeker2@` and a signed-out visitor, in headless Edge. The close-out used Sulok Co-working (open 24 hours, longest wait window 1 hour), a webhook secret made for the run, and deleted its holds afterwards. Nothing was written to the shared cloud database.
+
+| Criterion                                                                                                                        | How it was verified                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Only an Available unit can be selected, with a wait window inside the Host's bounds                                              | `07-holds.sql`: "hold_unit on occupied unit raises unit_not_available (Negative N1)", "hold_unit with wait window exceeding space max raises wait_window_not_allowed (Negative N4)", the closing-time cases, and "hold_terms for 24h space returns all wait windows up to max_wait_window". At the close-out, the panel offered 15, 30, 45 and 60 minutes for U1; with U3 set Occupied, its panel had no Hold button.                                                                                                                                                                                                                                                 |
+| A Seeker holding one unit cannot hold a second (D-008)                                                                           | `07-holds.sql`: "a Seeker with an active hold cannot hold a second unit (Negative N2)". `holds.race.mjs` Case 2: one Seeker holding two units at once gets exactly one hold and `seeker_has_hold`. At the close-out, `seeker@` pressing Hold on U2 while holding U1 got "You're already holding U1 at Sulok Co-working. You can hold one unit at a time.", a fresh U2 panel showed that line with no Hold button, and `seeker@` had one active hold.                                                                                                                                                                                                                  |
+| A unit in Pending Payment is offered to nobody else, and returns to Available when the payment window lapses                     | `07-holds.sql`: "a Seeker cannot hold a unit that is not Available (Negative N1)" and "a hold whose payment window lapsed is expired, and its unit reads Available (R3)". At the close-out, `seeker2@` and a signed-out visitor saw U1 as Pending Payment, with no Hold button for `seeker2@`. With the payment window moved into the past, the next read showed U1 Available, the hold `expired` with its payment `pending`, and `seeker@`'s hold page said "Your payment window ran out".                                                                                                                                                                           |
+| A confirmed sandbox payment gives exactly one Reserved unit and one booking token, and records the fee and the gateway reference | In #295, a ₱50.00 sandbox Checkout Session paid with Stripe's 4242 test card reached the route through `stripe listen`, and the hold became Reserved with its `pi_` reference and a token. `holds.race.mjs` Case 3: two deliveries at once give one booking token. At the close-out, a signed `checkout.session.completed` from `npm run webhook:simulate` gave `confirmed`: the hold Reserved with a 12-character Crockford token, its payment `paid` with a fee of 5000 centavos and a `pi_` reference. A second signed event gave `already_processed`, with the same token and one Reserved hold. The hold page showed Reserved and the token in its three groups. |
+| Two concurrent holds on one Available unit give exactly one success; the other Seeker is told the seat is taken (FR-2.5)         | `holds.race.mjs` Case 1: B waits on A's unit lock, as `pg_stat_activity` shows, then gets `unit_not_available`, and exactly one hold exists. At the close-out, `db:race` passed 16 of 16, and in the browser `seeker2@` pressing Hold on a panel loaded while U1 was Available, after `seeker@` had held it, got "Someone else just took U1. Pick another unit." U1 had one active hold.                                                                                                                                                                                                                                                                              |
