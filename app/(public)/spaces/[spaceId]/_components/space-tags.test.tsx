@@ -83,11 +83,13 @@ describe('SpaceTags (STORY-11, TSK-11.6)', () => {
       expect(pillClass).toContain('wrap-anywhere')
     }
 
-    // Tags with hash prefix
-    expect(html).toContain('#espresso-bar')
-    expect(html).toContain('#ergonomic-chairs')
-    expect(html).toContain('#quiet-corner')
-    expect(html).toContain(`#${longCustomTag}`)
+    // Tags with a visual # prefix that screen readers skip
+    const hash = '<span aria-hidden="true">#</span>'
+    expect(html).toContain(`${hash}espresso-bar`)
+    expect(html).toContain(`${hash}ergonomic-chairs`)
+    expect(html).toContain(`${hash}quiet-corner`)
+    expect(html).toContain(`${hash}${longCustomTag}`)
+    expect(html).not.toMatch(/>#[^<]/)
 
     // No curated tags section
     expect(html).not.toContain('data-testid="curated-tags"')

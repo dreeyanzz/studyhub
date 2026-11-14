@@ -90,7 +90,11 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
                 role="listitem"
                 className="inline-flex max-w-full min-w-0 items-center rounded-full border border-muted-foreground/30 bg-muted/40 px-2.5 py-0.5 text-xs wrap-anywhere text-muted-foreground select-none"
               >
-                <span className="min-w-0 wrap-anywhere">#{tag}</span>
+                <span className="min-w-0 wrap-anywhere">
+                  {/* Visual only: screen readers would read it as "number" before each tag. */}
+                  <span aria-hidden="true">#</span>
+                  {tag}
+                </span>
               </span>
             ))}
           </div>

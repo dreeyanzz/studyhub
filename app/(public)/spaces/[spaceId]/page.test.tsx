@@ -369,7 +369,7 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
       html.indexOf('Air Conditioning'),
     )
     expect(html).toContain('data-testid="custom-tags"')
-    expect(html).toContain('#coffee-available')
+    expect(html).toContain('<span aria-hidden="true">#</span>coffee-available')
 
     // Heading hierarchy invariant (axe-core heading-order): h1 -> h2 without skipping levels
     const headingLevels = [...html.matchAll(/<h([1-6])\b/g)].map((m) => Number(m[1]))
