@@ -293,7 +293,8 @@ The reservation lifecycle draws them. This is where each lands:
   - `cancelHoldSchema`: `reservationId` as a UUID, and `expectedStatus`, `pending_payment`
     or `reserved`.
 - **`lib/validation/stripe.ts`:** `paidEventSchema`, for the webhook's body. It reads the
-  event type `checkout.session.completed`, `livemode` (which must be `false`, D-005), and
+  event type, `checkout.session.completed` or `checkout.session.async_payment_succeeded`,
+  `livemode` (which must be `false`, D-005), and
   the session's `id`, `payment_status` (`paid`), `metadata.reservation_id` and
   `payment_intent`. §4's first manual check confirms these paths against a real delivery.
 - **`lib/validation/space.ts`:** `spaceSchema` gains `maxWaitWindowMinutes`, using
@@ -427,8 +428,9 @@ A new Space starts at 1 hr.
 | `app/api/webhooks/stripe/route.ts`                               | Route handler    | `POST`, Node.js runtime. Reads the raw body with `request.text()`, then hands it to `lib/payments/webhook.ts`.           |
 
 `startCheckout` creates the checkout with the copied fee as one line item in `php`,
-"Reservation fee: S4, Kapihan Study Hall", cards only, Adaptive Pricing off, `expires_at`
-30 minutes ahead (Stripe's minimum, D-069), `metadata.reservation_id`, and success and
+"Reservation fee: S4, Kapihan Study Hall", Adaptive Pricing off, `expires_at` 31 minutes
+ahead (Stripe's 30-minute minimum plus a minute for clock drift, D-069),
+`metadata.reservation_id`, and success and
 cancel URLs built from the request's own origin, which Next checks for every Server
 Action. `cancelHold` expires a hold's checkout after R4, so a late payment is less likely.
 `redirect()` sits outside every `try` (Next 16's `redirect` reference).
@@ -477,7 +479,8 @@ an accepted risk.
 
 Neither secret has `NEXT_PUBLIC_`. The sandbox is Adrian's. He puts the secret key in
 Vercel and gives it to teammates who test payments, and registers the webhook once for
-the deployed URL, for `checkout.session.completed` only. Locally,
+the deployed URL, for `checkout.session.completed` and
+`checkout.session.async_payment_succeeded` only. Locally,
 `stripe listen --forward-to localhost:3000/api/webhooks/stripe` forwards real sandbox
 events, signed with the CLI's own secret. `scripts/simulate-stripe-webhook.mjs` signs a
 `checkout.session.completed` event for a reservation with `STRIPE_WEBHOOK_SECRET` and

@@ -20,7 +20,8 @@ functions, concurrency races, and what the Seeker sees upon returning to Worq.
 - **Fixed fee integrity:** The fee amount charged is derived exclusively from
   `payments.fee_amount` stored during the hold (D-049), never from browser state or query parameters.
 - **Webhook entry point:** The route handler at `app/api/webhooks/stripe/route.ts`
-  (D-010), which receives `checkout.session.completed` events.
+  (D-010), which receives `checkout.session.completed` events, and `checkout.session.async_payment_succeeded`
+  for a delayed payment method (D-069).
 - **Webhook signature verification:** Luke's security perimeter: validating a `v1` signature
   in the `Stripe-Signature` header via HMAC-SHA256 and constant-time comparison before
   database operations occur.
@@ -89,7 +90,7 @@ sequenceDiagram
         SA-->>B: Redirect to checkout_url
     else No checkout yet
         DB-->>SA: The hold, with no checkout_url
-        SA->>ST: POST /v1/checkout/sessions (php, unit_amount=fee_amount, expires_at=now+30min, success_url, cancel_url, metadata={reservation_id})
+        SA->>ST: POST /v1/checkout/sessions (php, unit_amount=fee_amount, expires_at=now+31min, success_url, cancel_url, metadata={reservation_id})
         alt Stripe fails or times out (W14)
             ST-->>SA: Error
             SA-->>B: Says the checkout could not open, and offers Try again or Cancel hold (Move R4)
@@ -476,7 +477,7 @@ Any other status (`occupied`, `completed`, `no_show`) redirects to `/seeker`, wh
   _Rejected:_ Resurrecting the reservation or assigning an arbitrary open unit, which risks double-booking another Seeker who held the unit after expiry (N3, D-008).
 - **One checkout per hold, first attach wins:** Chose keeping the first checkout and expiring any later one at once.
   _Rejected:_ Keeping the latest and expiring the first, because the Seeker may already be paying in the first tab.
-- **A checkout expires 30 minutes after it is made** (D-069): Chose Stripe's shortest `expires_at`, so a checkout left open can't be paid hours after its hold lapsed, and one whose `expire` call failed still ends on its own.
+- **A checkout expires 31 minutes after it is made** (D-069): Chose Stripe's shortest `expires_at`, 30 minutes, plus a minute for clock drift, so a checkout left open can't be paid hours after its hold lapsed, and one whose `expire` call failed still ends on its own.
   _Rejected:_ Stripe's default of 24 hours, which leaves a late payment (P2) possible for a day.
 - **Payment failure semantics:** Chose leaving the reservation `pending_payment` until lapse (Move R3) or Seeker cancellation (Move R4), because `payments.status` strictly follows SRS §3.8 (`pending`, `paid`, `forfeited`, `refunded`) with no `failed` status.
   _Rejected:_ Adding a `failed` database status or deleting the hold prematurely on checkout retry.
@@ -489,7 +490,7 @@ Any other status (`occupied`, `completed`, `no_show`) redirects to `/seeker`, wh
 - **Return URL polling over server push:** Chose client-side short polling and Server Action revalidation on `/seeker/reservations/[id]/confirmation`.
   _Rejected:_ WebSocket or SSE connections, which require persistent server state not suited for Vercel serverless.
 
-**Accepted risk:** If Stripe's `expire` call itself fails, the losing checkout stays open until its 30 minutes pass, and a Seeker who pays both gets one payment recorded. Sprint 2 accepts this: it is a sandbox, so no money moves (D-005). Revisit if real payments come in.
+**Accepted risk:** If Stripe's `expire` call itself fails, the losing checkout stays open until its 31 minutes pass, and a Seeker who pays both gets one payment recorded. Sprint 2 accepts this: it is a sandbox, so no money moves (D-005). Revisit if real payments come in.
 
 ---
 
