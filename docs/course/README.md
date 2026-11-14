@@ -5,7 +5,7 @@ These are the documents submitted for CPEPE361. The `.md` files are the source, 
 
 | File                                               | What it is                                                                                    |
 | -------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `StudyHub_SRS.md` / `.docx`                        | Software Requirements Specification v2.0: the requirements baseline (FR-x.y)                  |
+| `StudyHub_SRS.md` / `.docx`                        | Software Requirements Specification v2.1: the requirements baseline (FR-x.y)                  |
 | `StudyHub_Project_Planning_Worksheet.md` / `.docx` | Project Planning Worksheet v2.0                                                               |
 | `StudyHub_Sprint_1_Plan.md` / `.docx`              | Sprint 1 plan: backlog, stories, tasks, estimates. Its `.docx` is created on the first export |
 | `StudyHub_Sprint_2_Plan.md` / `.docx`              | Sprint 2 plan: backlog, stories, tasks, estimates, baselined Tue 13 Oct (D-036)               |
@@ -52,3 +52,10 @@ one-inch margins**. It is the only `.docx` in the repository that is an input ra
 a generated deliverable, so it is also the only one that may be edited by hand — open it
 in Word, change the styles, and commit it. Never set fonts or margins on an exported
 file, because the next export overwrites them.
+
+The export doesn't caption figures for you. Write each caption as the italic line under
+the image (`*Figure 1. …*`). The image's alt text stays on the image, for screen readers.
+
+The table of contents comes out as a list of links to the headings, with no page numbers.
+To show page numbers in a submission, insert a Word table of contents in the exported
+file just before you submit it, and don't commit that copy.

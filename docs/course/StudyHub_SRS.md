@@ -2,7 +2,7 @@
 
 Software Requirements Specification
 
-Version 2.0
+Version 2.1
 
 *Course: Software Development 1*
 
@@ -14,6 +14,7 @@ Version 2.0
 |----|----|----|
 | 09/07/2026 | 1.0 | Initial Software Requirements Specification baseline for the StudyHub web application. |
 | 09/14/2026 | 2.0 | Revised baseline after design review: reserve-now (current-state) model with exact-seat selection on a host-built snap-grid seat map; host-maintained live availability; sandbox reservation-fee payments with a Pending-Payment state; Supabase Auth + Row-Level Security; hybrid (curated + custom) tag model; realistic, testable non-functional requirements; added Reviews and Administration modules and a key-entity data model. |
+| 11/14/2026 | 2.1 | Tags attach to a Space only (D-069): removed unit-level tags from §3.1.1, Figure 1, and the Tag entity in §5. A unit is described by its type, capacity, and zone; the unit/room type filter (FR-1.2) is unchanged. |
 
 *Author: Adrian Seth Tabotabo, Maria Faith Antigua, Luke Miguel Dongque, James Niño Mandawe*
 
@@ -207,11 +208,11 @@ The functional requirements are organized into five modules (3.1). Each requirem
 
 ### 3.1.1 Function 1 — Space Discovery & Multi-Filter Search
 
-Seekers find suitable venues on an interactive map and narrow results using a curated set of filterable tags. Tags exist in two tiers and two kinds, as shown in Figure 1: platform-curated tags drive the filters, while host custom tags are shown for context only and never affect filter results — which keeps search reliable.
+Seekers find suitable venues on an interactive map and narrow results using a curated set of filterable tags. Tags attach to the Space as a whole and come in two kinds, as shown in Figure 1: platform-curated tags drive the filters, while host custom tags are shown for context only and never affect filter results — which keeps search reliable. Units carry no tags: a unit is described by its type (seat, standing desk, or room), its capacity, and its zone, and the unit/room type filter in FR-1.2 reads that type.
 
-![Two-tier tag model: curated filter tags vs. host custom display-only tags](diagrams/d2_tags.png)
+![Hybrid tag model: curated filter tags vs. host custom display-only tags, both attached to the Space](diagrams/d2_tags.png)
 
-*Figure 1. Two-tier tag model — curated tags power search; custom tags are display-only.*
+*Figure 1. Hybrid tag model — curated tags power search; custom tags are display-only.*
 
 **FR-1.1** The system shall let users search study spaces by typing a location or campus name, or by using device GPS coordinates, and render matching venues as pins on an interactive Leaflet/OpenStreetMap map.
 
@@ -423,7 +424,7 @@ The core entities and their roles (a basis for the database schema):
 | Space | A venue owned by a Host; has photos, pricing, operating hours, tags, and a verification status. |
 | Zone | A named area within a Space (e.g., quiet desks, standing desks, rooms); groups units. |
 | Unit | The atomic bookable object within a Zone: a seat or a whole unit/room (with capacity) and a current seat state. |
-| Tag | A curated (filterable) or custom (display-only) attribute attached at venue or unit level. |
+| Tag | A curated (filterable) or custom (display-only) attribute attached to a Space. |
 | Reservation | A Seeker’s hold on a Unit: state, wait window, QR token, and timestamps; links to a Payment. |
 | Payment | A sandbox reservation-fee record: amount, gateway reference, and status (pending, paid, forfeited, refunded). |
 | Review | An amenity review by a Seeker, permitted only after a completed check-in on a Reservation. |
