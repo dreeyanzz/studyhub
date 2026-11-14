@@ -27,6 +27,8 @@
     "db:new": "supabase migration new",
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:accounts": "node --env-file=.env.local scripts/register-cloud-accounts.mjs",
+    "stripe:listen": "stripe listen --forward-to localhost:3000/api/webhooks/stripe --events checkout.session.completed,checkout.session.async_payment_succeeded",
+    "webhook:simulate": "node --env-file-if-exists=.env.local --env-file-if-exists=.env.development.local scripts/simulate-stripe-webhook.mjs",
     "docs:docx": "node scripts/export-docx.mjs",
     "prepare": "husky"
   },
