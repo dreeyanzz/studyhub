@@ -120,6 +120,9 @@ export const holdUnitSchema = z.object({
 
 export type HoldUnitInput = z.infer<typeof holdUnitSchema>
 
+/** A reservation's id, from a route segment or a bound Server Action argument. */
+export const reservationIdSchema = z.uuid({ error: 'Invalid Reservation ID' })
+
 /**
  * Validation schema for cancelling a hold (STORY-09 design §2).
  */
