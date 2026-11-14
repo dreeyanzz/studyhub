@@ -210,11 +210,23 @@ export function ReservedView({
   )
 }
 
+type EndedHeading = {
+  /** The hold page's own h1, or an h2 inside the /seeker card (STORY-10 design §3). */
+  headingLevel?: 'h1' | 'h2'
+  /** The id the card's section is labelled by. */
+  headingId?: string
+}
+
 /**
  * What a Seeker reads once a hold has ended (flow §5, states 3 to 5). The hold page
  * shows the same message for an ended hold.
  */
-export function EndedView({ reservation }: { reservation: MyReservation }) {
+export function EndedView({
+  reservation,
+  headingLevel = 'h1',
+  headingId,
+}: { reservation: MyReservation } & EndedHeading) {
+  const heading = { headingLevel, headingId }
   const fee = formatPeso(reservation.feeAmount)
   const unit = reservation.unitLabel
   const backToSpace = (
@@ -226,7 +238,7 @@ export function EndedView({ reservation }: { reservation: MyReservation }) {
   if (reservation.status === 'expired' && reservation.paymentStatus === 'paid') {
     // P2 (D-064): the payment came after the window. Recorded, never a unit.
     return (
-      <EndedMessage title="Your payment window ran out">
+      <EndedMessage title="Your payment window ran out" {...heading}>
         <p>
           Your payment window ran out before Stripe confirmed your payment, so {unit} was
           released. Your {fee} payment was recorded, and an Administrator can refund it.
@@ -240,7 +252,7 @@ export function EndedView({ reservation }: { reservation: MyReservation }) {
 
   if (reservation.status === 'expired') {
     return (
-      <EndedMessage title="Your payment window ran out">
+      <EndedMessage title="Your payment window ran out" {...heading}>
         <p>Your payment window ran out, and nothing was charged. {unit} is open again.</p>
         {backToSpace}
       </EndedMessage>
@@ -257,17 +269,33 @@ export function EndedView({ reservation }: { reservation: MyReservation }) {
           ? `Your ${fee} payment was refunded.`
           : 'Nothing was charged.'
   return (
-    <EndedMessage title={`Your hold on ${unit} has ended.`}>
+    <EndedMessage title={`Your hold on ${unit} has ended.`} {...heading}>
       <p>{feeLine}</p>
       {backToSpace}
     </EndedMessage>
   )
 }
 
-function EndedMessage({ title, children }: { title: string; children: ReactNode }) {
+function EndedMessage({
+  title,
+  headingLevel = 'h1',
+  headingId,
+  children,
+}: { title: string; children: ReactNode } & EndedHeading) {
+  const Heading = headingLevel
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+      <Heading
+        id={headingId}
+        className={
+          headingLevel === 'h1'
+            ? 'text-2xl font-bold tracking-tight'
+            : // The card's other ended states use this size (current-hold-card.tsx).
+              'text-xl font-semibold'
+        }
+      >
+        {title}
+      </Heading>
       {children}
     </div>
   )

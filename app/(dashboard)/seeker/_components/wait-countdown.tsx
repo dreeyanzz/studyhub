@@ -4,32 +4,28 @@ import { Clock } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
-import { formatCountdown, secondsRemaining } from '@/lib/check-in/countdown'
+import {
+  formatCountdown,
+  passedThreshold,
+  secondsRemaining,
+} from '@/lib/check-in/countdown'
 
 const LAPSE_REFRESH_MS = 5000
 
-const ANNOUNCEMENT_THRESHOLDS = [
-  {
-    maxSeconds: 600,
-    minSeconds: 301,
-    key: '10m',
-    text: '10 minutes remaining to check in.',
-  },
-  {
-    maxSeconds: 300,
-    minSeconds: 61,
-    key: '5m',
-    text: '5 minutes remaining to check in.',
-  },
-  { maxSeconds: 60, minSeconds: 1, key: '1m', text: '1 minute remaining to check in.' },
-  { maxSeconds: 0, minSeconds: 0, key: '0s', text: 'Wait window has ended.' },
+/** What the polite region says as each threshold passes (design §3, Accessibility). */
+const ANNOUNCEMENTS = [
+  { atSeconds: 600, text: '10 minutes remaining to check in.' },
+  { atSeconds: 300, text: '5 minutes remaining to check in.' },
+  { atSeconds: 60, text: '1 minute remaining to check in.' },
+  { atSeconds: 0, text: 'Wait window has ended.' },
 ] as const
+const THRESHOLDS = ANNOUNCEMENTS.map((item) => item.atSeconds)
 
 /**
- * Live MM:SS check-in countdown (STORY-10 design §3, FR-3.3).
+ * Live MM:SS check-in countdown (STORY-10 design §3, Seeker journey S34).
  * Reloads `/seeker?reservation=<id>` at zero so the server records no_show via
- * `my_reservation(id)` and shows the lapse card. Screen readers only hear threshold
- * announcements (10m, 5m, 1m, 0s) rather than every second.
+ * `my_reservation(id)` and shows the lapse card. Screen readers only hear a threshold
+ * as the countdown passes it (10m, 5m, 1m, 0s), rather than every second.
  */
 export function WaitCountdown({
   deadline,
@@ -41,25 +37,19 @@ export function WaitCountdown({
   const router = useRouter()
   const [remaining, setRemaining] = useState(() => secondsRemaining(deadline))
   const [announcement, setAnnouncement] = useState('')
-  const announced = useRef<Set<string>>(new Set())
   const lastReload = useRef(0)
 
   useEffect(() => {
+    // Thresholds already behind when the card opened are never announced.
+    let previous = secondsRemaining(deadline)
     const tick = () => {
       const next = secondsRemaining(deadline)
       setRemaining(next)
 
-      for (const item of ANNOUNCEMENT_THRESHOLDS) {
-        if (
-          next <= item.maxSeconds &&
-          next >= item.minSeconds &&
-          !announced.current.has(item.key)
-        ) {
-          announced.current.add(item.key)
-          setAnnouncement(item.text)
-          break
-        }
-      }
+      const passed = passedThreshold(previous, next, THRESHOLDS)
+      previous = next
+      const item = ANNOUNCEMENTS.find((a) => a.atSeconds === passed)
+      if (item) setAnnouncement(item.text)
 
       if (next <= 0 && Date.now() - lastReload.current >= LAPSE_REFRESH_MS) {
         lastReload.current = Date.now()

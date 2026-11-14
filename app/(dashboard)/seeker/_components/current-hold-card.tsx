@@ -1,5 +1,6 @@
 // The "Your hold" card at the top of /seeker (STORY-09 design §3, STORY-10 design §3).
 import Link from 'next/link'
+import { User } from 'lucide-react'
 
 import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -139,10 +140,13 @@ export function CurrentHoldCard({
         )}
 
         <div className="space-y-2">
+          {/* The seat map's Occupied icon and colour (components/seat-map/seat-map-tile.tsx),
+              as HoldStatusBadge does for Pending Payment and Reserved. */}
           <Badge
             variant="outline"
-            className="h-auto min-h-7 max-w-full border-emerald-600/40 bg-emerald-50 px-2.5 py-1 text-sm whitespace-normal text-emerald-950"
+            className="h-auto min-h-7 max-w-full gap-1.5 border-amber-600/40 bg-amber-50 px-2.5 py-1 text-sm whitespace-normal text-amber-950"
           >
+            <User aria-hidden="true" className="text-amber-700" />
             {unitWithZone}
           </Badge>
           <h2 id="current-hold-heading" className="text-xl font-semibold">
@@ -231,7 +235,7 @@ export function CurrentHoldCard({
       aria-labelledby="current-hold-heading"
       className="space-y-3 rounded-lg border border-border bg-card p-4 sm:p-6"
     >
-      <EndedView reservation={hold} />
+      <EndedView reservation={hold} headingLevel="h2" headingId="current-hold-heading" />
     </section>
   )
 }

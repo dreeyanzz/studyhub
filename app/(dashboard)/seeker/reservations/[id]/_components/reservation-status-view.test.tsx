@@ -178,6 +178,18 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
   const ended = (overrides: Partial<MyReservation>) =>
     text(renderToStaticMarkup(<EndedView reservation={{ ...base, ...overrides }} />))
 
+  it("is the hold page's h1 unless the /seeker card asks for an h2", () => {
+    const expired = { ...base, status: 'expired' as const }
+    expect(renderToStaticMarkup(<EndedView reservation={expired} />)).toContain(
+      '<h1 class="text-2xl',
+    )
+    const inCard = renderToStaticMarkup(
+      <EndedView reservation={expired} headingLevel="h2" headingId="card-heading" />,
+    )
+    expect(inCard).toContain('<h2 id="card-heading"')
+    expect(inCard).not.toContain('<h1')
+  })
+
   it('a late payment (P2): recorded, and an Administrator can refund it', () => {
     const html = ended({ status: 'expired', paymentStatus: 'paid' })
     expect(html).toContain(

@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { formatCountdown, formatRelative, secondsRemaining } from './countdown'
+import {
+  formatCountdown,
+  formatRelative,
+  passedThreshold,
+  secondsRemaining,
+} from './countdown'
 
 describe('secondsRemaining (STORY-10, FR-3.3)', () => {
   it('returns the correct seconds for a future deadline', () => {
@@ -103,5 +108,31 @@ describe('formatRelative (STORY-10, FR-3.3)', () => {
 
   it('clamps negative input to "< 1 min"', () => {
     expect(formatRelative(-5)).toBe('< 1 min')
+  })
+})
+
+describe('passedThreshold (STORY-10 design §3, Accessibility)', () => {
+  const thresholds = [600, 300, 60, 0]
+
+  it('returns the threshold a tick reaches from above', () => {
+    expect(passedThreshold(601, 600, thresholds)).toBe(600)
+    expect(passedThreshold(61, 60, thresholds)).toBe(60)
+    expect(passedThreshold(1, 0, thresholds)).toBe(0)
+  })
+
+  it('returns null between thresholds, and once a threshold is behind', () => {
+    expect(passedThreshold(600, 599, thresholds)).toBeNull()
+    expect(passedThreshold(400, 399, thresholds)).toBeNull()
+    expect(passedThreshold(0, 0, thresholds)).toBeNull()
+  })
+
+  it('stays silent for a card opened inside a band (19 s is not "1 minute")', () => {
+    expect(passedThreshold(19, 18, thresholds)).toBeNull()
+    expect(passedThreshold(180, 179, thresholds)).toBeNull()
+  })
+
+  it('returns only the later threshold when a tick skips past two', () => {
+    expect(passedThreshold(700, 250, thresholds)).toBe(300)
+    expect(passedThreshold(90, 0, thresholds)).toBe(0)
   })
 })

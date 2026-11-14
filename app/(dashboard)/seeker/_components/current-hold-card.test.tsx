@@ -97,6 +97,9 @@ describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
     expect(text(raw)).toContain('Checked In · Unit S4 (Quiet desks)')
     expect(text(raw)).toContain('Arrived at 4:00 PM')
     expect(raw).toContain('href="/seeker?checkout=1"')
+    // The seat map's Occupied colour, never Available's emerald.
+    expect(raw).toContain('bg-amber-50')
+    expect(raw).not.toContain('emerald')
 
     const confirmRaw = renderToStaticMarkup(
       <CurrentHoldCard hold={occupied} confirmingCheckOut />,
@@ -145,5 +148,19 @@ describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
         ),
       ),
     ).toContain('Your ₱50.00 fee was forfeited.')
+  })
+
+  it('names a cancelled hold card by its heading, an h2 under the page h1', () => {
+    const raw = renderToStaticMarkup(
+      <CurrentHoldCard
+        hold={{ ...hold, status: 'cancelled', paymentStatus: 'forfeited' }}
+        showEnded
+      />,
+    )
+    expect(raw).toContain('aria-labelledby="current-hold-heading"')
+    expect(raw).toMatch(
+      /<h2 id="current-hold-heading"[^>]*>Your hold on S4 has ended\.<\/h2>/,
+    )
+    expect(raw).not.toContain('<h1')
   })
 })

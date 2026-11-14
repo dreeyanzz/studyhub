@@ -63,3 +63,31 @@ export function formatRelative(seconds: number): string {
   const mins = Math.ceil(s / 60)
   return `${mins} min left`
 }
+
+/**
+ * The threshold a countdown tick passed, for the Seeker card's polite announcements
+ * (STORY-10 design §3, Accessibility): the smallest of `thresholds` (seconds left)
+ * with `previous > threshold >= next`, or null.
+ *
+ * Only passing a threshold counts. A card opened with 19 s left announces nothing until
+ * the end, rather than "1 minute remaining", and a tab that slept past two thresholds
+ * announces only the later one.
+ *
+ * @example
+ * passedThreshold(61, 60, [600, 300, 60, 0]) // 60
+ * passedThreshold(19, 18, [600, 300, 60, 0]) // null
+ * passedThreshold(700, 250, [600, 300, 60, 0]) // 300
+ */
+export function passedThreshold(
+  previous: number,
+  next: number,
+  thresholds: readonly number[],
+): number | null {
+  let passed: number | null = null
+  for (const threshold of thresholds) {
+    if (previous > threshold && next <= threshold) {
+      if (passed === null || threshold < passed) passed = threshold
+    }
+  }
+  return passed
+}
