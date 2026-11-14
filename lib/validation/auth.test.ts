@@ -84,6 +84,25 @@ describe('loginSchema', () => {
 })
 
 describe('registerSchema', () => {
+  it('keeps a safe returnUrl, as from a hold prompt (D-058)', () => {
+    const result = registerSchema.safeParse({
+      ...validRegistration,
+      returnUrl: '/spaces/e0000000-0000-4000-8000-000000000002',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.returnUrl).toBe('/spaces/e0000000-0000-4000-8000-000000000002')
+    }
+  })
+
+  it('drops an unsafe or empty returnUrl without failing the sign-up', () => {
+    for (const returnUrl of ['https://evil.example/', '//evil.example', '']) {
+      const result = registerSchema.safeParse({ ...validRegistration, returnUrl })
+      expect(result.success).toBe(true)
+      if (result.success) expect(result.data.returnUrl).toBeUndefined()
+    }
+  })
+
   it('passes with valid seeker registration data', () => {
     const result = registerSchema.safeParse(validRegistration)
     expect(result.success).toBe(true)

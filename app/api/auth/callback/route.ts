@@ -3,8 +3,9 @@
 // becomes a session, and the person goes on to their dashboard.
 import { NextResponse, type NextRequest } from 'next/server'
 
-import { dashboardFor } from '@/lib/auth/role-guard'
+import { landingPathFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
+import { sanitizeReturnUrl } from '@/lib/validation/auth'
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code')
@@ -21,7 +22,9 @@ export async function GET(request: NextRequest) {
     .select('role')
     .eq('id', data.user.id)
     .maybeSingle()
-  const destination = profile ? dashboardFor(profile.role) : '/'
+  // A sign-up from a hold prompt goes back to its Space profile (D-058).
+  const returnUrl = sanitizeReturnUrl(request.nextUrl.searchParams.get('returnUrl'), '')
+  const destination = profile ? landingPathFor(profile.role, returnUrl || undefined) : '/'
 
   return NextResponse.redirect(new URL(destination, request.url))
 }

@@ -2,15 +2,18 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
-import { ArrowLeft, Clock } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Clock } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { getHoldTerms, getHoldViewer } from '@/lib/data/reservations'
 import { getSeatMap } from '@/lib/data/seat-map'
+import { holdRefusalMessage, parseHoldRefusalReason } from '@/lib/payments/refusals'
 import { computeSpaceAvailability } from '@/lib/space/availability'
 import { computeOperatingStatus } from '@/lib/space/format'
 import { createClient } from '@/lib/supabase/server'
 import { spaceIdSchema } from '@/lib/validation/space'
 import { AvailabilitySummary } from './_components/availability-summary'
+import { HoldUnitPanel } from './_components/hold-unit-panel'
 import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
 import { SpaceTags, type CuratedTagData } from './_components/space-tags'
@@ -99,6 +102,8 @@ export default async function SpaceProfilePage({
     { data: storageFiles },
     { data: curatedTagRows },
     { data: customTagRows },
+    holdTerms,
+    viewer,
   ] = await Promise.all([
     getSeatMap(supabase, space.id),
     supabase.storage.from('space-photos').list(space.id, {
@@ -113,6 +118,9 @@ export default async function SpaceProfilePage({
       .select('name')
       .eq('space_id', space.id)
       .order('created_at'),
+    // STORY-09's hold panel (design §3): what a hold costs here, and who is looking.
+    getHoldTerms(supabase, space.id),
+    getHoldViewer(supabase),
   ])
   const availability = computeSpaceAvailability(zones)
   const operatingStatus = computeOperatingStatus(space.opens_at, space.closes_at)
@@ -141,6 +149,36 @@ export default async function SpaceProfilePage({
   const customTags: string[] = (customTagRows ?? [])
     .map((row) => row.name)
     .filter(Boolean)
+
+  // The hold panel for the ?unit=<id> unit, rendered here on the server and passed to
+  // the seat map view's slot (STORY-09 design §8). The view shows it only while that
+  // unit is Available and the Space is open.
+  const selectedUnit = zones.flatMap((zone) => zone.units).find((u) => u.id === unitParam)
+  // holdUnit's refusal, from `?refused=` (design §3): one message, above the seat map.
+  const refusal = parseHoldRefusalReason(resolvedSearchParams.refused)
+  const refusalMessage = refusal
+    ? holdRefusalMessage(refusal, {
+        unitLabel: selectedUnit?.label ?? 'This unit',
+        currentHold: viewer.currentHold,
+      })
+    : null
+  const holdPanel = selectedUnit ? (
+    <HoldUnitPanel
+      spaceId={space.id}
+      unit={{ id: selectedUnit.id, label: selectedUnit.label }}
+      terms={holdTerms}
+      viewerRole={viewer.role}
+      currentHold={
+        viewer.currentHold
+          ? {
+              id: viewer.currentHold.id,
+              unitLabel: viewer.currentHold.unitLabel,
+              spaceName: viewer.currentHold.spaceName,
+            }
+          : null
+      }
+    />
+  ) : null
 
   return (
     <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6">
@@ -189,12 +227,20 @@ export default async function SpaceProfilePage({
       {/* Zone availability overview with oldest-available freshness rule (D-051) */}
       <AvailabilitySummary summary={availability} />
 
+      {refusalMessage && (
+        <Alert variant="destructive" role="alert" data-testid="hold-refusal">
+          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+          <AlertDescription>{refusalMessage}</AlertDescription>
+        </Alert>
+      )}
+
       {/* Synchronized Seat Map & Accessible List View with Unit Selection (TSK-11.5) */}
       <SpaceSeatMapView
         zones={zones}
         isOpen={operatingStatus.isOpen}
         initialView={initialView}
         initialSelectedUnitId={unitParam}
+        selectedUnitActionSlot={holdPanel}
       />
     </div>
   )

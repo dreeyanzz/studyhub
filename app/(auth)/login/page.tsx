@@ -18,6 +18,10 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
   // proxy.ts sends people here with the page they wanted; login checks it again.
   const returnUrl = sanitizeReturnUrl(first(params.returnUrl), '')
   const linkFailed = first(params.error) === 'link'
+  // Signing up instead keeps the page they wanted (D-058).
+  const registerHref = returnUrl
+    ? `/register?returnUrl=${encodeURIComponent(returnUrl)}`
+    : '/register'
 
   return (
     <Card className="w-full max-w-md self-start">
@@ -36,7 +40,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
         <LoginForm returnUrl={returnUrl} />
         <p className="flex flex-wrap items-center gap-x-1 text-sm">
           New to Worq?
-          <Link href="/register" className={buttonVariants({ variant: 'link' })}>
+          <Link href={registerHref} className={buttonVariants({ variant: 'link' })}>
             Sign up
           </Link>
         </p>

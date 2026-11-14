@@ -20,7 +20,15 @@ const roles = [
   },
 ] as const
 
-export function RegisterForm() {
+export function RegisterForm({
+  returnUrl = '',
+  defaultRole,
+}: {
+  /** A safe same-site path to land on after sign-up (D-058), or empty. */
+  returnUrl?: string
+  /** The role to preselect, from a hold prompt. */
+  defaultRole?: 'seeker'
+} = {}) {
   const { formProps, state, pending, errors, showServerMessage } = useAuthForm(
     registerSchema,
     register,
@@ -43,6 +51,8 @@ export function RegisterForm() {
           <AlertDescription>{state.notice}</AlertDescription>
         </Alert>
       )}
+
+      <input type="hidden" name="returnUrl" value={returnUrl} />
 
       {/* ARIA puts the invalid state on the group, not on each radio. Names are
           explicit: the legend names the group, and each title names its radio. */}
@@ -69,7 +79,7 @@ export function RegisterForm() {
                 type="radio"
                 name="role"
                 value={role.value}
-                defaultChecked={state.values?.role === role.value}
+                defaultChecked={(state.values?.role ?? defaultRole) === role.value}
                 aria-labelledby={`role-${role.value}-label`}
                 aria-describedby={`role-${role.value}-text`}
                 className="row-span-2 mt-0.5 size-5 accent-primary focus-visible:outline-none"
