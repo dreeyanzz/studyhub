@@ -1,7 +1,7 @@
 # Seeker journey
 
 **Status:** approved 2026-11-06 · **Owner:** @fayeye-09 · **Approved by:** @dreeyanzz, @lukedongque ·
-**Stories:** STORY-08, STORY-09, STORY-10, STORY-11 · **Decisions:** D-001, D-002, D-003, D-006, D-008, D-010, D-012, D-026, D-044, D-048, D-049, D-050, D-055, D-056, D-058, D-064
+**Stories:** STORY-08, STORY-09, STORY-10, STORY-11 · **Decisions:** D-001, D-002, D-003, D-006, D-008, D-010, D-012, D-026, D-044, D-048, D-049, D-050, D-055, D-058, D-064, D-069
 
 This journey follows a Seeker from discovery to a paid hold and booking token. It says what the Seeker sees, does and is told across search, the Space profile, authentication, the hold, sandbox checkout and dashboard. The named Playwright tests are planned; they do not yet exist.
 
@@ -10,7 +10,7 @@ This journey follows a Seeker from discovery to a paid hold and booking token. I
 - Search by a typed place or campus name or device location; map and list results; curated filters; and opening a Space profile (STORY-08).
 - Reviewing a Space’s photos, hours, curated and Host custom tags, open status, and Available units per zone with Host-updated times; choosing a unit from the seat map or accessible list (STORY-11).
 - Choosing an eligible wait window, authenticating as a Seeker when needed, making or cancelling a hold, and seeing a clear outcome when a unit cannot be held (STORY-09).
-- PayMongo hosted sandbox checkout and the return to Worq. The [sandbox payment confirmation flow](sandbox-payment-confirmation.md) (#175) owns callback handling and exact messages for duplicate, late and failed payments.
+- Stripe hosted sandbox checkout and the return to Worq. The [sandbox payment confirmation flow](sandbox-payment-confirmation.md) (#175) owns callback handling and exact messages for duplicate, late and failed payments.
 - The Reserved unit and booking token on the Seeker dashboard (STORY-10).
 - What signed-out visitors and signed-in non-Seeker roles see when they try to hold a unit.
 
@@ -60,7 +60,7 @@ flowchart TB
     S26 -->|Yes: seeker-hold-available-unit| S28[Show Pending Payment and payment-window end time]
     S28 --> S29{Seeker cancels before paying?}
     S29 -->|Yes| S30[Request cancellation]
-    S29 -->|No: seeker-continues-to-checkout| S31[Continue to PayMongo hosted sandbox checkout]
+    S29 -->|No: seeker-continues-to-checkout| S31[Continue to Stripe hosted sandbox checkout]
     S30 --> S40{Cancellation accepted?}
     S40 -->|Yes: seeker-cancel-pending-hold| S41[Show hold ended and unit released; return to profile]
     S40 -->|No: seeker-payment-wins-cancel-race| S42[Refresh reservation and payment status]
@@ -164,7 +164,7 @@ The lifecycle’s pgTAP tests prove reservation and payment rules, including the
 
 ## Delegated behavior
 
-- **Payment confirmation:** #175 owns PayMongo signatures, duplicate or late callbacks, failed-payment messaging and recovery (D-010, D-056, D-064). A browser return is not proof of payment; the webhook confirms R2.
+- **Payment confirmation:** #175 owns Stripe signatures, duplicate or late callbacks, failed-payment messaging and recovery (D-010, D-064, D-069). A browser return is not proof of payment; the webhook confirms R2.
 - **Check-in:** this journey ends at the booking token. QR use, check-in and wrong-Space handling belong to #176.
 - **Cancellation after payment:** a Seeker cancelling a paid Reserved hold from the dashboard follows R8 in the reservation lifecycle; the fee is forfeited. This happens after the journey endpoint.
 - **Race outcomes:** if a cancel races with payment confirmation or a Host override, N21’s expected-status check decides which operation succeeds. STORY-09’s screen design names the refreshed outcome and its check.

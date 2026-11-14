@@ -57,7 +57,7 @@ Their lengths are decided in STORY-09's design.
 
 ## D-005 · Prepaid reservation fee, sandbox only
 
-**Gateway chosen by D-056**, which picks PayMongo.
+**Gateway chosen by D-069**, which picks Stripe. It superseded D-056, which picked PayMongo.
 
 **Decision:**
 
@@ -757,6 +757,8 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 ## D-056 · The sandbox gateway is PayMongo
 
+**Superseded by D-069**, which picks Stripe.
+
 **Decision:**
 
 - Reservation fees are paid through PayMongo's hosted checkout (Checkout Sessions), in test mode, as D-005 requires. Card and e-wallet details never reach Worq.
@@ -961,3 +963,21 @@ Amends D-017 and D-036, which rejected this.
 **Rejected:** One tap straight to PayMongo, as the payment confirmation flow's sequence draws it (the Seeker never sees the payment window in Worq, and the journey's cancel step disappears).
 
 **Revisit if:** Maria's walk-throughs show the extra tap costs Seekers more than it helps them.
+
+## D-069 · The sandbox gateway is Stripe
+
+**Supersedes D-056**, which picked PayMongo.
+
+**Decision:**
+
+- Reservation fees are paid through Stripe Checkout, a hosted Checkout Session in a Stripe sandbox, as D-005 requires: one line item for the copied fee in `php` (5000 centavos, D-067), cards only, and Adaptive Pricing off, so the Seeker always sees ₱50.00. Card details never reach Worq.
+- A payment counts once Stripe's `checkout.session.completed` event, with `payment_status` `paid`, reaches the route in `app/api/` (D-010), signed in its `Stripe-Signature` header. The [sandbox payment confirmation flow](flows/sandbox-payment-confirmation.md) draws how. The gateway reference (FR-2.3) is the session's PaymentIntent, `pi_…`.
+- A Stripe checkout can't expire sooner than 30 minutes after it is made, which is longer than the payment window, so a payment can still arrive after its hold has lapsed (P2, D-064). Worq asks for that 30-minute minimum, and expires a checkout on request when it loses a race or its hold ends.
+- Worq calls Stripe's API with `fetch` and checks the signature itself, as the flow's §3.1 draws it. The keys are `STRIPE_SECRET_KEY` (only `sk_test_` or `rk_test_`, D-005) and `STRIPE_WEBHOOK_SECRET`. Locally, `stripe listen` forwards real sandbox events to the dev server.
+- D-064, D-067 and D-068 name PayMongo. They hold for Stripe unchanged.
+
+**Why:** PayMongo's account setup takes too long to have test keys in time for the demo. A Stripe sandbox needs no business activation, so D-056's reason against Stripe, that it isn't open to Philippine businesses, doesn't arise while Worq stays in test mode (D-005). On 2026-11-14 the team's US sandbox made and expired a ₱50.00 checkout in pesos. And the Stripe CLI can forward webhooks to a local server, which PayMongo couldn't.
+
+**Rejected:** Keeping PayMongo (no test keys in time); the `stripe` npm package (a new dependency, and it throws one error type for a bad signature and an old timestamp, which the flow answers differently, W3 and W4); Stripe's thin events (they carry only ids, so the route would fetch the session before `confirm_payment`); e-wallets (test cards are enough for the demo, and a card payment is paid when its checkout completes).
+
+**Revisit if:** Worq takes real payments (a live Stripe account needs a business in a country Stripe supports), or the sandbox can't do what STORY-09 needs.
