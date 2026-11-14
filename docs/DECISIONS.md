@@ -71,6 +71,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-006 · Hybrid tags
 
+**Superseded in part by D-069**: tags belong to a Space only. There are no zone or unit tags.
+
 **Decision:** Platform-curated tags drive the filters. Host custom tags are display-only. Both exist at space level and unit level.
 
 **Why:** Free-text tags break filtering (FR-1.2, FR-1.3).
@@ -963,6 +965,22 @@ Amends D-017 and D-036, which rejected this.
 **Rejected:** One tap straight to PayMongo, as the payment confirmation flow's sequence draws it (the Seeker never sees the payment window in Worq, and the journey's cancel step disappears).
 
 **Revisit if:** Maria's walk-throughs show the extra tap costs Seekers more than it helps them.
+
+## D-069 · Tags belong to a Space, not to single units
+
+Supersedes D-006's "Both exist at space level and unit level". The rest of D-006 stands: curated tags drive the filters, and custom tags are display-only.
+
+**Decision:**
+
+- Curated and custom tags belong to a Space. There are no zone or unit tags.
+- A unit is described by its own data: its type (seat, standing desk or room), a room's capacity, and the zone it sits in. The unit-type filter reads the type (FR-1.2).
+- The SRS says the same from version 2.1: §3.1.1, Figure 1 and the Tag entity in §5.
+
+**Why:** Sprint 2 built Space tags only (STORY-08's `space_curated_tags` and `space_custom_tags`), and its plan made zone and unit tags a Could Have. No requirement needs them: FR-1.2's unit or room type filter reads `units.unit_type`, and FR-1.3 asks for a Space's tags. Unit tags would need new tables with RLS tests, a tag panel for each unit, new filter rules and changes to the profile, a story of roughly 5 to 8 points in a full Sprint 3 (#292).
+
+**Rejected:** Building unit tags in Sprint 3 (the cost above, for detail a Host can already give in a custom tag or the description). Zone tags (about half that cost, and D-006 and the SRS would still change).
+
+**Revisit if:** Hosts or Seekers ask to tag or filter single seats, for example by an outlet at the seat, after the course.
 
 ## D-070 · The sandbox gateway is Stripe
 
