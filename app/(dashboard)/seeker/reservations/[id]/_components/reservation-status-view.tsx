@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { Clock, Hourglass } from 'lucide-react'
 
+import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { formatToken } from '@/lib/check-in/normalize'
@@ -183,7 +184,12 @@ export function ReservedView({
         </h1>
         <HoldPlace reservation={reservation} />
       </div>
-      {reservation.bookingToken && <BookingToken token={reservation.bookingToken} />}
+      {reservation.bookingToken && (
+        <div className="space-y-3">
+          <BookingQrCode token={reservation.bookingToken} />
+          <BookingToken token={reservation.bookingToken} />
+        </div>
+      )}
       {reservation.waitWindowEndsAt && (
         <p>
           Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.

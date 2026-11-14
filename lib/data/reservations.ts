@@ -32,6 +32,7 @@ export interface MyReservation {
   bookingToken: string | null
   checkoutSessionId: string | null
   checkoutUrl: string | null
+  checkedInAt: string | null
   endedAt: string | null
 }
 
@@ -74,6 +75,7 @@ export async function getMyReservation(
     bookingToken: data.booking_token ?? null,
     checkoutSessionId: data.checkout_session_id ?? null,
     checkoutUrl: data.checkout_url ?? null,
+    checkedInAt: data.checked_in_at ?? null,
     endedAt: data.ended_at ?? null,
   }
 }

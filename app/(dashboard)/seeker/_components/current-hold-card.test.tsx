@@ -1,6 +1,12 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+}))
+vi.mock('../actions', () => ({
+  checkOutAction: vi.fn(),
+}))
 vi.mock('../reservations/[id]/actions', () => ({
   startCheckout: vi.fn(),
   cancelHold: vi.fn(),
@@ -27,6 +33,7 @@ const hold: MyReservation = {
   bookingToken: null,
   checkoutSessionId: null,
   checkoutUrl: null,
+  checkedInAt: null,
   endedAt: null,
 }
 const text = (html: string) =>
@@ -35,7 +42,7 @@ const text = (html: string) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-describe('CurrentHoldCard (design §3)', () => {
+describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
   it('shows an unpaid hold: the unit, Pending Payment, and when to pay by', () => {
     const html = renderToStaticMarkup(<CurrentHoldCard hold={hold} />)
     expect(text(html)).toContain('S4 at Kapihan Study Hall')
@@ -51,27 +58,92 @@ describe('CurrentHoldCard (design §3)', () => {
     expect(html.match(/whitespace-normal/g)).toHaveLength(2)
   })
 
-  it('shows a paid hold: Reserved, and when to check in by', () => {
-    const html = text(
-      renderToStaticMarkup(
-        <CurrentHoldCard
-          hold={{
-            ...hold,
-            status: 'reserved',
-            paymentStatus: 'paid',
-            waitWindowEndsAt: '2026-11-14T08:42:00Z',
-          }}
-        />,
-      ),
+  it('shows a reserved hold: QR code, grouped token, copy button, countdown and cancel link', () => {
+    const raw = renderToStaticMarkup(
+      <CurrentHoldCard
+        hold={{
+          ...hold,
+          status: 'reserved',
+          paymentStatus: 'paid',
+          bookingToken: 'ABCDEFGHJKMN',
+          waitWindowEndsAt: '2026-11-14T08:42:00Z',
+        }}
+      />,
     )
-    expect(html).toContain('Reserved')
-    expect(html).toContain('Check in by 4:42 PM')
+    const plain = text(raw)
+    expect(plain).toContain('Reserved')
+    expect(plain).toContain('Kapihan Study Hall')
+    expect(plain).toContain('12 Mabini St')
+    expect(plain).toContain('Time remaining to check in:')
+    expect(plain).toContain('Check in by 4:42 PM')
+    expect(raw).toContain('role="img"')
+    expect(raw).toContain('aria-label="Booking QR code for token ABCD-EFGH-JKMN"')
+    expect(plain).toContain('Booking token ABCD- EFGH- JKMN')
+    expect(plain).toContain('Copy code')
+    expect(plain).toContain(
+      'Present this QR code to the host or recite your code upon arrival.',
+    )
+    expect(raw).toContain(`href="/seeker/reservations/${hold.id}?cancel=1"`)
   })
 
-  it('shows nothing with no hold, or once checked in (STORY-10)', () => {
+  it('shows an occupied visit with arrival time and Check Out confirmation flow', () => {
+    const occupied: MyReservation = {
+      ...hold,
+      status: 'occupied',
+      paymentStatus: 'paid',
+      checkedInAt: '2026-11-14T08:00:00Z',
+    }
+    const raw = renderToStaticMarkup(<CurrentHoldCard hold={occupied} />)
+    expect(text(raw)).toContain('Checked In · Unit S4 (Quiet desks)')
+    expect(text(raw)).toContain('Arrived at 4:00 PM')
+    expect(raw).toContain('href="/seeker?checkout=1"')
+
+    const confirmRaw = renderToStaticMarkup(
+      <CurrentHoldCard hold={occupied} confirmingCheckOut />,
+    )
+    expect(text(confirmRaw)).toContain(
+      'Are you ready to leave? This will release unit S4 for other Seekers.',
+    )
+    expect(text(confirmRaw)).toContain('Check Out')
+    expect(confirmRaw).toContain('href="/seeker"')
+
+    const errorRaw = renderToStaticMarkup(
+      <CurrentHoldCard hold={occupied} checkOutError />,
+    )
+    expect(text(errorRaw)).toContain('We could not check you out.')
+  })
+
+  it('shows ended states only when showEnded is true', () => {
     expect(renderToStaticMarkup(<CurrentHoldCard hold={null} />)).toBe('')
     expect(
-      renderToStaticMarkup(<CurrentHoldCard hold={{ ...hold, status: 'occupied' }} />),
+      renderToStaticMarkup(<CurrentHoldCard hold={{ ...hold, status: 'completed' }} />),
     ).toBe('')
+    expect(
+      text(
+        renderToStaticMarkup(
+          <CurrentHoldCard hold={{ ...hold, status: 'completed' }} showEnded />,
+        ),
+      ),
+    ).toContain('Visit completed')
+    expect(
+      text(
+        renderToStaticMarkup(
+          <CurrentHoldCard
+            hold={{ ...hold, status: 'no_show', paymentStatus: 'forfeited' }}
+            showEnded
+          />,
+        ),
+      ),
+    ).toContain('Wait window lapsed · Unit released')
+    expect(
+      text(
+        renderToStaticMarkup(
+          <CurrentHoldCard
+            hold={{ ...hold, status: 'no_show', paymentStatus: 'forfeited' }}
+            showEnded
+          />,
+        ),
+      ),
+    ).toContain('Your ₱50.00 fee was forfeited.')
   })
 })
