@@ -312,8 +312,9 @@ can be marked Occupied with no reservation; another Host can't change your units
 > sets any unit's state with one tap, marks walk-ins Occupied with no reservation, re-vouches
 > freshness, confirms hold overrides with status-specific consequences, and recovers from
 > concurrent hold modifications with one-click refresh (design §9). A Host state change updates
-> unit availability immediately in the database (`06-host-occupancy.sql`); Seeker-facing UI verification
-> in the browser remains open until STORY-11's Space profile merges.
+> unit availability immediately in the database (`06-host-occupancy.sql`). With STORY-11's Space
+> profile merged, the close-out on Sat 14 Nov saw the change on the Seeker's profile after one
+> refresh.
 
 **Waits for:** STORY-07's tables and actions, and STORY-09's reservations for overriding a
 hold. Build the view with sample data first.
