@@ -235,6 +235,12 @@ match both. Also the Host's form for tagging their Space.
 name, price tier and distance, and links to its profile; filters combine with AND; a
 Space that isn't Verified never shows up; custom tags are never offered as filters.
 
+> **Update, Fri 13 Nov: STORY-08 is done** (#244, #257, #273, #278, #279, #281). A
+> Seeker finds Spaces on an OpenStreetMap discovery map and synchronized list, searches by
+> campus or GPS location, filters by curated tags with strict AND logic, and opens their
+> profiles. Only Verified Spaces appear, and custom tags are never offered as filters
+> (design §9).
+
 **Waits for:** no other story for the map and the search. The filters need the tag tables,
 which you write, so say in your design exactly what they hold.
 
