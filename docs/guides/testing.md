@@ -62,7 +62,8 @@ it go red, then put the policy back.
 pgTAP runs on one connection, so it can't show two callers at the same moment. A race
 test opens several direct Postgres connections to the local stack, each acting as a
 different user, and holds one transaction open while the other waits on its lock
-(`supabase/tests/race/holds.race.mjs`, FR-2.5). Run `npm run db:race` after
+(`supabase/tests/race/holds.race.mjs` for holds and payments, FR-2.5, and
+`supabase/tests/race/check-in.race.mjs` for check-in, FR-2.4). Run `npm run db:race` after
 `npm run db:test`; the CI `db` job runs it in the same order. A race test deletes the rows
 it made, so the local stack keeps only the seed.
 
