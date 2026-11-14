@@ -86,7 +86,7 @@ describe('HostCheckInPage (STORY-10, TSK-10.4, D-060)', () => {
     )
   })
 
-  it('returns notFound when caller does not own the Space (N13, C7)', async () => {
+  it('returns notFound when caller does not own the Space (C7)', async () => {
     mockUser = { id: OTHER_USER_ID }
     await expect(HostCheckInPage(makeProps(VALID_SPACE_ID))).rejects.toThrow(
       'NEXT_NOT_FOUND',

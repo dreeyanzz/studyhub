@@ -90,7 +90,7 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `(public)/` (with STORY-08's discovery map in `spaces/`, and STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
 `(dashboard)/seeker/` portal (with STORY-09's hold and return pages in `reservations/[id]/`), STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
-page and STORY-08's tags page), and STORY-15's Administrator portal in `(dashboard)/admin/`),
+page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
 (STORY-02's six primitives and STORY-12's `alert-dialog`), `components/discovery/`
 (STORY-08's Space card and price tier badge), `components/reservation/` (STORY-10's
