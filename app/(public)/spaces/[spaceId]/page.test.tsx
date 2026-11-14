@@ -101,6 +101,15 @@ vi.mock('@/lib/data/seat-map', () => ({
   getSeatMap: vi.fn(async () => mockZones),
 }))
 
+// STORY-09's hold panel (TSK-09.6): its terms and viewer, and its action as a form target.
+let mockHoldTerms: unknown = null
+let mockViewer: unknown = { role: null, currentHold: null }
+vi.mock('@/lib/data/reservations', () => ({
+  getHoldTerms: vi.fn(async () => mockHoldTerms),
+  getHoldViewer: vi.fn(async () => mockViewer),
+}))
+vi.mock('./actions', () => ({ holdUnit: vi.fn() }))
+
 describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
   beforeEach(() => {
     // The open/closed badge reads the clock, so pin it to noon in Manila. Without
@@ -108,6 +117,8 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-11-11T12:00:00+08:00'))
     mockNotFound.mockClear()
+    mockHoldTerms = null
+    mockViewer = { role: null, currentHold: null }
     mockStorageFiles = []
     mockCuratedTags = []
     mockCustomTags = []
@@ -417,6 +428,44 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     expect(html).toContain('data-testid="selected-unit-panel"')
     expect(html).toContain('Selected Unit: D1')
     expect(html).toContain('Main Hall')
+  })
+
+  it('puts the hold panel in the selected unit slot, with sign-in back to this profile (STORY-09)', async () => {
+    mockHoldTerms = {
+      feeAmount: 5000,
+      paymentWindowMinutes: 10,
+      maxWaitWindowMinutes: 60,
+      isOpen: true,
+      nextClosingAt: null,
+      waitWindowMinutes: [15, 30, 45, 60],
+    }
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ unit: 'u1' }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('Reservation fee: ₱50.00.')
+    expect(html).toContain('Holding a unit needs a Seeker account.')
+    expect(html).toContain(`href="/login?returnUrl=%2Fspaces%2F${VALID_SPACE_ID}"`)
+  })
+
+  it('shows holdUnit’s refusal above the seat map, worded for the unit (design §3)', async () => {
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ unit: 'u1', refused: 'unit_not_available' }),
+    })
+    const html = renderToStaticMarkup(page)
+    expect(html).toContain('data-testid="hold-refusal"')
+    expect(html).toContain('Someone else just took D1. Pick another unit.')
+  })
+
+  it('ignores a refused value that is not a known reason', async () => {
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ unit: 'u1', refused: '<b>hi</b>' }),
+    })
+    expect(renderToStaticMarkup(page)).not.toContain('data-testid="hold-refusal"')
   })
 
   it('emits data-testid="seeker-space-closed" only once when closed and a unit is selected', async () => {

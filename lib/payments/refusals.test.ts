@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { HOLD_REFUSAL_FALLBACK, holdRefusalMessage } from './refusals'
+import {
+  HOLD_REFUSAL_FALLBACK,
+  holdRefusalMessage,
+  holdRefusalReason,
+  parseHoldRefusalReason,
+} from './refusals'
 
 // Every hint in STORY-09 design §3's refusal table has its message.
 
@@ -46,6 +51,30 @@ describe('holdRefusalMessage', () => {
     }
     expect(HOLD_REFUSAL_FALLBACK).toBe(
       'We could not hold the unit. Check your connection and try again.',
+    )
+  })
+})
+
+describe('holdRefusalReason and parseHoldRefusalReason', () => {
+  it('turns hold_unit errors into reasons by code and hint', () => {
+    expect(holdRefusalReason('P0001', 'unit_not_available')).toBe('unit_not_available')
+    expect(holdRefusalReason('P0001', 'seeker_has_hold')).toBe('seeker_has_hold')
+    expect(holdRefusalReason('42501', undefined)).toBe('not_seeker')
+    expect(holdRefusalReason('P0001', 'made_up')).toBe('error')
+    expect(holdRefusalReason('XX000', 'unit_not_available')).toBe('error')
+    expect(holdRefusalReason(undefined, undefined)).toBe('error')
+  })
+
+  it('reads back only a known reason from the URL', () => {
+    expect(parseHoldRefusalReason('space_closed')).toBe('space_closed')
+    expect(parseHoldRefusalReason('<script>')).toBeNull()
+    expect(parseHoldRefusalReason(['space_closed'])).toBeNull()
+    expect(parseHoldRefusalReason(undefined)).toBeNull()
+  })
+
+  it('says only Seekers can hold for not_seeker (N5)', () => {
+    expect(holdRefusalMessage('not_seeker', context)).toBe(
+      'Only Seeker accounts can hold units.',
     )
   })
 })

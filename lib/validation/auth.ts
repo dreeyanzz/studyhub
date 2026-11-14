@@ -11,14 +11,16 @@ const emailSchema = z
   .min(1, { error: 'Email is required' })
   .pipe(z.email({ error: 'Please enter a valid email address' }))
 
+// An unsafe returnUrl is dropped rather than failing the form (STORY-03 §2).
+const returnUrlSchema = z
+  .string()
+  .optional()
+  .transform((url) => toSafePath(url) ?? undefined)
+
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, { error: 'Password is required' }),
-  // An unsafe returnUrl is dropped rather than failing the login (STORY-03 §2).
-  returnUrl: z
-    .string()
-    .optional()
-    .transform((url) => toSafePath(url) ?? undefined),
+  returnUrl: returnUrlSchema,
 })
 
 export type LoginInput = z.infer<typeof loginSchema>
@@ -46,6 +48,8 @@ export const registerSchema = z
     role: z.enum(registrationRoles, {
       error: 'Please select whether you are a Seeker or a Host',
     }),
+    // A hold prompt sends people here with its Space profile (D-058, STORY-09).
+    returnUrl: returnUrlSchema,
   })
   .refine((data) => data.password === data.confirmPassword, {
     error: 'Passwords do not match',

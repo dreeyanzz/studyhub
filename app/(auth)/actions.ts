@@ -7,7 +7,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 
-import { dashboardFor, landingPathFor } from '@/lib/auth/role-guard'
+import { landingPathFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
 import { loginSchema, registerSchema } from '@/lib/validation/auth'
 
@@ -69,7 +69,7 @@ export async function register(
     return { fieldErrors: z.flattenError(parsed.error).fieldErrors, values }
   }
 
-  const { fullName, email, password, role } = parsed.data
+  const { fullName, email, password, role, returnUrl } = parsed.data
   const origin = (await headers()).get('origin')
   const supabase = await createClient()
   // The sign-up trigger creates the profile from this metadata, and refuses any
@@ -79,7 +79,10 @@ export async function register(
     password,
     options: {
       data: { full_name: fullName, role },
-      emailRedirectTo: origin ? `${origin}/api/auth/callback` : undefined,
+      // The confirmation link keeps the returnUrl, so it lands there too (D-058).
+      emailRedirectTo: origin
+        ? `${origin}/api/auth/callback${returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ''}`
+        : undefined,
     },
   })
   if (error) {
@@ -99,7 +102,7 @@ export async function register(
     return { notice: 'Check your email for a link to confirm your account.', values }
   }
 
-  redirect(dashboardFor(role))
+  redirect(landingPathFor(role, returnUrl))
 }
 
 export async function signOut() {
