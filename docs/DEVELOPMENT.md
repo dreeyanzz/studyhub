@@ -17,7 +17,9 @@ The Vercel project is `studyhub`, in Adrian's account. Until the production proj
 exists, its production deployment (worqph.vercel.app) and its previews use the cloud dev
 project's URL and publishable key, the only two settings it has. Payments there need
 `SUPABASE_SECRET_KEY`, `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` added in Vercel,
-and the webhook registered in the Stripe Dashboard (STORY-09 design, "Stripe settings").
+and the webhook registered in the Stripe Dashboard with API version `2026-10-28.endive`,
+the one the code pins (D-070, STORY-09 design, "Stripe settings"). Leave the sandbox's default
+API version on it too, because `stripe listen` renders events at the default.
 
 The Supabase free plan allows two active projects (dev and production). It pauses a
 project after about a week without activity, so wake it the day before any demo.

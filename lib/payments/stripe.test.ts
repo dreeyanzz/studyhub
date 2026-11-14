@@ -87,7 +87,7 @@ describe('checkoutSessionForm (D-070)', () => {
 })
 
 describe('createCheckoutSession', () => {
-  it('posts the form with the secret key, and returns the id and URL', async () => {
+  it('posts the form with the secret key and the pinned API version, and returns the id and URL', async () => {
     const fetchStub = vi.fn<typeof fetch>(async () =>
       jsonResponse(200, {
         id: 'cs_test_1',
@@ -106,6 +106,8 @@ describe('createCheckoutSession', () => {
     expect(init?.headers).toMatchObject({
       Authorization: 'Bearer sk_test_example',
       'Content-Type': 'application/x-www-form-urlencoded',
+      // D-070: the sandbox's default on 2026-11-14, so events and API answers keep one shape.
+      'Stripe-Version': '2026-10-28.endive',
     })
     expect(new URLSearchParams(String(init?.body)).get('metadata[reservation_id]')).toBe(
       input.reservationId,

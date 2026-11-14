@@ -33,6 +33,13 @@ export function sandboxSecretKey(env: Env = process.env): string {
   return key
 }
 
+/**
+ * The Stripe API version every call asks for (D-070): the sandbox's default on
+ * 2026-11-14, which the Dashboard endpoint and `stripe listen` events also use.
+ * Changing it changes D-070 and the endpoint too.
+ */
+export const STRIPE_API_VERSION = '2026-10-28.endive'
+
 /** STRIPE_API_URL lets a test point the calls at a stub. */
 export function stripeApiUrl(env: Env = process.env): string {
   return (env.STRIPE_API_URL?.trim() || 'https://api.stripe.com').replace(/\/+$/, '')
@@ -95,6 +102,7 @@ async function post(
     headers: {
       Authorization: `Bearer ${sandboxSecretKey(env)}`,
       'Content-Type': 'application/x-www-form-urlencoded',
+      'Stripe-Version': STRIPE_API_VERSION,
     },
     body: form?.toString() ?? '',
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),

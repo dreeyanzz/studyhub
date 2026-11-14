@@ -81,7 +81,7 @@ describe('handleStripeWebhook: before the database', () => {
     expect(confirmPayment).not.toHaveBeenCalled()
   })
 
-  it('rejects a signed body that is not JSON, or not an event, with 400', async () => {
+  it('rejects a signed body that is not JSON, or not an event, with 400 (W24)', async () => {
     expect((await run('not json').result).status).toBe(400)
     expect(await run('{"hello":"world"}').result).toEqual({
       status: 400,
@@ -89,14 +89,14 @@ describe('handleStripeWebhook: before the database', () => {
     })
   })
 
-  it('refuses a live-mode event, even one correctly signed (D-005)', async () => {
+  it('refuses a live-mode event, even one correctly signed (W24, D-005)', async () => {
     const { result, confirmPayment, log } = run(completedEvent({ livemode: true }))
     expect(await result).toEqual({ status: 400, body: { error: 'livemode_refused' } })
     expect(confirmPayment).not.toHaveBeenCalled()
     expect(log).toHaveBeenCalled()
   })
 
-  it('answers other event types 200 and ignores them', async () => {
+  it('answers other event types 200 and ignores them (W23)', async () => {
     const { result, confirmPayment } = run(
       completedEvent({ type: 'checkout.session.expired' }),
     )
@@ -107,7 +107,7 @@ describe('handleStripeWebhook: before the database', () => {
     expect(confirmPayment).not.toHaveBeenCalled()
   })
 
-  it("answers a completed checkout that isn't paid 200 and ignores it", async () => {
+  it("answers a completed checkout that isn't paid 200 and ignores it (W23)", async () => {
     const { result, confirmPayment } = run(
       completedEvent({ session: { payment_status: 'unpaid', payment_intent: null } }),
     )
@@ -118,7 +118,7 @@ describe('handleStripeWebhook: before the database', () => {
     expect(confirmPayment).not.toHaveBeenCalled()
   })
 
-  it('logs a paid checkout with no reservation, from outside Worq, and answers 200', async () => {
+  it('logs a paid checkout with no reservation, from outside Worq, and answers 200 (W23)', async () => {
     for (const metadata of [{}, null, { reservation_id: 'not-a-uuid' }]) {
       const { result, confirmPayment, log } = run(
         completedEvent({ session: { metadata } }),
@@ -132,7 +132,7 @@ describe('handleStripeWebhook: before the database', () => {
     }
   })
 
-  it('rejects a paid checkout with no PaymentIntent with 400', async () => {
+  it('rejects a paid checkout with no PaymentIntent with 400 (W24)', async () => {
     const { result, confirmPayment } = run(
       completedEvent({ session: { payment_intent: null } }),
     )
