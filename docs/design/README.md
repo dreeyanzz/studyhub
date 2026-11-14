@@ -66,7 +66,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-08 | [STORY-08-geo-discovery.md](STORY-08-geo-discovery.md)             | draft                                                               |
 | STORY-09 | [STORY-09-reserve-now-holds.md](STORY-09-reserve-now-holds.md)     | approved 2026-11-08                                                 |
 | STORY-10 | [STORY-10-check-in-release.md](STORY-10-check-in-release.md)       | approved 2026-11-13                                                 |
-| STORY-11 | [STORY-11-space-profile.md](STORY-11-space-profile.md)             | approved 2026-11-04                                                 |
+| STORY-11 | [STORY-11-space-profile.md](STORY-11-space-profile.md)             | implemented 2026-11-14                                              |
 | STORY-12 | [STORY-12-host-occupancy.md](STORY-12-host-occupancy.md)           | implemented 2026-11-10                                              |
 | STORY-13 |                                                                    | not written                                                         |
 | STORY-14 |                                                                    | not written                                                         |

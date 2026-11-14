@@ -13,11 +13,20 @@ import { spaceIdSchema } from '@/lib/validation/space'
 import { AvailabilitySummary } from './_components/availability-summary'
 import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
+import { SpaceTags, type CuratedTagData } from './_components/space-tags'
 import { SpaceSeatMapView } from './_components/space-seat-map-view'
 
 // Discovery search lives at /spaces (STORY-08 design §1, step S1), so the back
 // link and the closed and no-units notices return there.
 const DISCOVERY_HREF = '/spaces'
+
+// Canonical curated amenity category order matching the Host tagging form (STORY-08 design §3).
+const CATEGORY_ORDER: Record<string, number> = {
+  wifi: 0,
+  power: 1,
+  noise: 2,
+  ac: 3,
+}
 
 /**
  * The Space, or null when the id is malformed, the Space is missing, or it isn't
@@ -36,7 +45,7 @@ const getVerifiedSpace = cache(async (rawSpaceId: string) => {
   const supabase = await createClient()
   const { data: space } = await supabase
     .from('spaces')
-    .select('id, name, description, address, opens_at, closes_at, status')
+    .select('id, name, description, address, opens_at, closes_at, price_tier, status')
     .eq('id', parsedId.data)
     .maybeSingle()
 
@@ -54,14 +63,15 @@ export async function generateMetadata({
 }
 
 /**
- * Public Space Profile Server Component (STORY-11 design §0, §1, §3 Screen 1, FR-1.3, D-055).
+ * Public Space Profile Server Component (STORY-11 design §0, §1, §3 Screen 1, FR-1.3, D-055, TSK-11.6).
  *
  * Enforces verified check (D-055): returns 404 notFound() for missing spaces,
  * invalid UUIDs, or hidden (pending/rejected) spaces, leaking no information
  * even to their owning Host or Administrators.
  *
- * Renders header with open/closed status badge, photo gallery, availability overview,
- * seat map grid / list view with unit selection, and closed / no-available-unit notices.
+ * Renders header with open/closed status badge, photo gallery, curated and custom tag
+ * presentation (D-006), availability overview, seat map grid / list view with unit selection,
+ * and closed / no-available-unit notices.
  */
 export default async function SpaceProfilePage({
   params,
@@ -84,11 +94,25 @@ export default async function SpaceProfilePage({
   }
 
   const supabase = await createClient()
-  const [zones, { data: storageFiles }] = await Promise.all([
+  const [
+    zones,
+    { data: storageFiles },
+    { data: curatedTagRows },
+    { data: customTagRows },
+  ] = await Promise.all([
     getSeatMap(supabase, space.id),
     supabase.storage.from('space-photos').list(space.id, {
       sortBy: { column: 'created_at', order: 'asc' },
     }),
+    supabase
+      .from('space_curated_tags')
+      .select('tag_id, curated_tags(id, category, label, display_order)')
+      .eq('space_id', space.id),
+    supabase
+      .from('space_custom_tags')
+      .select('name')
+      .eq('space_id', space.id)
+      .order('created_at'),
   ])
   const availability = computeSpaceAvailability(zones)
   const operatingStatus = computeOperatingStatus(space.opens_at, space.closes_at)
@@ -100,6 +124,23 @@ export default async function SpaceProfilePage({
       url: supabase.storage.from('space-photos').getPublicUrl(`${space.id}/${f.name}`)
         .data.publicUrl,
     }))
+
+  const curatedTags: CuratedTagData[] = (curatedTagRows ?? [])
+    .map((row) => row.curated_tags)
+    .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag?.id && tag?.label))
+    .sort((a, b) => {
+      const catDiff =
+        (CATEGORY_ORDER[a.category] ?? 99) - (CATEGORY_ORDER[b.category] ?? 99)
+      if (catDiff !== 0) return catDiff
+      const orderDiff = (a.display_order ?? 0) - (b.display_order ?? 0)
+      if (orderDiff !== 0) return orderDiff
+      return a.label.localeCompare(b.label)
+    })
+    .map(({ id, category, label }) => ({ id, category, label }))
+
+  const customTags: string[] = (customTagRows ?? [])
+    .map((row) => row.name)
+    .filter(Boolean)
 
   return (
     <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6">
@@ -116,6 +157,9 @@ export default async function SpaceProfilePage({
       <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
 
       <SpacePhotoGallery spaceName={space.name} photos={photos} />
+
+      {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
+      <SpaceTags curatedTags={curatedTags} customTags={customTags} />
 
       {!operatingStatus.isOpen && (
         <Alert

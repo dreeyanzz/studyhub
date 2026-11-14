@@ -1,6 +1,6 @@
 # STORY-11: Space profile and host-updated availability
 
-**Status:** approved 2026-11-04 · **Owner:** @fayeye-09 · **Story:** #76 · **FR:** FR-1.3, FR-3.1, SRS §3.2.2 ·
+**Status:** implemented 2026-11-14 · **Owner:** @fayeye-09 · **Story:** #76 · **FR:** FR-1.3, FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-02, STORY-05, STORY-07, STORY-08 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Space verification](../flows/space-verification.md), [Host setup journey](../flows/host-setup-journey.md), [Seeker journey](../flows/seeker-journey.md) ·
 **Decisions:** D-002, D-006, D-009, D-010, D-027, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-049, D-051, D-055, D-057, D-058, D-062, D-063
@@ -84,7 +84,7 @@ sequenceDiagram
         P-->>B: notFound() [404]
     end
 
-    P->>DB: SELECT id, name, description, address, opens_at, closes_at, status FROM spaces WHERE id = spaceId
+    P->>DB: SELECT id, name, description, address, opens_at, closes_at, price_tier, status FROM spaces WHERE id = spaceId
     alt Space missing or status != 'verified' (D-055)
         DB-->>P: 0 rows (or Hidden Space row)
         P-->>B: notFound() [404: hidden Space reads as nonexistent]
@@ -161,9 +161,10 @@ sequenceDiagram
 
 ### Tables and storage bucket
 
-This story introduces no new database migrations (D-036). It consumes tables and storage created by STORY-01, STORY-05, and STORY-07:
+This story introduces no new database migrations (D-036). It consumes tables and storage created by STORY-01, STORY-05, STORY-07, and STORY-08:
 
-- **`spaces` (read-only):** reads `id`, `name`, `description`, `address`, `opens_at`, `closes_at`, and `status`. Only rows where `status = 'verified'` are exposed on public routes (D-055).
+- **`spaces` (read-only):** reads `id`, `name`, `description`, `address`, `opens_at`, `closes_at`, `price_tier`, and `status`. Only rows where `status = 'verified'` are exposed on public routes (D-055).
+- **`space_curated_tags`, `curated_tags`, and `space_custom_tags` (read-only):** created by STORY-08; read on `/spaces/[spaceId]` to display curated amenity badges (sorted by category and `display_order`) and Host custom tags (`created_at ASC`).
 - **`zones` and `units` (read-only):** read via `getSeatMap(supabase, spaceId)` (`lib/data/seat-map.ts`), which joins `units` with `public.unit_states(space_id)` (D-047). Types and layout conventions follow [STORY-07 design §3](STORY-07-seat-map-builder.md#the-shared-renderer-tsk-074): rows count from 0, and `waitWindowEndsAt` and `reservationId` are returned only to the Space's Host (`null` for a Seeker, D-057).
 - **`space-photos` bucket (D-063):**
   - Storage path convention: `<spaceId>/<filename>`. Filename is generated as `<random-uuid>.<ext>` on the server.
@@ -440,9 +441,43 @@ One PR per row, and every PR targets `main`. Each UI task includes responsive ch
 
 ## 9. After the build
 
-Fill this in when the story is done:
+Implemented 2026-11-14. All six tasks were built in the §6 order:
 
-- what turned out different from this plan, and why
-- the status line changed to `implemented YYYY-MM-DD`
-- the docs this story changed
-- who verified each acceptance criterion
+| Task         | PR   | What it added                                                                                                                                                                  | Who built it                                            |
+| :----------- | :--- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------ |
+| **TSK-11.1** | #271 | Operating status (`computeOperatingStatus`), relative freshness (`freshness.ts`), zone availability (`availability.ts`), and photo validation (`space-photos.ts`) + unit tests | @fayeye-09                                              |
+| **TSK-11.2** | #274 | Host photo management route (`/host/spaces/[spaceId]/photos`), signed upload URL Server Actions, in-place `?remove=` confirmation, and `SpaceList` "Photos" link               | @fayeye-09                                              |
+| **TSK-11.3** | #276 | Public Space profile shell (`/spaces/[spaceId]`), `getVerifiedSpace` 404 check (D-055), header with open/closed badge, and closed / no-units notices linking to `/spaces`      | @fayeye-09                                              |
+| **TSK-11.4** | #283 | Responsive Space photo gallery and carousel (`space-photo-gallery.tsx`) with `next/image`, chronological listing, keyboard/touch controls, thumbnails, and empty fallback      | @JamesNino-Mandawe                                      |
+| **TSK-11.5** | #284 | Zone availability summary (`availability-summary.tsx`), hydration-safe `FreshnessBadge`, `SeatMapGrid` and accessible list view (`space-unit-list.tsx`), and STORY-09 slot     | @fayeye-09                                              |
+| **TSK-11.6** | #285 | Curated and Host custom tag presentation (`space-tags.tsx`, D-006), `PriceTierBadge` integration on the profile header (`FR-1.3`, `D-027`), and story close-out                | @fayeye-09 (price tier badge and close-out: @dreeyanzz) |
+
+### What differed from this plan
+
+- **Shared Space helpers folder (`lib/space/`, #271):** §0 and §3 named `lib/spaces/`, while §0 noted that whichever of TSK-11.1 or TSK-15.2 landed first would create the folder. STORY-15 landed first with `lib/space/format.ts` (`formatOpeningHours` and `formatDateTime`), so STORY-11 placed `computeOperatingStatus`, `freshness.ts`, and `availability.ts` in `lib/space/`.
+- **Host photo upload & removal (#274):** `PhotoGrid` uses alt text `${spaceName}, ${index + 1} of ${total}` to satisfy ESLint's `jsx-a11y/img-redundant-alt` rule; `ConfirmPhotoRemoval` uses `useActionState(deletePhoto, {})` and focuses `<h2 id="confirm-heading">` when `#confirm` opens.
+- **Profile Space lookup & discovery links (#276):** `page.tsx` wraps `getVerifiedSpace` in React `cache()` so `generateMetadata` and `SpaceProfilePage` share one query per request, and points all discovery back/fallback links to `/spaces` (STORY-08 design §1, step S1).
+- **Local Storage image optimization & carousel a11y (#283):** `next.config.ts` enables `images.dangerouslyAllowLocalIP` in development (`NODE_ENV === 'development'`) because Next.js 16 blocks image optimization from `127.0.0.1:54321` by default; the hero image uses Next.js 16's `preload` prop instead of deprecated `priority`; the empty-state title uses `<p>` instead of `<h3>` directly under `<h1>`.
+- **Hydration-safe freshness & STORY-09 hold slot (#284):** `FreshnessBadge` (`components/space/freshness-badge.tsx`) uses `useSyncExternalStore` (`useFreshnessNow`) to render Manila time on SSR and relative `"Host-updated · X min ago"` after hydration; `SpaceSeatMapView` accepts both `renderSelectedUnitAction` and a server-rendered `selectedUnitActionSlot` (guarded by `selectedUnit.id === initialSelectedUnitId`, STORY-09 design §8), uses `<Link scroll={false}>` for `?view=` and `?unit=` switches, and uses `data-testid="selected-unit-space-closed"` inside the selected-unit panel so `data-testid="seeker-space-closed"` stays unique on the page.
+- **Tag presentation, price tier badge & heading order (#285):** `SpaceProfileHeader` renders `<PriceTierBadge tier={space.price_tier} showSymbol />` (`components/discovery/price-tier-badge.tsx`) alongside the operating hours and status badge (`FR-1.3`, `D-027`); `page.tsx` queries `space_curated_tags` joined with `curated_tags(id, category, label, display_order)` and sorts curated tags deterministically by category (`wifi`, `power`, `noise`, `ac`) and `display_order`; `SpaceTags` uses `<h2>` headings for `"Curated Amenities"` and `"Host custom tags"` (avoiding an `h1` → `h3` skip) and wraps tag pills with `max-w-full min-w-0 wrap-anywhere` so 30-character unhyphenated custom tags wrap without horizontal overflow at 360 px and 200% text zoom. The `#` before each custom tag is hidden from screen readers, which read the list as "Host custom tags".
+- **Tags on the profile only (#285):** §5 and §6 put tags on the profile, the list view and the selected-unit panel. STORY-08 built tags for whole Spaces only (`space_curated_tags` and `space_custom_tags`), not for units, although D-006 says tags exist at both levels. With no unit tags to show, the list view and the selected-unit panel show none, and the Space's tags appear once, on the profile.
+
+### Docs changed by this story
+
+- `docs/design/STORY-11-space-profile.md` (this doc, status `implemented 2026-11-14`, §1, §2, §3, and §9)
+- `docs/design/README.md` (status updated to `implemented 2026-11-14`)
+- `AGENTS.md` (updated layout notes for `(public)/spaces/[spaceId]/`, `(dashboard)/host/` photo page, `lib/space/`, and `lib/validation/` Space photo rules in #271, #274, #276)
+
+### Acceptance criteria (#76)
+
+The unit tests named below run in `npm run check`. No Playwright spec covers the profile yet. The page checks ran signed out, on the local Supabase stack, against seeded Kapihan Study Hall in headless Edge, in Adrian's reviews of two PRs, both written with Claude:
+
+- #283 (2026-11-12), with three photos placed on Kapihan.
+- #285 (2026-11-14), with five curated and five custom tags placed on Kapihan and removed afterwards.
+
+| Criterion                                                                                                                          | How it was verified                                                                                                                                                                                                                                                                                                                                                                                         |
+| :--------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **The availability view shows Available units per zone and when it was last updated (`"Host-updated · X min ago"`, never "live")** | Unit tests: `lib/space/availability.test.ts`, `lib/space/freshness.test.ts`, `availability-summary.test.tsx` and `components/space/freshness-badge.test.tsx`. On the page (#285's review): each zone shows its Available and total counts with `Host-updated · 3 d ago`, and the page never says "live" or "real-time" (D-002, D-051).                                                                      |
+| **Custom tags are visibly distinct from curated tags, and are never offered as filters**                                           | Unit tests: `space-tags.test.tsx` and `page.test.tsx`. On the page (#285's review): curated tags are green pills with icons, custom tags are grey outlined pills with `#` under "Host custom tags", and the tag section has no links, buttons or Tab stops. Discovery filters read only `space_curated_tags` (`lib/data/spaces.ts`).                                                                        |
+| **The accessible list view shows every unit's state and is fully keyboard navigable**                                              | Unit tests: `space-unit-list.test.tsx` and `space-seat-map-view.test.tsx`. On `?view=list` (#285's review): all 14 units show their label, type, room capacity, state and freshness. Tab reaches every unit's Select link (62×48 px) with a visible focus ring, Enter selects it, and axe finds no WCAG 2.1 A/AA violations.                                                                                |
+| **The profile renders responsively without horizontal scrolling at 360, 768 and 1024 px**                                          | At 360, 768 and 1024 px, with text at 100% and 200%, the page never scrolls sideways: with three photos (#283's review), and with tags, zone chips, the seat map and the list view (#285's review). One exception: at 360 px with text at 200%, the seat map scrolls sideways inside its own box (STORY-07's renderer wraps it in `overflow-x-auto`). The list view shows the same units without scrolling. |
