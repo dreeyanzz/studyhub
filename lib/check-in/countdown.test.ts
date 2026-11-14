@@ -30,6 +30,14 @@ describe('secondsRemaining (STORY-10, FR-3.3)', () => {
     const deadline = new Date('2026-11-14T00:30:00.000Z') // 1800s
     expect(secondsRemaining(deadline, now)).toBe(1800)
   })
+
+  it('rounds up, so it reaches 0 only once the deadline has passed', () => {
+    const now = new Date('2026-11-14T00:00:00.000Z')
+    expect(secondsRemaining(new Date('2026-11-14T00:00:00.500Z'), now)).toBe(1)
+    expect(secondsRemaining(new Date('2026-11-14T00:00:00.001Z'), now)).toBe(1)
+    expect(secondsRemaining(new Date('2026-11-14T00:01:29.500Z'), now)).toBe(90)
+    expect(secondsRemaining(new Date('2026-11-13T23:59:59.500Z'), now)).toBe(0)
+  })
 })
 
 describe('formatCountdown (STORY-10)', () => {

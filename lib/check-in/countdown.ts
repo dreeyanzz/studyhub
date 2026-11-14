@@ -11,6 +11,11 @@
  * Returns the number of whole seconds remaining until `deadline`.
  * Clamps to 0 — never returns a negative value.
  *
+ * Rounds up, so it returns 0 only once the deadline has passed. The server ends
+ * a wait window when `wait_window_ends_at <= now` (`private.record_lapses`), and
+ * the Seeker's card reloads at zero (design §3): rounding down would show 00:00
+ * and reload while the reservation is still Reserved.
+ *
  * @param deadline - ISO string or Date representing the wait window end time.
  * @param now      - Reference time (defaults to `new Date()`). Inject in tests.
  */
@@ -20,7 +25,7 @@ export function secondsRemaining(
 ): number {
   const deadlineMs =
     typeof deadline === 'string' ? new Date(deadline).getTime() : deadline.getTime()
-  const diff = Math.floor((deadlineMs - now.getTime()) / 1000)
+  const diff = Math.ceil((deadlineMs - now.getTime()) / 1000)
   return Math.max(0, diff)
 }
 
