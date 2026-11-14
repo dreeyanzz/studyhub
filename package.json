@@ -23,7 +23,7 @@
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
-    "db:race": "node supabase/tests/race/holds.race.mjs",
+    "db:race": "node supabase/tests/race/holds.race.mjs && node supabase/tests/race/check-in.race.mjs",
     "db:new": "supabase migration new",
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:accounts": "node --env-file=.env.local scripts/register-cloud-accounts.mjs",

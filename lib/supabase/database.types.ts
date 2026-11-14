@@ -450,6 +450,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      check_in: { Args: { p_space_id: string; p_token: string }; Returns: Json }
+      check_out: { Args: { p_reservation_id: string }; Returns: Json }
       confirm_payment: {
         Args: {
           p_checkout_session_id: string
@@ -482,6 +484,7 @@ export type Database = {
         Args: { p_reservation_id?: string }
         Returns: {
           booking_token: string
+          checked_in_at: string
           checkout_session_id: string
           checkout_url: string
           created_at: string
