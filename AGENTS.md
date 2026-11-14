@@ -87,14 +87,18 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/` (with STORY-11's Space profile in `spaces/[spaceId]/`), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
+`(public)/` (with STORY-08's discovery map in `spaces/` and STORY-11's Space profile in `spaces/[spaceId]/`), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
 `(dashboard)/seeker/` portal, STORY-05's Host portal and Space actions in
-`(dashboard)/host/` (with STORY-12's occupancy views and actions, and STORY-11's photo
-page), and STORY-15's Administrator portal in `(dashboard)/admin/`),
+`(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
+page and STORY-08's tags page), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
-(STORY-02's six primitives and STORY-12's `alert-dialog`), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
+(STORY-02's six primitives and STORY-12's `alert-dialog`), `components/discovery/`
+(STORY-08's Space card and price tier badge), `components/seat-map/` (STORY-07's shared
+renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/check-in/` (STORY-10's booking token normalization and
-wait-window countdown), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
+wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search
+and STORY-09's reservation queries), `lib/geo/` (STORY-08's Haversine distance and
+campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
 (STORY-09's Stripe checkout, webhook and hold refusals), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
@@ -104,7 +108,7 @@ only, and the generated types),
 search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
 test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, and STORY-08's discovery accessibility test) and `docs/`. The other route groups and
-`app/api/` routes, `components/<domain>/`, `hooks/` and `lib/data/` arrive with the stories that need them.
+`app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
 
 ## Commands
 
