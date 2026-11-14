@@ -1,6 +1,6 @@
 # STORY-08: Map discovery and curated tag filters
 
-**Status:** draft · **Owner:** @lukedongque · **Story:** #57 · **FR:** FR-1.1, FR-1.2, FR-5.1 ·
+**Status:** implemented 2026-11-13 · **Owner:** @lukedongque · **Story:** #57 · **FR:** FR-1.1, FR-1.2, FR-5.1 ·
 **Depends on:** none ·
 **Flows:** [Space verification](../flows/space-verification.md) (approved), [Host setup journey](../flows/host-setup-journey.md) (approved), [Seeker journey](../flows/seeker-journey.md) (approved) ·
 **Decisions:** D-003, D-006, D-007, D-010, D-012, D-027, D-037, D-042, D-044, D-048, D-055, D-066
@@ -637,18 +637,57 @@ Every PR targets `main` and includes its relevant tests.
 
 ## 9. After the build
 
-_(To be completed when the story is merged and implemented)_
+- **Status line changed to:** `implemented 2026-11-13`
 
-- What turned out different from this plan, and why:
-  - **TSK-08.5:** `SpaceForm` lives at `app/(dashboard)/host/_components/space-form.tsx` (STORY-05's location), not under `host/spaces/_components/` as §3 lists; the change went to the existing file rather than a copy.
-  - **TSK-08.5:** `spaceSchema` now refuses one coordinate without the other, so no Space is stored with half a pin, and its coordinate errors read in plain words. The form takes typed coordinates; a map pin picker was left out (§0 allowed either).
-  - **TSK-08.5:** The Host portal's Space cards gained a "Tags" link to `/host/spaces/[spaceId]/tags`, next to Seat map and Photos, so step H8 is reachable.
-  - **TSK-08.5:** `saveSpaceTagsAction` writes only the differences (deletes, then inserts), and checks curated ids against `curated_tags` first, so an unknown id changes nothing.
-  - **TSK-08.6:** Leaflet draws its zoom buttons at 30×30 px. `app/(public)/spaces/leaflet-overrides.css`, loaded after `leaflet.css`, makes them 48×48 (D-031). Tailwind classes can't: `leaflet.css` isn't in a cascade layer, so it beats Tailwind's utilities.
-  - **TSK-08.6:** Two kinds of target stay below 48 px on purpose. Each card's title link is 21 px tall, but the card's 48 px "View Space" link goes to the same page (WCAG's equivalent-control exception). The map's OpenStreetMap attribution links are inline text that the map tiles' licence requires.
-  - **TSK-08.6:** At 200% text the search row wrapped past the screen edge at 360 and 768 px. The Search button now drops under the field instead.
-  - **TSK-08.6:** The mobile filter drawer is modal for the keyboard too: focus moves into it, Tab stays inside it, and closing it returns focus to the Filters button. "Reset all filters" moves focus to the results list, since the button itself disappears.
-  - **TSK-08.6:** `e2e/discovery-a11y.spec.ts` measures sideways scrolling at 360, 768 and 1024 px with text at 100% and 200%, the size of every control, and keyboard focus. The unit tests only read the markup.
-- Status line changed to: `implemented YYYY-MM-DD`
-- Docs this story changed:
-- Who verified each acceptance criterion:
+### Pull requests
+
+In build order:
+
+1. **TSK-08.1 (#238):** #244 (`feature/STORY-08-tags-migration`). Database migration for space coordinates, price tier, curated and custom tag tables, RLS policies, revoke all, and pgTAP tests (Luke).
+2. **TSK-08.2 (#239):** #257 (`feature/STORY-08-validation-query`). Zod validation schemas (`search.ts`, `tags.ts`, updated `space.ts`), Haversine distance logic, campus dictionary, and `searchVerifiedSpaces` query helper (Luke).
+3. **TSK-08.3 (#240):** #273 (`feature/STORY-08-map-list`). Interactive Leaflet discovery map component with custom SVG pin markers, synchronized space card list, and bidirectional pin/card highlighting (Luke).
+4. **TSK-08.4 (#241):** #279 (`feature/STORY-08-filters`). Multi-criteria curated filter panel, mobile responsive filter drawer (strict AND logic), campus search bar, and geolocation trigger (Luke).
+5. **TSK-08.5 (#242):** #278 (`feature/STORY-08-host-tags`). Host space tagging form at `/host/spaces/[spaceId]/tags`, Server Action `saveSpaceTagsAction`, and coordinate/price tier inputs in `SpaceForm` (Luke).
+6. **TSK-08.6 (#243):** #281 (`feature/STORY-08-polish-a11y`). Responsive integration, accessibility audit (WCAG 2.1 AA, 48px touch targets, aria-live), keyboard drawer focus trap, and empty state reset (Luke).
+
+### What turned out different from this plan, and why
+
+- **TSK-08.1:** Custom tag uniqueness per Space is enforced case-insensitively with a PostgreSQL unique index on `(space_id, lower(name))` (`space_custom_tags_space_lower_name_idx`), matching the Zod schema's duplicate check.
+- **TSK-08.2:** Query helper `searchVerifiedSpaces` strictly queries `.eq('status', 'verified')` (D-055), applies strict `AND` tag matching using junction table grouping (`HAVING count(distinct tag_id) = :num_tags`), filters `price_tier` directly, and evaluates dynamic opening hours in `Asia/Manila` (D-048). Empty string coordinate parameters (`?lat=&lng=`) are preprocessed to `undefined` (prevents Null Island placement).
+- **TSK-08.3:** Custom SVG pin markers (`L.divIcon`) are used instead of default Leaflet PNG marker assets to prevent broken image asset URLs in Next.js bundlers. Dynamic import with `ssr: false` isolates Leaflet from Node SSR.
+- **TSK-08.4:** Geolocation integration uses standard W3C `navigator.geolocation` paired with client-side Haversine calculation (`lib/geo/haversine.ts`) to avoid external geo IP lookups.
+- **TSK-08.5:** `SpaceForm` lives at `app/(dashboard)/host/_components/space-form.tsx` (STORY-05's location), not under `host/spaces/_components/` as §3 lists; the change went to the existing file rather than a copy.
+- **TSK-08.5:** `spaceSchema` now refuses one coordinate without the other, so no Space is stored with half a pin, and its coordinate errors read in plain words. The form takes typed coordinates; a map pin picker was left out (§0 allowed either).
+- **TSK-08.5:** The Host portal's Space cards gained a "Tags" link to `/host/spaces/[spaceId]/tags`, next to Seat map and Photos, so step H8 is reachable.
+- **TSK-08.5:** `saveSpaceTagsAction` writes only the differences (deletes, then inserts), and checks curated ids against `curated_tags` first, so an unknown id changes nothing.
+- **TSK-08.6:** Leaflet draws its zoom buttons at 30×30 px. `app/(public)/spaces/leaflet-overrides.css`, loaded after `leaflet.css`, makes them 48×48 (D-031). Tailwind classes can't: `leaflet.css` isn't in a cascade layer, so it beats Tailwind's utilities.
+- **TSK-08.6:** Two kinds of target stay below 48 px on purpose. Each card's title link is 21 px tall, but the card's 48 px "View Space" link goes to the same page (WCAG's equivalent-control exception). The map's OpenStreetMap attribution links are inline text that the map tiles' licence requires.
+- **TSK-08.6:** At 200% text the search row wrapped past the screen edge at 360 and 768 px. The Search button now drops under the field instead.
+- **TSK-08.6:** The mobile filter drawer is modal for the keyboard too: focus moves into it, Tab stays inside it, and closing it returns focus to the Filters button. "Reset all filters" moves focus to the results list, since the button itself disappears.
+- **TSK-08.6:** `e2e/discovery-a11y.spec.ts` measures sideways scrolling at 360, 768 and 1024 px with text at 100% and 200%, the size of every control, and keyboard focus. The unit tests only read the markup.
+
+### Left open at the close-out
+
+- **Tag presentation on Space profile:** Handled by STORY-11 in TSK-11.6 (#285).
+- **Tags remain on the Space only (D-069):** Decision #292 confirmed that amenity and custom tags are assigned to Spaces, not individual units.
+- **Campus dictionary expansion:** `CEBU_CAMPUSES` in `lib/geo/campuses.ts` covers the primary Metro Cebu universities; additional campus locations or regional areas can be added incrementally without schema changes.
+
+### Docs this story changed
+
+`docs/DECISIONS.md` (D-027, D-055, D-066, D-069), `AGENTS.md` (the layout note, e2e test entry), `docs/flows/space-verification.md` (step N8), `docs/design/README.md`, and `docs/SPRINT-2.md`.
+
+### Final checks
+
+On `main` with every STORY-08 task merged: `npm run check` (typecheck, lint, format check, and all Vitest suites pass), `npm run build` with placeholder settings, `npm run db:test` (all pgTAP tests pass, including `supabase/tests/08-tags.sql`), and Playwright test `e2e/discovery-a11y.spec.ts`.
+
+### Acceptance criteria (#57)
+
+Checked by Luke on the local Supabase stack and in CI:
+
+| Criterion                                                                                                        | How it was verified                                                                                                                                                                                                                                                                    |
+| :--------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A typed place or campus name, or the device's location, renders matching Spaces as pins on the map and in a list | In #279 and #281, campus queries match against `CEBU_CAMPUSES` coordinates with text fallback; "Use my location" queries `navigator.geolocation` and computes Haversine distance; matching spaces render as custom SVG pins and synchronized cards in `SpaceCardList`.                 |
+| Selecting a pin shows the Space's name, price tier and distance, and links to its profile                        | In #273 and #281, pin click opens accessible popup with venue name, price tier badge, formatted distance in km, and direct link to `/spaces/[spaceId]`. Pin selection also scrolls and highlights the matching card in the list view.                                                  |
+| Two or more filters return only Spaces that satisfy all of them                                                  | In #257, #279, and #281, multi-criteria filtering implements strict `AND` logic via `searchVerifiedSpaces` using junction table aggregation (`HAVING count(distinct tag_id) = :num_tags`) and combined filters. Verified in `spaces.test.ts` and UI filter drawer tests.               |
+| A Space that isn't Verified never appears in results                                                             | In #244, pgTAP suite `supabase/tests/08-tags.sql` tests that anon/seeker queries to `spaces` and `space_curated_tags` return 0 rows for `pending` or `rejected` spaces (FR-5.1, D-055). In #257, `searchVerifiedSpaces` explicitly filters `.eq('status', 'verified')`.                |
+| Custom tags are never offered as filters                                                                         | In #244, `curated_tags` and `space_custom_tags` are strictly isolated tables (D-006, FR-1.3). In #278 and #279, filter options are populated exclusively from `curated_tags`; custom tags are display-only on Space profiles (TSK-11.6, #285) and are never rendered in filter panels. |
