@@ -158,6 +158,42 @@ describe('BookingQrCode (STORY-10, TSK-10.3)', () => {
     expect(decoded).toBe('ABCDEFGHJKMN')
   })
 
+  it('matches a known-good matrix for ABCDEFGHJKMN', () => {
+    // The test above reads the matrix back with this file's own placement rules, so a
+    // mistake the encoder and the reader share would pass it. This fixture would not:
+    // it comes from a separate Version 1-M encoder written after Nayuki's qrcodegen
+    // during the PR #300 review, which matched encodeQrMatrix for 504 tokens (mask 2
+    // here). A change to the mask scoring may pick another valid mask: scan the new
+    // code with a phone before replacing the fixture.
+    const expected = [
+      '#######..#..#.#######',
+      '#.....#....#..#.....#',
+      '#.###.#.###.#.#.###.#',
+      '#.###.#.#...#.#.###.#',
+      '#.###.#.##.##.#.###.#',
+      '#.....#.#.#.#.#.....#',
+      '#######.#.#.#.#######',
+      '........#..##........',
+      '#.#####...#.#.#####..',
+      '#....#..###.#.##..#..',
+      '##....####.#.......#.',
+      '.####...##...#..####.',
+      '.#..###....#......#..',
+      '........#.#.#.##..#..',
+      '#######..#..#.#..#.#.',
+      '#.....#.#....#.####..',
+      '#.###.#.#.##......###',
+      '#.###.#.###.#.##.##..',
+      '#.###.#.#######...#..',
+      '#.....#....###...##..',
+      '#######.#..#......##.',
+    ]
+    const actual = encodeQrMatrix('ABCDEFGHJKMN').map((row) =>
+      row.map((dark) => (dark ? '#' : '.')).join(''),
+    )
+    expect(actual).toEqual(expected)
+  })
+
   it('normalizes token input while producing identical SVG modules', () => {
     const a = renderToStaticMarkup(<BookingQrCode token="ABCDEFGHJKMN" />)
     const b = renderToStaticMarkup(<BookingQrCode token="abcd-efgh-jkmn" />)
