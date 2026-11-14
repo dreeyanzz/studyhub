@@ -47,7 +47,7 @@
   N22 and N24; `unit_states` with holds; the lapse step's first step; and where the timers
   and the fee are kept.
 - **[Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md):** every
-  branch, W1 to W22, its signature check (§3), its two functions (§4), and the return page
+  branch, W1 to W24, its signature check (§3), its two functions (§4), and the return page
   (§5).
 - **[Check-in](../flows/check-in.md):** only the booking token's format, because
   `confirm_payment` makes the token (D-059).
@@ -452,7 +452,7 @@ lib/payments/signature.ts      # pure: verifies Stripe-Signature (flow §3.1)
 lib/payments/webhook.ts        # pure: body + header + injected confirmPayment → status and JSON
 lib/payments/checkout.ts       # pure: reuse, create, attach or expire, with injected Stripe and attach
 lib/payments/refusals.ts       # pure: hint → message
-lib/payments/stripe.ts         # import 'server-only': the Stripe API calls, with fetch
+lib/payments/stripe.ts         # import 'server-only': the Stripe API calls, with fetch and Stripe-Version (D-070)
 lib/reservations/format.ts     # pure: ₱ from centavos, token groups, minutes left
 lib/data/reservations.ts       # server only: getMyReservation, getHoldTerms
 lib/validation/reservation.ts, lib/validation/stripe.ts
@@ -476,6 +476,10 @@ an accepted risk.
 | `STRIPE_SECRET_KEY`     | The sandbox's secret key. `lib/payments/stripe.ts` refuses any key that doesn't start with `sk_test_` or `rk_test_` (D-005)              | `.env.local`, and Vercel   |
 | `STRIPE_WEBHOOK_SECRET` | The webhook's signing secret, `whsec_…`: locally, the one `stripe listen --print-secret` prints, and on Vercel, the Dashboard endpoint's | `.env.local`, and Vercel   |
 | `STRIPE_API_URL`        | Optional. Defaults to `https://api.stripe.com`, so a test can use a stub                                                                 | Only where a test needs it |
+
+Every call to Stripe sends `Stripe-Version: 2026-10-28.endive` (D-070). Adrian creates the
+Dashboard endpoint with that version, and leaves the sandbox's default on it, so `stripe listen`
+events have the same shape.
 
 Neither secret has `NEXT_PUBLIC_`. The sandbox is Adrian's. He puts the secret key in
 Vercel and gives it to teammates who test payments, and registers the webhook once for
@@ -534,14 +538,14 @@ runs it after `npm run db:test`.
 
 **Vitest:**
 
-| File                                                   | Proves                                                                                                                                                                                                                                                                                                          |
-| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lib/payments/signature.test.ts`                       | A valid `v1`; a wrong, missing or wrong-length one (no throw); a second `v1` that matches, as while a secret is rolled; `v0` and unknown entries ignored; a timestamp more than 300 seconds off (W3, W4)                                                                                                        |
-| `lib/payments/webhook.test.ts`                         | The flow's `vitest/webhooks` tests: 401 and 400 before any database call, 200 with JSON for every outcome, an unknown reservation logged with 200, 500 when the call fails, `livemode` true refused, other event types and a completed checkout that isn't `paid` answered 200 and ignored (W3 to W5, W21, W22) |
-| `lib/payments/checkout.test.ts`                        | The flow's `vitest/payments` tests: reuse (W2), a failed creation keeps the hold (W14), the losing checkout is expired (W15), and so is one whose hold ended (W17)                                                                                                                                              |
-| `lib/payments/refusals.test.ts`                        | Every hint in §3 has its message                                                                                                                                                                                                                                                                                |
-| `lib/reservations/format.test.ts`                      | ₱ from centavos, token groups, minutes left                                                                                                                                                                                                                                                                     |
-| `lib/validation/reservation.test.ts`, `stripe.test.ts` | Wait windows and the webhook body's shape                                                                                                                                                                                                                                                                       |
+| File                                                   | Proves                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/payments/signature.test.ts`                       | A valid `v1`; a wrong, missing or wrong-length one (no throw); a second `v1` that matches, as while a secret is rolled; `v0` and unknown entries ignored; a timestamp more than 300 seconds off (W3, W4)                                                                                                                                                                                                                                      |
+| `lib/payments/webhook.test.ts`                         | The flow's `vitest/webhooks` tests: 401 and 400 before any database call, 200 with JSON for every outcome, an unknown reservation logged with 200, 500 when the call fails, `livemode` true, a body that isn't an event and a paid checkout with no `payment_intent` answered 400 (W24), other event types, a completed checkout that isn't `paid` and a paid checkout with no reservation id answered 200 and ignored (W3 to W5, W21 to W24) |
+| `lib/payments/checkout.test.ts`                        | The flow's `vitest/payments` tests: reuse (W2), a failed creation keeps the hold (W14), the losing checkout is expired (W15), and so is one whose hold ended (W17)                                                                                                                                                                                                                                                                            |
+| `lib/payments/refusals.test.ts`                        | Every hint in §3 has its message                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `lib/reservations/format.test.ts`                      | ₱ from centavos, token groups, minutes left                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `lib/validation/reservation.test.ts`, `stripe.test.ts` | Wait windows and the webhook body's shape                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 **Manual**, on the local stack unless it says otherwise. Use Sulok Co-working (`host2@`,
 units U1 to U3), which is open 24 hours, so any hour works.
