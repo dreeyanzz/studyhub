@@ -2,12 +2,12 @@
 // design §3). STORY-10's design decides the card it becomes once a hold is Reserved.
 import Link from 'next/link'
 
-import { buttonVariants } from '@/components/ui/button'
 import type { MyReservation } from '@/lib/data/reservations'
 
 import {
   HoldStatusBadge,
   ManilaTime,
+  buttonLinkClass,
 } from '../reservations/[id]/_components/reservation-status-view'
 
 export function CurrentHoldCard({ hold }: { hold: MyReservation | null }) {
@@ -42,7 +42,7 @@ export function CurrentHoldCard({ hold }: { hold: MyReservation | null }) {
           )
         )}
       </p>
-      <Link href={`/seeker/reservations/${hold.id}`} className={buttonVariants()}>
+      <Link href={`/seeker/reservations/${hold.id}`} className={buttonLinkClass()}>
         View your hold
       </Link>
     </section>

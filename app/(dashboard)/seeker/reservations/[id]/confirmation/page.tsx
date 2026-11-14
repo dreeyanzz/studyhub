@@ -1,19 +1,16 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 
-import { buttonVariants } from '@/components/ui/button'
 import { getMyReservation } from '@/lib/data/reservations'
 import { createClient } from '@/lib/supabase/server'
 
 import { ConfirmationPoller } from '../_components/confirmation-poller'
 import {
-  ContinueToPaymentForm,
   EndedView,
   HoldPlace,
   ManilaTime,
+  PaymentActions,
   ReservedView,
-  holdPath,
 } from '../_components/reservation-status-view'
 
 export const metadata: Metadata = { title: 'Your payment' }
@@ -60,15 +57,7 @@ export default async function ConfirmationPage({
               Your hold on {reservation.unitLabel} lasts until{' '}
               <ManilaTime iso={reservation.paymentWindowEndsAt} />.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <ContinueToPaymentForm reservation={reservation} />
-              <Link
-                href={`${holdPath(reservation)}?cancel=1`}
-                className={buttonVariants({ variant: 'outline' })}
-              >
-                Cancel hold
-              </Link>
-            </div>
+            <PaymentActions reservation={reservation} />
           </div>
         )
       }

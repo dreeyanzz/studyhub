@@ -45,6 +45,12 @@ describe('CurrentHoldCard (design §3)', () => {
     expect(text(html)).toContain('View your hold')
   })
 
+  it('lets the badge and the link wrap, so 200% text stays on a 360 px screen', () => {
+    const html = renderToStaticMarkup(<CurrentHoldCard hold={hold} />)
+    expect(html).not.toContain('whitespace-nowrap')
+    expect(html.match(/whitespace-normal/g)).toHaveLength(2)
+  })
+
   it('shows a paid hold: Reserved, and when to check in by', () => {
     const html = text(
       renderToStaticMarkup(

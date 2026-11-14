@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { buttonVariants } from '@/components/ui/button'
 import { getMyReservation } from '@/lib/data/reservations'
 import { formatPeso } from '@/lib/reservations/format'
 import { createClient } from '@/lib/supabase/server'
@@ -11,13 +9,12 @@ import { createClient } from '@/lib/supabase/server'
 import { PaymentCountdown } from './_components/payment-countdown'
 import {
   CancelConfirmation,
-  ContinueToPaymentForm,
   EndedView,
   HoldPlace,
   HoldStatusBadge,
   ManilaTime,
+  PaymentActions,
   ReservedView,
-  holdPath,
 } from './_components/reservation-status-view'
 
 export const metadata: Metadata = { title: 'Your hold' }
@@ -95,15 +92,7 @@ export default async function HoldPage({
           {confirmingCancel ? (
             <CancelConfirmation reservation={reservation} />
           ) : (
-            <div className="flex flex-wrap gap-3">
-              <ContinueToPaymentForm reservation={reservation} />
-              <Link
-                href={`${holdPath(reservation)}?cancel=1`}
-                className={buttonVariants({ variant: 'outline' })}
-              >
-                Cancel hold
-              </Link>
-            </div>
+            <PaymentActions reservation={reservation} />
           )}
         </div>
       )

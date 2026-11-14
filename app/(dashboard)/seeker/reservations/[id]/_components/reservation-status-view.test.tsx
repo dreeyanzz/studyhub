@@ -12,7 +12,10 @@ import {
   CancelConfirmation,
   EndedView,
   HoldStatusBadge,
+  PaymentActions,
   ReservedView,
+  WRAPPING_BUTTON,
+  buttonLinkClass,
 } from './reservation-status-view'
 
 const base: MyReservation = {
@@ -50,9 +53,72 @@ describe('HoldStatusBadge', () => {
 describe('BookingToken', () => {
   it('shows ABCD-EFGH-JKMN, each group in its own box so it wraps between groups', () => {
     const html = renderToStaticMarkup(<BookingToken token="ABCDEFGHJKMN" />)
-    expect(text(html)).toBe('ABCD-EFGH-JKMN')
+    expect(text(html)).toBe('Booking token ABCD-EFGH-JKMN')
     expect(html.match(/whitespace-nowrap/g)).toHaveLength(3)
-    expect(html).toContain('aria-label="Booking token ABCD EFGH JKMN"')
+    // A paragraph can't take an aria-label, so the screen reader's label is hidden text.
+    expect(html).toContain('<span class="sr-only">Booking token </span>')
+    expect(html).not.toContain('aria-label')
+  })
+})
+
+describe('Labels that wrap on a phone (design §3, Accessibility)', () => {
+  // Every button and button-styled link, and the badge, must be able to wrap, or a
+  // long Space name or 200% text runs off a 360 px screen (the PR #296 review).
+  const classesOf = (html: string, marker: string) =>
+    [...html.matchAll(/class="([^"]*)"/g)]
+      .map((match) => match[1] ?? '')
+      .filter((classes) => classes.includes(marker))
+
+  const reserved: MyReservation = {
+    ...base,
+    status: 'reserved',
+    paymentStatus: 'paid',
+    bookingToken: 'ABCDEFGHJKMN',
+    waitWindowEndsAt: '2026-11-14T08:42:00Z',
+  }
+  const views = {
+    'the payment actions': <PaymentActions reservation={base} />,
+    'the cancel step': <CancelConfirmation reservation={base} />,
+    'the Reserved view': <ReservedView reservation={reserved} confirmingCancel={false} />,
+    "the Reserved view's cancel step": (
+      <ReservedView reservation={reserved} confirmingCancel />
+    ),
+    'a lapse': <EndedView reservation={{ ...base, status: 'expired' }} />,
+    'a late payment': (
+      <EndedView reservation={{ ...base, status: 'expired', paymentStatus: 'paid' }} />
+    ),
+    'a cancelled hold': <EndedView reservation={{ ...base, status: 'cancelled' }} />,
+  }
+
+  for (const [name, view] of Object.entries(views)) {
+    it(`${name}: every button wraps`, () => {
+      const buttons = classesOf(renderToStaticMarkup(view), 'group/button')
+      expect(buttons.length).toBeGreaterThan(0)
+      for (const classes of buttons) {
+        expect(classes).toContain('whitespace-normal')
+        expect(classes).toContain('h-auto min-h-12 max-w-full')
+        expect(classes).not.toContain('whitespace-nowrap')
+        expect(classes).not.toMatch(/(^| )h-12( |$)/)
+      }
+    })
+  }
+
+  it('the status badge wraps', () => {
+    for (const status of ['pending_payment', 'reserved'] as const) {
+      const [badge] = classesOf(
+        renderToStaticMarkup(<HoldStatusBadge status={status} />),
+        'group/badge',
+      )
+      expect(badge).toContain('whitespace-normal')
+      expect(badge).toContain('h-auto')
+      expect(badge).not.toContain('whitespace-nowrap')
+    }
+  })
+
+  it('buttonLinkClass keeps the variant and lets the label wrap', () => {
+    expect(buttonLinkClass('outline')).toContain('border-border')
+    expect(buttonLinkClass()).toContain('bg-primary')
+    expect(buttonLinkClass()).toContain(WRAPPING_BUTTON)
   })
 })
 
