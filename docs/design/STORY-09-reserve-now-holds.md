@@ -3,7 +3,7 @@
 **Status:** approved 2026-11-08 · **Owner:** @dreeyanzz · **Story:** #58 · **FR:** FR-2.1, FR-2.2, FR-2.3, FR-2.5, SRS §3.2.2, SRS §3.8 ·
 **Depends on:** STORY-01, STORY-03, STORY-05, STORY-07, STORY-11 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md), [Check-in](../flows/check-in.md), [Seeker journey](../flows/seeker-journey.md) ·
-**Decisions:** D-001, D-004, D-005, D-008, D-010, D-011, D-042, D-046 to D-052, D-055 to D-059, D-064, D-067 to D-069
+**Decisions:** D-001, D-004, D-005, D-008, D-010, D-011, D-042, D-046 to D-052, D-055 to D-059, D-064, D-067, D-068, D-070
 
 ## 0. Scope
 
@@ -19,7 +19,7 @@
 - The refusals the reservation lifecycle gives this story: deleting a held unit, or a zone
   or Space with one (N17), changing a held unit (N23), and hours that cut into a hold
   (N22), with their messages in STORY-05's and STORY-07's forms.
-- Stripe's hosted checkout in a sandbox (D-069), the webhook route with its signature check, and
+- Stripe's hosted checkout in a sandbox (D-070), the webhook route with its signature check, and
   a script that sends a signed test webhook to a local server.
 - The Seeker's screens: the hold panel on the Space profile, the hold page, the return
   page, and a link to their hold on `/seeker`.
@@ -429,7 +429,7 @@ A new Space starts at 1 hr.
 
 `startCheckout` creates the checkout with the copied fee as one line item in `php`,
 "Reservation fee: S4, Kapihan Study Hall", Adaptive Pricing off, `expires_at` 31 minutes
-ahead (Stripe's 30-minute minimum plus a minute for clock drift, D-069),
+ahead (Stripe's 30-minute minimum plus a minute for clock drift, D-070),
 `metadata.reservation_id`, and success and
 cancel URLs built from the request's own origin, which Next checks for every Server
 Action. `cancelHold` expires a hold's checkout after R4, so a late payment is less likely.

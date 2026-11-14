@@ -11,7 +11,7 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | Supabase: cloud dev project             | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)                                  | Active (`studyhub-dev`)        |
 | Supabase: production project            | The deployed app                                  | Adrian                                                             | Created before the Final phase |
 | Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | To be connected                |
-| Payment sandbox: Stripe sandbox (D-069) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
+| Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
 
 The Supabase free plan allows two active projects (dev and production). It pauses a
 project after about a week without activity, so wake it the day before any demo.

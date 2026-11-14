@@ -2,18 +2,18 @@
 
 **Status:** approved 2026-11-02 · **Owner:** @dreeyanzz · **Approved by:** @lukedongque, @fayeye-09 ·
 **Stories:** STORY-09, STORY-10, STORY-14 ·
-**Decisions:** D-004, D-005, D-008, D-010, D-011, D-044, D-046, D-047, D-049, D-050, D-064, D-069
+**Decisions:** D-004, D-005, D-008, D-010, D-011, D-044, D-046, D-047, D-049, D-050, D-064, D-070
 
 This flow follows a sandbox reservation payment from the moment a Seeker initiates checkout
 for an Available unit until the unit transitions to Reserved with a booking token, or until
 a late or duplicate delivery is handled. It details the integration with Stripe Checkout
-Sessions in a Stripe sandbox (D-005, D-069), signature verification (D-010), the database transition
+Sessions in a Stripe sandbox (D-005, D-070), signature verification (D-010), the database transition
 functions, concurrency races, and what the Seeker sees upon returning to Worq.
 
 ## What this flow covers
 
 - **Checkout session creation:** How a Seeker holding an Available unit (`hold_unit`, R1)
-  receives a Stripe Checkout Session URL in a Stripe sandbox (D-069).
+  receives a Stripe Checkout Session URL in a Stripe sandbox (D-070).
 - **One checkout per hold:** `public.attach_checkout_session` keeps one checkout per
   reservation. A second tab reuses it, and a checkout that loses the race is expired at once,
   so a Seeker can't pay twice.
@@ -21,7 +21,7 @@ functions, concurrency races, and what the Seeker sees upon returning to Worq.
   `payments.fee_amount` stored during the hold (D-049), never from browser state or query parameters.
 - **Webhook entry point:** The route handler at `app/api/webhooks/stripe/route.ts`
   (D-010), which receives `checkout.session.completed` events, and `checkout.session.async_payment_succeeded`
-  for a delayed payment method (D-069).
+  for a delayed payment method (D-070).
 - **Webhook signature verification:** Luke's security perimeter: validating a `v1` signature
   in the `Stripe-Signature` header via HMAC-SHA256 and constant-time comparison before
   database operations occur.
@@ -337,7 +337,7 @@ the format, and where the event carries `metadata` and `payment_intent`, against
    - Compute `HMAC-SHA256(signedPayload, STRIPE_WEBHOOK_SECRET)` as lowercase hex.
    - Compare the computed digest with each `v1` using `crypto.timingSafeEqual` to eliminate timing attacks, after checking the two have the same length, because it throws otherwise. One match is enough. With none, reject with HTTP 401.
 4. **Sandbox Only:**
-   - Worq runs in a Stripe sandbox only (D-005, D-069). After the signature checks out, an event whose `livemode` is `true` is refused, so a live key or endpoint can never reserve a unit.
+   - Worq runs in a Stripe sandbox only (D-005, D-070). After the signature checks out, an event whose `livemode` is `true` is refused, so a live key or endpoint can never reserve a unit.
 5. **Execution Authority:**
    - Only the route handler in `app/api/` with access to `SUPABASE_SECRET_KEY` (admin client) can execute `public.confirm_payment`.
    - Direct execution of `confirm_payment` by `anon` or `authenticated` roles is explicitly revoked (N7, N24).
@@ -469,7 +469,7 @@ Any other status (`occupied`, `completed`, `no_show`) redirects to `/seeker`, wh
 
 ## 6. Choices made and rejected
 
-- **Hosted checkout vs custom form:** D-005 and D-069 chose Stripe Checkout Sessions (hosted checkout), as D-056 had chosen PayMongo's.
+- **Hosted checkout vs custom form:** D-005 and D-070 chose Stripe Checkout Sessions (hosted checkout), as D-056 had chosen PayMongo's.
   _Rejected:_ Collecting card credentials or embedding payment inputs directly in Worq, which expands PCI DSS scope and operational security risk.
 - **Secret-key webhook route vs client-triggered confirmation:** D-010 chose a route handler at `app/api/webhooks/stripe/route.ts` with secret key authority (`service_role`, N7) calling `public.confirm_payment`.
   _Rejected:_ Client-side confirmation triggered from browser redirects or query parameters, which would allow spoofing paid reservations without gateway verification.
@@ -477,7 +477,7 @@ Any other status (`occupied`, `completed`, `no_show`) redirects to `/seeker`, wh
   _Rejected:_ Resurrecting the reservation or assigning an arbitrary open unit, which risks double-booking another Seeker who held the unit after expiry (N3, D-008).
 - **One checkout per hold, first attach wins:** Chose keeping the first checkout and expiring any later one at once.
   _Rejected:_ Keeping the latest and expiring the first, because the Seeker may already be paying in the first tab.
-- **A checkout expires 31 minutes after it is made** (D-069): Chose Stripe's shortest `expires_at`, 30 minutes, plus a minute for clock drift, so a checkout left open can't be paid hours after its hold lapsed, and one whose `expire` call failed still ends on its own.
+- **A checkout expires 31 minutes after it is made** (D-070): Chose Stripe's shortest `expires_at`, 30 minutes, plus a minute for clock drift, so a checkout left open can't be paid hours after its hold lapsed, and one whose `expire` call failed still ends on its own.
   _Rejected:_ Stripe's default of 24 hours, which leaves a late payment (P2) possible for a day.
 - **Payment failure semantics:** Chose leaving the reservation `pending_payment` until lapse (Move R3) or Seeker cancellation (Move R4), because `payments.status` strictly follows SRS §3.8 (`pending`, `paid`, `forfeited`, `refunded`) with no `failed` status.
   _Rejected:_ Adding a `failed` database status or deleting the hold prematurely on checkout retry.
@@ -496,4 +496,4 @@ Any other status (`occupied`, `completed`, `no_show`) redirects to `/seeker`, wh
 
 ## 7. Open questions
 
-None. The architectural questions regarding gateway selection, hosted checkout sessions, signature verification, webhook races, and late payments were settled by D-005, D-010, D-047, D-050, D-064 and D-069, which replaced D-056's gateway. STORY-09 implements the concrete fee amount and timer limits, and STORY-14 (Sprint 3) implements the Administrator refund UI (P1).
+None. The architectural questions regarding gateway selection, hosted checkout sessions, signature verification, webhook races, and late payments were settled by D-005, D-010, D-047, D-050, D-064 and D-070, which replaced D-056's gateway. STORY-09 implements the concrete fee amount and timer limits, and STORY-14 (Sprint 3) implements the Administrator refund UI (P1).

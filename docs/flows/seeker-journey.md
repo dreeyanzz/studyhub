@@ -1,7 +1,7 @@
 # Seeker journey
 
 **Status:** approved 2026-11-06 · **Owner:** @fayeye-09 · **Approved by:** @dreeyanzz, @lukedongque ·
-**Stories:** STORY-08, STORY-09, STORY-10, STORY-11 · **Decisions:** D-001, D-002, D-003, D-006, D-008, D-010, D-012, D-026, D-044, D-048, D-049, D-050, D-055, D-058, D-064, D-069
+**Stories:** STORY-08, STORY-09, STORY-10, STORY-11 · **Decisions:** D-001, D-002, D-003, D-006, D-008, D-010, D-012, D-026, D-044, D-048, D-049, D-050, D-055, D-058, D-064, D-070
 
 This journey follows a Seeker from discovery to a paid hold and booking token. It says what the Seeker sees, does and is told across search, the Space profile, authentication, the hold, sandbox checkout and dashboard. The named Playwright tests are planned; they do not yet exist.
 
@@ -164,7 +164,7 @@ The lifecycle’s pgTAP tests prove reservation and payment rules, including the
 
 ## Delegated behavior
 
-- **Payment confirmation:** #175 owns Stripe signatures, duplicate or late callbacks, failed-payment messaging and recovery (D-010, D-064, D-069). A browser return is not proof of payment; the webhook confirms R2.
+- **Payment confirmation:** #175 owns Stripe signatures, duplicate or late callbacks, failed-payment messaging and recovery (D-010, D-064, D-070). A browser return is not proof of payment; the webhook confirms R2.
 - **Check-in:** this journey ends at the booking token. QR use, check-in and wrong-Space handling belong to #176.
 - **Cancellation after payment:** a Seeker cancelling a paid Reserved hold from the dashboard follows R8 in the reservation lifecycle; the fee is forfeited. This happens after the journey endpoint.
 - **Race outcomes:** if a cancel races with payment confirmation or a Host override, N21’s expected-status check decides which operation succeeds. STORY-09’s screen design names the refreshed outcome and its check.

@@ -57,7 +57,7 @@ Their lengths are decided in STORY-09's design.
 
 ## D-005 · Prepaid reservation fee, sandbox only
 
-**Gateway chosen by D-069**, which picks Stripe. It superseded D-056, which picked PayMongo.
+**Gateway chosen by D-070**, which picks Stripe. It superseded D-056, which picked PayMongo.
 
 **Decision:**
 
@@ -757,7 +757,7 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 ## D-056 · The sandbox gateway is PayMongo
 
-**Superseded by D-069**, which picks Stripe.
+**Superseded by D-070**, which picks Stripe.
 
 **Decision:**
 
@@ -964,7 +964,7 @@ Amends D-017 and D-036, which rejected this.
 
 **Revisit if:** Maria's walk-throughs show the extra tap costs Seekers more than it helps them.
 
-## D-069 · The sandbox gateway is Stripe
+## D-070 · The sandbox gateway is Stripe
 
 **Supersedes D-056**, which picked PayMongo.
 
