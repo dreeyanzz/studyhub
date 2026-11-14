@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useSyncExternalStore, useTransition } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, useTransition } from 'react'
 import { Camera, Keyboard } from 'lucide-react'
 
 import {
@@ -46,24 +46,38 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
   )
   const [selectedTab, setSelectedTab] = useState<CheckInTab | null>(null)
   const [result, setResult] = useState<CheckInResult | null>(null)
+  // Counts answers, so the banner announces the same answer twice in a row too.
+  const [answerCount, setAnswerCount] = useState(0)
   const [formResetKey, setFormResetKey] = useState(0)
+  // Counts answers to codes typed by hand, after which focus goes back to the field.
+  const [manualAnswerCount, setManualAnswerCount] = useState(0)
+  const tokenInputRef = useRef<HTMLInputElement>(null)
   const [isPending, startTransition] = useTransition()
 
   const activeTab: CheckInTab = supportsScanner ? (selectedTab ?? 'scanner') : 'manual'
 
-  function handleSubmitToken(rawToken: string) {
+  // A successful check-in replaces the form, which drops focus to the page. Put it back
+  // in the field so a Host at the desk can type the next code (design §3, Accessibility).
+  // Not after a camera scan: focusing the field there would open a phone's keyboard.
+  useEffect(() => {
+    if (manualAnswerCount > 0) tokenInputRef.current?.focus()
+  }, [manualAnswerCount])
+
+  function handleSubmitToken(rawToken: string, source: 'camera' | 'manual') {
     startTransition(async () => {
       const outcome = await checkInAction(spaceId, rawToken)
       setResult(outcome)
+      setAnswerCount((prev) => prev + 1)
       if (outcome.outcome === 'success') {
         setFormResetKey((prev) => prev + 1)
       }
+      if (source === 'manual') setManualAnswerCount((prev) => prev + 1)
     })
   }
 
   return (
     <div className="mx-auto w-full max-w-xl space-y-6">
-      <CheckInResultBanner spaceId={spaceId} result={result} />
+      <CheckInResultBanner spaceId={spaceId} result={result} answerKey={answerCount} />
 
       <Card>
         <CardHeader className="space-y-1.5">
@@ -131,7 +145,7 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
               className="space-y-6"
             >
               <CameraScanner
-                onDetected={handleSubmitToken}
+                onDetected={(rawToken) => handleSubmitToken(rawToken, 'camera')}
                 isPending={isPending}
                 onUseManual={() => setSelectedTab('manual')}
               />
@@ -141,20 +155,24 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
                 </p>
                 <ManualEntryForm
                   key={`fallback-${formResetKey}`}
-                  onSubmitToken={handleSubmitToken}
+                  inputRef={tokenInputRef}
+                  onSubmitToken={(rawToken) => handleSubmitToken(rawToken, 'manual')}
                   isPending={isPending}
                 />
               </div>
             </div>
           ) : (
+            // A tab panel only where there are tabs: without a QR reader, manual entry
+            // is the whole page.
             <div
               id="panel-manual-entry"
-              role="tabpanel"
+              role={supportsScanner ? 'tabpanel' : undefined}
               aria-labelledby={supportsScanner ? 'tab-manual-entry' : undefined}
             >
               <ManualEntryForm
                 key={`manual-${formResetKey}`}
-                onSubmitToken={handleSubmitToken}
+                inputRef={tokenInputRef}
+                onSubmitToken={(rawToken) => handleSubmitToken(rawToken, 'manual')}
                 isPending={isPending}
               />
             </div>

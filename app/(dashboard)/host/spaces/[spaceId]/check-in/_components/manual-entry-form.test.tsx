@@ -20,6 +20,11 @@ describe('formatManualTokenInput (STORY-10, TSK-10.4, D-059)', () => {
     expect(formatManualTokenInput('abcde')).toBe('ABCD-E')
     expect(formatManualTokenInput('abcdefghjkmn999')).toBe('ABCD-EFGH-JKMN')
   })
+
+  it('keeps all 12 characters of a pasted code with spaces around its hyphens', () => {
+    expect(formatManualTokenInput('ABCD - EFGH - JKMN')).toBe('ABCD-EFGH-JKMN')
+    expect(formatManualTokenInput(' abcd efgh jkmn ')).toBe('ABCD-EFGH-JKMN')
+  })
 })
 
 describe('ManualEntryForm (STORY-10, TSK-10.4)', () => {
@@ -32,56 +37,70 @@ describe('ManualEntryForm (STORY-10, TSK-10.4)', () => {
     expect(html).toContain('placeholder="ABCD-EFGH-JKMN"')
     expect(html).toContain('autoComplete="off"')
     expect(html).toContain('spellCheck="false"')
-    expect(html).toContain('maxLength="14"')
+    // A maxLength cut pasted codes short before their spaces were dropped.
+    expect(html).not.toMatch(/maxLength/i)
     expect(html).toContain('min-h-12')
     expect(html).toContain('disabled=""')
     expect(html).toContain('Check In')
   })
 })
 
+/** The text inside the banner's always-present live region for `role`. */
+function region(html: string, role: 'status' | 'alert'): string | undefined {
+  return html.match(new RegExp(`<p role="${role}" class="sr-only">(.*?)</p>`))?.[1]
+}
+
 describe('CheckInResultBanner (STORY-10, C1–C7)', () => {
-  it.each<[CheckInResult, string, string]>([
+  it.each<[CheckInResult, 'status' | 'alert', string]>([
     [
       { outcome: 'success', unitLabel: 'S4', zoneName: 'Quiet desks' },
-      'role="status"',
+      'status',
       'Checked in unit S4 (Quiet desks)',
     ],
     [
       { outcome: 'wait_window_lapsed', unitLabel: 'S4' },
-      'role="alert"',
+      'alert',
       'Wait window lapsed. Unit has been released and reservation fee forfeited.',
     ],
     [
       { outcome: 'token_already_used' },
-      'role="alert"',
+      'alert',
       'This token was already checked in. Unit is currently Occupied.',
     ],
-    [
-      { outcome: 'reservation_cancelled' },
-      'role="alert"',
-      'This reservation was cancelled.',
-    ],
+    [{ outcome: 'reservation_cancelled' }, 'alert', 'This reservation was cancelled.'],
     [
       { outcome: 'wrong_space' },
-      'role="alert"',
+      'alert',
       'This reservation is for a different Space. No changes were made.',
     ],
     [
       { outcome: 'invalid_token' },
-      'role="alert"',
+      'alert',
       'Invalid booking token. Please check the code.',
     ],
     [
       { outcome: 'forbidden' },
-      'role="alert"',
+      'alert',
       'Access denied. You must be signed in as the host of this Space.',
     ],
-  ])('renders %o with %s and message %s', (result, expectedRole, expectedText) => {
+  ])('shows %o and speaks it from the %s region: %s', (result, role, expectedText) => {
     const html = renderToStaticMarkup(
       <CheckInResultBanner spaceId={SPACE_ID} result={result} />,
     )
-    expect(html).toContain(expectedRole)
-    expect(html).toContain(expectedText)
+    const other = role === 'status' ? 'alert' : 'status'
+    expect(region(html, role)).toContain(expectedText)
+    expect(region(html, other)).toBe('')
+    // Only the hidden region carries a live role, so nothing is read twice.
+    expect(html.match(/role="(alert|status)"/g)).toHaveLength(2)
+  })
+
+  it('has both live regions on the page, empty, before any answer', () => {
+    const html = renderToStaticMarkup(
+      <CheckInResultBanner spaceId={SPACE_ID} result={null} />,
+    )
+    expect(region(html, 'status')).toBe('')
+    expect(region(html, 'alert')).toBe('')
+    expect(html).not.toContain('data-slot="alert"')
   })
 
   it('links to the Space occupancy seat map when check-in succeeds (C1)', () => {
@@ -106,6 +125,8 @@ describe('CheckInShell (STORY-10, TSK-10.4)', () => {
       'This browser can&#x27;t scan QR codes. Type the code instead.',
     )
     expect(html).not.toContain('role="tablist"')
+    expect(html).not.toContain('role="tabpanel"')
+    expect(region(html, 'status')).toBe('')
     expect(html).toContain('placeholder="ABCD-EFGH-JKMN"')
     expect(html).toContain('Check In')
   })

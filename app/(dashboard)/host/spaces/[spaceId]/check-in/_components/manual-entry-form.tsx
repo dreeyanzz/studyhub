@@ -26,14 +26,21 @@ export function formatManualTokenInput(raw: string): string {
 interface ManualEntryFormProps {
   onSubmitToken: (rawToken: string) => void
   isPending: boolean
+  /** Lets the shell put focus back in the field after an answer. */
+  inputRef?: React.RefObject<HTMLInputElement | null>
 }
 
 /**
  * Keyboard-first manual booking token entry form (STORY-10 design §3, TSK-10.4).
  */
-export function ManualEntryForm({ onSubmitToken, isPending }: ManualEntryFormProps) {
+export function ManualEntryForm({
+  onSubmitToken,
+  isPending,
+  inputRef: sharedRef,
+}: ManualEntryFormProps) {
   const [value, setValue] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
+  const ownRef = useRef<HTMLInputElement>(null)
+  const inputRef = sharedRef ?? ownRef
 
   const normalized = normalizeToken(value).slice(0, TOKEN_LENGTH)
   const canSubmit = normalized.length === TOKEN_LENGTH && !isPending
@@ -70,7 +77,8 @@ export function ManualEntryForm({ onSubmitToken, isPending }: ManualEntryFormPro
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
-          maxLength={14}
+          // No maxLength: it cut a pasted "ABCD - EFGH - JKMN" to "ABCD-EFGH" before the
+          // spaces were dropped. formatManualTokenInput already stops at 12 characters.
           aria-describedby="booking-token-help"
           className="font-mono text-lg tracking-widest uppercase md:text-lg"
         />
