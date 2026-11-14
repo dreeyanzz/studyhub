@@ -35,6 +35,7 @@ const base: MyReservation = {
   bookingToken: null,
   checkoutSessionId: null,
   checkoutUrl: null,
+  checkedInAt: null,
   endedAt: null,
 }
 const text = (html: string) => html.replace(/<[^>]+>/g, '').replace(/&#x27;/g, "'")
@@ -131,13 +132,14 @@ describe('ReservedView', () => {
     waitWindowEndsAt: '2026-11-14T08:42:00Z',
   }
 
-  it('shows the unit, the token and the check-in time in Manila', () => {
-    const html = text(
-      renderToStaticMarkup(
-        <ReservedView reservation={reserved} confirmingCancel={false} />,
-      ),
+  it('shows the unit, QR code above the token, and the check-in time in Manila', () => {
+    const raw = renderToStaticMarkup(
+      <ReservedView reservation={reserved} confirmingCancel={false} />,
     )
+    const html = text(raw)
     expect(html).toContain('Reserved: S4')
+    expect(raw).toContain('aria-label="Booking QR code for token ABCD-EFGH-JKMN"')
+    expect(raw.indexOf('role="img"')).toBeLessThan(raw.indexOf('ABCD'))
     expect(html).toContain('ABCD-EFGH-JKMN')
     expect(html).toContain('Check in by 4:42 PM.')
     expect(html).toContain('Cancel reservation')
@@ -175,6 +177,18 @@ describe('CancelConfirmation for an unpaid hold', () => {
 describe('EndedView (flow §5, states 3 to 5)', () => {
   const ended = (overrides: Partial<MyReservation>) =>
     text(renderToStaticMarkup(<EndedView reservation={{ ...base, ...overrides }} />))
+
+  it("is the hold page's h1 unless the /seeker card asks for an h2", () => {
+    const expired = { ...base, status: 'expired' as const }
+    expect(renderToStaticMarkup(<EndedView reservation={expired} />)).toContain(
+      '<h1 class="text-2xl',
+    )
+    const inCard = renderToStaticMarkup(
+      <EndedView reservation={expired} headingLevel="h2" headingId="card-heading" />,
+    )
+    expect(inCard).toContain('<h2 id="card-heading"')
+    expect(inCard).not.toContain('<h1')
+  })
 
   it('a late payment (P2): recorded, and an Administrator can refund it', () => {
     const html = ended({ status: 'expired', paymentStatus: 'paid' })

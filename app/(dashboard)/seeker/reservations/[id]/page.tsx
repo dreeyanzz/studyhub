@@ -116,6 +116,6 @@ export default async function HoldPage({
 
     default:
       // occupied, completed, no_show: STORY-10 shows these on /seeker.
-      redirect('/seeker')
+      redirect(`/seeker?reservation=${reservation.id}`)
   }
 }

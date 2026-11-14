@@ -84,6 +84,6 @@ export default async function ConfirmationPage({
       )
 
     default:
-      redirect('/seeker')
+      redirect(`/seeker?reservation=${reservation.id}`)
   }
 }

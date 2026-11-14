@@ -59,6 +59,7 @@ function row(overrides: Record<string, unknown> = {}) {
     checkout_session_id: null,
     checkout_url: null,
     created_at: '2026-11-14T07:32:00+00:00',
+    checked_in_at: null,
     ended_at: null,
     ...overrides,
   }

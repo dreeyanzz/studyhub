@@ -93,7 +93,8 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 page and STORY-08's tags page), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
 (STORY-02's six primitives and STORY-12's `alert-dialog`), `components/discovery/`
-(STORY-08's Space card and price tier badge), `components/seat-map/` (STORY-07's shared
+(STORY-08's Space card and price tier badge), `components/reservation/` (STORY-10's
+booking QR code), `components/seat-map/` (STORY-07's shared
 renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/check-in/` (STORY-10's booking token normalization and
 wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search

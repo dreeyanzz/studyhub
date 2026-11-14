@@ -24,6 +24,7 @@ const row = {
   checkout_session_id: null,
   checkout_url: null,
   created_at: '2026-11-14T07:32:00+00:00',
+  checked_in_at: null,
   ended_at: null,
 }
 
@@ -49,7 +50,17 @@ describe('getMyReservation', () => {
       waitWindowMinutes: 60,
       bookingToken: null,
       checkoutUrl: null,
+      checkedInAt: null,
     })
+
+    const checkedIn = await getMyReservation(
+      client({
+        data: { ...row, status: 'occupied', checked_in_at: '2026-11-14T08:00:00+00:00' },
+        error: null,
+      }).supabase,
+      id,
+    )
+    expect(checkedIn?.checkedInAt).toBe('2026-11-14T08:00:00+00:00')
   })
 
   it('asks for the current hold when no id is given', async () => {
