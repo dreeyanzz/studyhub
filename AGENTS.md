@@ -87,8 +87,8 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/` (with STORY-08's discovery map in `spaces/` and STORY-11's Space profile in `spaces/[spaceId]/`), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
-`(dashboard)/seeker/` portal, STORY-05's Host portal and Space actions in
+`(public)/` (with STORY-08's discovery map in `spaces/`, and STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
+`(dashboard)/seeker/` portal (with STORY-09's hold and return pages in `reservations/[id]/`), STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
 page and STORY-08's tags page), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
@@ -99,7 +99,8 @@ renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-0
 wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search
 and STORY-09's reservation queries), `lib/geo/` (STORY-08's Haversine distance and
 campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
-(STORY-09's Stripe checkout, webhook and hold refusals), `lib/seat-map/`
+(STORY-09's Stripe checkout, webhook and hold refusals), `lib/reservations/` (STORY-09's
+fee, time and countdown formatters), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
 `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts`, STORY-09's `admin.ts` for `app/api`

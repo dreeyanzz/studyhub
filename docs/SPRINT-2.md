@@ -197,6 +197,13 @@ unit in Pending Payment isn't offered to anyone else, and comes back when the pa
 window lapses; a confirmed payment gives exactly one Reserved unit and one token; two
 Seekers holding the same unit at the same moment get exactly one success.
 
+> **Update, Sat 14 Nov: STORY-09 is done** (#255, #262, #263, #277, #295, #296, #297, and
+> #293 for the switch to Stripe). A Seeker holds an Available unit from the Space profile's
+> panel with a wait window inside the Host's bounds, pays the ₱50 sandbox fee through
+> Stripe's hosted checkout, and gets a Reserved unit with a booking token. An unpaid hold
+> returns its unit when the payment window lapses, and two Seekers racing for one unit get
+> exactly one hold (design §9).
+
 **First thing:** set up the payment sandbox and its test keys, because that takes time.
 D-070 picked Stripe, after PayMongo's account setup (D-056) proved too slow.
 The design then sets the length of the payment window, the wait window's limits and
