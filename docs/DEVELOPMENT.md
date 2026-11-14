@@ -118,8 +118,16 @@ either the Stripe CLI forwards real events, or a script sends a signed fake one.
    value you like when you don't use the CLI, and posts it to the dev server. Add
    `--url` for another port.
 
-The webhook calls `confirm_payment` with `SUPABASE_SECRET_KEY`, so it changes whichever
-database `.env.local` (or `.env.development.local`) points at.
+The webhook calls `confirm_payment` with `SUPABASE_SECRET_KEY`, so it changes the
+database that `NEXT_PUBLIC_SUPABASE_URL` points at, and both must come from the same
+project. On the local stack, put its `SECRET_KEY` (`npx supabase status -o env` prints
+it) in `.env.development.local` too, beside the URL and publishable key that "Changing the
+database" names. With the cloud dev key left from `.env.local`, every delivery fails with
+`42501` and the route answers 500.
+
+`stripe listen` receives every event in the sandbox, so a teammate's payment reaches your
+dev server too. It names a reservation your database doesn't have, and the route logs it
+as an unknown reservation and answers 200.
 
 ## Changing the database
 
