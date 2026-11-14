@@ -53,6 +53,40 @@ describe('HoldUnitPanel (design §3)', () => {
     expect(html).toContain('<legend')
   })
 
+  it('lets every button wrap, so 200% text is never cut off inside the Card at 360 px', () => {
+    // The PR #297 review measured "Create a Seeker account" running to x=453 on a
+    // 360 px screen, clipped by the Card, before these classes.
+    const states = {
+      'a Seeker': render({}),
+      'signed out': render({ viewerRole: null }),
+      'already holding': render({
+        currentHold: {
+          id: '10000000-0000-4000-8000-000000000001',
+          unitLabel: 'S2',
+          spaceName: 'Kapihan',
+        },
+      }),
+      'no wait window fits': render({ terms: { ...terms, waitWindowMinutes: [] } }),
+    }
+    for (const [state, html] of Object.entries(states)) {
+      const buttons = [...html.matchAll(/class="([^"]*group\/button[^"]*)"/g)].map(
+        (match) => match[1] ?? '',
+      )
+      expect(buttons.length, state).toBeGreaterThan(0)
+      for (const classes of buttons) {
+        expect(classes, state).toContain('h-auto min-h-12 max-w-full')
+        expect(classes, state).toContain('whitespace-normal')
+        expect(classes, state).not.toContain('whitespace-nowrap')
+      }
+    }
+  })
+
+  it('posts the list view only when the Seeker is on it, so a refusal keeps it', () => {
+    expect(render({ view: 'list' })).toContain('name="view" value="list"')
+    expect(render({ view: 'grid' })).not.toContain('name="view"')
+    expect(render({})).not.toContain('name="view"')
+  })
+
   it('posts the Space, the unit and its label', () => {
     const html = render({})
     expect(html).toContain(`name="spaceId" value="${spaceId}"`)

@@ -91,6 +91,20 @@ describe('holdUnit (R1, design §3)', () => {
     expect(await landing(holdUnit(form({ spaceId: 'nope' })))).toBe('/spaces')
   })
 
+  it('keeps the accessible list view through a refusal (SRS §3.2.2)', async () => {
+    holdAnswers({ data: null, error: { code: 'P0001', hint: 'unit_not_available' } })
+    expect(await landing(holdUnit(form({ view: 'list' })))).toBe(
+      `${profile}?view=list&unit=${unitId}&refused=unit_not_available`,
+    )
+    expect(await landing(holdUnit(form({ view: 'list', waitWindowMinutes: '20' })))).toBe(
+      `${profile}?view=list&refused=error`,
+    )
+    // Anything else is the default grid, and never reaches the URL.
+    expect(await landing(holdUnit(form({ view: '"><script>' })))).toBe(
+      `${profile}?unit=${unitId}&refused=unit_not_available`,
+    )
+  })
+
   it('comes back to the same unit with the refusal, so the profile rereads availability (N1 to N5)', async () => {
     const cases: [{ code: string; hint?: string }, string][] = [
       [{ code: 'P0001', hint: 'unit_not_available' }, 'unit_not_available'],

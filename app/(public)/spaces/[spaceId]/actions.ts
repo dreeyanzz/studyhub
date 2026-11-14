@@ -15,13 +15,16 @@ export async function holdUnit(formData: FormData): Promise<void> {
   const space = spaceIdSchema.safeParse(formData.get('spaceId'))
   if (!space.success) redirect('/spaces')
   const profilePath = `/spaces/${space.data}`
+  // A refusal comes back to the view the Seeker was in, so someone on the accessible
+  // list stays on it to pick another unit (SRS §3.2.2). Only "list" is read.
+  const view = formData.get('view') === 'list' ? 'view=list&' : ''
 
   const parsed = holdUnitSchema.safeParse({
     spaceId: space.data,
     unitId: formData.get('unitId'),
     waitWindowMinutes: formData.get('waitWindowMinutes'),
   })
-  if (!parsed.success) redirect(`${profilePath}?refused=error`)
+  if (!parsed.success) redirect(`${profilePath}?${view}refused=error`)
   const { unitId, waitWindowMinutes } = parsed.data
 
   const supabase = await createClient()
@@ -42,7 +45,7 @@ export async function holdUnit(formData: FormData): Promise<void> {
     // panel would go with it, because the seat map hides the panel once the unit
     // isn't Available.
     const reason = holdRefusalReason(error?.code, error?.hint)
-    redirect(`${profilePath}?unit=${encodeURIComponent(unitId)}&refused=${reason}`)
+    redirect(`${profilePath}?${view}unit=${encodeURIComponent(unitId)}&refused=${reason}`)
   }
 
   // A new hold, or the same hold again after a double tap (W2): its page either way.

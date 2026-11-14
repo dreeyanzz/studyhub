@@ -168,6 +168,7 @@ export default async function SpaceProfilePage({
       unit={{ id: selectedUnit.id, label: selectedUnit.label }}
       terms={holdTerms}
       viewerRole={viewer.role}
+      view={initialView}
       currentHold={
         viewer.currentHold
           ? {

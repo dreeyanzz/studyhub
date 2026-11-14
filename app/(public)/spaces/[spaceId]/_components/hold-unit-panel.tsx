@@ -12,6 +12,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import type { HoldTerms, ViewerRole } from '@/lib/data/reservations'
 import { ONLY_SEEKERS } from '@/lib/payments/refusals'
 import { formatManilaTime, formatPeso } from '@/lib/reservations/format'
+import { cn } from '@/lib/utils'
 import { formatWaitWindow } from '@/lib/validation/reservation'
 
 import { holdUnit } from '../actions'
@@ -25,15 +26,30 @@ export interface HoldUnitPanelProps {
   viewerRole: ViewerRole | null
   /** The Seeker's hold elsewhere, if any (D-008). */
   currentHold: { id: string; unitLabel: string; spaceName: string } | null
+  /** The seat map's view, so a refusal comes back to the same one (SRS §3.2.2). */
+  view?: 'grid' | 'list'
 }
 
 const DISCOVERY_HREF = '/spaces'
+
+/**
+ * Lets a button's label wrap, so 200% text never cuts it off inside the profile's Card
+ * on a 360 px screen (design §3, Accessibility). The hold page's WRAPPING_BUTTON and
+ * the Host's photos page use the same classes; cn() lets them win over the button's
+ * h-12, shrink-0 and whitespace-nowrap.
+ */
+const WRAPPING_BUTTON =
+  'h-auto min-h-12 max-w-full shrink py-2 text-center whitespace-normal'
+
+function linkClass(variant: 'default' | 'outline' = 'default'): string {
+  return cn(buttonVariants({ variant }), WRAPPING_BUTTON)
+}
 
 /** Disabled while the hold is being made, so a second tap waits (W2 covers one anyway). */
 function HoldButton() {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" disabled={pending} className={WRAPPING_BUTTON}>
       Hold this unit
     </Button>
   )
@@ -54,6 +70,7 @@ export function HoldUnitPanel({
   terms,
   viewerRole,
   currentHold,
+  view = 'grid',
 }: HoldUnitPanelProps) {
   // Back to this profile with no unit chosen: the Seeker picks again (D-058).
   const returnUrl = encodeURIComponent(`/spaces/${spaceId}`)
@@ -76,12 +93,12 @@ export function HoldUnitPanel({
           again.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href={`/login?returnUrl=${returnUrl}`} className={buttonVariants()}>
+          <Link href={`/login?returnUrl=${returnUrl}`} className={linkClass()}>
             Sign in
           </Link>
           <Link
             href={`/register?returnUrl=${returnUrl}&role=seeker`}
-            className={buttonVariants({ variant: 'outline' })}
+            className={linkClass('outline')}
           >
             Create a Seeker account
           </Link>
@@ -103,10 +120,7 @@ export function HoldUnitPanel({
           You&apos;re already holding {currentHold.unitLabel} at {currentHold.spaceName}.
           You can hold one unit at a time.
         </p>
-        <Link
-          href={`/seeker/reservations/${currentHold.id}`}
-          className={buttonVariants()}
-        >
+        <Link href={`/seeker/reservations/${currentHold.id}`} className={linkClass()}>
           View your hold
         </Link>
       </div>
@@ -129,7 +143,7 @@ export function HoldUnitPanel({
           ) : null}
           .
         </p>
-        <Link href={DISCOVERY_HREF} className={buttonVariants({ variant: 'outline' })}>
+        <Link href={DISCOVERY_HREF} className={linkClass('outline')}>
           Back to results
         </Link>
       </div>
@@ -145,6 +159,7 @@ export function HoldUnitPanel({
       <input type="hidden" name="spaceId" value={spaceId} />
       <input type="hidden" name="unitId" value={unit.id} />
       <input type="hidden" name="unitLabel" value={unit.label} />
+      {view === 'list' && <input type="hidden" name="view" value="list" />}
       <fieldset className="space-y-2">
         <legend className="mb-2 text-sm font-medium">
           How long should we keep it after you pay?
