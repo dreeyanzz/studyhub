@@ -5,13 +5,13 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 
 ## Accounts and services
 
-| Service                                        | For                                               | Owner                                  | Status                         |
-| ---------------------------------------------- | ------------------------------------------------- | -------------------------------------- | ------------------------------ |
-| GitHub `dreeyanzz/studyhub`                    | Code, pull requests, issues, the board            | Adrian (admin); teammates have write   | Active                         |
-| Supabase: cloud dev project                    | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)      | Active (`studyhub-dev`)        |
-| Supabase: production project                   | The deployed app                                  | Adrian                                 | Created before the Final phase |
-| Vercel (Hobby)                                 | Hosting: `main` to production, PRs to previews    | Adrian                                 | Active: worqph.vercel.app      |
-| Payment sandbox: PayMongo in test mode (D-056) | Reservation fees                                  | Each developer, their own test account | STORY-09                       |
+| Service                                 | For                                               | Owner                                                              | Status                         |
+| --------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------ |
+| GitHub `dreeyanzz/studyhub`             | Code, pull requests, issues, the board            | Adrian (admin); teammates have write                               | Active                         |
+| Supabase: cloud dev project             | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)                                  | Active (`studyhub-dev`)        |
+| Supabase: production project            | The deployed app                                  | Adrian                                                             | Created before the Final phase |
+| Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app      |
+| Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
 
 The Vercel project is `studyhub`, in Adrian's account. Until the production project
 exists, its production deployment (worqph.vercel.app) and its previews use the cloud dev

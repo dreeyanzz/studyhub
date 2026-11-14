@@ -93,14 +93,15 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 page), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
 (STORY-02's six primitives and STORY-12's `alert-dialog`), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
-(STORY-03's role guard), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
+(STORY-03's role guard), `lib/check-in/` (STORY-10's booking token normalization and
+wait-window countdown), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
 (STORY-09's Stripe checkout, webhook and hold refusals), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
 `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts`, STORY-09's `admin.ts` for `app/api`
 only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
-search, tags, reservation, Stripe webhook and Space photo rules), `scripts/`,
+search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
 test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, and STORY-08's discovery accessibility test) and `docs/`. The other route groups and
 `app/api/` routes, `components/<domain>/`, `hooks/` and `lib/data/` arrive with the stories that need them.

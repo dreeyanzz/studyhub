@@ -47,6 +47,10 @@ for (const source of sources) {
     'pandoc',
     [
       join(dir, source),
+      // Each figure's caption is the italic "Figure N." line written under it.
+      // Without this, pandoc also turns an image's alt text into a caption, so
+      // every figure gets two. The alt text stays on the image for screen readers.
+      '--from=markdown-implicit_figures',
       '-o',
       join(dir, target),
       `--reference-doc=${reference}`,

@@ -57,7 +57,7 @@ Their lengths are decided in STORY-09's design.
 
 ## D-005 · Prepaid reservation fee, sandbox only
 
-**Gateway chosen by D-056**, which picks PayMongo.
+**Gateway chosen by D-070**, which picks Stripe. It superseded D-056, which picked PayMongo.
 
 **Decision:**
 
@@ -70,6 +70,8 @@ Their lengths are decided in STORY-09's design.
 **Rejected:** No payment at all (leaves the no-show problem), and live payments (merchant onboarding and KYC).
 
 ## D-006 · Hybrid tags
+
+**Superseded in part by D-069**: tags belong to a Space only. There are no zone or unit tags.
 
 **Decision:** Platform-curated tags drive the filters. Host custom tags are display-only. Both exist at space level and unit level.
 
@@ -757,6 +759,8 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 
 ## D-056 · The sandbox gateway is PayMongo
 
+**Superseded by D-070**, which picks Stripe.
+
 **Decision:**
 
 - Reservation fees are paid through PayMongo's hosted checkout (Checkout Sessions), in test mode, as D-005 requires. Card and e-wallet details never reach Worq.
@@ -961,3 +965,37 @@ Amends D-017 and D-036, which rejected this.
 **Rejected:** One tap straight to PayMongo, as the payment confirmation flow's sequence draws it (the Seeker never sees the payment window in Worq, and the journey's cancel step disappears).
 
 **Revisit if:** Maria's walk-throughs show the extra tap costs Seekers more than it helps them.
+
+## D-069 · Tags belong to a Space, not to single units
+
+Supersedes D-006's "Both exist at space level and unit level". The rest of D-006 stands: curated tags drive the filters, and custom tags are display-only.
+
+**Decision:**
+
+- Curated and custom tags belong to a Space. There are no zone or unit tags.
+- A unit is described by its own data: its type (seat, standing desk or room), a room's capacity, and the zone it sits in. The unit-type filter reads the type (FR-1.2).
+- The SRS says the same from version 2.1: §3.1.1, Figure 1 and the Tag entity in §5.
+
+**Why:** Sprint 2 built Space tags only (STORY-08's `space_curated_tags` and `space_custom_tags`), and its plan made zone and unit tags a Could Have. No requirement needs them: FR-1.2's unit or room type filter reads `units.unit_type`, and FR-1.3 asks for a Space's tags. Unit tags would need new tables with RLS tests, a tag panel for each unit, new filter rules and changes to the profile, a story of roughly 5 to 8 points in a full Sprint 3 (#292).
+
+**Rejected:** Building unit tags in Sprint 3 (the cost above, for detail a Host can already give in a custom tag or the description). Zone tags (about half that cost, and D-006 and the SRS would still change).
+
+**Revisit if:** Hosts or Seekers ask to tag or filter single seats, for example by an outlet at the seat, after the course.
+
+## D-070 · The sandbox gateway is Stripe
+
+**Supersedes D-056**, which picked PayMongo.
+
+**Decision:**
+
+- Reservation fees are paid through Stripe Checkout, a hosted Checkout Session in a Stripe sandbox, as D-005 requires: one line item for the copied fee in `php` (5000 centavos, D-067), and Adaptive Pricing off, so the Seeker always sees ₱50.00. The sandbox's Dashboard settings choose the payment methods (card, Link and Apple Pay by default). Card details never reach Worq.
+- A payment counts once a `checkout.session.completed` event with `payment_status` `paid` reaches the route in `app/api/` (D-010), signed in its `Stripe-Signature` header. A delayed method, if the settings ever offer one, completes unpaid and is paid in a later `checkout.session.async_payment_succeeded`, which counts the same way. The [sandbox payment confirmation flow](flows/sandbox-payment-confirmation.md) draws how. The gateway reference (FR-2.3) is the session's PaymentIntent, `pi_…`.
+- A Stripe checkout can't expire sooner than 30 minutes after it is made, which is longer than the payment window, so a payment can still arrive after its hold has lapsed (P2, D-064). Worq asks for 31 minutes, the minimum plus a minute for clock drift, and expires a checkout on request when it loses a race or its hold ends.
+- Worq calls Stripe's API with `fetch` and checks the signature itself, as the flow's §3.1 draws it. Every call sends `Stripe-Version: 2026-10-28.endive`, the sandbox's default API version on 2026-11-14, and the Dashboard's webhook endpoint uses the same version. `stripe listen` renders events at the sandbox's default, so the default stays on it too. A new version changes this entry, the code and the endpoint together. The keys are `STRIPE_SECRET_KEY` (only `sk_test_` or `rk_test_`, D-005) and `STRIPE_WEBHOOK_SECRET`. Locally, `stripe listen` forwards real sandbox events to the dev server.
+- D-064, D-067 and D-068 name PayMongo. They hold for Stripe unchanged.
+
+**Why:** PayMongo's account setup takes too long to have test keys in time for the demo. A Stripe sandbox needs no business activation, so D-056's reason against Stripe, that it isn't open to Philippine businesses, doesn't arise while Worq stays in test mode (D-005). On 2026-11-14 the team's US sandbox made and expired a ₱50.00 checkout in pesos, and took a test card payment through to a Reserved unit on the local stack. And the Stripe CLI can forward webhooks to a local server, which PayMongo couldn't.
+
+**Rejected:** Keeping PayMongo (no test keys in time); the `stripe` npm package (a new dependency, and it throws one error type for a bad signature and an old timestamp, which the flow answers differently, W3 and W4); Stripe's thin events (they carry only ids, so the route would fetch the session before `confirm_payment`); naming the payment methods in each checkout with `allowed_payment_method_types` (the Dashboard settings already give card, Link and Apple Pay, and `payment_method_types` is gone since `2026-09-30.endive`); leaving the API version unpinned (upgrading the sandbox's default would change what the route receives).
+
+**Revisit if:** Worq takes real payments (a live Stripe account needs a business in a country Stripe supports), or the sandbox can't do what STORY-09 needs.
