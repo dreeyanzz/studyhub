@@ -3,7 +3,7 @@
 **Status:** approved 2026-11-06 · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
 **Stories:** STORY-07, STORY-09, STORY-10, STORY-11, STORY-12, STORY-13, STORY-14 ·
 **Decisions:** D-002, D-004, D-005, D-008, D-009, D-010, D-011, D-027, D-046 to D-052,
-D-056, D-057
+D-057, D-070
 
 This flow follows a hold from the moment a Seeker holds a unit until the unit is Available
 again, and says what makes each move. Three records take part: the unit's Host-set state,
@@ -28,17 +28,17 @@ It leaves these to others:
 - **The [Space verification flow](space-verification.md)** (#174): a Space's verification
   status. A Seeker can hold a unit only in a Verified Space (R1, N4), and only its Host
   and Administrators see the units of a Pending or Rejected Space (N19).
-- **The [sandbox payment confirmation flow](sandbox-payment-confirmation.md)** (#175): how PayMongo's message reaches R2, the
+- **The [sandbox payment confirmation flow](sandbox-payment-confirmation.md)** (#175): how Stripe's message reaches R2, the
   signature check, a message that comes twice or late, a failed payment, and the Seeker's
-  return from the checkout. A PayMongo checkout stays open until it is paid or expired, so
-  a payment after the payment window has lapsed (P2) is a real case there (D-056).
+  return from the checkout. A Stripe checkout can't expire sooner than 30 minutes after it
+  is made, so a payment after the payment window has lapsed (P2) is a real case there (D-070).
 - **The check-in flow** (#176): what the booking token holds, how the Host scans or types
   it, why it works once, and what happens at the wrong Space. It makes R6.
 - **The [Host setup journey](host-setup-journey.md) and [Seeker journey](seeker-journey.md)**
   (#177, #178): the screens and steps around these moves, and what users are told (D-042).
 - **STORY-09's design:** the length of the payment window, the wait window's system
   limits, the fee, the tables' other columns, and the concurrency test (D-049). The gateway
-  is PayMongo (D-056).
+  is Stripe (D-070).
 - **STORY-14's design** (Sprint 3): sandbox refunds (P1).
 
 ## The records
@@ -388,12 +388,12 @@ Each choice has its entry in [DECISIONS](../DECISIONS.md), with what it rejected
 - **D-051:** only the Host's taps, and adding a unit, move the Host-updated time.
 - **D-052:** a unit with an active hold can't be deleted or changed, nor can its zone or
   Space be deleted, and a visit outlives its unit.
-- **D-056:** the sandbox gateway is PayMongo's hosted checkout.
+- **D-056, superseded by D-070:** the sandbox gateway is Stripe's hosted checkout. D-056 picked PayMongo's.
 - **D-057:** only the Space's Host sees which reservation holds each unit, so their view
   can warn before a tap ends a hold, and name the hold it ends.
 
 ## Open questions
 
-None. The lengths and the fee are STORY-09's to settle (D-049), the gateway is PayMongo
-(D-056), and the rest belongs to the flows and designs listed in
+None. The lengths and the fee are STORY-09's to settle (D-049), the gateway is Stripe
+(D-070), and the rest belongs to the flows and designs listed in
 [what this flow covers](#what-this-flow-covers).

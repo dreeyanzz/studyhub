@@ -3,7 +3,7 @@
 **Status:** approved 2026-11-08 · **Owner:** @dreeyanzz · **Story:** #58 · **FR:** FR-2.1, FR-2.2, FR-2.3, FR-2.5, SRS §3.2.2, SRS §3.8 ·
 **Depends on:** STORY-01, STORY-03, STORY-05, STORY-07, STORY-11 ·
 **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md), [Check-in](../flows/check-in.md), [Seeker journey](../flows/seeker-journey.md) ·
-**Decisions:** D-001, D-004, D-005, D-008, D-010, D-011, D-042, D-046 to D-052, D-055 to D-059, D-064, D-067, D-068
+**Decisions:** D-001, D-004, D-005, D-008, D-010, D-011, D-042, D-046 to D-052, D-055 to D-059, D-064, D-067, D-068, D-070
 
 ## 0. Scope
 
@@ -19,7 +19,7 @@
 - The refusals the reservation lifecycle gives this story: deleting a held unit, or a zone
   or Space with one (N17), changing a held unit (N23), and hours that cut into a hold
   (N22), with their messages in STORY-05's and STORY-07's forms.
-- PayMongo's hosted checkout in test mode, the webhook route with its signature check, and
+- Stripe's hosted checkout in a sandbox (D-070), the webhook route with its signature check, and
   a script that sends a signed test webhook to a local server.
 - The Seeker's screens: the hold panel on the Space profile, the hold page, the return
   page, and a link to their hold on `/seeker`.
@@ -47,7 +47,7 @@
   N22 and N24; `unit_states` with holds; the lapse step's first step; and where the timers
   and the fee are kept.
 - **[Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md):** every
-  branch, W1 to W22, its signature check (§3), its two functions (§4), and the return page
+  branch, W1 to W24, its signature check (§3), its two functions (§4), and the return page
   (§5).
 - **[Check-in](../flows/check-in.md):** only the booking token's format, because
   `confirm_payment` makes the token (D-059).
@@ -74,7 +74,7 @@ sequenceDiagram
     participant H as Hold page
     participant A as Server Actions
     participant DB as Postgres
-    participant PM as PayMongo, test mode
+    participant ST as Stripe, sandbox
     participant WH as Webhook route
     S->>P: Picks an Available unit and a wait window
     P->>A: holdUnit(spaceId, unitId, waitWindowMinutes)
@@ -92,7 +92,7 @@ sequenceDiagram
     alt Seeker cancels [R4]
         S->>A: cancelHold(id, pending_payment)
         A->>DB: cancel_hold
-        A->>PM: Expire the hold's checkout, if it has one
+        A->>ST: Expire the hold's checkout, if it has one
         A-->>H: The hold ended, and nothing was charged
     else Continue to payment
         S->>A: startCheckout(id)
@@ -100,14 +100,14 @@ sequenceDiagram
         alt It already has a checkout (W2)
             A-->>S: Redirect to its checkout_url
         else No checkout yet
-            A->>PM: Create a checkout session for the copied fee
+            A->>ST: Create a checkout session for the copied fee
             A->>DB: attach_checkout_session (W15, W17)
             A-->>S: Redirect to the checkout
         end
-        S->>PM: Pays with a test card or e-wallet
-        PM->>WH: checkout_session.payment.paid, signed
+        S->>ST: Pays with a test card
+        ST->>WH: checkout.session.completed, signed
         WH->>DB: confirm_payment with the secret key [R2]
-        PM-->>S: success_url, the return page
+        ST-->>S: success_url, the return page
         Note over S,DB: The return page reads my_reservation, and polls until it reads reserved (W9)
     end
 ```
@@ -128,7 +128,7 @@ them (D-042, D-049).
 
 Changing a value is a migration, like any other database change (rule 10). A hold copies
 the fee onto its payment, so a new fee never rewrites a payment (D-049). Amounts are whole
-centavos, as PayMongo's API takes them, so nothing is rounded.
+centavos, as Stripe's API takes them, so nothing is rounded.
 
 Columns hold intervals. Functions that the app calls take and return minutes as whole
 numbers, so the app never parses an interval.
@@ -181,17 +181,17 @@ Checks and indexes:
 
 ### New table: `public.payments`
 
-| Column                     | Type and rule                                                            | Notes                                               |
-| -------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------- |
-| `id`                       | `uuid primary key default gen_random_uuid()`                             |                                                     |
-| `reservation_id`           | `uuid not null unique`, references `reservations (id) on delete cascade` | One payment per reservation                         |
-| `status`                   | `payment_status not null default 'pending'`                              |                                                     |
-| `fee_amount`               | `integer not null check (fee_amount > 0)`                                | Centavos, copied at R1 (D-049)                      |
-| `checkout_session_id`      | `text unique`                                                            | PayMongo's `cs_…`, set by `attach_checkout_session` |
-| `checkout_url`             | `text`                                                                   |                                                     |
-| `external_payment_id`      | `text unique`                                                            | PayMongo's `pay_…`: the gateway reference (FR-2.3)  |
-| `paid_at`                  | `timestamptz`                                                            |                                                     |
-| `created_at`, `updated_at` | `timestamptz not null default now()`, with `private.set_updated_at()`    |                                                     |
+| Column                     | Type and rule                                                            | Notes                                                         |
+| -------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------- |
+| `id`                       | `uuid primary key default gen_random_uuid()`                             |                                                               |
+| `reservation_id`           | `uuid not null unique`, references `reservations (id) on delete cascade` | One payment per reservation                                   |
+| `status`                   | `payment_status not null default 'pending'`                              |                                                               |
+| `fee_amount`               | `integer not null check (fee_amount > 0)`                                | Centavos, copied at R1 (D-049)                                |
+| `checkout_session_id`      | `text unique`                                                            | Stripe's `cs_…`, set by `attach_checkout_session`             |
+| `checkout_url`             | `text`                                                                   |                                                               |
+| `external_payment_id`      | `text unique`                                                            | Stripe's PaymentIntent `pi_…`: the gateway reference (FR-2.3) |
+| `paid_at`                  | `timestamptz`                                                            |                                                               |
+| `created_at`, `updated_at` | `timestamptz not null default now()`, with `private.set_updated_at()`    |                                                               |
 
 A `pending` payment has no `external_payment_id` and no `paid_at`; any other status has
 both.
@@ -292,10 +292,11 @@ The reservation lifecycle draws them. This is where each lands:
   - `holdUnitSchema`: `spaceId` and `unitId` as UUIDs, and `waitWindowMinutes`.
   - `cancelHoldSchema`: `reservationId` as a UUID, and `expectedStatus`, `pending_payment`
     or `reserved`.
-- **`lib/validation/paymongo.ts`:** `paidEventSchema`, for the webhook's body. It reads the
-  event type `checkout_session.payment.paid`, `livemode` (which must be `false`, D-005),
-  the checkout session's id, its `metadata.reservation_id`, and its first payment's id.
-  §4's first manual check confirms these paths against a real delivery.
+- **`lib/validation/stripe.ts`:** `paidEventSchema`, for the webhook's body. It reads the
+  event type, `checkout.session.completed` or `checkout.session.async_payment_succeeded`,
+  `livemode` (which must be `false`, D-005), and
+  the session's `id`, `payment_status` (`paid`), `metadata.reservation_id` and
+  `payment_intent`. §4's first manual check confirms these paths against a real delivery.
 - **`lib/validation/space.ts`:** `spaceSchema` gains `maxWaitWindowMinutes`, using
   `waitWindowMinutesSchema`.
 - **`lib/validation/auth.ts`:** `registerSchema` gains `returnUrl`, cleaned as the login's
@@ -368,17 +369,17 @@ After "Hold this unit", a refusal shows one message, and the profile rereads ava
 - **`occupied`, `completed` or `no_show`:** redirects to `/seeker`, where STORY-10 shows
   it.
 
-**The return page**, `/seeker/reservations/[id]/confirmation`, PayMongo's `success_url`
+**The return page**, `/seeker/reservations/[id]/confirmation`, Stripe's `success_url`
 and `cancel_url` (`?status=cancelled`). Its five states are the payment confirmation
 flow's §5:
 
 1. **Confirmed:** as the hold page's `reserved` state (`seeker-hold-and-pay`).
-2. **Waiting for confirmation:** "Confirming your payment with PayMongo…". The page
+2. **Waiting for confirmation:** "Confirming your payment with Stripe…". The page
    reloads after 1.5, 3, 5, 8 and 13 seconds, about 30 seconds in all, then says "This is
    taking longer than usual. Don't pay again. Refresh in a minute." with a Refresh button.
    It never offers "Continue to payment" here
    (`seeker-payment-confirming-waits-for-webhook`).
-3. **Expired, paid (P2):** "Your payment window ran out before PayMongo confirmed your
+3. **Expired, paid (P2):** "Your payment window ran out before Stripe confirmed your
    payment, so S4 was released. Your ₱50.00 payment was recorded, and an Administrator can
    refund it." "Find another Space" (`seeker-payment-window-lapses-paid`).
 4. **Expired, unpaid:** "Your payment window ran out, and nothing was charged. S4 is open
@@ -424,11 +425,13 @@ A new Space starts at 1 hr.
 | `…/[id]/_components/payment-countdown.tsx`                       | Client Component | Minutes left, and `router.refresh()` when the payment window passes.                                                     |
 | `…/[id]/_components/confirmation-poller.tsx`                     | Client Component | `router.refresh()` on the back-off above, then the Refresh button.                                                       |
 | `app/(dashboard)/seeker/_components/current-hold-card.tsx`       | Server Component | The "Your hold" card.                                                                                                    |
-| `app/api/webhooks/paymongo/route.ts`                             | Route handler    | `POST`, Node.js runtime. Reads the raw body with `request.text()`, then hands it to `lib/payments/webhook.ts`.           |
+| `app/api/webhooks/stripe/route.ts`                               | Route handler    | `POST`, Node.js runtime. Reads the raw body with `request.text()`, then hands it to `lib/payments/webhook.ts`.           |
 
-`startCheckout` creates the checkout with the copied fee as one line item, "Reservation
-fee: S4, Kapihan Study Hall", card, GCash and Maya, `metadata.reservation_id`, and success
-and cancel URLs built from the request's own origin, which Next checks for every Server
+`startCheckout` creates the checkout with the copied fee as one line item in `php`,
+"Reservation fee: S4, Kapihan Study Hall", Adaptive Pricing off, `expires_at` 31 minutes
+ahead (Stripe's 30-minute minimum plus a minute for clock drift, D-070),
+`metadata.reservation_id`, and success and
+cancel URLs built from the request's own origin, which Next checks for every Server
 Action. `cancelHold` expires a hold's checkout after R4, so a late payment is less likely.
 `redirect()` sits outside every `try` (Next 16's `redirect` reference).
 
@@ -444,17 +447,17 @@ app/(dashboard)/host/actions.ts                           # N17 and N22 messages
 app/(dashboard)/host/spaces/[spaceId]/seat-map/actions.ts # N17 and N23 messages (STORY-07's, after #234)
 app/(auth)/register/…, app/(auth)/actions.ts              # registration keeps returnUrl (D-058)
 app/api/auth/callback/route.ts                            # keeps it through email confirmation
-app/api/webhooks/paymongo/route.ts                        # new
-lib/payments/signature.ts      # pure: verifies paymongo-signature (flow §3.1)
+app/api/webhooks/stripe/route.ts                        # new
+lib/payments/signature.ts      # pure: verifies Stripe-Signature (flow §3.1)
 lib/payments/webhook.ts        # pure: body + header + injected confirmPayment → status and JSON
-lib/payments/checkout.ts       # pure: reuse, create, attach or expire, with injected PayMongo and attach
+lib/payments/checkout.ts       # pure: reuse, create, attach or expire, with injected Stripe and attach
 lib/payments/refusals.ts       # pure: hint → message
-lib/payments/paymongo.ts       # import 'server-only': the PayMongo API calls
+lib/payments/stripe.ts         # import 'server-only': the Stripe API calls, with fetch and Stripe-Version (D-070)
 lib/reservations/format.ts     # pure: ₱ from centavos, token groups, minutes left
 lib/data/reservations.ts       # server only: getMyReservation, getHoldTerms
-lib/validation/reservation.ts, lib/validation/paymongo.ts
+lib/validation/reservation.ts, lib/validation/stripe.ts
 lib/supabase/admin.ts          # the secret-key client; app/api only, as ESLint enforces
-scripts/simulate-paymongo-webhook.mjs
+scripts/simulate-stripe-webhook.mjs
 supabase/migrations/…          # one per database row of §6
 supabase/tests/NN-holds.sql    # the next free number when row 1 merges
 supabase/tests/race/holds.race.mjs
@@ -466,20 +469,28 @@ Space's Host sees (STORY-07's §2 asked for this). A hold made between that chec
 delete gets N17's refusal after the photos are gone. That gap is under a second, and is
 an accepted risk.
 
-### PayMongo settings
+### Stripe settings
 
-| Name                      | Holds                                                                                                           | Where                      |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------- |
-| `PAYMONGO_SECRET_KEY`     | The test-mode secret key. `lib/payments/paymongo.ts` refuses any key that doesn't start with `sk_test_` (D-005) | `.env.local`, and Vercel   |
-| `PAYMONGO_WEBHOOK_SECRET` | The webhook's signing secret                                                                                    | `.env.local`, and Vercel   |
-| `PAYMONGO_API_URL`        | Optional. Defaults to `https://api.paymongo.com`, so a test can use a stub                                      | Only where a test needs it |
+| Name                    | Holds                                                                                                                                    | Where                      |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------- |
+| `STRIPE_SECRET_KEY`     | The sandbox's secret key. `lib/payments/stripe.ts` refuses any key that doesn't start with `sk_test_` or `rk_test_` (D-005)              | `.env.local`, and Vercel   |
+| `STRIPE_WEBHOOK_SECRET` | The webhook's signing secret, `whsec_…`: locally, the one `stripe listen --print-secret` prints, and on Vercel, the Dashboard endpoint's | `.env.local`, and Vercel   |
+| `STRIPE_API_URL`        | Optional. Defaults to `https://api.stripe.com`, so a test can use a stub                                                                 | Only where a test needs it |
 
-Neither secret has `NEXT_PUBLIC_`. Adrian creates the test account, puts the keys in
-everyone's `.env.local` and in Vercel, and registers the webhook once for the deployed
-URL. PayMongo can't reach `localhost`, so locally `scripts/simulate-paymongo-webhook.mjs`
-signs a `checkout_session.payment.paid` event for a reservation with
-`PAYMONGO_WEBHOOK_SECRET` and posts it to the local route. `.env.example`,
-`DEVELOPMENT.md` and `AGENTS.md`'s Commands block gain these.
+Every call to Stripe sends `Stripe-Version: 2026-10-28.endive` (D-070). Adrian creates the
+Dashboard endpoint with that version, and leaves the sandbox's default on it, so `stripe listen`
+events have the same shape.
+
+Neither secret has `NEXT_PUBLIC_`. The sandbox is Adrian's. He puts the secret key in
+Vercel and gives it to teammates who test payments, and registers the webhook once for
+the deployed URL, for `checkout.session.completed` and
+`checkout.session.async_payment_succeeded` only. Locally,
+`stripe listen --forward-to localhost:3000/api/webhooks/stripe` forwards real sandbox
+events, signed with the CLI's own secret. `scripts/simulate-stripe-webhook.mjs` signs a
+`checkout.session.completed` event for a reservation with `STRIPE_WEBHOOK_SECRET` and
+posts it to the local route, for §4's timed checks and for anyone without CLI access to
+the sandbox. `.env.example`, `DEVELOPMENT.md` and `AGENTS.md`'s Commands block gain
+these.
 
 ### Accessibility
 
@@ -527,24 +538,26 @@ runs it after `npm run db:test`.
 
 **Vitest:**
 
-| File                                                     | Proves                                                                                                                                                                                                                                                               |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lib/payments/signature.test.ts`                         | A valid `te`; a wrong, missing or wrong-length one (no throw); a timestamp more than 300 seconds off; `li` ignored (W3, W4)                                                                                                                                          |
-| `lib/payments/webhook.test.ts`                           | The flow's `vitest/webhooks` tests: 401 and 400 before any database call, 200 with JSON for every outcome, an unknown reservation logged with 200, 500 when the call fails, `livemode` true refused, other event types answered 200 and ignored (W3 to W5, W21, W22) |
-| `lib/payments/checkout.test.ts`                          | The flow's `vitest/payments` tests: reuse (W2), a failed creation keeps the hold (W14), the losing checkout is expired (W15), and so is one whose hold ended (W17)                                                                                                   |
-| `lib/payments/refusals.test.ts`                          | Every hint in §3 has its message                                                                                                                                                                                                                                     |
-| `lib/reservations/format.test.ts`                        | ₱ from centavos, token groups, minutes left                                                                                                                                                                                                                          |
-| `lib/validation/reservation.test.ts`, `paymongo.test.ts` | Wait windows and the webhook body's shape                                                                                                                                                                                                                            |
+| File                                                   | Proves                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/payments/signature.test.ts`                       | A valid `v1`; a wrong, missing or wrong-length one (no throw); a second `v1` that matches, as while a secret is rolled; `v0` and unknown entries ignored; a timestamp more than 300 seconds off (W3, W4)                                                                                                                                                                                                                                      |
+| `lib/payments/webhook.test.ts`                         | The flow's `vitest/webhooks` tests: 401 and 400 before any database call, 200 with JSON for every outcome, an unknown reservation logged with 200, 500 when the call fails, `livemode` true, a body that isn't an event and a paid checkout with no `payment_intent` answered 400 (W24), other event types, a completed checkout that isn't `paid` and a paid checkout with no reservation id answered 200 and ignored (W3 to W5, W21 to W24) |
+| `lib/payments/checkout.test.ts`                        | The flow's `vitest/payments` tests: reuse (W2), a failed creation keeps the hold (W14), the losing checkout is expired (W15), and so is one whose hold ended (W17)                                                                                                                                                                                                                                                                            |
+| `lib/payments/refusals.test.ts`                        | Every hint in §3 has its message                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `lib/reservations/format.test.ts`                      | ₱ from centavos, token groups, minutes left                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `lib/validation/reservation.test.ts`, `stripe.test.ts` | Wait windows and the webhook body's shape                                                                                                                                                                                                                                                                                                                                                                                                     |
 
 **Manual**, on the local stack unless it says otherwise. Use Sulok Co-working (`host2@`,
 units U1 to U3), which is open 24 hours, so any hour works.
 
-1. On the deployed preview, against the cloud dev project, as `seeker@`, on a Verified
-   Space with a seat map made through the Host and Administrator portals: hold a unit,
-   continue to payment, and pay with a PayMongo test card. The webhook arrives, and the
-   return page shows Reserved and a token. Check the `paymongo-signature` header's format,
-   and where the event carries `metadata` and the payment id, against this real delivery
-   (flow §3.1). Repeat once with the test GCash flow.
+1. With `stripe listen --forward-to localhost:3000/api/webhooks/stripe` running and its
+   secret as `STRIPE_WEBHOOK_SECRET`, as `seeker@`: hold a unit, continue to payment, and
+   first try Stripe's declined test card, 4000 0000 0000 0002. Checkout asks again, and
+   the hold stays Pending Payment (W12). Then pay with 4242 4242 4242 4242. The forwarded
+   event arrives, and the return page shows Reserved and a token. Check the
+   `Stripe-Signature` header's format, and where the event carries `metadata` and
+   `payment_intent`, against this real delivery (flow §3.1). Once Vercel previews run,
+   repeat on a preview against the cloud dev project, with the Dashboard's endpoint.
 2. As `seeker@` and `seeker2@` in two browsers, hold the same unit: one gets the hold, the
    other "Someone else just took U1".
 3. Hold, then move the hold's `payment_window_ends_at` into the past: the open hold page
@@ -572,15 +585,15 @@ These rows become the story's TSK sub-issues once this doc is merged. All are Ad
 > knew: four functions, three kinds of refusal trigger, the lapse step, and the webhook's
 > race cases.
 
-| Task     | What                                                                                                                                                                                                                                                                                 | Owner      | Points (1–10) | Days | Depends on                   |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ------------- | ---- | ---------------------------- |
-| TSK-09.1 | The reservations migration: both enums and tables, the settings, `spaces.max_wait_window`, the time and token helpers, the lapse step's first step, `unit_states` with holds, `my_reservation`, the N17, N22 and N23 triggers, grants, `seeker2@` in the seed, `db:types`, and pgTAP | @dreeyanzz | 3             | 1.5  | This design merged           |
-| TSK-09.2 | `hold_terms`, `hold_unit` and `cancel_hold`, with pgTAP, and the race test (`db:race` in the Commands block, the `postgres` dev dependency, and its CI step)                                                                                                                         | @dreeyanzz | 2             | 1.0  | TSK-09.1                     |
-| TSK-09.3 | `attach_checkout_session` and `confirm_payment`, with pgTAP and the two webhook races                                                                                                                                                                                                | @dreeyanzz | 2             | 1.0  | TSK-09.2                     |
-| TSK-09.4 | PayMongo: `lib/payments/`, `lib/supabase/admin.ts`, the webhook route, the webhook script, and the settings in `.env.example`, `DEVELOPMENT.md` and `AGENTS.md`, with Vitest                                                                                                         | @dreeyanzz | 2             | 1.0  | TSK-09.3, PayMongo test keys |
-| TSK-09.5 | The hold page, the return page, `startCheckout` and `cancelHold`, the countdown, the poller, and the "Your hold" card                                                                                                                                                                | @dreeyanzz | 2             | 1.0  | TSK-09.4                     |
-| TSK-09.6 | The hold panel and `holdUnit` in STORY-11's slot, and registration that returns to the profile (D-058)                                                                                                                                                                               | @dreeyanzz | 1             | 0.5  | TSK-09.5, STORY-11 TSK-11.5  |
-| TSK-09.7 | The longest wait window on the Space form, the Host's refusal messages in STORY-05's and STORY-07's actions, and `deleteSpace`'s hold check                                                                                                                                          | @dreeyanzz | 1             | 0.5  | TSK-09.1, STORY-07 TSK-07.5  |
+| Task     | What                                                                                                                                                                                                                                                                                 | Owner      | Points (1–10) | Days | Depends on                  |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------- | ------------- | ---- | --------------------------- |
+| TSK-09.1 | The reservations migration: both enums and tables, the settings, `spaces.max_wait_window`, the time and token helpers, the lapse step's first step, `unit_states` with holds, `my_reservation`, the N17, N22 and N23 triggers, grants, `seeker2@` in the seed, `db:types`, and pgTAP | @dreeyanzz | 3             | 1.5  | This design merged          |
+| TSK-09.2 | `hold_terms`, `hold_unit` and `cancel_hold`, with pgTAP, and the race test (`db:race` in the Commands block, the `postgres` dev dependency, and its CI step)                                                                                                                         | @dreeyanzz | 2             | 1.0  | TSK-09.1                    |
+| TSK-09.3 | `attach_checkout_session` and `confirm_payment`, with pgTAP and the two webhook races                                                                                                                                                                                                | @dreeyanzz | 2             | 1.0  | TSK-09.2                    |
+| TSK-09.4 | Stripe: `lib/payments/`, `lib/supabase/admin.ts`, the webhook route, the webhook script, and the settings in `.env.example`, `DEVELOPMENT.md` and `AGENTS.md`, with Vitest                                                                                                           | @dreeyanzz | 2             | 1.0  | TSK-09.3, Stripe test keys  |
+| TSK-09.5 | The hold page, the return page, `startCheckout` and `cancelHold`, the countdown, the poller, and the "Your hold" card                                                                                                                                                                | @dreeyanzz | 2             | 1.0  | TSK-09.4                    |
+| TSK-09.6 | The hold panel and `holdUnit` in STORY-11's slot, and registration that returns to the profile (D-058)                                                                                                                                                                               | @dreeyanzz | 1             | 0.5  | TSK-09.5, STORY-11 TSK-11.5 |
+| TSK-09.7 | The longest wait window on the Space form, the Host's refusal messages in STORY-05's and STORY-07's actions, and `deleteSpace`'s hold check                                                                                                                                          | @dreeyanzz | 1             | 0.5  | TSK-09.1, STORY-07 TSK-07.5 |
 
 Total: 13 points over 6.5 days.
 
@@ -589,24 +602,24 @@ Total: 13 points over 6.5 days.
 One PR per row, and every PR targets `main`. Row 1 goes first: STORY-12's TSK-12.4 and
 STORY-10's functions wait for its tables. Row 7 can go at any time after row 1 and #234.
 
-| #   | Branch                              | PR title                                                                 | Contains |
-| --- | ----------------------------------- | ------------------------------------------------------------------------ | -------- |
-| 1   | `feature/STORY-09-reservations`     | `feat(STORY-09): add the reservations and payments tables`               | TSK-09.1 |
-| 2   | `feature/STORY-09-hold-functions`   | `feat(STORY-09): add hold_unit, cancel_hold and the race test`           | TSK-09.2 |
-| 3   | `feature/STORY-09-confirm-payment`  | `feat(STORY-09): add attach_checkout_session and confirm_payment`        | TSK-09.3 |
-| 4   | `feature/STORY-09-paymongo-webhook` | `feat(STORY-09): add the PayMongo checkout and webhook route`            | TSK-09.4 |
-| 5   | `feature/STORY-09-hold-pages`       | `feat(STORY-09): add the hold and return pages`                          | TSK-09.5 |
-| 6   | `feature/STORY-09-hold-panel`       | `feat(STORY-09): add the hold panel to the Space profile`                | TSK-09.6 |
-| 7   | `feature/STORY-09-host-hold-rules`  | `feat(STORY-09): add the longest wait window and the held-unit messages` | TSK-09.7 |
+| #   | Branch                             | PR title                                                                 | Contains |
+| --- | ---------------------------------- | ------------------------------------------------------------------------ | -------- |
+| 1   | `feature/STORY-09-reservations`    | `feat(STORY-09): add the reservations and payments tables`               | TSK-09.1 |
+| 2   | `feature/STORY-09-hold-functions`  | `feat(STORY-09): add hold_unit, cancel_hold and the race test`           | TSK-09.2 |
+| 3   | `feature/STORY-09-confirm-payment` | `feat(STORY-09): add attach_checkout_session and confirm_payment`        | TSK-09.3 |
+| 4   | `feature/STORY-09-stripe-webhook`  | `feat(STORY-09): add the Stripe checkout and webhook route`              | TSK-09.4 |
+| 5   | `feature/STORY-09-hold-pages`      | `feat(STORY-09): add the hold and return pages`                          | TSK-09.5 |
+| 6   | `feature/STORY-09-hold-panel`      | `feat(STORY-09): add the hold panel to the Space profile`                | TSK-09.6 |
+| 7   | `feature/STORY-09-host-hold-rules` | `feat(STORY-09): add the longest wait window and the held-unit messages` | TSK-09.7 |
 
 ## 7. Rejected alternatives
 
-- **One tap straight to PayMongo**, as the payment confirmation flow's sequence draws it:
+- **One tap straight to Stripe**, as the payment confirmation flow's sequence draws it:
   the Seeker would never see the payment window in Worq, and the journey's cancel step
   would go (D-068).
 - **Other hold terms:** a 5- or 15-minute payment window, a ₱20 or ₱100 fee, and wait
   windows up to 30 or 60 minutes (D-067).
-- **The fee in pesos, as `numeric`:** PayMongo takes whole centavos, and integers never
+- **The fee in pesos, as `numeric`:** Stripe takes whole centavos, and integers never
   round.
 - **The payment window and the fee as constants inside `hold_unit`:** the hold panel shows
   them too, so they are one row that both read. The wait window limits are a function
@@ -618,7 +631,7 @@ STORY-10's functions wait for its tables. Row 7 can go at any time after row 1 a
   connections with the `postgres` package can, with no native build step. `psql` through
   `docker exec` would work too, but driving two sessions from a shell script differs
   between Git Bash and PowerShell.
-- **Confirming a payment by asking PayMongo for the checkout:** the flow chose the
+- **Confirming a payment by asking Stripe for the checkout:** the flow chose the
   signature check (D-010).
 
 ## 8. Open questions
