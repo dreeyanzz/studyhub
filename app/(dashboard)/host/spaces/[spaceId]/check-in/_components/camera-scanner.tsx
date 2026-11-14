@@ -25,7 +25,37 @@ type WindowWithBarcode = Window & {
 type ScannerState = 'prompt' | 'starting' | 'active' | 'unavailable'
 
 const SCAN_INTERVAL_MS = 200
-const DUPLICATE_COOLDOWN_MS = 2500
+/** How long a code must be out of frame before the same code can submit again. */
+const SAME_CODE_GAP_MS = 2500
+
+export interface LastScan {
+  value: string
+  /** When the scanner last saw this code, in ms. */
+  seenAt: number
+}
+
+/**
+ * Whether one sighting of `candidate` submits, and what to remember after it (design §3:
+ * "auto-submits on recognized QR code without double-triggering").
+ *
+ * A code the scanner keeps seeing is the same Seeker still holding it up, so it submits
+ * once and never again until it has been out of frame for SAME_CODE_GAP_MS. Without
+ * this, a check-in that succeeded was submitted again 2.5 s later and its banner turned
+ * into "Already checked in". While a check-in is pending, a new code waits for it to
+ * finish, and is not remembered, so it submits as soon as the answer arrives.
+ */
+export function nextScan(
+  last: LastScan,
+  candidate: string,
+  now: number,
+  pending: boolean,
+): { submit: boolean; last: LastScan } {
+  if (last.value === candidate && now - last.seenAt < SAME_CODE_GAP_MS) {
+    return { submit: false, last: { value: candidate, seenAt: now } }
+  }
+  if (pending) return { submit: false, last }
+  return { submit: true, last: { value: candidate, seenAt: now } }
+}
 
 interface CameraScannerProps {
   onDetected: (rawToken: string) => void
@@ -47,10 +77,7 @@ export function CameraScanner({
   const streamRef = useRef<MediaStream | null>(null)
   const isPendingRef = useRef(isPending)
   const onDetectedRef = useRef(onDetected)
-  const lastScanRef = useRef<{ value: string; timestamp: number }>({
-    value: '',
-    timestamp: 0,
-  })
+  const lastScanRef = useRef<LastScan>({ value: '', seenAt: 0 })
 
   useEffect(() => {
     isPendingRef.current = isPending
@@ -139,21 +166,17 @@ export function CameraScanner({
     let cancelled = false
     let detecting = false
 
+    // Frames are read while a check-in is pending too, so a code still in frame keeps
+    // its "last seen" time fresh and is not submitted again when the answer arrives.
     const timer = window.setInterval(() => {
-      if (
-        cancelled ||
-        detecting ||
-        isPendingRef.current ||
-        !video ||
-        video.readyState < 2
-      ) {
+      if (cancelled || detecting || !video || video.readyState < 2) {
         return
       }
       detecting = true
       void detector
         .detect(video)
         .then((codes) => {
-          if (cancelled || isPendingRef.current) return
+          if (cancelled) return
           const rawValue = codes.find(
             (c) => typeof c.rawValue === 'string' && c.rawValue.trim(),
           )?.rawValue
@@ -163,15 +186,14 @@ export function CameraScanner({
           const normalized = normalizeToken(trimmed)
           const candidate = normalized.length > 0 ? normalized : trimmed
 
-          const now = Date.now()
-          if (
-            lastScanRef.current.value === candidate &&
-            now - lastScanRef.current.timestamp < DUPLICATE_COOLDOWN_MS
-          ) {
-            return
-          }
-          lastScanRef.current = { value: candidate, timestamp: now }
-          onDetectedRef.current(candidate)
+          const scan = nextScan(
+            lastScanRef.current,
+            candidate,
+            Date.now(),
+            isPendingRef.current,
+          )
+          lastScanRef.current = scan.last
+          if (scan.submit) onDetectedRef.current(candidate)
         })
         .catch(() => {
           // Ignore transient frame decode errors while camera focuses.
