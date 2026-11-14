@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * Pure SVG QR code generator for STORY-10 booking tokens (TSK-10.3, FR-2.7, D-031, D-059, D-060).
+ * Pure SVG QR code generator for STORY-10 booking tokens (TSK-10.3, FR-2.3, D-031, D-059, D-060).
  *
  * Implements ISO/IEC 18004 Version 1 (21x21 modules, Error Correction Level M, Byte mode)
  * with zero external runtime dependencies. Encodes only the raw 12-character normalized token.

@@ -94,7 +94,7 @@ export async function updateProfile(
 }
 
 /**
- * Seeker early check-out (STORY-10, TSK-10.3, FR-2.8, R5).
+ * Seeker early check-out (STORY-10, TSK-10.3, FR-2.4, R10).
  * Calls `public.check_out` so an occupied unit is released immediately.
  */
 export async function checkOutAction(reservationId: string): Promise<void> {

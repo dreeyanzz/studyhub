@@ -55,7 +55,7 @@ describe('checkOutAction (STORY-10, TSK-10.3)', () => {
     expect(supabase.rpc).not.toHaveBeenCalled()
   })
 
-  it('calls public.check_out, revalidates /seeker, and redirects to the ended view on success (R5)', async () => {
+  it('calls public.check_out, revalidates /seeker, and redirects to the ended view on success (R10)', async () => {
     supabase.rpc.mockResolvedValue({
       data: { outcome: 'success', reservation_id: id, unit_id: 'u1' },
       error: null,
