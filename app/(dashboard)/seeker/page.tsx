@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 
+import { getMyReservation } from '@/lib/data/reservations'
 import { createClient } from '@/lib/supabase/server'
+
+import { CurrentHoldCard } from './_components/current-hold-card'
 
 import { PreviewCards } from './_components/preview-cards'
 import { ProfileForm } from './_components/profile-form'
@@ -9,6 +12,7 @@ import { ProfileForm } from './_components/profile-form'
  * SeekerPage component (STORY-04).
  * Server Component fetching user profile data from Supabase Postgres profiles table
  * and rendering ProfileForm pre-filled with the signed-in user's details, plus PreviewCards.
+ * While the Seeker has a hold, the "Your hold" card comes first (STORY-09 design §3).
  */
 export default async function SeekerPage() {
   const supabase = await createClient()
@@ -30,6 +34,9 @@ export default async function SeekerPage() {
   // show. The form never fills in invented values, which a Save would store as theirs.
   if (!profile) redirect('/login')
 
+  // With no id, my_reservation returns the Seeker's current hold, lapses recorded first.
+  const hold = await getMyReservation(supabase)
+
   return (
     <div className="space-y-8">
       <div>
@@ -42,6 +49,7 @@ export default async function SeekerPage() {
       </div>
 
       <div className="max-w-2xl space-y-8">
+        <CurrentHoldCard hold={hold} />
         <ProfileForm profile={profile} />
         <PreviewCards />
       </div>
