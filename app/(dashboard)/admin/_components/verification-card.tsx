@@ -104,7 +104,8 @@ export function VerificationCard({ space, onDecision }: VerificationCardProps) {
         </dl>
       </CardContent>
 
-      <CardFooter className="flex justify-end gap-3 pt-2">
+      {/* flex-wrap: at 360 px with 200% text both buttons don't fit on one line (D-031). */}
+      <CardFooter className="flex flex-wrap justify-end gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
