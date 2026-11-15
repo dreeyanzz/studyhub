@@ -82,6 +82,13 @@ only (`supabase/seed.sql`) and never against the cloud database (D-013, D-028).
 Playwright starts its own copy of the app on port 3100 so it never reuses a running
 dev server. Every assertion uses visible text, roles or URL paths, never CSS classes.
 
+**Payments in journey tests.** `playwright.config.ts` points the app at a stub of the
+Stripe API in `e2e/support/stripe-stub.ts`, which `e2e/seeker-journey.spec.ts` starts on
+port 3199, so no journey test reaches Stripe (D-005, D-070). The stub answers the
+checkout calls and serves a checkout page with Pay and Cancel links. The test sends the
+paid webhook itself, signed with the placeholder secret the config gives the app. The
+config also gives the app the local stack's own `SECRET_KEY`, for the webhook route.
+
 ## When a whole suite fails at once
 
 Stash your change and run the suite on `main` first:
