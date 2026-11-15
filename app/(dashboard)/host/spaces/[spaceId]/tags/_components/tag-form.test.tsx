@@ -60,6 +60,15 @@ describe('TagForm (STORY-08, TSK-08.5)', () => {
     expect(html).toContain('High-speed internet suitable for video calls')
   })
 
+  it('lets each category shrink to the screen, so 200% text never scrolls sideways', () => {
+    const html = render()
+
+    // A fieldset's default minimum width is its content's width (D-031, 360 px at 200%).
+    const fieldsets = html.match(/<fieldset class="[^"]*"/g) ?? []
+    expect(fieldsets.length).toBeGreaterThan(0)
+    for (const tag of fieldsets) expect(tag).toContain('min-w-0')
+  })
+
   it('ticks only the Space’s saved curated tags', () => {
     const html = render(['wifi_fast', 'ac_full'])
 
