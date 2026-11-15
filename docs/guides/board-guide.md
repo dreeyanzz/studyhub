@@ -18,14 +18,14 @@ Exactly these five, in this order. The course checks them.
 
 ## Fields
 
-| Field           | Values                                                            |
-| --------------- | ----------------------------------------------------------------- |
-| Status          | The five columns above                                            |
-| Sprint          | Iteration: Sprint 1, 2 and 3. Sprint 2 ends on 1 December (D-045) |
-| Points          | 1–10                                                              |
-| Estimate (days) | Working days                                                      |
-| MoSCoW          | Must, Should, Could, Won't                                        |
-| Parent issue    | The STORY that a task belongs to (a built-in field)               |
+| Field           | Values                                                             |
+| --------------- | ------------------------------------------------------------------ |
+| Status          | The five columns above                                             |
+| Sprint          | Iteration: Sprint 1, 2 and 3. Sprint 2 ends on 16 November (D-072) |
+| Points          | 1–10                                                               |
+| Estimate (days) | Working days                                                       |
+| MoSCoW          | Must, Should, Could, Won't                                         |
+| Parent issue    | The STORY that a task belongs to (a built-in field)                |
 
 The issue forms apply `type:story` and `type:task` automatically. Add the `moscow:*` and
 `area:*` labels by hand to match the dropdown answers in the issue body, and set the
@@ -166,15 +166,16 @@ never moves an open issue to Done: closing the issue does that (D-030).
 **Changing sprint dates.** Send every sprint again with its id, its title and its dates.
 With the ids, the ids above stay and every card keeps its sprint. Without them, every
 sprint gets a new id and every card loses its sprint. A duration counts days, the start
-day included. This is the change D-045 made: Sprint 2 ends on 1 December, and Sprint 3's
-two weeks from 2 December hold its place until it is planned.
+day included. D-045 moved Sprint 2's end to 1 December this way, and D-072 moved it to 16
+November: 38 days from 10 October. Sprint 3's two weeks from 2 December hold its place
+until it is planned at the Sprint 2 review.
 
 ```bash
 gh api graphql -f query='mutation { updateProjectV2Field(input: {
   fieldId: "PVTIF_lAHOCUJgA84BjmvkzhiabdE"
   iterationConfiguration: { startDate: "2026-09-26", duration: 14, iterations: [
     { id: "ab8798f2", title: "Sprint 1", startDate: "2026-09-26", duration: 14 }
-    { id: "4cfb2471", title: "Sprint 2", startDate: "2026-10-10", duration: 53 }
+    { id: "4cfb2471", title: "Sprint 2", startDate: "2026-10-10", duration: 38 }
     { id: "4573e4ab", title: "Sprint 3", startDate: "2026-12-02", duration: 14 } ] }
 }) { projectV2Field { ... on ProjectV2IterationField { id } } } }'
 ```

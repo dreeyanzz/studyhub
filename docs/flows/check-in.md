@@ -156,7 +156,7 @@ These cases resolve race conditions across multiple actors and devices:
 
 1. **Whose clock decides and grace periods:**
    - The database server's `clock_timestamp()` at transaction execution strictly decides whether `wait_window_ends_at` has lapsed (N10). Client device clocks never decide validity.
-   - _Grace period:_ Tracked in open issue #199. By default, no grace period is applied. If a check-in arrives after `wait_window_ends_at`, `record_lapses()` records `no_show` and forfeits the fee.
+   - _Grace period:_ None (D-071, which settled #199). If a check-in arrives after `wait_window_ends_at`, `record_lapses()` records `no_show` and forfeits the fee.
 2. **Two staff devices scanning the same token at once:**
    - Handled cleanly by strict database locking order: `check_in` locks the unit row `FOR UPDATE`, then locks the reservation row `FOR UPDATE`.
    - The first transaction commits R6 (`occupied`). The second transaction unblocks, re-evaluates `reservation.status`, finds `occupied`, and raises `P0001 (token_already_used)` (Branch C3).
@@ -339,4 +339,4 @@ Each choice has its entry in [DECISIONS](../DECISIONS.md):
 
 ## Open questions
 
-- **Network latency grace period (#199):** Should the database check-in function provide a small grace period (e.g., 30 to 60 seconds) past `wait_window_ends_at` to tolerate network delays at the door, or should `clock_timestamp()` strictly enforce the exact deadline?
+- **Network latency grace period (#199):** Should the database check-in function provide a small grace period (e.g., 30 to 60 seconds) past `wait_window_ends_at` to tolerate network delays at the door, or should `clock_timestamp()` strictly enforce the exact deadline? _Settled on 2026-11-15 by D-071:_ no grace period; `clock_timestamp()` enforces the exact deadline.
