@@ -589,6 +589,8 @@ Maria maintains the board; Adrian is Project Manager.
 
 ## D-045 · Sprint 2 ends on Tuesday 1 December
 
+**Superseded by D-072**, which ends Sprint 2 on Monday 16 November.
+
 **Decision:**
 
 - Sprint 2 runs from Saturday 10 October to Tuesday 1 December 2026, and its review and the Prefinal demo are on its last day. This moves only D-036's end date: Sprint 2 still holds every Must Have, 55 points.
@@ -999,3 +1001,30 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Keeping PayMongo (no test keys in time); the `stripe` npm package (a new dependency, and it throws one error type for a bad signature and an old timestamp, which the flow answers differently, W3 and W4); Stripe's thin events (they carry only ids, so the route would fetch the session before `confirm_payment`); naming the payment methods in each checkout with `allowed_payment_method_types` (the Dashboard settings already give card, Link and Apple Pay, and `payment_method_types` is gone since `2026-09-30.endive`); leaving the API version unpinned (upgrading the sandbox's default would change what the route receives).
 
 **Revisit if:** Worq takes real payments (a live Stripe account needs a business in a country Stripe supports), or the sandbox can't do what STORY-09 needs.
+
+## D-071 · Check-in keeps a strict deadline, with no grace period
+
+**Decision:** `public.check_in` and the lapse step treat a wait window as over the moment the database clock passes `wait_window_ends_at` (N10). A check-in that arrives even a second later finds the hold a no-show, with its fee forfeited (R7). There is no grace period after the deadline. This settles #199.
+
+**Why:** It is what the approved [check-in flow](flows/check-in.md) and the [reservation lifecycle](flows/reservation-lifecycle.md) draw, and STORY-10 built and tested it (`10-check-in-release.sql`, C2 and N10). The Seeker picks their own wait window, from 15 minutes up to the Space's longest, and sees it count down, so the margin is theirs to choose. A grace period would need a migration and new pgTAP tests the day before the Sprint 2 review (D-072).
+
+**Rejected:** A grace period of 30 to 60 seconds after `wait_window_ends_at`. It moves the deadline the Seeker sees, and a unit would stay held after its countdown said it was released.
+
+**Revisit if:** Seekers miss check-in by seconds in practice, for example at the Sprint 3 demo.
+
+## D-072 · Sprint 2 ends on Monday 16 November
+
+**Supersedes D-045**, which ended Sprint 2 on Tuesday 1 December.
+
+**Decision:**
+
+- Sprint 2 runs from Saturday 10 October to Monday 16 November 2026. Its review and the Prefinal deadline are on its last day.
+- Sprint 2's scope doesn't change: every Must Have, 55 points (D-036). All seven Sprint 2 stories were merged by 15 November, and STORY-10's close-out finishes the last one.
+- Sprint 3 starts after Sprint 2 ends. Its dates are set when it is planned, at the Sprint 2 review.
+- The Sprint 2 plan stays as baselined (D-043). The Sprint 2 brief, the board guide and the board's Sprint field change to match this entry.
+
+**Why:** The course's Prefinal deadline is Monday 16 November, earlier than the 1 December D-045 planned for.
+
+**Rejected:** Keeping 1 December in the docs (it would no longer match the course); cutting scope (nothing needs cutting, because every Sprint 2 story is merged).
+
+**Revisit if:** The course moves the Prefinal deadline again.
