@@ -24,7 +24,9 @@ interface PriceTierBadgeProps {
 
 /**
  * PriceTierBadge displays the curated price tier of a Space (STORY-08, D-027).
- * Color contrasts meet WCAG 2.1 AA (4.5:1) in both light and dark modes.
+ * Color contrasts meet WCAG 2.1 AA (4.5:1). Light colours only, with no `dark:` variants:
+ * the app ships light mode only (D-031), and with no `.dark` class `dark:` follows the OS
+ * setting, which turned the badge into a dark pill on the light page (#309).
  */
 export function PriceTierBadge({
   tier,
@@ -36,13 +38,10 @@ export function PriceTierBadge({
   const displayText = showSymbol && tier !== 'free' ? `${label} (${symbol})` : label
 
   const colorStyles: Record<PriceTier, string> = {
-    free: 'border-emerald-300 bg-emerald-100 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-300',
-    budget:
-      'border-sky-300 bg-sky-100 text-sky-900 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-300',
-    standard:
-      'border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300',
-    premium:
-      'border-purple-300 bg-purple-100 text-purple-900 dark:border-purple-800 dark:bg-purple-950 dark:text-purple-300',
+    free: 'border-emerald-300 bg-emerald-100 text-emerald-900',
+    budget: 'border-sky-300 bg-sky-100 text-sky-900',
+    standard: 'border-amber-300 bg-amber-100 text-amber-900',
+    premium: 'border-purple-300 bg-purple-100 text-purple-900',
   }
 
   return (
