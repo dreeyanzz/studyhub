@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { ConfirmPhotoRemoval } from './confirm-photo-removal'
 import { PhotoGrid, type PhotoItem } from './photo-grid'
-import { PhotoUploadForm, uploadToSignedUrls } from './photo-upload-form'
+import {
+  PhotoUploadForm,
+  UploadSuccessAlert,
+  uploadToSignedUrls,
+} from './photo-upload-form'
 
 // Mock useRouter
 vi.mock('next/navigation', () => ({
@@ -146,6 +150,25 @@ describe('Host photo components (STORY-11, TSK-11.2)', () => {
       expect(html).toMatch(
         /<input[^>]*type="file"[^>]*tabindex="-1"[^>]*aria-hidden="true"/,
       )
+    })
+  })
+
+  describe('UploadSuccessAlert', () => {
+    const html = renderToStaticMarkup(
+      <UploadSuccessAlert message="Successfully uploaded 1 photo." />,
+    )
+
+    it('is a polite status with the message', () => {
+      expect(html).toContain('role="status"')
+      expect(html).toContain('Success')
+      expect(html).toContain('Successfully uploaded 1 photo.')
+    })
+
+    it('uses light colours only, with no dark: classes', () => {
+      // The app has no dark theme (D-031), so a dark: class would follow the OS setting
+      // and put pale text on a see-through dark green on the light page (#308).
+      expect(html).not.toContain('dark:')
+      expect(html).toContain('bg-emerald-50 text-emerald-900')
     })
   })
 

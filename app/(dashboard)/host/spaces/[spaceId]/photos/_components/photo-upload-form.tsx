@@ -78,6 +78,26 @@ export async function uploadToSignedUrls(
   return { uploadedCount, failed }
 }
 
+/**
+ * The "Success" alert shown after an upload; its own component so a test can render it.
+ * Light colours only, with no `dark:` variants: the app ships light mode only (D-031), and
+ * with no `.dark` class `dark:` follows the OS setting, which put pale text on a
+ * see-through dark green on the light page for anyone whose OS is in dark mode (#308).
+ */
+export function UploadSuccessAlert({ message }: { message: string }) {
+  return (
+    <Alert
+      variant="default"
+      className="border-emerald-500/40 bg-emerald-50 text-emerald-900"
+      role="status"
+    >
+      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+      <AlertTitle>Success</AlertTitle>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  )
+}
+
 export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -246,17 +266,7 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
         </Alert>
       )}
 
-      {successMessage && (
-        <Alert
-          variant="default"
-          className="border-emerald-500/40 bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100"
-          role="status"
-        >
-          <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{successMessage}</AlertDescription>
-        </Alert>
-      )}
+      {successMessage && <UploadSuccessAlert message={successMessage} />}
 
       <div
         onDragOver={onDragOver}
