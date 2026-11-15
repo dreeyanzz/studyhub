@@ -43,16 +43,27 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
   return (
     <header className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <Link
-          href="/host"
-          className={cn(
-            buttonVariants({ variant: 'outline' }),
-            'h-12 min-w-12 gap-2 px-4 text-sm font-medium',
-          )}
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Back to Spaces
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/host"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'h-auto min-h-12 max-w-full min-w-12 gap-2 px-4 py-2 text-sm font-medium whitespace-normal',
+            )}
+          >
+            <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
+            Back to Spaces
+          </Link>
+          <Link
+            href={`/host/spaces/${space.id}/check-in`}
+            className={cn(
+              buttonVariants({ variant: 'default' }),
+              'h-auto min-h-12 max-w-full min-w-12 gap-2 px-4 py-2 text-sm font-medium whitespace-normal',
+            )}
+          >
+            Check-in desk
+          </Link>
+        </div>
 
         {/* The Badge primitive is one fixed-height line; these may wrap, so they fit a
             360 px screen at 200% text (design §3, Accessibility: Responsive design). */}

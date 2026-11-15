@@ -1,8 +1,7 @@
 'use client'
 
-import { Armchair, CheckCircle } from 'lucide-react'
+import { Armchair } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { tapOutcome } from '@/lib/occupancy/override'
 import type { SeatMapUnit, SeatMapZone } from '@/lib/seat-map/grid'
@@ -10,7 +9,7 @@ import type { UnitState } from '@/lib/validation/occupancy'
 import { cn } from '@/lib/utils'
 
 import { RelativeTime } from './relative-time'
-import { ACTIONS, STATE_BADGES, TYPE_CONFIG } from './unit-control-card'
+import { ACTIONS, TYPE_CONFIG, UnitStateBadges } from './unit-control-card'
 
 export interface OccupancyListProps {
   zones: SeatMapZone[]
@@ -58,35 +57,6 @@ function OccupancyPills({ unit, isPending = false, onStateTap }: PillsProps) {
           </Button>
         )
       })}
-    </div>
-  )
-}
-
-/** The seat state in words, and "Seeker hold" when a Seeker holds the unit (D-057). */
-function StateBadges({ unit }: { unit: SeatMapUnit }) {
-  const stateInfo = STATE_BADGES[unit.seatState] ?? {
-    label: unit.seatState,
-    icon: CheckCircle,
-    className: 'border-border bg-card text-foreground',
-  }
-  const StateIcon = stateInfo.icon
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <span
-        className={cn(
-          'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-semibold',
-          stateInfo.className,
-        )}
-      >
-        <StateIcon className="size-3 shrink-0" aria-hidden="true" />
-        {stateInfo.label}
-      </span>
-      {unit.reservationId ? (
-        <Badge variant="secondary" className="border-primary/20 text-xs font-medium">
-          Seeker hold
-        </Badge>
-      ) : null}
     </div>
   )
 }
@@ -155,7 +125,7 @@ export function OccupancyList({
                   </span>
                 </p>
               </div>
-              <StateBadges unit={unit} />
+              <UnitStateBadges unit={unit} />
               <p className="text-xs text-muted-foreground">
                 Host-updated · <RelativeTime date={unit.hostUpdatedAt} />
               </p>
@@ -210,7 +180,7 @@ export function OccupancyList({
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <StateBadges unit={unit} />
+                    <UnitStateBadges unit={unit} />
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     <RelativeTime date={unit.hostUpdatedAt} />
