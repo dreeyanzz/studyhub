@@ -1,6 +1,6 @@
 # Space verification
 
-**Status:** approved 2026-11-06 · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
+**Status:** implemented 2026-11-15 · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
 **Stories:** STORY-01, STORY-05, STORY-08, STORY-11, STORY-14, STORY-15 ·
 **Decisions:** D-027, D-037, D-052, D-053 to D-055
 
@@ -88,7 +88,7 @@ says what each kind of denial looks like.
 | N5  | Move a Space that isn't Pending, in Sprint 2 (D-054)                                         | `set_space_status` moves Pending Spaces only                  | `space-verification`: "an Administrator cannot move a Verified or a Rejected Space"                                                                                                                                                                                           |
 | N6  | Edit a Host's Space as an Administrator (D-053)                                              | STORY-01's update policy matches the Space's Host only        | `space-verification`: "an Administrator updating a Host's space affects 0 rows"                                                                                                                                                                                               |
 | N7  | Read a Pending or Rejected Space, unless they are its Host or an Administrator (D-055)       | STORY-01's select policy                                      | `02-spaces`: "an anonymous visitor lists verified spaces only", "a Seeker lists verified spaces only" and "another Host sees neither the first Host's pending spaces nor the new one"; `space-verification`: "a Seeker and a signed-out visitor cannot read a Rejected Space" |
-| N8  | Find a Pending or Rejected Space in search, its own Host and Administrators included (D-055) | STORY-08's search, which filters `status = 'verified'` itself | Named by STORY-08's design: "search returns only Verified Spaces, even to their Host and to an Administrator"                                                                                                                                                                 |
+| N8  | Find a Pending or Rejected Space in search, its own Host and Administrators included (D-055) | STORY-08's search, which filters `status = 'verified'` itself | `lib/data/spaces.test.ts`: "enforces status = verified invariant (D-055)", which checks that the search filters on `status = 'verified'` whoever asks                                                                                                                         |
 | N9  | Decide a Space that changed after the Administrator read it (D-053)                          | `set_space_status` compares the `updated_at` they saw         | `space-verification`: "an Administrator cannot decide a Space that changed since they read it"                                                                                                                                                                                |
 
 The [reservation lifecycle](reservation-lifecycle.md#moves-nobody-may-make) stops three
