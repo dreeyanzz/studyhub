@@ -84,19 +84,20 @@ function resultCopy(result: CheckInResult): ResultCopy {
   }
 }
 
+// Light colours only, with no `dark:` variants: the app ships light mode only (D-031),
+// and with no `.dark` class `dark:` follows the OS setting, which put pale text on a
+// muddy banner on the light page for anyone whose OS is in dark mode (#306).
 const TONE_CLASSES: Record<Tone, { alert: string; icon?: string; description?: string }> =
   {
     success: {
-      alert:
-        'border-emerald-300 bg-emerald-50 text-emerald-950 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-100',
-      icon: 'text-emerald-700 dark:text-emerald-300',
-      description: 'text-emerald-900 dark:text-emerald-200',
+      alert: 'border-emerald-300 bg-emerald-50 text-emerald-950',
+      icon: 'text-emerald-700',
+      description: 'text-emerald-900',
     },
     warning: {
-      alert:
-        'border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100',
-      icon: 'text-amber-700 dark:text-amber-300',
-      description: 'text-amber-900 dark:text-amber-200',
+      alert: 'border-amber-300 bg-amber-50 text-amber-950',
+      icon: 'text-amber-700',
+      description: 'text-amber-900',
     },
     danger: { alert: 'border-destructive/60 bg-destructive/5' },
   }
