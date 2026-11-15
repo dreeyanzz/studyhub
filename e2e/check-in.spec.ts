@@ -107,7 +107,7 @@ test.describe('Check-in, wait-window timers, and unit release (STORY-10 TSK-10.5
 
     // 3. Seeker sees Reserved hold, wait countdown, QR code, and grouped token on /seeker
     await page.goto('/seeker')
-    await expect(page.getByText('Sulok Co-working')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Sulok Co-working' })).toBeVisible()
     await expect(
       page.getByRole('img', { name: `Booking QR code for token ${groupedToken}` }),
     ).toBeVisible()
@@ -143,7 +143,9 @@ test.describe('Check-in, wait-window timers, and unit release (STORY-10 TSK-10.5
       await expect(tokenInput).toHaveValue(groupedToken)
       await hostPage.getByRole('button', { name: 'Check In' }).click()
 
-      await expect(hostPage.getByText(/Checked in unit U1/)).toBeVisible()
+      await expect(
+        hostPage.getByText('Checked in unit U1 (Open desks)', { exact: true }),
+      ).toBeVisible()
 
       await hostPage.goto(`/host/spaces/${SULOK_SPACE_ID}/occupancy`)
       await expect(hostPage.getByText(/1\s*\/\s*3\s*units occupied/)).toBeVisible()
@@ -199,10 +201,11 @@ test.describe('Check-in, wait-window timers, and unit release (STORY-10 TSK-10.5
       await otherHostPage.getByLabel('Booking token').fill(rawToken)
       await otherHostPage.getByRole('button', { name: 'Check In' }).click()
 
-      await expect(otherHostPage.getByText('Wrong Space')).toBeVisible()
+      await expect(otherHostPage.getByText('Wrong Space', { exact: true })).toBeVisible()
       await expect(
         otherHostPage.getByText(
           'This reservation is for a different Space. No changes were made.',
+          { exact: true },
         ),
       ).toBeVisible()
     } finally {
