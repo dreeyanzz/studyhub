@@ -360,6 +360,14 @@ every path in them can be tested, and the flows your stories wait for: the reser
 lifecycle (STORY-12) and the Space verification flow (STORY-15). Before the Sprint 2
 review, check every merged story against the Definition of Done.
 
+> **Update, Mon 16 Nov: Sprint 2 QA is done**, by Adrian's agent at Adrian's request.
+> Both journeys are Playwright tests: `e2e/host-setup.spec.ts` (#322) walks the Host
+> setup journey's 15 paths, and `e2e/seeker-journey.spec.ts` (#323) the Seeker journey's
+> 25 automated paths, paying through a stub of the Stripe API. With #321, all six flows
+> read `implemented`. The Definition of Done check (#315) passed every story. It records
+> two exceptions: PRs merged without the required approval, and review threads left
+> open. It found two layout bugs, fixed by #316 and #317.
+
 **How to test:** `npm run test:e2e` against the local stack. By hand, locally or on the
 cloud dev project, as `host@example.test` and `admin@example.test`. The cloud
 Administrator's password is in your `.env.local` (D-061, D-065).
