@@ -41,4 +41,15 @@ describe('PriceTierBadge (STORY-08, D-027)', () => {
     expect(freeHtml).toContain('Free')
     expect(freeHtml).not.toContain('Free (Free)')
   })
+
+  it.each(['free', 'budget', 'standard', 'premium'] as const)(
+    '%s uses light colours only, with no dark: classes',
+    (tier) => {
+      const html = renderToStaticMarkup(<PriceTierBadge tier={tier} />)
+
+      // The app has no dark theme (D-031), so a dark: class would follow the OS setting
+      // and turn the badge into a dark pill on the light page (#309).
+      expect(html).not.toContain('dark:')
+    },
+  )
 })
