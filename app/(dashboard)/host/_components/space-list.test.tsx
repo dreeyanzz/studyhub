@@ -60,6 +60,18 @@ describe('SpaceList component (STORY-05, STORY-11 TSK-11.2)', () => {
       'href="/host/spaces/e0000000-0000-4000-8000-000000000001/seat-map"',
     )
     expect(html).toContain(
+      'href="/host/spaces/e0000000-0000-4000-8000-000000000001/check-in"',
+    )
+    expect(html).toContain(
+      'Check-in desk<span class="sr-only"> for Kapihan Study Hub</span>',
+    )
+    expect(html).toContain(
+      'href="/host/spaces/e0000000-0000-4000-8000-000000000002/check-in"',
+    )
+    expect(html).toContain(
+      'Check-in desk<span class="sr-only"> for Night Owls Coworking</span>',
+    )
+    expect(html).toContain(
       'href="/host/spaces/e0000000-0000-4000-8000-000000000001/edit"',
     )
     expect(html).toContain(

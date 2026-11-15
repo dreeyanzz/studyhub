@@ -19,6 +19,7 @@ import type { UnitState } from '@/lib/validation/occupancy'
 import { cn } from '@/lib/utils'
 
 import { RelativeTime } from './relative-time'
+import { WaitWindowBadge } from './wait-window-badge'
 
 /** Shared with the list view (`occupancy-list.tsx`), so both show a unit the same way. */
 export const TYPE_CONFIG: Record<
@@ -75,6 +76,43 @@ export const ACTIONS: { state: UnitState; label: string }[] = [
   { state: 'occupied', label: 'Occupied' },
 ]
 
+/**
+ * The seat state pill, "Seeker hold" badge (D-057), and wait-window timer (FR-3.3).
+ * Shared with the list view (`occupancy-list.tsx`) so both render identical state badges.
+ */
+export function UnitStateBadges({ unit }: { unit: SeatMapUnit }) {
+  const stateInfo = STATE_BADGES[unit.seatState] ?? {
+    label: unit.seatState,
+    icon: CheckCircle,
+    className: 'border-border bg-card text-foreground',
+  }
+  const StateIcon = stateInfo.icon
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <span
+        className={cn(
+          'inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold',
+          stateInfo.className,
+        )}
+      >
+        <StateIcon className="size-3 shrink-0" aria-hidden="true" />
+        {stateInfo.label}
+      </span>
+
+      {unit.reservationId ? (
+        <Badge variant="secondary" className="border-primary/20 text-xs font-medium">
+          Seeker hold
+        </Badge>
+      ) : null}
+
+      {unit.seatState === 'reserved' && unit.waitWindowEndsAt ? (
+        <WaitWindowBadge waitWindowEndsAt={unit.waitWindowEndsAt} />
+      ) : null}
+    </div>
+  )
+}
+
 export interface UnitControlCardProps {
   unit: SeatMapUnit
   isPending?: boolean
@@ -98,11 +136,6 @@ export function UnitControlCard({
     label: unit.unitType,
     icon: Armchair,
   }
-  const stateInfo = STATE_BADGES[unit.seatState] ?? {
-    label: unit.seatState,
-    icon: CheckCircle,
-    className: 'border-border bg-card text-foreground',
-  }
 
   const isRoomWithCapacity =
     unit.unitType === 'room' && unit.capacity !== null && unit.capacity !== undefined
@@ -111,7 +144,6 @@ export function UnitControlCard({
     : unit.label
 
   const TypeIcon = typeInfo.icon
-  const StateIcon = stateInfo.icon
 
   return (
     <Card className={cn('h-full transition-shadow', className)}>
@@ -127,26 +159,7 @@ export function UnitControlCard({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span
-              className={cn(
-                'inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-semibold',
-                stateInfo.className,
-              )}
-            >
-              <StateIcon className="size-3 shrink-0" aria-hidden="true" />
-              {stateInfo.label}
-            </span>
-
-            {unit.reservationId ? (
-              <Badge
-                variant="secondary"
-                className="border-primary/20 text-xs font-medium"
-              >
-                Seeker hold
-              </Badge>
-            ) : null}
-          </div>
+          <UnitStateBadges unit={unit} />
         </div>
       </CardHeader>
 
