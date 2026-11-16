@@ -189,6 +189,18 @@ export default function Home() {
               </li>
             ))}
           </ul>
+          <div className="example-cta">
+            <div>
+              <h3>Ready to find your seat?</h3>
+              <p className="discovery-caption">
+                Browse verified Spaces on the live map, filter by amenities, and hold an
+                open desk now.
+              </p>
+            </div>
+            <Link href="/spaces" className={buttonVariants()}>
+              Explore Spaces <ArrowRight aria-hidden="true" size={18} />
+            </Link>
+          </div>
         </section>
       </div>
 
