@@ -52,45 +52,47 @@ const pillars = [
 export default function Home() {
   return (
     <div className="discovery-home">
-      <section
-        className="discovery-hero discovery-container"
-        aria-labelledby="hero-title"
-      >
-        <div className="hero-copy">
-          <p className="discovery-eyebrow">
-            <Leaf aria-hidden="true" size={20} /> A little room for big ideas
-          </p>
-          <h1 id="hero-title">
-            Your space.
-            <br />
-            <em>Your focus.</em>
-          </h1>
-          <p className="hero-description">
-            Find an open seat and hold it now. Worq connects Seekers with verified study
-            and co-working Spaces—complete with live seat maps and instant holds.
-          </p>
-          <div className="hero-actions">
-            <Link href="/register" className={buttonVariants()}>
-              Get started <ArrowRight aria-hidden="true" size={18} />
-            </Link>
-            <Link href="#how-it-works" className={buttonVariants({ variant: 'outline' })}>
-              How it works
-            </Link>
-          </div>
-          <p className="discovery-caption">
-            Browse verified Spaces on the map, pick your exact desk, and hold it in
-            seconds.
-          </p>
-        </div>
-        <div className="hero-visual">
+      <section className="discovery-hero" aria-labelledby="hero-title">
+        <div className="hero-backdrop">
           <Image
             src="/images/public-landing/workspace.webp"
             alt="Desks and chairs in an unoccupied shared office"
             width={1600}
             height={1067}
-            sizes="(min-width: 64rem) 50vw, 100vw"
+            sizes="100vw"
             loading="eager"
           />
+        </div>
+        <div className="discovery-container hero-inner">
+          <div className="hero-copy">
+            <p className="discovery-eyebrow">
+              <Leaf aria-hidden="true" size={20} /> A little room for big ideas
+            </p>
+            <h1 id="hero-title">
+              Your space.
+              <br />
+              <em>Your focus.</em>
+            </h1>
+            <p className="hero-description">
+              Find an open seat and hold it now. Worq connects Seekers with verified study
+              and co-working Spaces—complete with live seat maps and instant holds.
+            </p>
+            <div className="hero-actions">
+              <Link href="/register" className={buttonVariants()}>
+                Get started <ArrowRight aria-hidden="true" size={18} />
+              </Link>
+              <Link
+                href="#how-it-works"
+                className={buttonVariants({ variant: 'outline' })}
+              >
+                How it works
+              </Link>
+            </div>
+            <p className="discovery-caption">
+              Browse verified Spaces on the map, pick your exact desk, and hold it in
+              seconds.
+            </p>
+          </div>
           <p className="hero-note">
             <BookOpen aria-hidden="true" size={22} />
             <span>

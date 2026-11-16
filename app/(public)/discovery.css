@@ -58,12 +58,55 @@
   color: var(--muted-foreground);
 }
 .discovery-hero {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 25rem), 1fr));
+  position: relative;
+  overflow: hidden;
+  min-height: 34rem;
+  display: flex;
   align-items: center;
-  gap: 2rem;
-  padding-top: 2.5rem;
-  padding-bottom: 4rem;
+  padding-top: 3.25rem;
+  padding-bottom: 5rem;
+}
+.hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--secondary);
+}
+.hero-backdrop > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hero-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(23, 60, 45, 0.34) 0%,
+    rgba(23, 60, 45, 0.12) 55%,
+    rgba(23, 60, 45, 0.18) 100%
+  );
+}
+.hero-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+.hero-copy {
+  max-width: 34rem;
+  padding: 2rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid rgba(216, 223, 208, 0.85);
+  background: rgba(248, 249, 243, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 1rem 2.5rem rgba(23, 60, 45, 0.14);
 }
 .hero-copy h1 {
   font-size: 3.5rem;
@@ -78,7 +121,7 @@
 .hero-description {
   max-width: 30rem;
   font-size: 1.125rem;
-  color: var(--muted-foreground);
+  color: var(--foreground);
 }
 .hero-actions {
   display: flex;
@@ -89,27 +132,17 @@
 .hero-copy > .discovery-caption {
   max-width: 30rem;
 }
-.hero-visual {
-  position: relative;
-  background: var(--secondary);
-  border-radius: 40% 0 20% 15%;
-}
-.hero-visual > img {
-  width: 100%;
-  height: 28rem;
-  object-fit: cover;
-  border-radius: inherit;
-}
 .hero-note {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  position: relative;
-  margin: -3rem 1rem 1rem;
+  margin: 0;
   padding: 1rem;
   width: fit-content;
-  max-width: calc(100% - 2rem);
-  background: var(--card);
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.875rem;
@@ -119,6 +152,7 @@
 }
 .explanatory-panel {
   position: relative;
+  z-index: 2;
   margin-top: -2rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
