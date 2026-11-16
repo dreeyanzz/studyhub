@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Armchair, BookOpen, Leaf, Users } from 'lucide-react'
+import { ArrowRight, Armchair, BookOpen, Leaf, Search, Users } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import './discovery.css'
 
@@ -34,18 +34,15 @@ const examples = [
 const pillars = [
   {
     title: 'Snap-Grid Seat Map',
-    sprint: 'Sprint 2',
     text: 'Each Host draws a map of their Space, so you can choose the desk or room that suits your day.',
   },
   {
     title: 'Verified Amenities',
-    sprint: 'Sprint 2',
-    text: 'Space listings will describe the essentials, with an Administrator checking each Space before it goes public.',
+    text: 'Space listings describe the essentials, and an Administrator checks each Space before it goes public.',
   },
   {
     title: 'Reserve-Now Holds',
-    sprint: 'Sprint 3',
-    text: 'Planned holds will use a sandbox reservation fee. No real money moves.',
+    text: 'Hold an open unit now with a sandbox reservation fee. No real money moves.',
   },
 ]
 
@@ -70,16 +67,19 @@ export default function Home() {
             places to focus.
           </p>
           <div className="hero-actions">
-            <Link href="/register" className={buttonVariants()}>
+            <Link href="/spaces" className={buttonVariants()}>
+              <Search aria-hidden="true" size={18} /> Find a Space
+            </Link>
+            <Link href="/register" className={buttonVariants({ variant: 'outline' })}>
               Get started <ArrowRight aria-hidden="true" size={18} />
             </Link>
             <Link href="#how-it-works" className={buttonVariants({ variant: 'outline' })}>
               How it works
             </Link>
           </div>
+          {/* Honest about payments, as the footer is (D-005). */}
           <p className="discovery-caption">
-            Accounts come first. Space discovery arrives in Sprint 2; holds follow in
-            Sprint 3.
+            Reservation fees run in sandbox mode, so no real money moves.
           </p>
         </div>
         <div className="hero-visual">
@@ -194,14 +194,15 @@ export default function Home() {
       >
         <p className="discovery-eyebrow">Built around your study day</p>
         <h2 id="how-title">Know your spot before you go.</h2>
-        <p className="discovery-caption">Here is what is coming next for Worq.</p>
+        <p className="discovery-caption">
+          Search the map, pick your unit, and hold it before you leave.
+        </p>
         <ol className="pillar-grid">
           {pillars.map((pillar, index) => (
             <li key={pillar.title}>
               <span className="pillar-number" aria-hidden="true">
                 0{index + 1}
               </span>
-              <p className="discovery-caption">Coming in {pillar.sprint}</p>
               <h3>{pillar.title}</h3>
               <p>{pillar.text}</p>
             </li>
