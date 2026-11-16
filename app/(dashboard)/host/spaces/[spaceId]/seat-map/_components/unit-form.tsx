@@ -109,6 +109,10 @@ export function UnitForm(props: UnitFormProps) {
     ? String(props.unit.unitType === 'room' ? props.unit.colSpan : 2)
     : '2'
 
+  // A control's `key` (which resets its defaultValue after a refused save) goes before
+  // `{...aria}`. After a spread, the JSX transform falls back to createElement, which
+  // passed the Width select's two <option>s as an unkeyed list: React's "unique key"
+  // warning, each time a whole room's form opened. eslint.config.mjs now refuses it.
   function field(
     name: string,
     label: string,
@@ -181,9 +185,9 @@ export function UnitForm(props: UnitFormProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           {field('row', 'Row', (aria) => (
             <select
+              key={`row-${value('row', String(initialRow))}`}
               {...aria}
               className={selectClassName}
-              key={`row-${value('row', String(initialRow))}`}
               defaultValue={value('row', String(initialRow))}
             >
               {Array.from({ length: 50 }, (_, i) => (
@@ -195,9 +199,9 @@ export function UnitForm(props: UnitFormProps) {
           ))}
           {field('col', 'Column', (aria) => (
             <select
+              key={`col-${value('col', String(initialCol))}`}
               {...aria}
               className={selectClassName}
-              key={`col-${value('col', String(initialCol))}`}
               defaultValue={value('col', String(initialCol))}
             >
               {Array.from({ length: 6 }, (_, i) => (
@@ -217,8 +221,8 @@ export function UnitForm(props: UnitFormProps) {
 
       {field('label', 'Label', (aria) => (
         <Input
-          {...aria}
           key={`label-${value('label', defaultLabel)}`}
+          {...aria}
           defaultValue={value('label', defaultLabel)}
           maxLength={12}
           required
@@ -244,8 +248,8 @@ export function UnitForm(props: UnitFormProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           {field('capacity', 'Capacity (people)', (aria) => (
             <Input
-              {...aria}
               key={`capacity-${value('capacity', initialCapacity)}`}
+              {...aria}
               type="number"
               inputMode="numeric"
               min={1}
@@ -256,9 +260,9 @@ export function UnitForm(props: UnitFormProps) {
           ))}
           {field('colSpan', 'Width', (aria) => (
             <select
+              key={`span-${value('colSpan', initialColSpan)}`}
               {...aria}
               className={selectClassName}
-              key={`span-${value('colSpan', initialColSpan)}`}
               defaultValue={value('colSpan', initialColSpan)}
             >
               <option value="2">2 cells</option>
