@@ -34,18 +34,18 @@ const examples = [
 const pillars = [
   {
     title: 'Snap-Grid Seat Map',
-    sprint: 'Sprint 2',
-    text: 'Each Host draws a map of their Space, so you can choose the desk or room that suits your day.',
+    step: 'Step 01',
+    text: 'Every Host maps out their Space, so you can choose the exact desk or quiet corner that fits your day.',
   },
   {
-    title: 'Verified Amenities',
-    sprint: 'Sprint 2',
-    text: 'Space listings will describe the essentials, with an Administrator checking each Space before it goes public.',
+    title: 'Verified Spaces & Tags',
+    step: 'Step 02',
+    text: 'Filter by curated amenities—from power outlets to fast Wi-Fi—on Spaces reviewed by an Administrator.',
   },
   {
     title: 'Reserve-Now Holds',
-    sprint: 'Sprint 3',
-    text: 'Planned holds will use a sandbox reservation fee. No real money moves.',
+    step: 'Step 03',
+    text: 'Lock in an open seat before you commute with a simple sandbox reservation fee, then scan your QR at the desk.',
   },
 ]
 
@@ -66,8 +66,8 @@ export default function Home() {
             <em>Your focus.</em>
           </h1>
           <p className="hero-description">
-            Find your kind of study day. Worq brings Seekers and Hosts together around
-            places to focus.
+            Find an open seat and hold it now. Worq connects Seekers with verified study
+            and co-working Spaces—complete with live seat maps and instant holds.
           </p>
           <div className="hero-actions">
             <Link href="/register" className={buttonVariants()}>
@@ -78,8 +78,8 @@ export default function Home() {
             </Link>
           </div>
           <p className="discovery-caption">
-            Accounts come first. Space discovery arrives in Sprint 2; holds follow in
-            Sprint 3.
+            Browse verified Spaces on the map, pick your exact desk, and hold it in
+            seconds.
           </p>
         </div>
         <div className="hero-visual">
@@ -108,21 +108,21 @@ export default function Home() {
             <BookOpen aria-hidden="true" />
             <div>
               <h2>Find your focus</h2>
-              <p>Make time for what matters.</p>
+              <p>Discover quiet cafés, libraries, and co-working Spaces near you.</p>
             </div>
           </li>
           <li>
             <Armchair aria-hidden="true" />
             <div>
-              <h2>Settle in</h2>
-              <p>Imagine a comfortable study day.</p>
+              <h2>Pick your seat</h2>
+              <p>Check live seat maps before you head out.</p>
             </div>
           </li>
           <li>
             <Users aria-hidden="true" />
             <div>
-              <h2>Feel connected</h2>
-              <p>A community of Seekers and Hosts.</p>
+              <h2>Settle right in</h2>
+              <p>Hold your spot and check in with your booking QR.</p>
             </div>
           </li>
         </ul>
@@ -144,15 +144,18 @@ export default function Home() {
               <br />
               <em>Their next big idea.</em>
             </h2>
-            <p>Make room for a focused community. Start your journey as a Host.</p>
+            <p>
+              Welcome focused Seekers to your empty desks. Set up your Space, keep your
+              seat map current, and manage check-ins with ease.
+            </p>
             <Link href="/register" className={buttonVariants({ variant: 'secondary' })}>
               Become a Host <ArrowRight aria-hidden="true" size={18} />
             </Link>
           </div>
           <ul className="host-benefits">
-            <li>Welcome a community</li>
-            <li>Share your Space</li>
-            <li>Help ideas grow</li>
+            <li>Publish your seat map</li>
+            <li>Keep availability live</li>
+            <li>Verify check-ins in seconds</li>
           </ul>
         </section>
         <section
@@ -163,8 +166,8 @@ export default function Home() {
           <p className="discovery-eyebrow">Room to imagine</p>
           <h2 id="examples-title">What does your focus look like?</h2>
           <p id="examples-note" className="discovery-caption">
-            Illustrative spaces, not live listings. These photos show possibilities, not
-            bookable Spaces.
+            Sample study environments to spark your day. Browse live Spaces on the map to
+            book an open seat.
           </p>
           <ul className="example-grid">
             {examples.map((example) => (
@@ -194,14 +197,14 @@ export default function Home() {
       >
         <p className="discovery-eyebrow">Built around your study day</p>
         <h2 id="how-title">Know your spot before you go.</h2>
-        <p className="discovery-caption">Here is what is coming next for Worq.</p>
+        <p className="discovery-caption">Three steps from search to settled in.</p>
         <ol className="pillar-grid">
           {pillars.map((pillar, index) => (
             <li key={pillar.title}>
               <span className="pillar-number" aria-hidden="true">
                 0{index + 1}
               </span>
-              <p className="discovery-caption">Coming in {pillar.sprint}</p>
+              <p className="discovery-caption">{pillar.step}</p>
               <h3>{pillar.title}</h3>
               <p>{pillar.text}</p>
             </li>
