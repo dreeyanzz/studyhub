@@ -79,6 +79,18 @@ describe('SpaceList component (STORY-05, STORY-11 TSK-11.2)', () => {
     )
   })
 
+  it('renders an "Occupancy" link for each space card, after "Seat map" (STORY-12)', () => {
+    const html = renderToStaticMarkup(<SpaceList spaces={mockSpaces} canCreate={true} />)
+
+    for (const space of mockSpaces) {
+      expect(html).toContain(`href="/host/spaces/${space.id}/occupancy"`)
+      expect(html).toContain(`Occupancy<span class="sr-only"> for ${space.name}</span>`)
+      expect(html.indexOf(`/host/spaces/${space.id}/occupancy`)).toBeGreaterThan(
+        html.indexOf(`/host/spaces/${space.id}/seat-map`),
+      )
+    }
+  })
+
   it('renders empty state when spaces array is empty and canCreate is true', () => {
     const html = renderToStaticMarkup(<SpaceList spaces={[]} canCreate={true} />)
     expect(html).toContain('You have no Spaces yet')

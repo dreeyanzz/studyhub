@@ -316,6 +316,10 @@ Two PRs also carry fix commits from their review by Adrian's agent (Claude Code)
 - **Focus retention during transitions:** Added `focusableWhenDisabled` to `AlertDialogAction` to keep screen reader focus steady while an override server action is in flight.
 - **Two fixes at the close-out (#275):** the page's intro line said "Manage real-time seat states and walk-ins", and the glossary rules "real-time" out for Host-maintained availability (D-002), so the word is gone. The loading placeholder had fixed widths that came to 624 px on a 360 px screen at 200% text; its placeholders now wrap and shrink like the header they stand for.
 
+### Changed after Sprint 2
+
+- **A way in from the Host portal:** §3 named no link to the occupancy page, so Hosts reached it only from the check-in desk (STORY-10 added that link). Each Space card in `space-list.tsx` now has an "Occupancy" link after "Seat map". The Antigravity E2E pass of 16 Nov found it.
+
 ### Left open at the close-out
 
 - **Another Host gets the not-found page with HTTP status 200** on the occupancy page, where the edit and seat map pages answer 404. `loading.tsx` starts the response before the page can refuse. The body is the same not-found page, so nothing leaks. `e2e/host-occupancy.spec.ts` checks the page, not the status. Still so at the close-out on 14 Nov: `host2@` got status 200 there and 404 on the edit page.
