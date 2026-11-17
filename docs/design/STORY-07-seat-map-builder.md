@@ -554,7 +554,7 @@ smaller PRs followed: #221 named the N19 tests as the reservation lifecycle does
 
 - **The Seeker's half of the first acceptance criterion.** No Seeker page shows a seat map until STORY-11's TSK-11.5. As §4 says, STORY-11's review checks that the Seeker's profile draws the same rows with the same renderer.
 - **#218 (decision needed):** a Space deleted some other way than `deleteSpace`, such as an account deleted in the dashboard, leaves its photos in the public bucket.
-- **In development only**, the browser console logs a React "unique key" warning from `UnitForm` (#247). Nothing visible is affected, and no issue tracks it yet.
+- ~~**In development only**, the browser console logs a React "unique key" warning from `UnitForm` (#247). Nothing visible is affected, and no issue tracks it yet.~~ Fixed after Sprint 2: it fired each time a whole room's form opened. Each control's `key` came after `{...aria}`, so the JSX transform fell back to `createElement`, which passed the Width select's two `<option>`s as an unkeyed list. The keys now come first, and `eslint.config.mjs` refuses a `key` after a spread (`react/jsx-key`'s `checkKeyMustBeforeSpread` only looks inside lists). The Antigravity E2E pass of 16 Nov found it again.
 - **Reviews:** Maria hasn't re-reviewed #234's atomic reorder, a later push dismissed her approval of #247, and #258 merged with no review. Adrian merged each without one. Anything she finds goes in a follow-up PR.
 
 ### Docs this story changed
