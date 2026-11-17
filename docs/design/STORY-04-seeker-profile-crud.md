@@ -70,7 +70,7 @@ app/(dashboard)/seeker/
   _components/
     seeker-header.tsx           Server Component: name, Seeker badge, Log out (STORY-03's signOut)
     profile-form.tsx            Client Component: form state, inline errors, result message
-    preview-cards.tsx           Server Component: Sprint 2 and Sprint 3 placeholder cards
+    find-space-card.tsx         Server Component: the link to /spaces while there is no hold (§9)
 lib/validation/
   profile.ts                    Zod schema
   profile.test.ts               Vitest tests
@@ -144,6 +144,10 @@ Built in five PRs, in the §6 order: #104 (form rules), #122 (portal layout), #1
 - Keyboard focus never drops to the page. Save Profile stays focusable while it saves (Base UI's `focusableWhenDisabled`), and every failed save moves focus to the first field in error, as STORY-03's forms do (#127, #139).
 - Each preview card's title row wraps. At 360 and 768 px with text at 200%, the Card's `overflow-hidden` had clipped the Sprint 3 badge (#139).
 - The Sprint 3 card names booking tokens and check-in, not availability: availability is "host-updated", never "real-time" (D-002), and it arrives with STORY-11 in Sprint 2 (#139).
+
+**Changed after Sprint 2:**
+
+- Once discovery and holds shipped, the preview cards still said "Sprint 2", "Sprint 3" and "coming soon", and nothing on `/seeker` led to `/spaces`. `find-space-card.tsx` replaces `preview-cards.tsx`: a "Find a Space" link to the discovery map, shown while the Seeker has no hold (one hold per Seeker, so with a hold there is nothing new to find). The Antigravity E2E pass of 16 Nov found it.
 
 **Left open at the close-out, since fixed:**
 
