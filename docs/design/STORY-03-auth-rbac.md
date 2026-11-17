@@ -281,6 +281,7 @@ Built in four PRs, in the §6 order: #106 (validation), the role guard (TSK-03.2
   - The submit button stays focusable while the request runs (Base UI's `focusableWhenDisabled`), so keyboard focus is not lost to the page (TSK-03.4).
   - A taken email gets its own message on the email field (TSK-03.4).
   - After the build, the guard routes page loads only (`GET` and `HEAD`). A Server Action's `POST` goes through to the action's own session check, because a redirect made the browser post it again to `/login` and show "This page couldn't load" (#137).
+  - After Sprint 2, `/register?role=host` preselects the Host role, as `?role=seeker` already preselected Seeker for a hold prompt (D-058). The landing page's "Become a Host" opens it; before, it opened plain `/register` and a new Host had to pick the role again. Any other `role` value preselects nothing, and `register` still validates the submitted role (D-013). The Antigravity E2E pass of 16 Nov found it.
 - status line changed to `implemented 2026-09-28`.
 - docs this story changed: `DEVELOPMENT.md` and `ONBOARDING.md` (every page needs the Supabase variables), and the layout note in `AGENTS.md`.
 - who verified each acceptance criterion: Adrian's agent (Claude Code), 2026-09-28, in the browser pane and with scripts against the local Supabase stack. Nothing was written to the shared cloud database.

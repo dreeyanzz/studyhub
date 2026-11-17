@@ -26,8 +26,8 @@ export function RegisterForm({
 }: {
   /** A safe same-site path to land on after sign-up (D-058), or empty. */
   returnUrl?: string
-  /** The role to preselect, from a hold prompt. */
-  defaultRole?: 'seeker'
+  /** The role to preselect: Seeker from a hold prompt, Host from "Become a Host". */
+  defaultRole?: 'seeker' | 'host'
 } = {}) {
   const { formProps, state, pending, errors, showServerMessage } = useAuthForm(
     registerSchema,

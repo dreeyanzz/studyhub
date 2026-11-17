@@ -145,7 +145,10 @@ export default function Home() {
               <em>Their next big idea.</em>
             </h2>
             <p>Make room for a focused community. Start your journey as a Host.</p>
-            <Link href="/register" className={buttonVariants({ variant: 'secondary' })}>
+            <Link
+              href="/register?role=host"
+              className={buttonVariants({ variant: 'secondary' })}
+            >
               Become a Host <ArrowRight aria-hidden="true" size={18} />
             </Link>
           </div>
