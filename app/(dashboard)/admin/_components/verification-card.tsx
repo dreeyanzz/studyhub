@@ -47,9 +47,8 @@ export function VerificationCard({ space, onDecision }: VerificationCardProps) {
     null,
   )
 
-  const hostDisplay = space.host_name?.trim()
-    ? `Host: ${space.host_name.trim()}`
-    : 'Host: Unnamed'
+  // The "Host:" label is the <dt> below, so the value is the name alone (design §3).
+  const hostDisplay = space.host_name?.trim() || 'Unnamed'
 
   async function handleAction(status: 'verified' | 'rejected') {
     setIsPending(true)
