@@ -1,5 +1,10 @@
 # STORY-07: Snap-grid seat map builder
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-11-09 · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-05 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Host setup journey](../flows/host-setup-journey.md) ·
 **Decisions:** D-002, D-003, D-004, D-006, D-007, D-010, D-011, D-013, D-027, D-031, D-032, D-042, D-044, D-046, D-047, D-051, D-052, D-055, D-057, D-062, D-063

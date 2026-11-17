@@ -1,5 +1,10 @@
 # STORY-05: Host portal and Space CRUD
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-09-30 · **Owners:** @dreeyanzz (design, validation and Server Actions) with
 @JamesNino-Mandawe (portal pages and forms) · **Story:** #54 · **FR:** FR-3.1,
 FR-5.1, SRS §3.2.2, §3.5 and §3.8 · **Depends on:** STORY-01, STORY-02 and STORY-03 ·

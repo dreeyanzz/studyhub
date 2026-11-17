@@ -17,6 +17,10 @@ a design doc.
 - Pull request title: `docs(STORY-xx): design <short description>`.
 - Reviewers: Adrian, plus Maria if the story has screens. Maria approves the user's steps
   in §1 and the UI in §3 (D-042).
+- **Sprint 3's feature stories** (STORY-13, STORY-14, STORY-16, STORY-20) work
+  differently (D-073, D-075). Adrian writes the design, Luke adds its screens section as
+  his own commits on the same branch and approves it, and Maria's approval isn't needed:
+  Maria and James review those screens once they're built.
 - Start from [`TEMPLATE.md`](TEMPLATE.md).
 - Keep it as short as the story allows.
 
@@ -71,5 +75,9 @@ and what the right user is prevented from doing to their own rows.
 | STORY-13 |                                                                    | not written                                                         |
 | STORY-14 |                                                                    | not written                                                         |
 | STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | implemented 2026-11-09                                              |
+| STORY-16 |                                                                    | not written                                                         |
+| STORY-17 |                                                                    | not written                                                         |
+| STORY-19 |                                                                    | not written                                                         |
+| STORY-20 |                                                                    | not written                                                         |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.

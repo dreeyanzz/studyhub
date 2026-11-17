@@ -16,6 +16,14 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian        | No other flow         | implemented 2026-11-15 |
 | [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | implemented 2026-11-15 |
 
+**Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
+approve them:
+
+- the **review lifecycle** (#339), a state diagram that waits for the reservation
+  lifecycle. Its pull request adds its row to the table above;
+- a change to the **Space verification** flow (#340, D-079), as
+  [Changing a flow after it merges](#changing-a-flow-after-it-merges) says.
+
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
 and "Approved by" columns. "Waits for" names the flows that must merge before a flow is
 drawn. A flow that uses another flow's states without waiting for it, as both journeys
@@ -60,6 +68,11 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 - **Host setup journey.** A Host from a new Space to a public one: its details
   (STORY-05), the seat map (STORY-07), tags (STORY-08), photos (STORY-11), and an
   Administrator's approval (STORY-15).
+- **Review lifecycle** (Sprint 3). A review's states and every move between them (D-076):
+  a Seeker with a check-in posting one (D-009), its author editing or deleting it,
+  someone reporting it, and an Administrator hiding or removing it. Which reviews the
+  averages count, and what each state shows signed-out visitors, Seekers, Hosts and
+  Administrators.
 - **Seeker journey.** A Seeker from search to a held unit: search and filters
   (STORY-08), the Space profile and picking a unit (STORY-11), the hold and the sandbox
   payment (STORY-09), and the booking token on their dashboard (STORY-10). It includes
@@ -76,8 +89,10 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 | STORY-11 Space profile (#76)                    | Reservation lifecycle, Space verification, Host setup journey, Seeker journey |
 | STORY-12 Host occupancy (#77)                   | Reservation lifecycle                                                         |
 | STORY-15 Space verification (#166)              | Space verification, Host setup journey                                        |
-| STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle                                                         |
-| STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, Space verification, sandbox payment confirmation       |
+| STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle, review lifecycle                                       |
+| STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-16 History and Hold again (#335)          | Reservation lifecycle, sandbox payment confirmation                           |
+| STORY-20 Verification follow-ups (#338)         | Space verification, with its Sprint 3 change (#340)                           |
 
 If your story needs a shared flow that isn't listed here, ask Adrian before you write its
 design. Adrian decides whether it gets a doc, and the next section says who draws it.
