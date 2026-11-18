@@ -15,12 +15,12 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | implemented 2026-11-15 |
 | [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian        | No other flow         | implemented 2026-11-15 |
 | [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | implemented 2026-11-15 |
+| [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | Luke, Maria   | Reservation lifecycle | draft                  |
 
 **Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
 approve them:
 
-- the **review lifecycle** (#339), a state diagram that waits for the reservation
-  lifecycle. Its pull request adds its row to the table above;
+- the [review lifecycle](review-lifecycle.md) (#339), in the table above;
 - a change to the **Space verification** flow (#340, D-079), as
   [Changing a flow after it merges](#changing-a-flow-after-it-merges) says.
 
@@ -68,11 +68,12 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 - **Host setup journey.** A Host from a new Space to a public one: its details
   (STORY-05), the seat map (STORY-07), tags (STORY-08), photos (STORY-11), and an
   Administrator's approval (STORY-15).
-- **Review lifecycle** (Sprint 3). A review's states and every move between them (D-076):
-  a Seeker with a check-in posting one (D-009), its author editing or deleting it,
-  someone reporting it, and an Administrator hiding or removing it. Which reviews the
-  averages count, and what each state shows signed-out visitors, Seekers, Hosts and
-  Administrators.
+- **Review lifecycle** (Sprint 3). A review's states and every move between them (D-076,
+  D-080, D-081): a Seeker with a check-in posting one (D-009), its author editing or
+  deleting it, someone reporting each version of it, and an Administrator hiding,
+  restoring, removing it or dismissing its reports. Which reviews the averages count,
+  what each state shows signed-out visitors, Seekers, Hosts and Administrators, and the
+  moderation history.
 - **Seeker journey.** A Seeker from search to a held unit: search and filters
   (STORY-08), the Space profile and picking a unit (STORY-11), the hold and the sandbox
   payment (STORY-09), and the booking token on their dashboard (STORY-10). It includes

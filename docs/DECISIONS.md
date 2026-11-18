@@ -1140,3 +1140,35 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** every edit needing a new approval (a Space would leave the map whenever its hours change); name, location and photos (reported content is what moderation is for); keeping a rejection final (D-054's accepted risk).
 
 **Revisit if:** Hosts change what a Space is through edits this rule doesn't cover.
+
+## D-080 · How reviews are moderated
+
+**Decision:**
+
+- A review's status is `visible`, `hidden` or `removed`. A report is a separate record, with who filed it, why (spam, offensive, not about this Space, other, plus an optional note), and which version of the review it was about. A review stays visible while it is reported.
+- A signed-in user who isn't the author may report each version of a review once. An edit makes a new version, so earlier reporters can report the new text, and only the author can make a review reportable again. Users never see versions, only "edited".
+- Nothing hides a review automatically. From `/admin`, an Administrator hides, removes or dismisses a reported review, and restores or removes a hidden one. Hiding can be undone; removing can't. Each of these closes the review's open reports, and acts only on the version the Administrator saw.
+- Only Administrators read reports, besides each reporter's own. Authors and reporters are told nothing beyond a label on the review: no reason, no notification.
+- History has two layers: each review and report records who acted last and when, and a moderation log keeps every action in order. `/admin` lists Reported, Hidden and Removed reviews; Removed is read-only.
+
+**Why:** Several people can report one review, and an Administrator needs to say "this one is fine". A report count that hides reviews is easy to game with a class-sized group of users.
+
+**Rejected:** "reported" as a review status; one report per user, ever (an edit could turn a dismissed review offensive); reports keeping a copy of the text; editing closing reports; hiding after a number of reports; hide and remove meaning the same; a single history layer.
+
+**Revisit if:** Reviews need reasons sent to their authors.
+
+## D-081 · When a review can be posted, edited or deleted, and who sees it
+
+**Decision:**
+
+- A Seeker can post or edit a review of their visit whatever its Space's status, because the visit was real. Others read it only while the Space is Verified (D-055). For a hidden Space, the Seeker writes it from their reservation history (STORY-16).
+- An author can delete only a visible review, and may then post a new one for that visit. A hidden or removed review keeps the visit used, so moderation can't be undone by deleting and posting again.
+- Only the check-in matters: a refund doesn't take away a review.
+- A review is deleted with its Space, its visit or its author's account, as reservations are (D-052).
+- A reviewer is shown by a short name worked out from `full_name` when it is read: the first word and the last word's initial, the name as it is if it is one word, or "Worq Seeker" if it is empty. Reads never return the full name.
+
+**Why:** It follows D-009 (a review needs a visit) without making a Seeker wait on a Host's renaming. The short name keeps profiles private without new profile fields.
+
+**Rejected:** posting only while the Space is Verified; deleting any review, with or without posting again; separate first and last name fields on profiles (a migration and a form change for a display name).
+
+**Revisit if:** Reviews of hidden Spaces cause confusion when the Space comes back.
