@@ -1,5 +1,10 @@
 # STORY-04: Seeker portal and profile
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-09-30 · **Owner:** @JamesNino-Mandawe · **Story:** #53 · **FR:** SRS §3.5.1, §3.8 ·
 **Depends on:** STORY-01, STORY-02, STORY-03 · **Decisions:** D-007, D-010, D-013, D-016, D-019, D-027, D-028, D-031
 

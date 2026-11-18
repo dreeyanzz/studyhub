@@ -1,5 +1,10 @@
 # STORY-03: Multi-role authentication and route guard
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-09-28 · **Owner:** @lukedongque · **Story:** #52 · **FR:** SRS §3.5.1 ·
 **Depends on:** STORY-01, STORY-02 · **Decisions:** D-007, D-010, D-013, D-016, D-018, D-019, D-020, D-027, D-028, D-029, D-031, D-032
 

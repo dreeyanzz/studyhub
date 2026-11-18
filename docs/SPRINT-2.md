@@ -3,6 +3,10 @@
 **Sprint 2 · Saturday 10 October to Monday 16 November 2026 (D-072) · Read all of it
 before you start.**
 
+> **Sprint 2 is closed.** It ended with its review and the Prefinal demo on Mon 16 Nov,
+> with every story merged and nothing carried over. This page stays as the record of how
+> it ran. The current sprint is in the [Sprint 3 brief](SPRINT-3.md).
+
 This page tells each of us what to do in Sprint 2, in plain English:
 
 - what we are building;

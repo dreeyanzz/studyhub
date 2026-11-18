@@ -302,6 +302,8 @@ one PR rather than leaving a submission half-restyled.
 
 ## D-027 · Sprint 1 profiles and spaces stay minimal
 
+**Last bullet amended by D-079:** a Host's edit to a Verified Space's name or location sends it back to Pending.
+
 **Decision:**
 
 - In Sprint 1, a profile holds a name and a phone number. A space holds a name, a description, an address, one opening and one closing time used every day, and a verification status.
@@ -452,6 +454,8 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 
 **Second bullet replaced by D-053**: a function changes `spaces.status`, not a policy and a grant.
 
+**Amended by D-079:** a Host's resubmission, or an edit to a Verified Space's name or location, makes it Pending. Only an Administrator makes a Space Verified or Rejected.
+
 **Decision:**
 
 - A new Space stays Pending until an Administrator approves it on `/admin`; a rejected Space stays hidden (FR-5.1). This is STORY-15 (#166), in Sprint 2: James builds the page and its actions, and Adrian adds the policy.
@@ -541,6 +545,8 @@ Maria maintains the board; Adrian is Project Manager.
 **Revisit if:** A surface needs the time of the last change of any kind.
 
 ## D-042 · Maria owns the user experience
+
+**Amended by D-073 and D-074:** in Sprint 3, the feature stories' design docs don't wait for Maria's approval, and Maria's and James's built UI wins over older docs on what users see.
 
 **Decision:**
 
@@ -730,6 +736,8 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Revisit if:** Administrators need to edit a Space's details (FR-5.2, STORY-14).
 
 ## D-054 · In Sprint 2, an Administrator decides only Pending Spaces
+
+**Amended by D-079** for Sprint 3: rejection reasons, resubmitting, a second review after a name or location edit, and taking a Space down.
 
 **Decision:**
 
@@ -1028,3 +1036,107 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Keeping 1 December in the docs (it would no longer match the course); cutting scope (nothing needs cutting, because every Sprint 2 story is merged).
 
 **Revisit if:** The course moves the Prefinal deadline again.
+
+## D-073 · Sprint 3's feature screens get their UI review after they're built
+
+**Decision:**
+
+- In Sprint 3, Adrian and Luke build STORY-13, STORY-14, STORY-16 and STORY-20 end to end, screens included (D-075).
+- Their design docs merge without Maria's approval of the user's steps and the UI, an exception to D-042's third point. GitHub still asks for Maria's review on UI files (`.github/CODEOWNERS`), but it isn't required.
+- Maria and James review those screens once they're built, and restyle what doesn't fit, in STORY-17.
+
+**Why:** Sprint 3 reworks the UI anyway, so a review of each feature's screens before the build would review screens that are about to change. Adrian and Luke can build without waiting for Maria and James's audit.
+
+**Rejected:** Maria approving each feature design's screens first, as D-042 says (D-042's own reason, that changes cost more after the build, is accepted here as a cost); Maria and James building the feature screens, as tasks inside those stories (Adrian and Luke own their stories end to end).
+
+**Revisit if:** Restyling the feature screens can't finish before the last merge on 5 December.
+
+## D-074 · Maria's and James's built UI wins on what users see
+
+**Decision:**
+
+- Once Maria or James merge a change to a screen, that screen as built is the reference for what users see there: layout, look, wording, and the order of steps on the screen. It wins over any older flow or design doc on those points.
+- It stays below the course brief, the SRS and this log. The SRS still binds the UI (WCAG 2.1 AA and 48 × 48 px controls, SRS §3.2.2), and changing a UI decision, such as D-031's light mode only, takes a new entry here. What the system allows and stores stays with the docs and its owners (D-042).
+- Older design docs aren't rewritten to match. Each one with screens carries one note at its top, and [the docs map](README.md#which-document-wins) says so. STORY-17's design doc is the written record of the new look.
+- After Maria or James restyle a screen, a pull request by anyone else that changes its look needs Maria's or James's approval. Changes to its behaviour or data don't.
+
+**Why:** Today's UI was mostly generated, and Maria and James are reworking it in Sprint 3. Rewriting every older doc to match each restyle (AGENTS.md rule 7) would cost more than the restyle.
+
+**Rejected:** Ranking the built UI above the SRS (the SRS is graded); each UI pull request updating the older docs it makes stale; leaving the docs above the code, so that every restyle reads as a bug against an older design.
+
+**Revisit if:** A disagreement about what a screen should show can't be settled from the built screen.
+
+## D-075 · Sprint 3: scope, dates, owners and the cut order
+
+**Decision:**
+
+- Sprint 3 runs from Tuesday 17 November to Sunday 6 December 2026. The last merge is Saturday 5 December, and the Final is Monday 7 December. There are no other date targets.
+- Its stories: STORY-17 (UI/UX refresh), STORY-13 (reviews), STORY-14 (moderation, payment records and refunds), STORY-16 (reservation history, Hold again and the confirmation email), STORY-20 (verification follow-ups, split out of STORY-14) and STORY-19 (hardening). STORY-18 is kept for a second UI/UX story if the audit splits STORY-17.
+- The work splits by layer. Maria and James own the UI/UX. Adrian builds `supabase/`, `app/api/`, the Stripe refund, the email, the production project and CI, draws both flows and writes the feature designs. Luke builds `lib/data/`, `lib/validation/`, Server Actions, pages, components and their tests, writes each feature design's screens section, and approves Adrian's pull requests (D-014).
+- A UI change is a **fix**, which makes a screen match its merged design and goes under the story that built it with no design doc (D-016), or a **design change**, which goes into STORY-17.
+- If time runs short, work is cut from the bottom of this order: UI/UX fixes; UI/UX design changes; reviews and moderation; history and Hold again; refunds; rejection reasons, resubmitting and the second review; taking a Space down; the email. The production project is never cut (D-017).
+
+**Why:** Sprint 2 left the Should Haves and nothing else, and the team wanted Sprint 3 to be about the UI. Adrian chose the backend layer, so each feature story has a backend and an app owner.
+
+**Rejected:** a separate hardening week (the Final is on 7 December); owners by story, each person building whole stories; dropping the email (the draft's condition, no new cost, still holds with D-078); weekly date targets.
+
+**Revisit if:** The Final moves, or the cut order is reached.
+
+## D-076 · Reviews: what they hold, who can post one, and who sees them
+
+**Decision:**
+
+- A Seeker can review a reservation once it has a check-in, during the visit or any time after, with no deadline. Each reservation allows one review (D-009).
+- A review holds four required ratings from 1 to 5, for noise, Wi-Fi reliability, cleanliness and comfort (FR-4.1), and an optional comment of up to 500 characters. The overall rating is the average of the four.
+- Its author can edit it, which shows "edited", or delete it. A review an Administrator hid or removed can't be edited back into view.
+- Reviews are public: a signed-out visitor reads them. The averages appear on the Space profile and the Space card. Search isn't sorted or filtered by rating in Sprint 3.
+- A reviewer is shown by first name and last initial, with "Checked-in visit".
+
+**Why:** The check-in already proves the Seeker was there, so waiting for the visit to end adds nothing. The four ratings are the SRS's own.
+
+**Rejected:** only after the visit is completed; a review deadline; a separate overall rating, or only an overall rating; reviews that can't be edited; full names, or anonymous reviews.
+
+**Revisit if:** Reviews written during a visit turn out to be unreliable.
+
+## D-077 · Hold again opens the Space profile with the same unit picked
+
+**Decision:** From a past reservation, Hold again opens its Space's profile with the same unit picked in the hold panel, if that unit is Available now. Otherwise it shows the seat map and says why: the unit is taken, the Space is closed or no longer listed, or the unit was removed. It never holds anything by itself, and never for later (D-001).
+
+**Why:** The Seeker still sees today's state and fee before holding, and the hold goes through STORY-09's checks like any other.
+
+**Rejected:** one tap re-holding the same unit and going straight to payment (a hold the Seeker didn't check); a plain link to the profile.
+
+**Revisit if:** Seekers mostly want a different unit at the same Space.
+
+## D-078 · The hold confirmation email goes through Resend's free tier
+
+**Decision:**
+
+- When a payment confirms a hold, Worq emails the Seeker once, sent from `app/api/` through Resend's free tier, with no domain of our own. The key lives only in environment variables.
+- Without a verified domain, Resend delivers only to its account owner's address. So the account, and the demo Seeker who receives the email, use one mailbox made for the team's demo, never a teammate's personal address. This amends D-013 for that one account, as D-061 did for the Administrator.
+- Local tests and CI never call Resend. STORY-16's design says how they check the email instead.
+
+**Why:** It costs nothing and shows the email working at the Final.
+
+**Rejected:** buying a domain so anyone receives the email (a cost); Gmail SMTP with an app password (a personal account's secret in Vercel); an in-app notice instead of an email.
+
+**Revisit if:** The team buys a domain.
+
+## D-079 · Rejection reasons, resubmitting, and the edits that need a new approval
+
+**Amends D-027, D-037 and D-054.**
+
+**Decision:**
+
+- Rejecting a Space needs a reason, and its Host sees it.
+- The Host can edit a Rejected Space and resubmit it, which returns it to Pending for a second review.
+- A Host's edit to a Verified Space's name or location sends it back to Pending. It leaves search until an Administrator approves it again, the Host is warned before saving, the queue marks it "Edited", and holds already made there keep running. Other edits, such as hours, tags, photos, the seat map and occupancy, leave its status as it is.
+- An Administrator can take a Verified Space down. It is the last thing cut before the email (D-075).
+- A Host's edit or resubmission can make a Space Pending, never Verified or Rejected: only an Administrator decides (D-037).
+- The Space verification flow changes first (D-044, #340). It says what status a taken-down Space has, and how a Space with holds leaves Verified, which D-054's invariant didn't allow.
+
+**Why:** A reason is useless if the Host can't fix the Space and resubmit it. A name or location makes it a different place, while Hosts change hours, tags and seat maps all the time.
+
+**Rejected:** every edit needing a new approval (a Space would leave the map whenever its hours change); name, location and photos (reported content is what moderation is for); keeping a rejection final (D-054's accepted risk).
+
+**Revisit if:** Hosts change what a Space is through edits this rule doesn't cover.
