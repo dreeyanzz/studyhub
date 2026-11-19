@@ -49,7 +49,9 @@ settled. After pushing changes, request the review again.
    - every thread is resolved
    - for story work, the design doc is merged
    - for a design doc, the shared flows it uses are merged (D-044)
-   - for a design doc with screens, Maria has approved it (D-042)
+   - for a design doc with screens, Maria has approved it (D-042), except the designs of
+     Sprint 3's feature stories, STORY-13, STORY-14, STORY-16 and STORY-20, which Luke
+     approves and Maria and James review once built (D-073)
    - for a flow doc, the approvers the [flows index](../flows/README.md) names have
      approved it (D-044)
    - for a new migration, its timestamp is later than every migration on `main`, which
