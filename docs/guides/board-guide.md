@@ -65,9 +65,13 @@ Not automatic:
   request merged" stays off, and so does "Auto-close issue", which would close an issue as
   soon as someone dragged its card to Done.
 
-**If a workflow shows a red warning** in that list, the column it sets was deleted or
-recreated, and GitHub has turned the workflow off. Open it, choose the column again, and
-save it, which turns it back on.
+**If one of the four workflows above shows a red warning** in that list, the column it
+sets was deleted or recreated, and GitHub has turned the workflow off. Open it, choose the
+column again, and save it, which turns it back on.
+
+"Pull request merged" and "Auto-close issue" always show a red warning, because they are
+off on purpose and have no column set. Leave them as they are: setting a column would
+turn them on.
 
 ## Who moves cards
 
