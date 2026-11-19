@@ -548,6 +548,8 @@ Maria maintains the board; Adrian is Project Manager.
 
 **Amended by D-073 and D-074:** in Sprint 3, the feature stories' design docs don't wait for Maria's approval, and Maria's and James's built UI wins over older docs on what users see.
 
+**Fourth bullet amended by D-082:** GitHub no longer asks for Maria's review automatically. Her approval is still required where this entry says.
+
 **Decision:**
 
 - Maria decides the user experience of every story: what users see, do and are told. That covers screens and the order of steps, wording, empty, loading and error states, accessibility, the design system, and journeys that cross stories, such as a Seeker going from search to a hold.
@@ -1039,6 +1041,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 ## D-073 · Sprint 3's feature screens get their UI review after they're built
 
+**Amended by D-082:** GitHub no longer asks for Maria's review on UI files.
+
 **Decision:**
 
 - In Sprint 3, Adrian and Luke build STORY-13, STORY-14, STORY-16 and STORY-20 end to end, screens included (D-075).
@@ -1140,3 +1144,19 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** every edit needing a new approval (a Space would leave the map whenever its hours change); name, location and photos (reported content is what moderation is for); keeping a rejection final (D-054's accepted risk).
 
 **Revisit if:** Hosts change what a Space is through edits this rule doesn't cover.
+
+## D-082 · Maria is no longer a code owner
+
+**Amends D-042 and D-073.**
+
+**Decision:**
+
+- `.github/CODEOWNERS` lists only Adrian. GitHub no longer requests Maria's review automatically on design docs, shared flows and UI files.
+- Her approval is still required where this log says so: design docs with screens (D-042), except Sprint 3's feature stories (D-073); the shared flows the [flows index](flows/README.md) names her for (D-044); and look changes to a screen she or James restyled (D-074). The author requests her review by hand on those.
+- Nothing else changes. Code owner reviews were never required by the rulesets (D-014).
+
+**Why:** Adrian decided it on 19 November. Since D-073, Maria reviews Sprint 3's feature screens after they're built, so an automatic request on every pull request that touches a UI file asks her for reviews nobody waits for.
+
+**Rejected:** keeping the automatic request.
+
+**Revisit if:** A pull request that needed Maria's approval merges without it.
