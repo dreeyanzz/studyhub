@@ -724,6 +724,8 @@ Proposes D-041 again, which D-043 withdrew, now from the reservation lifecycle (
 
 Replaces D-037's second bullet. D-037's other bullets stand.
 
+**Amended by D-084:** a Host's resubmission (`public.resubmit_space`) and a trigger for a name or location edit also change `spaces.status`, each only to Pending.
+
 **Decision:**
 
 - `public.set_space_status`, a `security definer` function that STORY-15 adds, is the only way to change `spaces.status`. It refuses anyone who isn't an Administrator with `42501`, and makes only the moves the [Space verification flow](flows/space-verification.md) draws (D-054).
@@ -740,6 +742,8 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 ## D-054 · In Sprint 2, an Administrator decides only Pending Spaces
 
 **Amended by D-079** for Sprint 3: rejection reasons, resubmitting, a second review after a name or location edit, and taking a Space down.
+
+**Amended by D-084 and D-085:** a taken-down Space has a status of its own, an Administrator can undo a decision, and a take-down cancels the holds whose visit hasn't started.
 
 **Decision:**
 
@@ -1134,6 +1138,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 **Amended by D-083:** the email is never cut, so taking a Space down is now the first thing cut.
 
+**Amended by D-084 to D-086:** the Space verification flow's change (#340) settles what this entry left to it. A taken-down Space is `taken_down`, a take-down cancels holds whose visit hasn't started, and Administrators get a list of changes and a live notice.
+
 **Decision:**
 
 - Rejecting a Space needs a reason, and its Host sees it.
@@ -1212,3 +1218,54 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** keeping it the first thing cut (D-075); making it the last thing cut, which would still let it go.
 
 **Revisit if:** The email can't be sent without a cost, or the sprint runs so short that a Must Have is at risk.
+
+## D-084 · A taken-down Space has a status of its own, and a decision can be undone
+
+**Amends D-053, D-054 and D-079.**
+
+**Decision:**
+
+- `space_status` gains `taken_down`, shown as "Taken down". An Administrator takes a Verified Space down with a reason, as for a rejection (D-079). Each reason is typed, required and at most 500 characters, and only the Space's Host and Administrators read it.
+- An Administrator can undo a rejection (Rejected → Verified) and put a Taken down Space back (Taken down → Verified), without the queue.
+- The Host can resubmit a Rejected or Taken down Space with no edit first and no limit. It returns to Pending, and the queue marks it "Resubmitted", with the last reason.
+- A Verified Space goes back to Pending (D-079) only when its name, address or map pin gets a different value. Adding a pin it didn't have counts.
+- The status changes only through `set_space_status` (Administrators), `resubmit_space` (the Space's Host) and a trigger for the edit. No role writes the column (D-053).
+- The queue lists Pending Spaces by how long they have waited, and `/admin` gets lists of Rejected and Taken down Spaces.
+
+**Why:** Adrian decided on 22 November, while planning #340, that a Space pulled from public view should read differently from one never approved, to its Host and on `/admin`, and that an Administrator should be able to undo a mistaken rejection. The cost is one enum value, and fixing `hold_terms` and `unit_states`, which check for `pending` or `rejected` instead of "not Verified".
+
+**Rejected:** filing a taken-down Space under Rejected (cheaper, but the two read alike); sending it back to Pending (the queue the Administrator just took it out of); a take-down that is final, or that only an Administrator can undo; picking a reason from a list; needing an edit before a resubmit, or limiting resubmits.
+
+**Revisit if:** Hosts resubmit the same Space over and over without fixing it.
+
+## D-085 · A take-down cancels the holds whose visit hasn't started
+
+**Amends D-054.**
+
+**Decision:**
+
+- When an Administrator takes a Space down, or rejects one that a Host's edit sent back to Pending, its Pending Payment holds are cancelled and their Stripe checkout closed, and its Reserved holds are cancelled and their fees refunded through STORY-14's sandbox refund (FR-5.3, D-005). These are the reservation lifecycle's R13 and R14.
+- Occupied holds keep running to check-out or closing time, with no refund, because the Host honoured them. A Host's name or location edit cancels nothing (D-079).
+- A refund that fails stays `paid` on the payments page for an Administrator to retry. A payment that gets through anyway is the payment flow's P2, refunded from the same page. Putting the Space back doesn't bring cancelled holds back.
+- The Seeker's hold page says the Space was taken down and the fee is refunded. Nothing is emailed.
+
+**Why:** Adrian chose it on 22 November: a Seeker who paid shouldn't travel to a Space an Administrator has pulled, and D-005 already refunds a hold the Host can't honour. The refund is safe in the cut order, which drops taking a Space down before refunds (D-075).
+
+**Rejected:** letting every hold run to its end (Seekers would still travel there that day); refusing a take-down while a hold is active (a busy Space might never be free of holds); ending visits under way, with or without a refund; letting a checkout in progress finish, then refunding it.
+
+**Revisit if:** Sandbox refunds fail often enough to leave Seekers waiting, or Hosts ask for visits under way to end too.
+
+## D-086 · A Space's list of changes, and a live notice for the Administrator
+
+**Decision:**
+
+- Each Space keeps a list of changes, `space_events`. It records every status move but creation and deletion, with who made it, when and its reason, and every change to the Space's name, address or map pin, as old → new, whatever its status. Only Administrators read it, only the database writes it, and it is deleted with its Space.
+- On `/admin` it reads newest first. Everything since the Space was last Verified stands out, and the newest entry stands out most.
+- While an Administrator has a Space open, a change to its row reaches them at once through Supabase Realtime, and their decision waits until the latest version has loaded. `set_space_status`'s version check (D-053) stays as the backstop.
+- Supabase Realtime is new to the project: `spaces` joins its publication, and each listener hears only about rows its row level security lets it read.
+
+**Why:** Adrian wants an Administrator to see everything that changed since they approved a Space, with the latest change standing out, and to hear about a Host's edit while they look, instead of only being refused when they click.
+
+**Rejected:** showing only the latest change; comparing with the version just before the latest edit (two edits would hide the first); listing edits to the description, hours and price tier too (noise); checking for changes every 15 to 30 seconds (a delay, though no new tool); no notice, only D-053's refusal on click.
+
+**Revisit if:** Realtime proves unreliable on Supabase's free plan, or Administrators need photos, tags and the seat map watched too.

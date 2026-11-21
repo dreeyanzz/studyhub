@@ -1,9 +1,9 @@
 # Reservation lifecycle
 
-**Status:** implemented 2026-11-15 · **Owner:** @dreeyanzz · **Approved by:** @fayeye-09 ·
-**Stories:** STORY-07, STORY-09, STORY-10, STORY-11, STORY-12, STORY-13, STORY-14 ·
-**Decisions:** D-002, D-004, D-005, D-008, D-009, D-010, D-011, D-027, D-046 to D-052,
-D-057, D-070
+**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** draft · **Owner:**
+@dreeyanzz · **Approved by:** @fayeye-09 · **Stories:** STORY-07, STORY-09, STORY-10,
+STORY-11, STORY-12, STORY-13, STORY-14, STORY-20 · **Decisions:** D-002, D-004, D-005,
+D-008, D-009, D-010, D-011, D-027, D-046 to D-052, D-057, D-070, D-085
 
 This flow follows a hold from the moment a Seeker holds a unit until the unit is Available
 again, and says what makes each move. Three records take part: the unit's Host-set state,
@@ -27,7 +27,9 @@ It leaves these to others:
 
 - **The [Space verification flow](space-verification.md)** (#174): a Space's verification
   status. A Seeker can hold a unit only in a Verified Space (R1, N4), and only its Host
-  and Administrators see the units of a Pending or Rejected Space (N19).
+  and Administrators see the units of a Space that isn't Verified (N19). Its Sprint 3
+  change (#340) takes a Space down, or rejects one its Host edited, which cancels its
+  holds whose visit hasn't started (R13, R14, D-085).
 - **The [sandbox payment confirmation flow](sandbox-payment-confirmation.md)** (#175): how Stripe's message reaches R2, the
   signature check, a message that comes twice or late, a failed payment, and the Seeker's
   return from the checkout. A Stripe checkout can't expire sooner than 30 minutes after it
@@ -67,10 +69,10 @@ stateDiagram-v2
     [*] --> pending_payment: R1 hold
     pending_payment --> reserved: R2 payment confirmed
     pending_payment --> expired: R3 payment window lapses
-    pending_payment --> cancelled: R4 Seeker cancels, R5 Host overrides
+    pending_payment --> cancelled: R4 Seeker cancels, R5 Host overrides, R13 Space taken down
     reserved --> occupied: R6 check-in
     reserved --> no_show: R7 wait window lapses
-    reserved --> cancelled: R8 Seeker cancels, R9 Host overrides
+    reserved --> cancelled: R8 Seeker cancels, R9 Host overrides, R14 Space taken down
     occupied --> completed: R10 check-out, R11 Host tap, R12 closing time
     expired --> [*]
     no_show --> [*]
@@ -88,14 +90,14 @@ stateDiagram-v2
     [*] --> pending: R1 hold
     pending --> paid: R2 payment confirmed
     paid --> forfeited: R7 no-show, R8 Seeker cancels
-    paid --> refunded: P1 sandbox refund
+    paid --> refunded: P1 sandbox refund, after R9 or R14
     note right of pending
         An unpaid hold that ends
         leaves its payment pending
     end note
 ```
 
-A hold that ends before it is paid (R3, R4, R5) leaves its payment `pending`: no money
+A hold that ends before it is paid (R3, R4, R5, R13) leaves its payment `pending`: no money
 moved, and the SRS lists no other status for it (D-046). A payment the gateway confirms
 after its hold ended is P2.
 
@@ -127,6 +129,12 @@ it (`supabase/tests/NN-name.sql`, [testing guide](../guides/testing.md)): `seat-
 
 A move changes a reservation and its payment in one transaction.
 
+**A take-down ends the holds whose visit hasn't started** (R13, R14, D-085). A visit
+under way, an `occupied` hold, keeps running to R10, R11 or R12, because its Host has
+honoured it. A Host's edit that sends a Verified Space back to Pending ends nothing
+(D-079). The [Space verification flow](space-verification.md#leaving-verified-and-its-holds)
+says what the Seeker sees, and what happens when a checkout or a refund fails.
+
 ### The reservation and its payment
 
 | #   | Move                                   | Event                                                                | Who may make it                                                       | Made by                                                                             | Payment                                | Test                                                                                   |
@@ -143,7 +151,9 @@ A move changes a reservation and its payment in one transaction.
 | R10 | `occupied` → `completed`               | The Seeker checks out                                                | The hold's Seeker                                                     | `public.check_out` (STORY-10)                                                       | Stays `paid`                           | `check-in-release`: "a Seeker checks out, and the unit reads Available"                |
 | R11 | `occupied` → `completed`               | The Host sets the unit's state                                       | The Space's Host, naming the hold they saw                            | `public.set_unit_state` (STORY-12)                                                  | Stays `paid`                           | `occupancy`: "a Host's override on an occupied unit completes the visit"               |
 | R12 | `occupied` → `completed`               | The Space's closing time passes                                      | Time: the lapse step                                                  | `private.record_lapses` (STORY-10)                                                  | Stays `paid`                           | `check-in-release`: "closing time completes a visit, and the unit reads Available"     |
-| P1  | payment `paid` → `refunded`            | An Administrator issues a sandbox refund (FR-5.3)                    | An Administrator                                                      | STORY-14's design (Sprint 3)                                                        |                                        | Named by STORY-14's design                                                             |
+| R13 | `pending_payment` → `cancelled`        | An Administrator takes the Space down, or rejects it after an edit   | An Administrator                                                      | `public.set_space_status` (STORY-20). Its action closes the checkout                | Stays `pending`                        | `space-verification`: "a take-down cancels the Space's unpaid and paid holds"          |
+| R14 | `reserved` → `cancelled`               | The same                                                             | An Administrator                                                      | `public.set_space_status` (STORY-20)                                                | Stays `paid` until P1, asked at once   | The same test, and "rejecting an edited Space cancels its unpaid and paid holds"       |
+| P1  | payment `paid` → `refunded`            | An Administrator issues a sandbox refund (FR-5.3), also after R14    | An Administrator                                                      | STORY-14's design (Sprint 3)                                                        |                                        | Named by STORY-14's design                                                             |
 | P2  | payment `pending` → `paid`, hold ended | The gateway confirms a payment after its hold ended                  | The payment webhook only                                              | `public.confirm_payment`; the sandbox payment confirmation flow draws what follows  |                                        | Named by that flow                                                                     |
 
 **A call names what the person saw** (D-050). `cancel_hold`, and a `set_unit_state` that
@@ -207,7 +217,7 @@ straight from the tables:
 
 - **`public.unit_states(space_id)`** returns each unit's seat state and Host-updated time
   to anyone who may see the Space: everyone, signed-out visitors included, for a Verified
-  Space, and only its Host and Administrators for a Pending or Rejected one. Anyone else
+  Space, and only its Host and Administrators for one that isn't Verified. Anyone else
   gets zero rows. Only the Space's Host also gets each Reserved unit's
   `wait_window_ends_at` (FR-3.3), and each held unit's `reservation_id` (D-057). Both are
   `null` for anyone else, and where the unit has no such hold. A seat state of Reserved or
@@ -358,7 +368,8 @@ SRS Figure 2 draws the seat state. Each of its arrows is one or more moves here:
 | Check-out                    | R10, R11 or R12                                                                                                                       |
 | Hosts move any seat directly | H2, after R5, R9 or R11 when the unit has an active hold                                                                              |
 
-R8, a Seeker cancelling after paying, is new (D-050).
+R8, a Seeker cancelling after paying, is new (D-050), and so are R13 and R14, a take-down
+cancelling a hold (D-085).
 
 ## Accepted risk
 
@@ -391,6 +402,8 @@ Each choice has its entry in [DECISIONS](../DECISIONS.md), with what it rejected
 - **D-056, superseded by D-070:** the sandbox gateway is Stripe's hosted checkout. D-056 picked PayMongo's.
 - **D-057:** only the Space's Host sees which reservation holds each unit, so their view
   can warn before a tap ends a hold, and name the hold it ends.
+- **D-085:** a take-down, or rejecting a Space its Host edited, cancels its Pending Payment
+  and Reserved holds and refunds the paid ones; visits under way finish.
 
 ## Open questions
 

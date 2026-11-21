@@ -5,6 +5,12 @@
 > wording and order of steps. This doc still holds for what the system allows and
 > stores.
 
+> **Sprint 3 changes the flow this design built (#340).** A rejection needs a reason, a
+> Host can resubmit, a name or location edit sends a Verified Space back to Pending, and
+> an Administrator can take a Space down or undo a decision (D-079, D-084 to D-086). The
+> [Space verification flow](../flows/space-verification.md) says how, and STORY-20's
+> design builds it. This doc still describes the Sprint 2 queue.
+
 **Status:** implemented 2026-11-09 · **Owner:** @JamesNino-Mandawe (page and actions), @dreeyanzz (database function and policy) · **Story:** #166 · **FR:** FR-5.1 ·
 **Depends on:** STORY-01, STORY-03, STORY-05 · **Flows:** [Space verification](../flows/space-verification.md), [Host setup journey](../flows/host-setup-journey.md) · **Decisions:** D-010, D-016, D-027, D-031, D-032, D-036, D-037, D-042, D-044, D-053, D-054, D-055, D-061, D-065
 
