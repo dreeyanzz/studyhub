@@ -1120,6 +1120,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 ## D-078 · The hold confirmation email goes through Resend's free tier
 
+**Superseded by D-089:** the email goes through a team Gmail account over SMTP.
+
 **Decision:**
 
 - When a payment confirms a hold, Worq emails the Seeker once, sent from `app/api/` through Resend's free tier, with no domain of our own. The key lives only in environment variables.
@@ -1269,3 +1271,20 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** showing only the latest change; comparing with the version just before the latest edit (two edits would hide the first); listing edits to the description, hours and price tier too (noise); checking for changes every 15 to 30 seconds (a delay, though no new tool); no notice, only D-053's refusal on click.
 
 **Revisit if:** Realtime proves unreliable on Supabase's free plan, or Administrators need photos, tags and the seat map watched too.
+
+## D-089 · The hold confirmation email goes through a team Gmail account
+
+**Supersedes D-078.**
+
+**Decision:**
+
+- When a payment confirms a hold (R2, `confirm_payment` answers `confirmed`), Worq emails the Seeker once, to the address they signed up with. The Stripe webhook route sends it with Next's `after()`, once Stripe has its answer, through Gmail's SMTP with an app password.
+- The email is plain text: the Space, the unit, when the wait window ends in Asia/Manila time, and a link to the hold page. It never contains the booking token.
+- Adrian creates the account for the team, with 2-Step Verification. `GMAIL_USER` and `GMAIL_APP_PASSWORD` live only in Vercel's Production environment and in Adrian's `.env.local`, never in Preview, CI, code or chat. Without them, nothing is sent. The team knows the address, not the password.
+- Addresses ending in `@example.test` are skipped (D-013), so seeded accounts and tests never send. A failed send is logged and never retried.
+
+**Why:** Adrian chose a team Gmail account on 18 November, while planning the review lifecycle, so the email reaches real addresses without paying for a domain. Resend without a domain delivers only to its owner's inbox. D-078 had rejected Gmail because it would put a personal account's secret in Vercel, and a team account answers that. The rest was settled on 22 November, in STORY-16's design.
+
+**Rejected:** Resend's free tier without a domain (one inbox, D-078); buying a domain (a cost); a teammate's personal Gmail; sending from Preview deployments, which would email whoever signs up on cloud dev from every pull request; the booking token in the email (whoever has it gets the seat); retrying a failed send (Vercel's free plan runs scheduled jobs at most once a day, D-011).
+
+**Revisit if:** Gmail limits or blocks the account, or the team buys a domain.

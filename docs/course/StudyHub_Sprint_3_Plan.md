@@ -92,7 +92,7 @@ it doesn't hold.
 | **Must Have (M)**   | UI/UX fixes and redesign, audited screen by screen           | SRS §3.2, §3.7.1  | STORY-17           |
 | **Must Have (M)**   | A production database for the Final                          | D-017             | STORY-19           |
 | **Must Have (M)**   | Concurrency test in CI, journeys for every role, a11y sweep  | FR-2.5, SRS §3.2.2 | STORY-19          |
-| **Must Have (M)**   | Email on hold confirmation                                   | D-078, D-083      | STORY-16           |
+| **Must Have (M)**   | Email on hold confirmation                                   | D-083, D-089      | STORY-16           |
 | **Should Have (S)** | Reviews restricted to checked-in Seekers                     | FR-4.1, D-009     | STORY-13           |
 | **Should Have (S)** | Aggregate ratings, editing and reporting a review            | FR-4.2, D-076     | STORY-13           |
 | **Should Have (S)** | Review moderation                                            | FR-5.2            | STORY-14           |
@@ -245,7 +245,7 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
 - **Assignee**: `Adrian Seth Tabotabo` (the database and the email), `Luke Miguel Dongque` (the pages)
 - **Git Branch**: `feature/STORY-16-reservation-history`
 - **MoSCoW**: `Should Have` (the email: `Must Have`, D-083)
-- **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-078, D-083
+- **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-083, D-089
 
 #### Tasks
 
@@ -253,9 +253,9 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
    dates, how it ended, its payment status, and whether it has a review. Reservations are
    read only through functions, so this is new.
 2. pgTAP negatives (Adrian): another Seeker gets **0 rows**, and so does a Host.
-3. The confirmation email (Adrian): when the payment webhook confirms a hold, Resend
-   sends the Seeker one email, never two for a repeated event. Local tests and CI never
-   call Resend (D-078).
+3. The confirmation email (Adrian): when the payment webhook confirms a hold, a team
+   Gmail account sends the Seeker one email over SMTP, never two for a repeated event.
+   Local tests and CI never send one (D-089).
 4. The history page on the Seeker's dashboard (Luke): newest first, with an empty state.
 5. Hold again (Luke): opens the Space profile with the same unit picked in STORY-09's
    hold panel if it is Available now, and otherwise shows the seat map and says why
@@ -387,8 +387,9 @@ which Adrian decided the Final needs (D-083).
 - **Two people changing the same screens.** The restyle and the feature stories touch
   the same pages. Small pull requests merged often keep conflicts small, and after a
   restyle, a change to that screen's look needs Maria's or James's approval (D-074).
-- **Email reaches one inbox.** Without a domain, Resend delivers only to its account
-  owner (D-078), so the demo uses that address.
+- **The email depends on a Gmail account.** A team account sends it over SMTP with an
+  app password (D-089). If Gmail blocks or limits the account, the email stops, and the
+  hold page still shows everything it would have said.
 
 ---
 
@@ -439,12 +440,13 @@ Sprint 3 planning also settled these:
 - **Hold again** opens the Space profile with the same unit picked, and never holds
   anything by itself (D-077).
 - **The confirmation email** goes through Resend's free tier, with no domain (D-078).
+  STORY-16's design later moved it to a team Gmail account over SMTP (D-089).
 
 The designs settle the rest:
 
 - STORY-13: the tables' names, and how reports are stored.
 - STORY-14: whether a refund is recorded by the refund call or by Stripe's webhook.
-- STORY-16: how tests check the email without calling Resend.
+- STORY-16: how tests check the email without sending one.
 - STORY-19: how `db:race` runs in CI.
 - STORY-20, through the flow change: what status a taken-down Space has, and what
   happens to its holds.
