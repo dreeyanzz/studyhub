@@ -1,8 +1,8 @@
 # Space verification
 
-**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** draft · **Owner:**
-@dreeyanzz · **Approved by:** @fayeye-09; the Sprint 3 change, @lukedongque and
-@fayeye-09 · **Stories:** STORY-01, STORY-05, STORY-08, STORY-11, STORY-14, STORY-15,
+**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** approved 2026-11-22 ·
+**Owner:** @dreeyanzz · **Approved by:** @fayeye-09; the Sprint 3 change, @dreeyanzz, who
+merged it · **Stories:** STORY-01, STORY-05, STORY-08, STORY-11, STORY-14, STORY-15,
 STORY-20 · **Decisions:** D-027, D-037, D-052, D-053 to D-055, D-079, D-084 to D-086
 
 This flow follows a Space's verification status from the moment its Host creates it,

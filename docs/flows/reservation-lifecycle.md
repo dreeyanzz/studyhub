@@ -1,9 +1,10 @@
 # Reservation lifecycle
 
-**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** draft · **Owner:**
-@dreeyanzz · **Approved by:** @fayeye-09 · **Stories:** STORY-07, STORY-09, STORY-10,
-STORY-11, STORY-12, STORY-13, STORY-14, STORY-20 · **Decisions:** D-002, D-004, D-005,
-D-008, D-009, D-010, D-011, D-027, D-046 to D-052, D-057, D-070, D-085
+**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** approved 2026-11-22 ·
+**Owner:** @dreeyanzz · **Approved by:** @fayeye-09; the Sprint 3 change, @dreeyanzz ·
+**Stories:** STORY-07, STORY-09, STORY-10, STORY-11, STORY-12, STORY-13, STORY-14,
+STORY-20 · **Decisions:** D-002, D-004, D-005, D-008, D-009, D-010, D-011, D-027, D-046 to
+D-052, D-057, D-070, D-085
 
 This flow follows a hold from the moment a Seeker holds a unit until the unit is Available
 again, and says what makes each move. Three records take part: the unit's Host-set state,

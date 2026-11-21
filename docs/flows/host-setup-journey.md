@@ -1,9 +1,9 @@
 # Host setup journey
 
-**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** draft · **Owner:**
-@fayeye-09 · **Approved by:** @dreeyanzz · **Stories:** STORY-05, STORY-07, STORY-08,
-STORY-11, STORY-15, STORY-20 · **Decisions:** D-003, D-006, D-027, D-028, D-032, D-037,
-D-042, D-044, D-053, D-054, D-055, D-079, D-084
+**Status:** implemented 2026-11-15 · **Sprint 3 change (#340):** approved 2026-11-22 ·
+**Owner:** @fayeye-09 · **Approved by:** @dreeyanzz, the Sprint 3 change included ·
+**Stories:** STORY-05, STORY-07, STORY-08, STORY-11, STORY-15, STORY-20 · **Decisions:**
+D-003, D-006, D-027, D-028, D-032, D-037, D-042, D-044, D-053, D-054, D-055, D-079, D-084
 
 This journey follows an authenticated Host from creating a Space to an Administrator's
 verification decision. While it is Pending, the Host can continue setting up the seat map,
