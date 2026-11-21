@@ -1072,6 +1072,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 ## D-075 · Sprint 3: scope, dates, owners and the cut order
 
+**Cut order amended by D-083:** the confirmation email is never cut.
+
 **Decision:**
 
 - Sprint 3 runs from Tuesday 17 November to Sunday 6 December 2026. The last merge is Saturday 5 December, and the Final is Monday 7 December. There are no other date targets.
@@ -1129,6 +1131,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 ## D-079 · Rejection reasons, resubmitting, and the edits that need a new approval
 
 **Amends D-027, D-037 and D-054.**
+
+**Amended by D-083:** the email is never cut, so taking a Space down is now the first thing cut.
 
 **Decision:**
 
@@ -1192,3 +1196,19 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** keeping the automatic request.
 
 **Revisit if:** A pull request that needed Maria's approval merges without it.
+
+## D-083 · The confirmation email is never cut
+
+**Amends D-075 and D-079.**
+
+**Decision:**
+
+- The hold confirmation email (STORY-16) leaves the cut order. Like the production project (D-017), it is never cut, and the Sprint 3 plan lists it as a Must Have instead of a Could Have.
+- The other seven items keep their order, so taking a Space down is now the first thing cut and the UI/UX fixes are still the last.
+- How the email is sent isn't decided here: STORY-16's design settles its provider (D-078).
+
+**Why:** Adrian decided on 22 November, while planning the Space verification flow's change (#340), that the Final needs the email, so a slow sprint mustn't drop it. It still costs nothing (D-078).
+
+**Rejected:** keeping it the first thing cut (D-075); making it the last thing cut, which would still let it go.
+
+**Revisit if:** The email can't be sent without a cost, or the sprint runs so short that a Must Have is at risk.
