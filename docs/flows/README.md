@@ -7,15 +7,15 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 
 ## The flows
 
-| Flow                                                            | Issue | Diagram  | Drawn by | Approved by                                | Waits for             | Status                                               |
-| --------------------------------------------------------------- | ----- | -------- | -------- | ------------------------------------------ | --------------------- | ---------------------------------------------------- |
-| [Reservation lifecycle](reservation-lifecycle.md)               | #173  | State    | Adrian   | Maria                                      | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) draft |
-| [Space verification](space-verification.md)                     | #174  | State    | Adrian   | Maria; the Sprint 3 change, Luke and Maria | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) draft |
-| [Sandbox payment confirmation](sandbox-payment-confirmation.md) | #175  | Sequence | Adrian   | Luke, Maria                                | Reservation lifecycle | implemented 2026-11-15                               |
-| [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria                              | Reservation lifecycle | implemented 2026-11-15                               |
-| [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian                                     | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) draft |
-| [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke                               | No other flow         | implemented 2026-11-15                               |
-| [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James                                      | Reservation lifecycle | approved 2026-11-19                                  |
+| Flow                                                            | Issue | Diagram  | Drawn by | Approved by                        | Waits for             | Status                                                             |
+| --------------------------------------------------------------- | ----- | -------- | -------- | ---------------------------------- | --------------------- | ------------------------------------------------------------------ |
+| [Reservation lifecycle](reservation-lifecycle.md)               | #173  | State    | Adrian   | Maria; the Sprint 3 change, Adrian | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
+| [Space verification](space-verification.md)                     | #174  | State    | Adrian   | Maria; the Sprint 3 change, Adrian | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
+| [Sandbox payment confirmation](sandbox-payment-confirmation.md) | #175  | Sequence | Adrian   | Luke, Maria                        | Reservation lifecycle | implemented 2026-11-15                                             |
+| [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria                      | Reservation lifecycle | implemented 2026-11-15                                             |
+| [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian                             | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
+| [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke                       | No other flow         | implemented 2026-11-15                                             |
+| [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James                              | Reservation lifecycle | approved 2026-11-19                                                |
 
 **Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
 approve them:
@@ -26,7 +26,8 @@ approve them:
 - a change to the **Space verification** flow (#340, D-079), as
   [Changing a flow after it merges](#changing-a-flow-after-it-merges) says. It also
   changes the reservation lifecycle and the Host setup journey, which a take-down and a
-  resubmission reach.
+  resubmission reach. It merged in #346 with no review, so Adrian, who merged it, is
+  recorded as its approver.
 
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
 and "Approved by" columns. "Waits for" names the flows that must merge before a flow is
