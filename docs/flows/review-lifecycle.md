@@ -1,6 +1,6 @@
 # Review lifecycle
 
-**Status:** draft · **Owner:** @dreeyanzz · **Approved by:** @lukedongque, @fayeye-09 ·
+**Status:** approved 2026-11-19 · **Owner:** @dreeyanzz · **Approved by:** @JamesNino-Mandawe ·
 **Stories:** STORY-13, STORY-14, STORY-16 · **Decisions:** D-009, D-052, D-055, D-073,
 D-076, D-079, D-080, D-081
 
