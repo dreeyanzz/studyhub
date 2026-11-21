@@ -244,7 +244,7 @@ the Playwright stub, as the checkout already is.
 
 ### Screens
 
-**Luke writes this part, on this branch, before he approves (D-073, D-075).** Maria and
+**Luke writes this part, on this branch, before approving it (D-073, D-075).** Maria and
 James review the screens once they're built (D-073). It has to cover each screen, the
 order of steps, the wording, and the empty, loading and error states, for:
 
@@ -415,8 +415,8 @@ One PR per row, and every PR targets `main`.
 ## 8. Open questions
 
 None blocking. TSK-14.1 waits for STORY-13's tables (TSK-13.1), which #347's design
-sets. Luke's screens section may move a file or rename a component in §3, which he
-records on this branch.
+sets. Luke's screens section may move a file or rename a component in §3, recorded on
+this branch.
 
 ## 9. After the build
 
