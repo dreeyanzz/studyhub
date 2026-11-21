@@ -69,12 +69,12 @@ Sprint 3 splits the work by layer, not by story (D-075):
 
 | Developer                | Role & Primary Domain             | Sprint 3 work                                                                                                 | Points |
 | ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| **Adrian Seth Tabotabo** | Backend Lead & Database Architect | The database half of **STORY-13**, **STORY-14**, **STORY-16** and **STORY-20**; **STORY-19**'s production project, CI and #218 | 17     |
+| **Adrian Seth Tabotabo** | Backend Lead & Database Architect | The database half of **STORY-13**, **STORY-14**, **STORY-16** and **STORY-20**; **STORY-19**'s production project, #218 and the Definition of Done check | 18     |
 | **Luke Miguel Dongque**  | Auth & Security Specialist        | The app half of the same four stories; **STORY-19**'s accessibility, performance and end-to-end tests          | 14     |
 | **Maria Faith Antigua**  | Frontend Design System Lead       | **STORY-17**: the audit, the visual direction and the restyle, with James                                      | 4      |
 | **James Niño Mandawe**   | Portal Shells & QA Engineer       | **STORY-17**, with Maria                                                                                       | 4      |
 
-**Sprint total: 39 points across 6 stories**, against 55 in Sprint 2 and 44 in Sprint 1.
+**Sprint total: 40 points across 6 stories**, against 55 in Sprint 2 and 44 in Sprint 1.
 STORY-17's 8 points are a placeholder: the audit re-estimates it, and if it finds more
 than 10 points of work the story splits, and the second half is STORY-18. The split
 points for shared stories are estimates of each half.
@@ -314,20 +314,21 @@ Split out of STORY-14. Its design waits for the Space verification flow's Sprint
 ### [STORY-19] Final Hardening — issue #337
 
 - **Story**: _As the team, we want the Final build on a production database, tested end to end for every role, and checked for accessibility and speed, so that the Final demo runs on something we trust._
-- **Story Points**: `5 / 10`
+- **Story Points**: `6 / 10` (was 5; re-estimated in STORY-19's design)
 - **Time Estimate**: `3 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (production, CI and #218), `Luke Miguel Dongque` (accessibility, performance and the end-to-end tests)
+- **Assignee**: `Adrian Seth Tabotabo` (production, #218 and the Definition of Done check), `Luke Miguel Dongque` (accessibility, performance and the end-to-end tests)
 - **Git Branch**: `feature/STORY-19-final-hardening`
 - **MoSCoW**: `Must Have`
-- **Requirements**: FR-2.5, SRS §3.2.2, §3.4 · **Decisions**: D-008, D-013, D-017, D-061
+- **Requirements**: FR-2.5, SRS §3.2.2, §3.4 · **Decisions**: D-008, D-013, D-017, D-061, D-090 to D-093
 
 #### Tasks
 
-1. The production Supabase project (Adrian, D-017): every migration applied, the Final
-   deployment pointed at it, and its demo accounts following D-013 and D-061. Created
-   early, not on the last day.
-2. The concurrency tests (`npm run db:race`) in CI (Adrian, FR-2.5).
-3. #218 decided and recorded (Adrian).
+1. The production Supabase project (Adrian, D-017, D-090): every migration applied, ready
+   for the Final deployment on the day Adrian chooses, with real accounts (D-091).
+   Created early, not on the last day.
+2. The concurrency tests (`npm run db:race`) in CI (FR-2.5). Already done: the `db` job
+   has run them since #262.
+3. #218 decided and recorded (Adrian). Settled in STORY-19's design (D-092).
 4. Playwright journeys for every role, the Administrator's included (Luke).
 5. An accessibility sweep of every route against WCAG 2.1 AA (Luke, SRS §3.2.2).
 6. Search time, First Contentful Paint and Largest Contentful Paint measured on the
@@ -380,7 +381,7 @@ which Adrian decided the Final needs (D-083).
 
 **Risks.**
 
-- **The pace.** 39 points in 20 days is faster than Sprint 2. The cut order is the
+- **The pace.** 40 points in 20 days is faster than Sprint 2. The cut order is the
   answer, decided now rather than on 5 December.
 - **One merger, one database writer.** Adrian holds the backend of five stories and
   merges every pull request. Database work goes first, so nobody waits on it at the end.
@@ -405,7 +406,7 @@ column is renamed **Sprint 3 Backlog** (D-038). WIP limits stay at 4 for In Prog
 | `STORY-14` | Administration Console              | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 7 / 10 | 3.5 Days  | Should Have |
 | `STORY-16` | Reservation History & Hold Again    | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 6 / 10 | 3 Days    | Should Have |
 | `STORY-20` | Space Verification Follow-ups       | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 5 / 10 | 2.5 Days  | Could Have  |
-| `STORY-19` | Final Hardening                     | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 5 / 10 | 3 Days    | Must Have   |
+| `STORY-19` | Final Hardening                     | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 6 / 10 | 3 Days    | Must Have   |
 
 **Issue mapping.** `STORY-13` #78 · `STORY-14` #79 · `STORY-16` #335 · `STORY-17` #336 ·
 `STORY-19` #337 · `STORY-20` #338. The shared flows are #339 (review lifecycle) and #340
@@ -445,7 +446,7 @@ The designs settle the rest:
 - STORY-13: the tables' names, and how reports are stored.
 - STORY-14: whether a refund is recorded by the refund call or by Stripe's webhook.
 - STORY-16: how tests check the email without calling Resend.
-- STORY-19: how `db:race` runs in CI.
+- STORY-19: how `db:race` runs in CI. Settled before its design: the `db` job runs it (#262).
 - STORY-20, through the flow change: what status a taken-down Space has, and what
   happens to its holds.
 

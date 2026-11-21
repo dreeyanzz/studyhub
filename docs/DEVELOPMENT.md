@@ -9,7 +9,7 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | --------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------ |
 | GitHub `dreeyanzz/studyhub`             | Code, pull requests, issues, the board            | Adrian (admin); teammates have write                               | Active                         |
 | Supabase: cloud dev project             | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)                                  | Active (`studyhub-dev`)        |
-| Supabase: production project            | The deployed app                                  | Adrian                                                             | Created before the Final phase |
+| Supabase: production project            | The deployed app                                  | Adrian only, in its own organization (D-090)                       | Created before the Final phase |
 | Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app      |
 | Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
 
@@ -43,7 +43,7 @@ project after about a week without activity, so wake it the day before any demo.
 | Local (migration work) | `npm run db:start` (Docker)                | `npm run dev`         | `supabase/seed.sql`, invented                         |
 | Local (other work)     | Shared cloud dev project                   | `npm run dev`         | The shared test accounts (D-028), and what you create |
 | Preview                | Shared cloud dev project                   | Vercel preview per PR | The shared test accounts (D-028), and what you create |
-| Production             | Production project                         | Vercel, from `main`   | Demo data, invented; no seeded admin                  |
+| Production             | Production project                         | Vercel, from `main`   | Real accounts (D-091), and demo data built in the app |
 | CI                     | A fresh local stack per run (the `db` job) | None                  | `supabase/seed.sql`, invented                         |
 
 ## Secrets
@@ -193,7 +193,12 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
   `CLOUD_DEV_ACCOUNT_PASSWORD` and `CLOUD_DEV_ADMIN_PASSWORD` from `.env.local`, and the
   two passwords must differ from the seed password and each other. Run it again whenever
   the project is recreated; it skips accounts that exist and checks each one's role and
-  password. The production project has no Administrator until planned (D-028).
+  password. The production project's accounts are real addresses instead (D-091, STORY-19's
+  design).
+- **Deleting an account.** Before you delete a Host's account in the dashboard, delete
+  their Spaces in the app, or empty each Space's `space-photos/<space_id>` folder on the
+  Storage page. Nothing else removes those photos, and the bucket is public (D-092). The
+  same goes for the production project.
 
 ## Scheduled work
 
