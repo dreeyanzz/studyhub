@@ -143,10 +143,10 @@ STORY-14 store.
 
 ### Environment values
 
-| Name                 | Where                                                                                                                                                                       |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GMAIL_USER`         | Server only. The team Gmail address. In Vercel's Production environment, and optional in `.env.local`                                                                       |
-| `GMAIL_APP_PASSWORD` | Server only. The account's app password. In Vercel's Production environment only, and in Adrian's `.env.local` when he tries it. Never in Preview, CI, code or chat (D-089) |
+| Name                 | Where                                                                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GMAIL_USER`         | Server only. The team Gmail address. In Vercel's Production environment, and optional in `.env.local`                                                                    |
+| `GMAIL_APP_PASSWORD` | Server only. The account's app password. In Vercel's Production environment only, and in Adrian's `.env.local` for trying it. Never in Preview, CI, code or chat (D-089) |
 
 Adrian creates the account for the team, turns on 2-Step Verification and makes the app
 password. The address is shared with the team, and the password isn't. TSK-16.2 adds both
@@ -163,7 +163,7 @@ The review dialog reuses STORY-13's `postReviewSchema` and `editReviewSchema`.
 
 ### Screens
 
-**Luke writes this part, on this branch, before he approves (D-073, D-075).** Maria and
+**Luke writes this part, on this branch, before approving it (D-073, D-075).** Maria and
 James review the screens once they're built (D-073). It has to cover each screen, the
 order of steps, the wording, and the empty, loading and error states, for:
 
@@ -312,7 +312,7 @@ One PR per row, and every PR targets `main`.
 
 None blocking. Adrian creates the team Gmail account and its app password before
 TSK-16.2's manual check (D-089). Luke's screens section may move a file or rename a
-component in §3, which he records on this branch.
+component in §3, recorded on this branch.
 
 ## 9. After the build
 
