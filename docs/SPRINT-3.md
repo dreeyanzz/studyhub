@@ -46,7 +46,8 @@ the SRS still asks for:
    every role, and accessibility and speed checks.
 
 That's 39 points in 20 days, faster than Sprint 2. If we fall behind, the plan's cut
-order (§6) says what goes first, from the email up to the UI fixes, which go last.
+order (§6) says what goes first, from taking a Space down up to the UI fixes, which go
+last. The email and the production project are never cut (D-017, D-083).
 
 ## 1. What's new this sprint
 

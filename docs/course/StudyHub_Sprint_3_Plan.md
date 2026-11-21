@@ -92,6 +92,7 @@ it doesn't hold.
 | **Must Have (M)**   | UI/UX fixes and redesign, audited screen by screen           | SRS §3.2, §3.7.1  | STORY-17           |
 | **Must Have (M)**   | A production database for the Final                          | D-017             | STORY-19           |
 | **Must Have (M)**   | Concurrency test in CI, journeys for every role, a11y sweep  | FR-2.5, SRS §3.2.2 | STORY-19          |
+| **Must Have (M)**   | Email on hold confirmation                                   | D-078, D-083      | STORY-16           |
 | **Should Have (S)** | Reviews restricted to checked-in Seekers                     | FR-4.1, D-009     | STORY-13           |
 | **Should Have (S)** | Aggregate ratings, editing and reporting a review            | FR-4.2, D-076     | STORY-13           |
 | **Should Have (S)** | Review moderation                                            | FR-5.2            | STORY-14           |
@@ -100,7 +101,6 @@ it doesn't hold.
 | **Could Have (C)**  | Rejection reasons and resubmitting a Rejected Space          | FR-5.1, D-079     | STORY-20           |
 | **Could Have (C)**  | A second review after a name or location edit                | D-027, D-079      | STORY-20           |
 | **Could Have (C)**  | An Administrator taking a Verified Space down                | FR-5.2, D-079     | STORY-20           |
-| **Could Have (C)**  | Email on hold confirmation                                   | D-078             | STORY-16           |
 | **Won't Have (W)**  | Sorting or filtering search by rating                        | D-076             | After the course   |
 | **Won't Have (W)**  | Real-money settlement                                        | SRS §1.2, D-005   | Future release     |
 | **Won't Have (W)**  | Advance or scheduled bookings                                | D-001             | Out of scope       |
@@ -244,8 +244,8 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
 - **Time Estimate**: `3 Days`
 - **Assignee**: `Adrian Seth Tabotabo` (the database and the email), `Luke Miguel Dongque` (the pages)
 - **Git Branch**: `feature/STORY-16-reservation-history`
-- **MoSCoW**: `Should Have` (the email: `Could Have`)
-- **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-078
+- **MoSCoW**: `Should Have` (the email: `Must Have`, D-083)
+- **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-078, D-083
 
 #### Tasks
 
@@ -373,10 +373,10 @@ and Luke builds his pages against sample data until they land.
 5. Sandbox refunds (STORY-14)
 6. Rejection reasons, resubmitting and the second review (STORY-20)
 7. Taking a Space down (STORY-20)
-8. The confirmation email (STORY-16)
 
-The production project (STORY-19) isn't on the list, because the Final can't run
-without it (D-017).
+Two things aren't on the list, so they are never cut: the production project (STORY-19),
+because the Final can't run without it (D-017), and the confirmation email (STORY-16),
+which Adrian decided the Final needs (D-083).
 
 **Risks.**
 
@@ -428,7 +428,8 @@ The draft of this plan left three questions open (its §8). They are settled her
 
 Sprint 3 planning also settled these:
 
-- **Scope, dates, the split by layer, and the cut order** (D-075).
+- **Scope, dates, the split by layer, and the cut order** (D-075). After baselining,
+  the email left the cut order (D-083).
 - **Maria and James review the feature screens after they're built**, not in the design
   docs (D-073).
 - **Maria's and James's built UI wins** over older flows and design docs on what users
