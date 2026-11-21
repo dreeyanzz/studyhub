@@ -73,7 +73,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-11 | [STORY-11-space-profile.md](STORY-11-space-profile.md)             | implemented 2026-11-14                                              |
 | STORY-12 | [STORY-12-host-occupancy.md](STORY-12-host-occupancy.md)           | implemented 2026-11-10                                              |
 | STORY-13 |                                                                    | not written                                                         |
-| STORY-14 |                                                                    | not written                                                         |
+| STORY-14 | [STORY-14-admin-console.md](STORY-14-admin-console.md)             | draft                                                               |
 | STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | implemented 2026-11-09                                              |
 | STORY-16 |                                                                    | not written                                                         |
 | STORY-17 |                                                                    | not written                                                         |
