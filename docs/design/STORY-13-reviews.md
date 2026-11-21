@@ -259,7 +259,7 @@ that count reviews use a Space of their own.
 
 ### Screens
 
-**Luke writes this part, on this branch, before he approves (D-073, D-075).** Maria and
+**Luke writes this part, on this branch, before approving it (D-073, D-075).** Maria and
 James review the screens once they're built (D-073). It has to cover each screen and the
 order of steps, the wording, and the empty, loading and error states, for:
 
@@ -440,8 +440,8 @@ One PR per row, and every PR targets `main`.
 
 ## 8. Open questions
 
-None blocking. Luke's screens section may move a file or rename a component in §3, which
-he records on this branch.
+None blocking. Luke's screens section may move a file or rename a component in §3, recorded
+on this branch.
 
 ## 9. After the build
 
