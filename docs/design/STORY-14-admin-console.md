@@ -1,6 +1,6 @@
 # STORY-14: Administration console
 
-**Status:** draft · **Owner:** @dreeyanzz (database and refund), @lukedongque (pages and
+**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (database and refund), @lukedongque (pages and
 screens) · **Story:** #79 · **FR:** FR-5.2, FR-5.3 · **Depends on:** STORY-09, STORY-10,
 STORY-12, STORY-13, STORY-15 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
