@@ -203,7 +203,7 @@ The review dialog reuses STORY-13's `postReviewSchema` and `editReviewSchema`.
      - **Unit taken (`selectedUnit` exists, Space is open, and `selectedUnit.seatState !== 'available'`):** Renders `data-testid="hold-again-notice"` above the seat map: `"{unit.label} is taken right now ({stateLabel}). Pick another Available unit below."`
      - **Unit available (`selectedUnit` exists, Space is open, and `selectedUnit.seatState === 'available'`):** No `hold-again-notice` error banner; `HoldUnitPanel` opens pre-selected for `?unit=<id>` as usual.
 4. **Leave a review and Edit your review dialog (`ReviewDialog`):**
-   - Uses `@base-ui/react/dialog` (focus-trapped; Escape or `"Cancel"` closes and returns focus to the trigger button).
+   - Uses `Dialog` from `components/ui/dialog.tsx` (focus-trapped; Escape or `"Cancel"` closes and returns focus to the trigger button).
    - Title `"Leave a review — {spaceName}"` or `"Edit your review — {spaceName}"`.
    - Embeds STORY-13's `components/review/review-form.tsx` wired to `postReviewAction` or `editReviewAction` (passing `spaceId`, `reservationId` or `reviewId`, and existing values when editing).
    - On success: closes dialog, calls `router.refresh()` so `/seeker/reservations` immediately reflects `"Reviewed"` / `"Edit your review"`, and announces `"Review posted."` / `"Review updated."` in an `aria-live="polite"` region. On error, displays the `§1` refusal or validation message inside the dialog.
@@ -217,7 +217,8 @@ Already-decided rules followed above: D-001, D-055, D-077, D-080, and D-081.
 | `app/(dashboard)/seeker/reservations/page.tsx`                      | Server Component     | The history: reads `my_reservation_history` and the Seeker's own reviews for the rows shown                                                 |
 | `app/(dashboard)/seeker/reservations/loading.tsx`                   | Server Component     | Card placeholder skeletons while the reservation history loads                                                                              |
 | `app/(dashboard)/seeker/reservations/_components/history-row.tsx`   | Server Component     | One past reservation, outcome/fee labels, Hold again link, and review state/trigger                                                         |
-| `app/(dashboard)/seeker/reservations/_components/review-dialog.tsx` | Client Component     | `@base-ui/react/dialog` modal for Leave a review and Edit your review, using `review-form.tsx`, `router.refresh()`, and `aria-live`         |
+| `app/(dashboard)/seeker/reservations/_components/review-dialog.tsx` | Client Component     | Modal on `components/ui/dialog.tsx`, for Leave a review and Edit your review, using `review-form.tsx`, `router.refresh()`, and `aria-live`  |
+| `components/ui/dialog.tsx`                                          | New primitive        | `npx shadcn add dialog`, shared with STORY-13's report and STORY-14's refund dialogs. The first task that needs it adds it                  |
 | `app/(dashboard)/seeker/page.tsx`                                   | Changed              | Adds the `"Reservation history"` card with a 48 × 48 px link to `/seeker/reservations`                                                      |
 | `app/(public)/spaces/[spaceId]/page.tsx`                            | Changed              | Reads `from=history`, `unit_removed`, and unresolved `unit=<id>`, and shows one notice above the seat map without duplicating closed alerts |
 | `lib/data/history.ts`                                               | Server-only          | `getReservationHistory`, one more row than the page shows, to know if there are more                                                        |
@@ -230,6 +231,7 @@ Already-decided rules followed above: D-001, D-055, D-077, D-080, and D-081.
 ```
 app/(dashboard)/seeker/reservations/page.tsx, loading.tsx
 app/(dashboard)/seeker/reservations/_components/history-row.tsx, review-dialog.tsx
+components/ui/dialog.tsx
 app/(dashboard)/seeker/page.tsx
 app/(public)/spaces/[spaceId]/page.tsx
 app/api/webhooks/stripe/route.ts
