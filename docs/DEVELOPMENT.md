@@ -129,6 +129,12 @@ database" names. With the cloud dev key left from `.env.local`, every delivery f
 dev server too. It names a reservation your database doesn't have, and the route logs it
 as an unknown reservation and answers 200.
 
+Until the switch to production, a payment on a Vercel preview is confirmed too: the
+sandbox's one endpoint is worqph, which uses cloud dev like the previews. Once worqph runs
+on production, a preview's payment reaches production instead, which logs it as an
+unknown reservation, and the preview's hold lapses unpaid. From then on, try payments
+locally with the steps above (STORY-19's design).
+
 ## Changing the database
 
 Adrian, the database owner, does this for every change, except that Luke does steps 1 to 5
@@ -162,8 +168,10 @@ your app doesn't use the cloud dev project.
    - **The types.** If `lib/supabase/database.types.ts` conflicts, don't fix it by hand.
      Run steps 4 and 5 again.
 6. After the PR merges, Adrian runs `npx supabase db push` from `main` against the cloud
-   dev project, and against production once it exists. Migrations do not ride along with
-   Vercel deploys, so push them before the code that needs them reaches production.
+   dev project, then, once production exists,
+   `npx supabase db push --db-url "$PRODUCTION_DB_URL"` against it, never by re-linking
+   the CLI (D-090). Migrations do not ride along with Vercel deploys, so push them before
+   the code that needs them reaches production.
    `db push` sends migrations only. Never add `--include-seed`: `seed.sql` holds the
    Administrator account and a public password (D-013).
 

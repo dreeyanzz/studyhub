@@ -1290,7 +1290,7 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 - It lives in a Supabase organization of its own, with Adrian as its only member: on the Free plan, a role in an organization covers every project in it, and `lamph-org` gives the team roles for cloud dev (D-065). Only Adrian holds its database password, keys and secret key (D-029).
 - Migrations reach it from merged `main` only, after cloud dev, with `supabase db push --db-url` and a connection string in Adrian's `.env.local`, never by re-linking the CLI.
 - Supabase Auth runs at production level: email confirmation on, STORY-03's password rules, the site and redirect addresses on worqph, and the team Gmail account as its SMTP sender (D-089).
-- Payments stay in Stripe's sandbox (D-005, SRS §1.2).
+- Payments stay in Stripe's sandbox (D-005, SRS §1.2), with its one webhook endpoint on worqph. So after the switch a sandbox payment on a preview, which still uses cloud dev, is never confirmed, and payments are tried locally with the Stripe CLI or `npm run webhook:simulate`.
 
 **Why:** Adrian decided it on 22 November, in STORY-19's design: the team wants to pitch Worq as close to the real product as it can be, without having to choose the switch date yet.
 

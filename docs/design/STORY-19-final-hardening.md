@@ -12,8 +12,9 @@ as close to the real thing as possible. So this story makes a production Supabas
 ready to run the app on any day Adrian chooses, with real email and real accounts. It
 checks every page against WCAG 2.1 AA on every pull request, so the restyle can't quietly
 break it. It measures speed against SRS §3.4, and runs the Definition of Done check
-before the last merge. Adrian builds production and the Definition of Done check, and
-Luke the accessibility sweep, the speed measures and any missing journey.
+before the last merge. Adrian builds production, the Definition of Done check and the
+final manual accessibility pass, and Luke the accessibility sweep, the speed measures and
+any missing journey.
 
 ## 0. Scope
 
@@ -35,7 +36,8 @@ Luke the accessibility sweep, the speed measures and any missing journey.
 - **Speed (Luke):** First Contentful Paint and Largest Contentful Paint on the landing,
   search and profile pages, and search time, measured on worqph and recorded in §9.
 - **The Definition of Done check (Adrian),** of every Sprint 3 story before the last
-  merge, recorded in §9.
+  merge, and the final keyboard and screen-reader pass after the last restyle, both
+  recorded in §9.
 - **`npm run db:race` in CI:** already done. The `db` job has run it since #262 (9 Nov),
   so its acceptance criterion only needs checking off.
 
@@ -135,6 +137,17 @@ values stay as they are. **Preview** keeps cloud dev's values. An environment ch
 takes effect on the next deployment, so the switch is the settings change plus a redeploy
 of `main`.
 
+**Payments on previews stop confirming after the switch.** Stripe's sandbox sends its
+events to one endpoint, worqph's `/api/webhooks/stripe`, and today that deployment and
+every preview share cloud dev. Once worqph runs on production, a sandbox payment made on
+a preview reaches production's `confirm_payment`, which finds no such reservation and
+answers `not_found`. The webhook logs it and answers 200, as it already does (the sandbox
+payment confirmation flow's W21), and the preview's hold stays unpaid until it lapses. No
+deployment serves cloud dev at a fixed address Stripe could call instead, so after the
+switch payments are tried locally, with `npm run stripe:listen` or
+`npm run webhook:simulate`, and `DEVELOPMENT.md` says so. Production's log of unknown
+reservations from previews is expected.
+
 ### Production accounts (D-091)
 
 | Role          | Address                           | How it is made                                                                 |
@@ -148,9 +161,11 @@ of `main`.
 - Adrian chooses their passwords, keeps them out of the repository and chat, and gives
   them privately to teammates for rehearsals (D-029).
 - `npm run db:promote-admin -- <email>` (TSK-19.1) sets that account's role to `admin`
-  with the secret key, as `npm run db:accounts` does on cloud dev (D-061). It reads the
-  project's URL and secret key from the environment it runs in, so Adrian runs it with
-  production's values, on Adrian's machine only.
+  with the secret key, as `npm run db:accounts` does on cloud dev (D-061). It reads
+  production's URL and secret key from names of its own, `PRODUCTION_SUPABASE_URL` and
+  `PRODUCTION_SECRET_KEY`, in Adrian's `.env.local` only beside `PRODUCTION_DB_URL`, never
+  from the names cloud dev uses, so it can't promote an account on cloud dev by mistake.
+  It prints the project it is about to change, and runs on Adrian's machine only.
 - `seed.sql` never runs on production: it holds a public password (D-028). Demo Spaces,
   seat maps, photos and approvals are made through the app, which rehearses it too.
 - Anyone else who signs up on production, at a pitch for example, is an ordinary Seeker
@@ -182,17 +197,24 @@ Maria and James's restyle of them (D-074).
   - axe's WCAG 2.1 A and AA rules (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`), through
     `@axe-core/playwright`, a new development dependency. Any violation fails the test,
     with its rule and the element it found.
-  - The checks axe can't make, as `e2e/discovery-a11y.spec.ts` already does for
-    discovery: every control at least 48 × 48 px, no horizontal scrolling at 360, 768 and
-    1024 px, nothing clipped with text at 200%, and a keyboard path that reaches every
-    control with visible focus.
+  - The checks axe can't make: every control at least 48 × 48 px, no horizontal
+    scrolling at 360, 768 and 1024 px, nothing clipped with text at 200%, and a keyboard
+    path that reaches every control with visible focus. `e2e/discovery-a11y.spec.ts`
+    already makes the first two for discovery, with text at 200% too, and checks the
+    filter drawer's focus trap. The clipping check (inside cards, whose primitive hides
+    overflow) and the visible-focus check are new in this spec.
   - It finds things by their role and label, never by class names or layout, so it
     keeps working as the restyle changes the look.
+- **What is already on `main` when it lands:** TSK-19.3 runs the sweep once and lists
+  each violation it finds in `e2e/support/known-violations.ts`, by route and rule, with
+  the `fix(STORY-xx)` issue it files for each (D-075). The sweep fails on any violation
+  that isn't on the list, and on a listed one that no longer happens, so the list only
+  shrinks, and a fix removes its entry. It is empty by TSK-19.2's check.
 - **When it fails on a restyled screen,** whoever restyled it fixes it, as a STORY-17
   fix: their built UI wins on look (D-074), and WCAG 2.1 AA still binds it (SRS §3.2.2).
-- **The final manual pass** runs after Maria and James's last restyle lands, before the
-  last merge: every route with the keyboard alone, and a screen-reader spot check of the
-  hold, check-in, review and refund steps.
+- **The final manual pass** (TSK-19.2, Adrian) runs after Maria and James's last restyle
+  lands, before the last merge: every route with the keyboard alone, and a screen-reader
+  spot check of the hold, check-in, review and refund steps.
 
 ### The journeys for every role (Luke)
 
@@ -226,7 +248,7 @@ once they have merged, and writes a test for any journey still without one.
 
 ```
 e2e/accessibility.spec.ts
-e2e/support/routes.ts
+e2e/support/routes.ts, known-violations.ts
 scripts/measure-search.mjs
 scripts/promote-admin.mjs
 docs/DEVELOPMENT.md
@@ -240,6 +262,7 @@ AGENTS.md (the Commands block, and the required checks once e2e is required)
 | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
 | Playwright | `e2e/accessibility.spec.ts`: every route in `routes.ts`, as its role, against axe's WCAG 2.1 A and AA rules                                                                        | No violations                                   |
 | Playwright | `e2e/accessibility.spec.ts`: every route's controls at 48 × 48 px, no horizontal scroll at three widths, nothing clipped at 200% text, and a full keyboard path                    | As described                                    |
+| Playwright | `e2e/accessibility.spec.ts`: a violation not in `known-violations.ts` fails, and so does a listed one that no longer happens                                                       | Fails, naming the route and the rule            |
 | CI         | The `db` job runs `npm run db:race` on every pull request (since #262)                                                                                                             | Green                                           |
 | CI         | The `e2e` job is a required check once TSK-19.3 lands (D-093)                                                                                                                      | Listed in the ruleset and in `AGENTS.md`        |
 | Manual     | Production's migration list matches cloud dev's after every push                                                                                                                   | The same list                                   |
@@ -247,7 +270,7 @@ AGENTS.md (the Commands block, and the required checks once e2e is required)
 | Manual     | The rehearsal on the switch day: a hold paid in the sandbox sends STORY-16's email, the Host checks the Seeker in, the Seeker reviews, and the Administrator moderates and refunds | Every step works on worqph                      |
 | Manual     | A Seeker or a Host on production can't open `/admin`, and the promoted Administrator can                                                                                           | As described                                    |
 | Manual     | Lighthouse and `scripts/measure-search.mjs` against SRS §3.4, recorded in §9                                                                                                       | Within the targets, or recorded with the reason |
-| Manual     | The final keyboard and screen-reader pass, after the last restyle                                                                                                                  | Recorded in §9                                  |
+| Manual     | The final keyboard and screen-reader pass, after the last restyle (TSK-19.2)                                                                                                       | Recorded in §9                                  |
 | Manual     | The Definition of Done check of every Sprint 3 story                                                                                                                               | Recorded in §9                                  |
 
 No table, policy or function changes, so no pgTAP tests are added. The production
@@ -261,15 +284,17 @@ from 5 to **6 points and 3 days**, 3 for Adrian and 3 for Luke. The plan's
 `db:race` task was already done in #262, and #218 is settled in this PR, but the
 production-level setup Adrian chose on 22 Nov is more than the plan assumed.
 
-| Task     | What                                                                                                                                                              | Owner        | Points (1–10) | Days | Depends on                                         |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------------------- |
-| TSK-19.1 | The production project made ready (§1's first two lanes): migrations, Auth settings and SMTP, the real accounts, `npm run db:promote-admin`, and `DEVELOPMENT.md` | @dreeyanzz   | 2             | 1    | This design merged; the team Gmail account (D-089) |
-| TSK-19.2 | The Definition of Done check of every Sprint 3 story, recorded in §9; `e2e` added to the required checks and to `AGENTS.md`; `db:race`'s criterion checked off    | @dreeyanzz   | 1             | 0.5  | TSK-19.3, and every other story's last PR          |
-| TSK-19.3 | The accessibility sweep: `@axe-core/playwright`, `e2e/support/routes.ts`, `e2e/accessibility.spec.ts`, and the final manual pass recorded in §9                   | @lukedongque | 1             | 0.5  | This design merged                                 |
-| TSK-19.4 | The journeys table in §9, and a test for any journey still without one                                                                                            | @lukedongque | 1             | 0.5  | STORY-13, STORY-14, STORY-16 and STORY-20's tests  |
-| TSK-19.5 | Speed: Lighthouse and `scripts/measure-search.mjs`, recorded in §9                                                                                                | @lukedongque | 1             | 0.5  | This design merged                                 |
+| Task     | What                                                                                                                                                                                                                      | Owner        | Points (1–10) | Days | Depends on                                         |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------------------- |
+| TSK-19.1 | The production project made ready (§1's first two lanes): migrations, Auth settings and SMTP, the real accounts, `npm run db:promote-admin`, and `DEVELOPMENT.md`                                                         | @dreeyanzz   | 2             | 1    | This design merged; the team Gmail account (D-089) |
+| TSK-19.2 | The Definition of Done check of every Sprint 3 story and the final manual pass after the last restyle (§3), both recorded in §9; `e2e` added to the required checks and to `AGENTS.md`; `db:race`'s criterion checked off | @dreeyanzz   | 1             | 0.5  | TSK-19.3, and every other story's last PR          |
+| TSK-19.3 | The accessibility sweep: `@axe-core/playwright`, `e2e/support/routes.ts`, `e2e/accessibility.spec.ts`, and `known-violations.ts` with an issue filed for each entry (§3)                                                  | @lukedongque | 1             | 0.5  | This design merged                                 |
+| TSK-19.4 | The journeys table in §9, and a test for any journey still without one                                                                                                                                                    | @lukedongque | 1             | 0.5  | STORY-13, STORY-14, STORY-16 and STORY-20's tests  |
+| TSK-19.5 | Speed: Lighthouse and `scripts/measure-search.mjs`, recorded in §9                                                                                                                                                        | @lukedongque | 1             | 0.5  | This design merged                                 |
 
 TSK-19.3 goes early, so every later pull request, the restyle's included, is checked.
+The final manual pass waits for the last restyle, so it sits in TSK-19.2, which runs
+last.
 The switch itself has no task: it is Adrian's call, on the day Adrian chooses (D-090).
 
 ## 6. Build order
