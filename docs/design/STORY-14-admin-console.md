@@ -5,7 +5,7 @@ screens) · **Story:** #79 · **FR:** FR-5.2, FR-5.3 · **Depends on:** STORY-09
 STORY-12, STORY-13, STORY-15 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
 [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md) ·
-**Decisions:** D-005, D-010, D-047, D-050, D-053, D-070, D-073 to D-076, D-080, D-085,
+**Decisions:** D-005, D-010, D-013, D-047, D-050, D-053, D-070, D-073 to D-076, D-080, D-085,
 D-088
 
 An Administrator moderates reported reviews from `/admin`: hides, restores or removes a
@@ -92,12 +92,15 @@ sequenceDiagram
     alt Not refundable any more, or already refunded
         SA-->>B: This payment can't be refunded now, with the list reloaded
     else Refundable
-        SA->>ST: POST /v1/refunds for its payment intent, Idempotency-Key refund-(payment id)
-        alt Stripe refuses, fails or times out
-            ST-->>SA: An error, or a refund that failed
+        SA->>ST: createRefund: POST /v1/refunds for its payment intent, Idempotency-Key refund-(payment id)
+        opt Stripe refuses, fails or times out
+            ST-->>SA: An error, a refund that failed, or no answer
+            SA->>ST: findRefund: GET /v1/refunds for that payment intent
+            ST-->>SA: Its refunds, if any
+        end
+        alt No refund that succeeded or is pending, from either call
             SA-->>B: Stripe didn't refund it, so nothing changed. Try again
-        else Stripe accepts the refund (succeeded or pending)
-            ST-->>SA: The refund, with its re_ id
+        else A refund that succeeded or is pending, with its re_ id
             SA->>DB: record_refund (payment id, refund id, reason)
             alt The rule refuses it after all, or a second Administrator recorded it first
                 DB-->>SA: P0001 with the hint not_refundable or already_refunded
@@ -114,9 +117,12 @@ If `record_refund` fails after Stripe accepted the refund, for example on a drop
 connection, clicking Refund again is safe: the idempotency key makes Stripe return the
 same refund, and the payment is then recorded. But Stripe keeps a key for at least 24
 hours and may drop it after that, so a later retry is a new request, which Stripe refuses
-because the charge is already refunded. So whenever Stripe refuses, the action first asks
-`findRefund` whether that payment intent already has a refund, and if it has, records
-that one. A payment refunded in Stripe never stays Paid here.
+because the charge is already refunded. So whenever `createRefund` doesn't come back with
+an accepted refund, whether Stripe refused it, the call failed or it timed out, the action
+asks `findRefund` whether that payment intent already has a refund, and if it has,
+records that one. A payment refunded in Stripe never stays Paid here. After a timeout,
+Stripe may still be making the refund, so `findRefund` can find none yet. Nothing is
+recorded then, and the next click is safe within the key's 24 hours.
 
 ## 2. Data and state
 
@@ -247,9 +253,11 @@ failure or a timeout throws the helper's own error, as the checkout's does (the 
 is a `DOMException`), and the action treats it like a refusal: nothing was recorded, so
 the Administrator tries again.
 
-`findRefund({ paymentIntentId })` reads `GET /v1/refunds?payment_intent=<id>&limit=1`
+`findRefund({ paymentIntentId })` reads `GET /v1/refunds?payment_intent=<id>&limit=10`
 through a GET twin of the helper, and returns that payment's refund that `succeeded` or
-is `pending`, or none. The action calls it only after Stripe refuses a refund (§1).
+is `pending`, or none. It reads up to 10, because a refund that failed can sit beside the
+one that succeeded. The action calls it only when `createRefund` doesn't return an
+accepted refund: a refusal, a failure or a timeout (§1).
 
 `STRIPE_API_URL` points both at the Playwright stub, as the checkout already is.
 
@@ -298,20 +306,20 @@ These are already decided, so the screens follow them:
 
 Luke's section confirms or changes these.
 
-| File                                                                               | Type             | Purpose                                                                                                                         |
-| ---------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `app/(dashboard)/admin/moderation/page.tsx`                                        | Server Component | Reads `admin_review_queue` for the chosen list, and each shown review's history                                                 |
-| `app/(dashboard)/admin/moderation/actions.ts`                                      | Server Action    | `moderateReviewAction`: parses, calls `moderate_review`, maps each hint to its message, revalidates                             |
-| `app/(dashboard)/admin/moderation/_components/…`                                   | Client Component | The lists, the review cards and the confirmations                                                                               |
-| `app/(dashboard)/admin/payments/page.tsx`                                          | Server Component | Reads `admin_payment_records` for the chosen filter and page                                                                    |
-| `app/(dashboard)/admin/payments/actions.ts`                                        | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, then `record_refund`                                    |
-| `app/(dashboard)/admin/payments/_components/…`                                     | Client Component | The list, the filter and the Refund dialog                                                                                      |
-| `app/(dashboard)/admin/_components/admin-header.tsx`                               | Changed          | Links to verification, moderation and payments, marking the current one. Today it marks `/admin` as the current page everywhere |
-| `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's refunded line for an expired hold too (§0)                                                                     |
-| `lib/data/admin.ts`                                                                | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                                                   |
-| `lib/validation/admin.ts`                                                          | Pure TS          | The form rules in §2                                                                                                            |
-| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, and the helper's optional headers and its GET twin                                                |
-| `e2e/support/stripe-stub.ts`                                                       | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                                              |
+| File                                                                               | Type             | Purpose                                                                                                                                  |
+| ---------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/(dashboard)/admin/moderation/page.tsx`                                        | Server Component | Reads `admin_review_queue` for the chosen list, and each shown review's history                                                          |
+| `app/(dashboard)/admin/moderation/actions.ts`                                      | Server Action    | `moderateReviewAction`: parses, calls `moderate_review`, maps each hint to its message, revalidates                                      |
+| `app/(dashboard)/admin/moderation/_components/…`                                   | Client Component | The lists, the review cards and the confirmations                                                                                        |
+| `app/(dashboard)/admin/payments/page.tsx`                                          | Server Component | Reads `admin_payment_records` for the chosen filter and page                                                                             |
+| `app/(dashboard)/admin/payments/actions.ts`                                        | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, `findRefund` when Stripe doesn't accept it, then `record_refund` |
+| `app/(dashboard)/admin/payments/_components/…`                                     | Client Component | The list, the filter and the Refund dialog                                                                                               |
+| `app/(dashboard)/admin/_components/admin-header.tsx`                               | Changed          | Links to verification, moderation and payments, marking the current one. Today it marks `/admin` as the current page everywhere          |
+| `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's refunded line for an expired hold too (§0)                                                                              |
+| `lib/data/admin.ts`                                                                | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                                                            |
+| `lib/validation/admin.ts`                                                          | Pure TS          | The form rules in §2                                                                                                                     |
+| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, and the helper's optional headers and its GET twin                                                         |
+| `e2e/support/stripe-stub.ts`                                                       | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                                                       |
 
 Each new page sets its own `metadata` title. The `/admin` layout's "Space Verification"
 is the verification queue's, and would otherwise show on every page.
@@ -352,47 +360,47 @@ pgTAP tests go in `supabase/tests/NN-review-moderation.sql` and
 `supabase/tests/NN-refunds.sql`, numbered when created. The review lifecycle flow names
 the moderation ones, and the reservation lifecycle's P1 leaves its test to this design.
 
-| Layer      | Case                                                                                                                                       | Expected                                       |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
-| pgTAP      | RV4: "an Administrator hides a reported review: it leaves the averages, and its reports close as hidden"                                   | Hidden; reports closed                         |
-| pgTAP      | RV5: "an Administrator removes a reported review, and its reports close as removed"                                                        | Removed; reports closed                        |
-| pgTAP      | RV6: "an Administrator dismisses a review's reports: it stays visible and leaves the Reported list"                                        | Visible; reports closed as dismissed           |
-| pgTAP      | RV7: "an Administrator restores a hidden review, and it counts in the averages again"                                                      | Visible                                        |
-| pgTAP      | RV8: "an Administrator removes a hidden review"                                                                                            | Removed                                        |
-| pgTAP      | "every moderation action adds a row to the moderation log, with who took it"                                                               | One row each                                   |
-| pgTAP      | N7: "a Seeker and a Host cannot moderate a review"; "a signed-out visitor cannot run moderate_review"                                      | `42501`                                        |
-| pgTAP      | N8: "an Administrator cannot restore or change a removed review"; "an Administrator cannot dismiss a review with no open reports"          | `P0001`, `not_allowed`                         |
-| pgTAP      | N9: "an Administrator cannot moderate a review edited since they read it"                                                                  | `P0001`, `stale_version`                       |
-| pgTAP      | "an Administrator cannot moderate a review its author has deleted"                                                                         | `P0001`, `not_found`                           |
-| pgTAP      | N13: "nobody can edit or delete a report"; "nobody can write to the moderation log directly"                                               | `42501`                                        |
-| pgTAP      | N14: "a Seeker and a Host read 0 rows of the moderation log"                                                                               | 0 rows                                         |
-| pgTAP      | "admin_review_queue lists reported reviews oldest open report first, and hidden and removed ones most recent first"                        | As described                                   |
-| pgTAP      | "a Seeker and a Host cannot run admin_review_queue"                                                                                        | `42501`                                        |
-| pgTAP      | P1: "an Administrator refunds a paid fee whose hold ended without a check-in"                                                              | `refunded`                                     |
-| pgTAP      | "a refund records Stripe's refund id, who made it, when and why"                                                                           | All four set                                   |
-| pgTAP      | "a Host's override, a take-down and a late payment each leave a refundable fee"                                                            | `refundable` is true                           |
-| pgTAP      | "an Administrator cannot refund a forfeited fee, a completed visit's fee or an active hold's fee"                                          | `P0001`, `not_refundable`                      |
-| pgTAP      | "an Administrator cannot refund a fee twice"                                                                                               | `P0001`, `already_refunded`                    |
-| pgTAP      | "a refund needs a reason of 1 to 300 characters, and a re_ refund id"                                                                      | `P0001`, `invalid_reason`, `invalid_refund_id` |
-| pgTAP      | "a Seeker and a Host cannot record a refund"; "a signed-out visitor cannot run record_refund"                                              | `42501`                                        |
-| pgTAP      | "admin_payment_records lists paid, forfeited and refunded payments, newest first, and never unpaid ones"                                   | As described                                   |
-| pgTAP      | "admin_payment_records reads a lapsed wait window's fee as forfeited"                                                                      | `forfeited`                                    |
-| pgTAP      | "a Seeker and a Host cannot run admin_payment_records"                                                                                     | `42501`                                        |
-| pgTAP      | "admin_payment_records with p_refundable_only lists only refundable fees, older ones included"                                             | As described                                   |
-| pgTAP      | "admin_payment_records and admin_review_queue clamp a page size of 500 to 101, and a negative offset to 0"                                 | 101 rows at most, from the first               |
-| pgTAP      | "a Seeker's own reservation reads a refunded payment as refunded"                                                                          | `refunded`                                     |
-| Vitest     | `createRefund` sends the payment intent, the metadata and the idempotency key, and throws on an error, a failed refund or a timeout        | Against a stubbed `fetch`                      |
-| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none                                                             | Against a stubbed `fetch`                      |
-| Vitest     | `refundPaymentAction`, when Stripe refuses, finds an earlier refund and records it, and records nothing when there is none                 | As described                                   |
-| Vitest     | `refundPaymentAction` calls Stripe only for a refundable payment, records only after Stripe accepts, and records nothing when Stripe fails | As described                                   |
-| Vitest     | Each action turns each hint into its message                                                                                               | As described                                   |
-| Vitest     | The form rules: the four actions, the reason's trim and limit, and the params' defaults                                                    | Pass or fail as described                      |
-| Vitest     | The hold page's ended view says the fee was refunded for an expired hold with a `refunded` payment, and for a cancelled one                | "Your ₱50.00 payment was refunded."            |
-| Playwright | `e2e/admin-console.spec.ts`: an Administrator removes a reported review, and the profile's average changes                                 | As described                                   |
-| Playwright | `e2e/admin-console.spec.ts`: an Administrator refunds the fee of a hold the Host overrode, and the Seeker's hold page says it was refunded | Through the Stripe stub                        |
-| Playwright | `e2e/admin-console.spec.ts`: a Seeker and a Host who open `/admin/moderation` or `/admin/payments` go to their own portal                  | Redirected                                     |
-| Manual     | The moderation and payments pages at 360, 768 and 1024 px, with text at 200%, and with the keyboard alone                                  | No clipping, every control reachable           |
-| Manual     | A real test-mode refund through `npm run stripe:listen` and the sandbox: the Stripe Dashboard shows it, and so does `/admin/payments`      | Refunded in both                               |
+| Layer      | Case                                                                                                                                                          | Expected                                       |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| pgTAP      | RV4: "an Administrator hides a reported review: it leaves the averages, and its reports close as hidden"                                                      | Hidden; reports closed                         |
+| pgTAP      | RV5: "an Administrator removes a reported review, and its reports close as removed"                                                                           | Removed; reports closed                        |
+| pgTAP      | RV6: "an Administrator dismisses a review's reports: it stays visible and leaves the Reported list"                                                           | Visible; reports closed as dismissed           |
+| pgTAP      | RV7: "an Administrator restores a hidden review, and it counts in the averages again"                                                                         | Visible                                        |
+| pgTAP      | RV8: "an Administrator removes a hidden review"                                                                                                               | Removed                                        |
+| pgTAP      | "every moderation action adds a row to the moderation log, with who took it"                                                                                  | One row each                                   |
+| pgTAP      | N7: "a Seeker and a Host cannot moderate a review"; "a signed-out visitor cannot run moderate_review"                                                         | `42501`                                        |
+| pgTAP      | N8: "an Administrator cannot restore or change a removed review"; "an Administrator cannot dismiss a review with no open reports"                             | `P0001`, `not_allowed`                         |
+| pgTAP      | N9: "an Administrator cannot moderate a review edited since they read it"                                                                                     | `P0001`, `stale_version`                       |
+| pgTAP      | "an Administrator cannot moderate a review its author has deleted"                                                                                            | `P0001`, `not_found`                           |
+| pgTAP      | N13: "nobody can edit or delete a report"; "nobody can write to the moderation log directly"                                                                  | `42501`                                        |
+| pgTAP      | N14: "a Seeker and a Host read 0 rows of the moderation log"                                                                                                  | 0 rows                                         |
+| pgTAP      | "admin_review_queue lists reported reviews oldest open report first, and hidden and removed ones most recent first"                                           | As described                                   |
+| pgTAP      | "a Seeker and a Host cannot run admin_review_queue"                                                                                                           | `42501`                                        |
+| pgTAP      | P1: "an Administrator refunds a paid fee whose hold ended without a check-in"                                                                                 | `refunded`                                     |
+| pgTAP      | "a refund records Stripe's refund id, who made it, when and why"                                                                                              | All four set                                   |
+| pgTAP      | "a Host's override, a take-down and a late payment each leave a refundable fee"                                                                               | `refundable` is true                           |
+| pgTAP      | "an Administrator cannot refund a forfeited fee, a completed visit's fee or an active hold's fee"                                                             | `P0001`, `not_refundable`                      |
+| pgTAP      | "an Administrator cannot refund a fee twice"                                                                                                                  | `P0001`, `already_refunded`                    |
+| pgTAP      | "a refund needs a reason of 1 to 300 characters, and a re_ refund id"                                                                                         | `P0001`, `invalid_reason`, `invalid_refund_id` |
+| pgTAP      | "a Seeker and a Host cannot record a refund"; "a signed-out visitor cannot run record_refund"                                                                 | `42501`                                        |
+| pgTAP      | "admin_payment_records lists paid, forfeited and refunded payments, newest first, and never unpaid ones"                                                      | As described                                   |
+| pgTAP      | "admin_payment_records reads a lapsed wait window's fee as forfeited"                                                                                         | `forfeited`                                    |
+| pgTAP      | "a Seeker and a Host cannot run admin_payment_records"                                                                                                        | `42501`                                        |
+| pgTAP      | "admin_payment_records with p_refundable_only lists only refundable fees, older ones included"                                                                | As described                                   |
+| pgTAP      | "admin_payment_records and admin_review_queue clamp a page size of 500 to 101, and a negative offset to 0"                                                    | 101 rows at most, from the first               |
+| pgTAP      | "a Seeker's own reservation reads a refunded payment as refunded"                                                                                             | `refunded`                                     |
+| Vitest     | `createRefund` sends the payment intent, the metadata and the idempotency key, and throws on an error, a failed refund or a timeout                           | Against a stubbed `fetch`                      |
+| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none                                                                                | Against a stubbed `fetch`                      |
+| Vitest     | `refundPaymentAction`, when Stripe refuses, fails or times out, asks `findRefund`, records an earlier refund it finds, and records nothing when there is none | As described                                   |
+| Vitest     | `refundPaymentAction` calls Stripe only for a refundable payment, records only after Stripe accepts, and records nothing when Stripe fails                    | As described                                   |
+| Vitest     | Each action turns each hint into its message                                                                                                                  | As described                                   |
+| Vitest     | The form rules: the four actions, the reason's trim and limit, and the params' defaults                                                                       | Pass or fail as described                      |
+| Vitest     | The hold page's ended view says the fee was refunded for an expired hold with a `refunded` payment, and for a cancelled one                                   | "Your ₱50.00 payment was refunded."            |
+| Playwright | `e2e/admin-console.spec.ts`: an Administrator removes a reported review, and the profile's average changes                                                    | As described                                   |
+| Playwright | `e2e/admin-console.spec.ts`: an Administrator refunds the fee of a hold the Host overrode, and the Seeker's hold page says it was refunded                    | Through the Stripe stub                        |
+| Playwright | `e2e/admin-console.spec.ts`: a Seeker and a Host who open `/admin/moderation` or `/admin/payments` go to their own portal                                     | Redirected                                     |
+| Manual     | The moderation and payments pages at 360, 768 and 1024 px, with text at 200%, and with the keyboard alone                                                     | No clipping, every control reachable           |
+| Manual     | A real test-mode refund through `npm run stripe:listen` and the sandbox: the Stripe Dashboard shows it, and so does `/admin/payments`                         | Refunded in both                               |
 
 The Playwright spec makes its own Space, visit, review, report and paid hold, and removes
 them after, as `e2e/seeker-journey.spec.ts` does.
