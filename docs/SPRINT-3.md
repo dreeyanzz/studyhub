@@ -45,7 +45,7 @@ the SRS still asks for:
 6. **Ready for the Final.** A production database, the concurrency test in CI, tests for
    every role, and accessibility and speed checks.
 
-That's 39 points in 20 days, faster than Sprint 2. If we fall behind, the plan's cut
+That's 40 points in 20 days, faster than Sprint 2. If we fall behind, the plan's cut
 order (§6) says what goes first, from taking a Space down up to the UI fixes, which go
 last. The email and the production project are never cut (D-017, D-083).
 
@@ -135,7 +135,7 @@ Each step starts as soon as what it needs is merged.
 | **1. Flows and audit** | The review lifecycle, then the Space verification change                          | Review both flows                                           | The audit of every screen                   |
 | **2. Designs**         | STORY-13's, STORY-14's, STORY-16's, STORY-20's and STORY-19's designs             | The screens section of each; approve Adrian's pull requests | STORY-17's design: the visual direction     |
 | **3. Tables first**    | STORY-13's tables, then STORY-14's, STORY-16's and STORY-20's; production project | Pages and forms against sample data                         | The restyle, one group of screens at a time |
-| **4. Build**           | The refund, the email, `db:race` in CI, #218                                      | Wire the pages to Adrian's functions; tests                 | Fixes filed during the audit; the restyle   |
+| **4. Build**           | The refund, the email, #218 (`db:race` already runs in CI)                        | Wire the pages to Adrian's functions; tests                 | Fixes filed during the audit; the restyle   |
 | **5. Finish**          | The Definition of Done check; merge everything by Sat 5 Dec                       | The journeys for every role, accessibility and speed checks | Review and restyle the new feature screens  |
 | **Mon 7 Dec**          | The Final                                                                         | Same, together                                              | Same, together                              |
 
@@ -165,9 +165,8 @@ request.
 **Your backend.** Everything in `supabase/` for STORY-13, STORY-14, STORY-16 and
 STORY-20: tables, policies, database functions, pgTAP tests and seed data. Also the
 Stripe sandbox refund (STORY-14), the confirmation email through a team Gmail account
-(STORY-16, D-089), and
-for STORY-19 the production project, `npm run db:race` in CI, #218, and the Definition
-of Done check.
+(STORY-16, D-089), and for STORY-19 the production project, #218 and the Definition of
+Done check. `npm run db:race` already runs in CI (#262).
 
 **Done when:** each story's database half passes its pgTAP negatives (the wrong user gets
 zero rows, the owner can't make a forbidden change); the Final deployment runs on the

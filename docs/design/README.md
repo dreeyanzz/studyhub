@@ -77,7 +77,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | implemented 2026-11-09                                              |
 | STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md) | approved 2026-11-22                                                 |
 | STORY-17 |                                                                    | not written                                                         |
-| STORY-19 |                                                                    | not written                                                         |
+| STORY-19 | [STORY-19-final-hardening.md](STORY-19-final-hardening.md)         | approved 2026-11-22                                                 |
 | STORY-20 |                                                                    | not written                                                         |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.

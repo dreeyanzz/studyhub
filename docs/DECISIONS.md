@@ -146,6 +146,8 @@ Their lengths are decided in STORY-09's design.
 
 **Amended by D-061** for the cloud dev project's one Administrator.
 
+**Amended by D-091** for the production project, whose accounts use real addresses on the team Gmail account.
+
 **Decision:** Seed and demo data are invented, and emails use `@example.test`. The admin account is seeded locally only, never in a cloud project.
 
 **Why:** Seed passwords are public in this repository, and no real person's data belongs in a class demo.
@@ -201,6 +203,8 @@ Their lengths are decided in STORY-09's design.
 ## D-017 · Supabase environments
 
 **Amended by D-066:** Luke writes the migrations for STORY-08 and STORY-10 too.
+
+**Amended by D-090:** the production project is made ready for any day, in its own organization, and Adrian chooses when the app moves onto it.
 
 **Decision:**
 
@@ -321,6 +325,8 @@ one PR rather than leaving a submission half-restyled.
 
 **Amended by D-061:** the cloud dev project has one Administrator account.
 
+**Amended by D-091** for the production project: real addresses, signed up through `/register`.
+
 **Decision:**
 
 - The cloud dev project has the seed's invented Seeker and Host accounts: `host@`, `host2@` and `seeker@example.test`. It never has the Administrator (D-013).
@@ -339,6 +345,8 @@ one PR rather than leaving a submission half-restyled.
 **Amended by D-061:** `npm run db:accounts` is the first thing to use the secret key.
 
 **Amended by D-065:** every teammate's `.env.local` holds the cloud dev project's secret key too.
+
+**Amended by D-090:** only Adrian holds the production project's database password, keys and secret key, in a Supabase organization of its own.
 
 **Decision:**
 
@@ -854,6 +862,8 @@ Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing
 
 **Amended by D-065:** every teammate holds this account's password and the secret key.
 
+**Amended by D-091:** the production project's Administrator is planned, a real address promoted with `npm run db:promote-admin`.
+
 **Decision:**
 
 - The cloud dev project has one Administrator account: `admin@example.test`, registered and promoted by `npm run db:accounts`. The production project still has no Administrator until planned (D-028).
@@ -886,6 +896,8 @@ Proposes D-039 again, which D-043 withdrew, now that the flows STORY-07 uses are
 ## D-063 · Venue photos are public
 
 Proposes D-040 again, which D-043 withdrew, now that the flows STORY-07 uses are merged (D-044).
+
+**Amended by D-092:** whatever deletes a Space, or its owner's account, empties its photo folder first.
 
 **Decision:**
 
@@ -1316,3 +1328,71 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Resend's free tier without a domain (one inbox, D-078); buying a domain (a cost); a teammate's personal Gmail; sending from Preview deployments, which would email whoever signs up on cloud dev from every pull request; the booking token in the email (whoever has it gets the seat); retrying a failed send (Vercel's free plan runs scheduled jobs at most once a day, D-011).
 
 **Revisit if:** Gmail limits or blocks the account, or the team buys a domain.
+
+## D-090 · A production project ready for any day, at production level
+
+**Amends D-017 and D-029.**
+
+**Decision:**
+
+- Worq is built to be presented and pitched as a product, not only for the course. So `studyhub-prod` is made ready to run the app on any day, and Adrian chooses the day Vercel's Production environment moves onto it. Until then, worqph and every preview use cloud dev.
+- It lives in a Supabase organization of its own, with Adrian as its only member: on the Free plan, a role in an organization covers every project in it, and `lamph-org` gives the team roles for cloud dev (D-065). Only Adrian holds its database password, keys and secret key (D-029).
+- Migrations reach it from merged `main` only, after cloud dev, with `supabase db push --db-url` and a connection string in Adrian's `.env.local`, never by re-linking the CLI.
+- Supabase Auth runs at production level: email confirmation on, STORY-03's password rules, the site and redirect addresses on worqph, and the team Gmail account as its SMTP sender (D-089).
+- Payments stay in Stripe's sandbox (D-005, SRS §1.2), with its one webhook endpoint on worqph. So after the switch a sandbox payment on a preview, which still uses cloud dev, is never confirmed, and payments are tried locally with the Stripe CLI or `npm run webhook:simulate`.
+
+**Why:** Adrian decided it on 22 November, in STORY-19's design: the team wants to pitch Worq as close to the real product as it can be, without having to choose the switch date yet.
+
+**Rejected:** a fixed switch date, either now or on 5 December; production in `lamph-org`, where every teammate would hold a role on it; the team reaching production, as on cloud dev; Supabase's built-in email sender, which sends a few emails an hour and isn't meant for production; live payments.
+
+**Revisit if:** The team pays for Supabase, or adds members who need production.
+
+## D-091 · Production accounts use real addresses
+
+**Amends D-013, D-028 and D-061 for the production project.**
+
+**Decision:**
+
+- Production's accounts for each role use real addresses on the team Gmail account, with a `+` tag: `+host`, `+seeker` and `+admin`. Gmail delivers them all to the one team inbox, and Supabase treats each as its own account.
+- Each signs up on worqph's `/register` on the switch day, once worqph runs on production, and confirms by email, like any user. The Administrator signs up as a Seeker and is then promoted with the production secret key (`npm run db:promote-admin`), on Adrian's machine only.
+- Adrian chooses their passwords and gives them privately to teammates for rehearsals. `seed.sql` never runs on production, and demo Spaces are built through the app.
+- D-013's invented people and `@example.test` addresses still hold for the repository, the seed, the tests and cloud dev.
+
+**Why:** Adrian chose it on 22 November: real addresses are what production has, so sign-up confirmation, password resets and STORY-16's email all really happen. The `+` tags keep anyone's personal address out of it.
+
+**Rejected:** `@example.test` addresses on production (no email could reach them); teammates' personal addresses; a separate Gmail account for each role; a production seed script.
+
+**Revisit if:** Gmail stops treating `+` addresses as one inbox, or the team buys a domain.
+
+## D-092 · Whatever deletes a Space empties its photos first
+
+**Amends D-063. Settles #218.**
+
+**Decision:**
+
+- Whatever deletes a Space, or the account that owns it, empties `space-photos/<space_id>` first, as `deleteSpace` does (D-063).
+- In Sprint 3, nothing in the app deletes an account or a listing, so the only other way is deleting an account in the Supabase dashboard. Before that, the Space's Host deletes their Spaces in the app, or the folders are emptied on the dashboard's Storage page (`DEVELOPMENT.md`).
+- A later story that adds deleting accounts or listings empties the folders first.
+
+**Why:** Adrian chose #218's first option on 22 November, in STORY-19's design. The bucket is public, so a photo left behind stays readable by anyone with its address, but only a dashboard deletion leaves one behind today.
+
+**Rejected:** a daily sweep of folders whose Space is gone (a route handler with the secret key and a cron job, for a gap only the dashboard opens); a trigger on `spaces` (Supabase refuses deletes in `storage.objects`, and the files would stay).
+
+**Revisit if:** A story adds deleting accounts or listings, or a photo is found left behind.
+
+## D-093 · The accessibility sweep runs on every pull request, and e2e becomes required
+
+**Amends D-014's required checks once it lands.**
+
+**Decision:**
+
+- `e2e/accessibility.spec.ts` visits every route, signed out and as each role, against axe's WCAG 2.1 A and AA rules (`@axe-core/playwright`), and checks what axe can't: 48 × 48 px controls, no horizontal scrolling at 360, 768 and 1024 px, nothing clipped at 200% text, and a keyboard path with visible focus.
+- It finds elements by role and label, never by styling, so it follows Maria and James's restyle. A failure on a restyled screen is fixed by whoever restyled it, as a STORY-17 fix (D-074, SRS §3.2.2).
+- A manual keyboard and screen-reader pass runs after the last restyle, before the last merge.
+- Once the sweep lands, `e2e` joins `checks`, `pr-title` and `db` as a required check, and `AGENTS.md` lists four. The sweep's pull request updates `AGENTS.md` and the ruleset file, and Adrian applies the rule when it merges.
+
+**Why:** Adrian chose it on 22 November. A sweep run once at the end would find problems far from the pull request that caused them, and the restyle changes every screen in the last two weeks.
+
+**Rejected:** a sweep only at the end, or only by hand; selectors tied to class names or layout, which the restyle would break; leaving `e2e` optional.
+
+**Revisit if:** The sweep is too slow for every pull request, or axe's rules disagree with the SRS.
