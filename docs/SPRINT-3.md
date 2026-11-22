@@ -134,7 +134,7 @@ Each step starts as soon as what it needs is merged.
 | **1. Flows and audit** | The review lifecycle, then the Space verification change                          | Review both flows                                           | The audit of every screen                   |
 | **2. Designs**         | STORY-13's, STORY-14's, STORY-16's, STORY-20's and STORY-19's designs             | The screens section of each; approve Adrian's pull requests | STORY-17's design: the visual direction     |
 | **3. Tables first**    | STORY-13's tables, then STORY-14's, STORY-16's and STORY-20's; production project | Pages and forms against sample data                         | The restyle, one group of screens at a time |
-| **4. Build**           | The refund, the email, `db:race` in CI, #218                                      | Wire the pages to Adrian's functions; tests                 | Fixes filed during the audit; the restyle   |
+| **4. Build**           | The refund, the email, #218 (`db:race` already runs in CI)                        | Wire the pages to Adrian's functions; tests                 | Fixes filed during the audit; the restyle   |
 | **5. Finish**          | The Definition of Done check; merge everything by Sat 5 Dec                       | The journeys for every role, accessibility and speed checks | Review and restyle the new feature screens  |
 | **Mon 7 Dec**          | The Final                                                                         | Same, together                                              | Same, together                              |
 

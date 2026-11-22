@@ -22,14 +22,15 @@ any missing journey.
 
 - **A production project ready for the switch (Adrian, D-090):** every merged migration
   applied, Supabase Auth set up for production with email confirmation and the team
-  Gmail account as its sender, the Vercel settings it needs written down, real accounts
-  for each role (D-091), and a checklist for the day Worq moves onto it.
+  Gmail account as its sender, the Vercel settings it needs written down,
+  `npm run db:promote-admin`, and a checklist for the day Worq moves onto it, which is
+  when the real account for each role is made (D-091).
 - **#218, decided here (D-092):** whatever deletes a Space or its owner's account empties
   the Space's photo folder first. This PR adds the rule to D-063's notes and the manual
   step to `DEVELOPMENT.md`, and closes #218.
 - **The accessibility sweep (Luke, D-093):** every route, signed out and as each role,
   checked with axe's WCAG 2.1 A and AA rules and the checks axe can't make, in CI on
-  every pull request. `e2e` becomes a required check once it lands.
+  every pull request. `e2e` becomes a required check as soon as it lands.
 - **The journeys for every role (Luke):** a table of which Playwright test walks each
   role's journey, and a test for any gap left once STORY-13, STORY-14, STORY-16 and
   STORY-20 add theirs.
@@ -75,9 +76,8 @@ flowchart TB
         P3["Check the space-photos bucket and the migration list match cloud dev"]
         P4["Supabase Auth: site address, redirects, email confirmation, password rules"]
         P5["Supabase Auth sends through the team Gmail account over SMTP"]
-        P6["Sign up the real accounts through register, and confirm each by email"]
-        P7["Promote the Administrator with the production secret key"]
-        P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
+        P6["Write npm run db:promote-admin, and the switch-day checklist"]
+        P1 --> P2 --> P3 --> P4 --> P5 --> P6
     end
     subgraph keep["Until the switch"]
         K1["Push each newly merged migration to cloud dev, then to production"]
@@ -86,12 +86,19 @@ flowchart TB
         direction TB
         S1["Vercel Production gets the production URL, keys and Gmail settings"]
         S2["Redeploy main to worqph"]
-        S3["Rehearse: real sign-up, confirmation email, hold, sandbox payment, email, check-in, review, Administrator"]
-        S4["Build the demo Spaces through the app"]
-        S1 --> S2 --> S3 --> S4
+        S3["Sign up the real accounts on worqph's register page, and confirm each by email"]
+        S4["Promote the Administrator with npm run db:promote-admin"]
+        S5["Rehearse: hold, sandbox payment, email, check-in, review, Administrator"]
+        S6["Build the demo Spaces through the app"]
+        S1 --> S2 --> S3 --> S4 --> S5 --> S6
     end
-    P7 --> K1 --> S1
+    P6 --> K1 --> S1
 ```
+
+The real accounts are made on the switch day, once worqph runs on production. Before
+that, worqph's `/register` writes to cloud dev, and a sign-up from `localhost` can't
+confirm, because production's Auth only accepts redirects to worqph. Signing them up
+through worqph also rehearses the real sign-up and its confirmation email.
 
 Previews stay on cloud dev the whole time. Before any pitch, Adrian opens the app the day
 before, because the free plan pauses a project after about a week without use.
@@ -156,6 +163,8 @@ reservations from previews is expected.
 | Seeker        | `<team address>+seeker@gmail.com` | Signs up on `/register` as a Seeker, and confirms by email                     |
 | Administrator | `<team address>+admin@gmail.com`  | Signs up as a Seeker and confirms, then `npm run db:promote-admin` promotes it |
 
+- They are made on the switch day, right after worqph moves onto production (§1), so
+  they land in production and their confirmation links work.
 - Gmail delivers every `+` address to the one team inbox, and Supabase treats each as its
   own account, so the accounts are real without anyone's personal address.
 - Adrian chooses their passwords, keeps them out of the repository and chat, and gives
@@ -242,7 +251,9 @@ once they have merged, and writes a test for any journey still without one.
   slowest time from submitting to the results showing. It only reads.
 - **Where:** on worqph, on production once Adrian has switched, otherwise on cloud dev,
   and §9 says which. The results go in §9 against SRS §3.4's targets: about 1 second for
-  search, and under about 2 and 3 seconds for the two paints.
+  search, and under about 2 and 3 seconds for the two paints. A first run can come early,
+  but the measures are run again after the last restyle, before TSK-19.2's check, so §9
+  holds the Final build's numbers.
 
 ### Where the files go
 
@@ -253,7 +264,8 @@ scripts/measure-search.mjs
 scripts/promote-admin.mjs
 docs/DEVELOPMENT.md
 package.json (@axe-core/playwright, db:promote-admin)
-AGENTS.md (the Commands block, and the required checks once e2e is required)
+AGENTS.md (the Commands block, and the required checks)
+.github/rulesets/main-pr-ci-reviews.json (e2e as a required check)
 ```
 
 ## 4. Security and test matrix
@@ -264,7 +276,7 @@ AGENTS.md (the Commands block, and the required checks once e2e is required)
 | Playwright | `e2e/accessibility.spec.ts`: every route's controls at 48 × 48 px, no horizontal scroll at three widths, nothing clipped at 200% text, and a full keyboard path                    | As described                                    |
 | Playwright | `e2e/accessibility.spec.ts`: a violation not in `known-violations.ts` fails, and so does a listed one that no longer happens                                                       | Fails, naming the route and the rule            |
 | CI         | The `db` job runs `npm run db:race` on every pull request (since #262)                                                                                                             | Green                                           |
-| CI         | The `e2e` job is a required check once TSK-19.3 lands (D-093)                                                                                                                      | Listed in the ruleset and in `AGENTS.md`        |
+| CI         | The `e2e` job is a required check from the day TSK-19.3 merges (D-093)                                                                                                             | Listed in the ruleset and in `AGENTS.md`        |
 | Manual     | Production's migration list matches cloud dev's after every push                                                                                                                   | The same list                                   |
 | Manual     | A real account signs up on production, gets the confirmation email from Worq, and signs in only after confirming                                                                   | As described                                    |
 | Manual     | The rehearsal on the switch day: a hold paid in the sandbox sends STORY-16's email, the Host checks the Seeker in, the Seeker reviews, and the Administrator moderates and refunds | Every step works on worqph                      |
@@ -284,15 +296,18 @@ from 5 to **6 points and 3 days**, 3 for Adrian and 3 for Luke. The plan's
 `db:race` task was already done in #262, and #218 is settled in this PR, but the
 production-level setup Adrian chose on 22 Nov is more than the plan assumed.
 
-| Task     | What                                                                                                                                                                                                                      | Owner        | Points (1–10) | Days | Depends on                                         |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------------------- |
-| TSK-19.1 | The production project made ready (§1's first two lanes): migrations, Auth settings and SMTP, the real accounts, `npm run db:promote-admin`, and `DEVELOPMENT.md`                                                         | @dreeyanzz   | 2             | 1    | This design merged; the team Gmail account (D-089) |
-| TSK-19.2 | The Definition of Done check of every Sprint 3 story and the final manual pass after the last restyle (§3), both recorded in §9; `e2e` added to the required checks and to `AGENTS.md`; `db:race`'s criterion checked off | @dreeyanzz   | 1             | 0.5  | TSK-19.3, and every other story's last PR          |
-| TSK-19.3 | The accessibility sweep: `@axe-core/playwright`, `e2e/support/routes.ts`, `e2e/accessibility.spec.ts`, and `known-violations.ts` with an issue filed for each entry (§3)                                                  | @lukedongque | 1             | 0.5  | This design merged                                 |
-| TSK-19.4 | The journeys table in §9, and a test for any journey still without one                                                                                                                                                    | @lukedongque | 1             | 0.5  | STORY-13, STORY-14, STORY-16 and STORY-20's tests  |
-| TSK-19.5 | Speed: Lighthouse and `scripts/measure-search.mjs`, recorded in §9                                                                                                                                                        | @lukedongque | 1             | 0.5  | This design merged                                 |
+| Task     | What                                                                                                                                                                                                                                                                                                                        | Owner        | Points (1–10) | Days | Depends on                                         |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------------------- |
+| TSK-19.1 | The production project made ready (§1's first two lanes): migrations, Auth settings and SMTP, `npm run db:promote-admin`, the switch-day checklist, and `DEVELOPMENT.md`. The real accounts come on the switch day (§1)                                                                                                     | @dreeyanzz   | 2             | 1    | This design merged; the team Gmail account (D-089) |
+| TSK-19.2 | The Definition of Done check of every Sprint 3 story and the final manual pass after the last restyle (§3), both recorded in §9; `db:race`'s criterion checked off                                                                                                                                                          | @dreeyanzz   | 1             | 0.5  | TSK-19.3, and every other story's last PR          |
+| TSK-19.3 | The accessibility sweep: `@axe-core/playwright`, `e2e/support/routes.ts`, `e2e/accessibility.spec.ts`, `known-violations.ts` with an issue filed for each entry (§3), and `e2e` added to `AGENTS.md`'s required checks and to `.github/rulesets/main-pr-ci-reviews.json`. Adrian turns the rule on in GitHub when it merges | @lukedongque | 1             | 0.5  | This design merged                                 |
+| TSK-19.4 | The journeys table in §9, and a test for any journey still without one                                                                                                                                                                                                                                                      | @lukedongque | 1             | 0.5  | STORY-13, STORY-14, STORY-16 and STORY-20's tests  |
+| TSK-19.5 | Speed: Lighthouse and `scripts/measure-search.mjs`, recorded in §9, and run again after the last restyle (§3)                                                                                                                                                                                                               | @lukedongque | 1             | 0.5  | This design merged                                 |
 
-TSK-19.3 goes early, so every later pull request, the restyle's included, is checked.
+TSK-19.3 goes early, so every later pull request, the restyle's included, is checked,
+and `e2e` is required from the day it merges: only Adrian can change the ruleset
+(AGENTS.md), so its pull request updates the file and `AGENTS.md`, and Adrian applies the
+rule when it merges.
 The final manual pass waits for the last restyle, so it sits in TSK-19.2, which runs
 last.
 The switch itself has no task: it is Adrian's call, on the day Adrian chooses (D-090).

@@ -346,6 +346,8 @@ one PR rather than leaving a submission half-restyled.
 
 **Amended by D-065:** every teammate's `.env.local` holds the cloud dev project's secret key too.
 
+**Amended by D-090:** only Adrian holds the production project's database password, keys and secret key, in a Supabase organization of its own.
+
 **Decision:**
 
 - Every teammate's `.env.local` holds the cloud dev project's URL, its publishable key and `CLOUD_DEV_ACCOUNT_PASSWORD` (D-028). Adrian sends it privately: never in the group chat, an issue or a PR.
@@ -1305,7 +1307,7 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Decision:**
 
 - Production's accounts for each role use real addresses on the team Gmail account, with a `+` tag: `+host`, `+seeker` and `+admin`. Gmail delivers them all to the one team inbox, and Supabase treats each as its own account.
-- Each signs up on `/register` and confirms by email, like any user. The Administrator signs up as a Seeker and is then promoted with the production secret key (`npm run db:promote-admin`), on Adrian's machine only.
+- Each signs up on worqph's `/register` on the switch day, once worqph runs on production, and confirms by email, like any user. The Administrator signs up as a Seeker and is then promoted with the production secret key (`npm run db:promote-admin`), on Adrian's machine only.
 - Adrian chooses their passwords and gives them privately to teammates for rehearsals. `seed.sql` never runs on production, and demo Spaces are built through the app.
 - D-013's invented people and `@example.test` addresses still hold for the repository, the seed, the tests and cloud dev.
 
@@ -1340,7 +1342,7 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 - `e2e/accessibility.spec.ts` visits every route, signed out and as each role, against axe's WCAG 2.1 A and AA rules (`@axe-core/playwright`), and checks what axe can't: 48 × 48 px controls, no horizontal scrolling at 360, 768 and 1024 px, nothing clipped at 200% text, and a keyboard path with visible focus.
 - It finds elements by role and label, never by styling, so it follows Maria and James's restyle. A failure on a restyled screen is fixed by whoever restyled it, as a STORY-17 fix (D-074, SRS §3.2.2).
 - A manual keyboard and screen-reader pass runs after the last restyle, before the last merge.
-- Once the sweep lands, `e2e` joins `checks`, `pr-title` and `db` as a required check, and `AGENTS.md` lists four.
+- Once the sweep lands, `e2e` joins `checks`, `pr-title` and `db` as a required check, and `AGENTS.md` lists four. The sweep's pull request updates `AGENTS.md` and the ruleset file, and Adrian applies the rule when it merges.
 
 **Why:** Adrian chose it on 22 November. A sweep run once at the end would find problems far from the pull request that caused them, and the restyle changes every screen in the last two weeks.
 
