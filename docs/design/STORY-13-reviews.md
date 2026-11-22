@@ -86,15 +86,21 @@ sequenceDiagram
     B->>A: postReviewAction (editReviewAction, deleteReviewAction, reportReviewAction)
     Note over A: Parses the input with lib/validation/review.ts
     A->>DB: insert into reviews (update, delete, insert into review_reports)
-    alt No visit of theirs at this Space, or not a Seeker (N1, N3)
+    alt Posting with no visit of theirs at this Space, or not as a Seeker (N1, N3)
         DB-->>A: 42501, the insert policy refuses
         A-->>B: You can review a Space only after checking in there
-    else The visit already has a review (N2)
+    else Posting on a visit that already has a review (N2)
         DB-->>A: 23505 on reviews.reservation_id
         A-->>B: You have already reviewed this visit
     else An edit or delete of a review that is hidden, removed or not theirs (N4, N5)
         DB-->>A: 0 rows
         A-->>B: This review can't be changed now
+    else Reporting their own review, one that isn't visible, or signed out (N11)
+        DB-->>A: 42501, the report policy refuses
+        A-->>B: You can't report this review
+    else Reporting a version they have already reported (N11)
+        DB-->>A: 23505 on review_reports
+        A-->>B: You have already reported this review
     else Saved
         DB-->>A: The review, readable by its author whatever its status
         A-->>B: revalidatePath of the profile, then the review shows as Your review
@@ -182,9 +188,16 @@ Grants, besides the policies:
 - `review_reports`: select, and insert on `review_id`, `reason` and `note`, to
   `authenticated`. No role may update or delete a report (N13).
 
+**What the table shows a signed-out visitor:** a visible review's ids as well as its
+ratings and comment, `author_id`, `reservation_id` and `status_changed_by` included, as
+the flow's select rule allows. They are ids, never names (N17), and the pages read other
+people's reviews only through `space_reviews`.
+
 **Why the insert policy needs a helper:** no role may read `reservations` (the
 reservation lifecycle's N6, D-047), so a policy that looked at it directly would fail with
-`42501` for everyone. `private.is_reviewable_visit` answers the one question it needs.
+`42501` for everyone. `private.is_reviewable_visit` answers the one question it needs. A
+policy runs as the caller, so `authenticated` must be able to run the helper, as it can
+`private.has_role`. Without that grant every post fails with `42501`.
 
 ### Functions
 
@@ -197,7 +210,8 @@ Each runs as `security definer` with an empty `search_path`, revokes execute fro
   Seeker" (D-081).
 - **`private.is_reviewable_visit(p_reservation_id uuid, p_space_id uuid) returns boolean`**:
   true when the reservation is the caller's, has `checked_in_at` set, and belongs to that
-  Space (N1). Only the insert policy uses it.
+  Space (N1). Only the insert policy uses it, and it is granted to `authenticated`,
+  because the policy runs as the caller.
 - **`public.space_reviews(p_space_id uuid, p_sort text default 'newest', p_page_size integer default 10, p_page_offset integer default 0)`**,
   for `anon` and `authenticated`:
   - It returns the visible reviews of the Space, and only while the Space is Verified
@@ -207,13 +221,16 @@ Each runs as `security definer` with an empty `search_path`, revokes execute fro
     edited, its `version`, and whether the caller has reported that version.
   - `p_sort` is `newest` (by `created_at`, newest first), `highest` or `lowest` (by the
     overall rating, then newest first). Anything else is refused with `P0001` and the hint
-    `invalid_sort`. `p_page_size` is kept between 1 and 50, and `p_page_offset` at 0 or more.
+    `invalid_sort`. `p_page_size` is clamped to 1 to 51, one more than the 50 the page
+    shows at most, so the page can tell whether there are more. `p_page_offset` is
+    clamped to 0 or more.
 - **`public.space_review_summary(p_space_ids uuid[])`**, for `anon` and `authenticated`:
   one row for each of those Spaces that is Verified, with the count of its visible
   reviews, the average of each rating, and the overall average. A Space with no visible
   review has a count of 0 and null averages, and a Space that isn't Verified has no row
-  (N16). At most 100 ids at once, or `P0001` with the hint `too_many_spaces`. Search calls
-  it once for all its results, and the profile for its one Space.
+  (N16). At most 100 ids at once, or `P0001` with the hint `too_many_spaces`. Search has
+  no limit on its results, so it calls this in batches of 100 ids, and the profile calls
+  it for its one Space.
 - **`public.my_reviewable_visit(p_space_id uuid)`**, for `authenticated`: the caller's
   newest visit to the Space that has no review in any status, as its reservation id and
   `checked_in_at`, or no row. A hidden or removed review keeps its visit used (D-081).
@@ -280,7 +297,9 @@ These are already decided, so the screens follow them:
   reviews", and a Space with none says so. The overall average is the average of the four
   (D-076).
 - **The list** reads newest first, 10 at a time, with "Show more reviews", and can be
-  sorted by newest, highest or lowest rating. A signed-in Seeker's own reviews of the
+  sorted by newest, highest or lowest rating. It shows at most 50: when there are more,
+  a line in place of "Show more reviews" says only the first 50 in that order are shown,
+  so a reader knows the list doesn't end there. A signed-in Seeker's own reviews of the
   Space are pinned above it in any status, with "Hidden by an Administrator" or "Removed
   by an Administrator" where that applies, and Edit and Delete only while visible (D-080).
 - **Write a review** appears only when `my_reviewable_visit` returns a visit, and reviews
@@ -295,18 +314,18 @@ These are already decided, so the screens follow them:
 
 Luke's section confirms or changes these.
 
-| File                                                                 | Type             | Purpose                                                                                                                                   |
-| -------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `app/(public)/spaces/[spaceId]/page.tsx`                             | Server Component | Reads the summary, the list (from `reviewListSchema`), the Seeker's own reviews and their reviewable visit                                |
-| `app/(public)/spaces/[spaceId]/actions.ts`                           | Server Actions   | `postReviewAction`, `editReviewAction`, `deleteReviewAction`, `reportReviewAction`, beside the hold actions                               |
-| `app/(public)/spaces/[spaceId]/_components/space-reviews.tsx`        | Server Component | The reviews section: averages, list, sort, Show more, own reviews                                                                         |
-| `app/(public)/spaces/[spaceId]/_components/report-review-dialog.tsx` | Client Component | The report dialog                                                                                                                         |
-| `components/review/review-form.tsx`                                  | Client Component | The four ratings and the comment, for posting and editing. It takes the action, so STORY-16 reuses it                                     |
-| `components/review/review-rating.tsx`                                | Shared, no state | A rating's number and its accessible label, shared by the profile and the Space card                                                      |
-| `components/discovery/space-card.tsx`                                | Changed          | Shows the overall average and the count, or that there are no reviews yet                                                                 |
-| `lib/data/spaces.ts`                                                 | Changed          | `searchVerifiedSpaces` adds `review_count` and `avg_overall` from one `space_review_summary` call                                         |
-| `lib/data/reviews.ts`                                                | Server-only      | `getReviewSummaries`, `getSpaceReviews` (one more than the page shows, to know if there are more), `getMyReviews`, `getMyReviewableVisit` |
-| `lib/validation/review.ts`                                           | Pure TS          | The form rules in §2                                                                                                                      |
+| File                                                                 | Type             | Purpose                                                                                                                                                                                  |
+| -------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/(public)/spaces/[spaceId]/page.tsx`                             | Server Component | Reads the summary, the list (from `reviewListSchema`), the Seeker's own reviews and their reviewable visit                                                                               |
+| `app/(public)/spaces/[spaceId]/actions.ts`                           | Server Actions   | `postReviewAction`, `editReviewAction`, `deleteReviewAction`, `reportReviewAction`, beside the hold actions                                                                              |
+| `app/(public)/spaces/[spaceId]/_components/space-reviews.tsx`        | Server Component | The reviews section: averages, list, sort, Show more, own reviews                                                                                                                        |
+| `app/(public)/spaces/[spaceId]/_components/report-review-dialog.tsx` | Client Component | The report dialog                                                                                                                                                                        |
+| `components/review/review-form.tsx`                                  | Client Component | The four ratings and the comment, for posting and editing. It takes the action, so STORY-16 reuses it                                                                                    |
+| `components/review/review-rating.tsx`                                | Shared, no state | A rating's number and its accessible label, shared by the profile and the Space card                                                                                                     |
+| `components/discovery/space-card.tsx`                                | Changed          | Shows the overall average and the count, or that there are no reviews yet                                                                                                                |
+| `lib/data/spaces.ts`                                                 | Changed          | `searchVerifiedSpaces` adds `review_count` and `avg_overall` from `getReviewSummaries`                                                                                                   |
+| `lib/data/reviews.ts`                                                | Server-only      | `getReviewSummaries` (`space_review_summary` in batches of 100 ids), `getSpaceReviews` (one more than the page shows, to know if there are more), `getMyReviews`, `getMyReviewableVisit` |
+| `lib/validation/review.ts`                                           | Pure TS          | The form rules in §2                                                                                                                                                                     |
 
 **Each action** parses its input, writes with the signed-in client, turns each refusal
 into the message §1 shows, and revalidates `/spaces/[spaceId]` and, for posting, editing
@@ -368,6 +387,7 @@ a user, because STORY-14's function doesn't exist yet. The flow names most of th
 | pgTAP      | "the short name is the first word and the last word's initial, a one-word name as it is, and Worq Seeker for an empty name"                                                           | As described                         |
 | pgTAP      | "a report records the review's current version"                                                                                                                                       | The review's `version`               |
 | pgTAP      | "space_reviews sorts by newest, highest and lowest, pages by size and offset, and leaves out the caller's own reviews"                                                                | As described                         |
+| pgTAP      | "space_reviews clamps a page size of 100 to 51, and a negative offset to 0"                                                                                                           | 51 rows at most, from the first      |
 | pgTAP      | "space_reviews refuses an unknown sort"; "space_review_summary refuses more than 100 Spaces"                                                                                          | `P0001`                              |
 | pgTAP      | "space_review_summary gives a Verified Space with no reviews a count of 0"                                                                                                            | Count 0, null averages               |
 | pgTAP      | "my_reviewable_visit returns the caller's newest visit with no review, and nothing to a Host"; "a signed-out visitor cannot run my_reviewable_visit"                                  | One row; none; `42501`               |
@@ -375,6 +395,8 @@ a user, because STORY-14's function doesn't exist yet. The flow names most of th
 | Vitest     | A comment of `<script>alert(1)</script>` renders as that text, and no script element is created (SRS §3.5.2)                                                                          | Text only                            |
 | Vitest     | Each action turns `42501`, `23505` and 0 rows into its message                                                                                                                        | The message §1 shows                 |
 | Vitest     | The Space card shows the overall average with the count, or that there are no reviews yet                                                                                             | As described                         |
+| Vitest     | `getReviewSummaries` asks for 250 Spaces in three calls of at most 100 ids, and joins the rows                                                                                        | Three calls, 250 ids                 |
+| Vitest     | At 50 reviews shown with more left, the list shows the line saying only the first 50 are shown, and no "Show more reviews"                                                            | As described                         |
 | Playwright | `e2e/reviews.spec.ts`: a Seeker with a finished visit reviews the Space, edits it and sees "edited", then deletes it and writes it again                                              | As described                         |
 | Playwright | `e2e/reviews.spec.ts`: a signed-out visitor reads the reviews and the averages on the profile, and the rating on the Space card                                                       | As described                         |
 | Playwright | `e2e/reviews.spec.ts`: another Seeker reports the review, and sees "You reported this"                                                                                                | As described                         |
