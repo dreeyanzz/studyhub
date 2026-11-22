@@ -96,10 +96,10 @@ sequenceDiagram
         opt Stripe refuses, fails or times out
             ST-->>SA: An error, a refund that failed, or no answer
             SA->>ST: findRefund: GET /v1/refunds for that payment intent
-            ST-->>SA: Its refunds, if any
+            ST-->>SA: Its refunds, or an error, or no answer
         end
-        alt No refund that succeeded or is pending, from either call
-            SA-->>B: Stripe didn't refund it, so nothing changed. Try again
+        alt No refund that succeeded or is pending from either call, or findRefund failed too
+            SA-->>B: Nothing was recorded. Try again
         else A refund that succeeded or is pending, with its re_ id
             SA->>DB: record_refund (payment id, refund id, reason)
             alt The rule refuses it after all, or a second Administrator recorded it first
@@ -122,7 +122,9 @@ an accepted refund, whether Stripe refused it, the call failed or it timed out, 
 asks `findRefund` whether that payment intent already has a refund, and if it has,
 records that one. A payment refunded in Stripe never stays Paid here. After a timeout,
 Stripe may still be making the refund, so `findRefund` can find none yet. Nothing is
-recorded then, and the next click is safe within the key's 24 hours.
+recorded then, and the next click is safe within the key's 24 hours. If `findRefund`
+fails or times out too, nothing is recorded either. So the message says only that nothing
+was recorded, never that Stripe didn't refund it, because after a timeout it may have.
 
 ## 2. Data and state
 
@@ -257,7 +259,9 @@ the Administrator tries again.
 through a GET twin of the helper, and returns that payment's refund that `succeeded` or
 is `pending`, or none. It reads up to 10, because a refund that failed can sit beside the
 one that succeeded. The action calls it only when `createRefund` doesn't return an
-accepted refund: a refusal, a failure or a timeout (§1).
+accepted refund: a refusal, a failure or a timeout (§1). It throws on an error answer,
+a network failure or a timeout, as `createRefund` does, and the action then records
+nothing, as when it finds none.
 
 `STRIPE_API_URL` points both at the Playwright stub, as the checkout already is.
 
@@ -390,8 +394,9 @@ the moderation ones, and the reservation lifecycle's P1 leaves its test to this 
 | pgTAP      | "admin_payment_records and admin_review_queue clamp a page size of 500 to 101, and a negative offset to 0"                                                    | 101 rows at most, from the first               |
 | pgTAP      | "a Seeker's own reservation reads a refunded payment as refunded"                                                                                             | `refunded`                                     |
 | Vitest     | `createRefund` sends the payment intent, the metadata and the idempotency key, and throws on an error, a failed refund or a timeout                           | Against a stubbed `fetch`                      |
-| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none                                                                                | Against a stubbed `fetch`                      |
+| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none, and throws on an error or a timeout                                           | Against a stubbed `fetch`                      |
 | Vitest     | `refundPaymentAction`, when Stripe refuses, fails or times out, asks `findRefund`, records an earlier refund it finds, and records nothing when there is none | As described                                   |
+| Vitest     | `refundPaymentAction` records nothing and says to try again when `findRefund` fails or times out too                                                          | As described                                   |
 | Vitest     | `refundPaymentAction` calls Stripe only for a refundable payment, records only after Stripe accepts, and records nothing when Stripe fails                    | As described                                   |
 | Vitest     | Each action turns each hint into its message                                                                                                                  | As described                                   |
 | Vitest     | The form rules: the four actions, the reason's trim and limit, and the params' defaults                                                                       | Pass or fail as described                      |
