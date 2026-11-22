@@ -75,7 +75,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-13 |                                                                    | not written                                                         |
 | STORY-14 |                                                                    | not written                                                         |
 | STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | implemented 2026-11-09                                              |
-| STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md) | draft                                                               |
+| STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md) | approved 2026-11-22                                                 |
 | STORY-17 |                                                                    | not written                                                         |
 | STORY-19 |                                                                    | not written                                                         |
 | STORY-20 |                                                                    | not written                                                         |

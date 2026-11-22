@@ -1,6 +1,6 @@
 # STORY-16: Reservation history, Hold again and the confirmation email
 
-**Status:** draft · **Owner:** @dreeyanzz (database and email), @lukedongque (pages and
+**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (database and email), @lukedongque (pages and
 screens) · **Story:** #335 · **FR:** none (a Sprint 3 addition, D-075) · **Depends on:**
 STORY-09, STORY-10, STORY-11, STORY-13, STORY-14 · **Flows:**
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
