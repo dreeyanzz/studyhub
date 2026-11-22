@@ -305,7 +305,7 @@ that count reviews use a Space of their own.
    - Submit button (`"Post review"` or `"Save changes"`) disables with `"Saving..."` (`aria-busy="true"`) while pending. Inline `role="alert"` displays Zod or `§1` refusal messages.
 3. **Report dialog and `"You reported this"` (`ReportReviewDialog`):**
    - Offered on others' visible reviews for signed-in users via a `"Report"` button; if `reported_by_caller` is true, renders a `"You reported this"` badge/text instead of the button.
-   - Uses `@base-ui/react/dialog` (focus-trapped; Escape or `"Cancel"` closes and returns focus to the trigger).
+   - Uses `Dialog` from `components/ui/dialog.tsx` (focus-trapped; Escape or `"Cancel"` closes and returns focus to the trigger).
    - Title `"Report review"`, `<legend>` `"Reason"` with four 48 × 48 px radio options (`Spam`, `Offensive`, `Not about this Space`, `Other`), optional `"Note (optional)"` textarea (`maxLength={300}`, `"X / 300 characters remaining"`), `"Submit report"` (disabled `"Submitting..."` while pending), and `"Cancel"`.
    - Errors (`§1` messages: `"You can't report this review"`, `"You have already reported this review"`, or validation errors) render inline inside the dialog; success closes the dialog, revalidates, announces `"Report submitted."` in `aria-live="polite"`, and shows `"You reported this"`.
 4. **Space card (`components/discovery/space-card.tsx`) and Map popup (`app/(public)/spaces/_components/discovery-map.tsx`):**
@@ -322,7 +322,8 @@ Already-decided rules followed above: D-076, D-080, D-081, D-087, and SRS §3.5.
 | `app/(public)/spaces/[spaceId]/actions.ts`                           | Server Actions   | `postReviewAction`, `editReviewAction`, `deleteReviewAction`, `reportReviewAction`, beside the hold actions                                                                              |
 | `app/(public)/spaces/[spaceId]/_components/space-reviews.tsx`        | Server Component | The reviews section: averages, list, sort links, Show more, pinned own reviews                                                                                                           |
 | `app/(public)/spaces/[spaceId]/_components/author-review-card.tsx`   | Client Component | Own review card with inline edit (`ReviewForm`) toggle, `AlertDialog` delete confirmation, and `aria-live` feedback                                                                      |
-| `app/(public)/spaces/[spaceId]/_components/report-review-dialog.tsx` | Client Component | Report modal using `@base-ui/react/dialog` with four reasons, optional note, inline errors, and `aria-live` announcement                                                                 |
+| `app/(public)/spaces/[spaceId]/_components/report-review-dialog.tsx` | Client Component | Report modal on `components/ui/dialog.tsx`, with four reasons, optional note, inline errors, and `aria-live` announcement                                                                |
+| `components/ui/dialog.tsx`                                           | New primitive    | `npx shadcn add dialog`, shared with STORY-14's refund and STORY-16's review dialogs. The first task that needs it adds it                                                               |
 | `components/review/review-form.tsx`                                  | Client Component | The four ratings and the comment, for posting and editing. It takes the action, so STORY-16 reuses it                                                                                    |
 | `components/review/review-rating.tsx`                                | Shared, no state | A rating's number and its accessible label, shared by the profile and the Space card                                                                                                     |
 | `components/discovery/space-card.tsx`                                | Changed          | Shows the overall average and the count, or `"No reviews yet"`                                                                                                                           |
@@ -343,6 +344,7 @@ app/(public)/spaces/[spaceId]/page.tsx, actions.ts
 app/(public)/spaces/[spaceId]/_components/space-reviews.tsx, author-review-card.tsx, report-review-dialog.tsx
 app/(public)/spaces/_components/discovery-map.tsx, discovery-map.test.ts
 components/review/review-form.tsx, review-rating.tsx
+components/ui/dialog.tsx
 components/discovery/space-card.tsx
 lib/data/reviews.ts, spaces.ts
 lib/validation/review.ts
