@@ -166,56 +166,71 @@ The review dialog reuses STORY-13's `postReviewSchema` and `editReviewSchema`.
 
 ### Screens
 
-**Luke writes this part, on this branch, before approving it (D-073, D-075).** Maria and
-James review the screens once they're built (D-073). It has to cover each screen, the
-order of steps, the wording, and the empty, loading and error states, for:
+1. **Seeker portal link (`app/(dashboard)/seeker/page.tsx`):**
+   - Renders a `"Reservation history"` card on `/seeker` with a 48 × 48 px `"View reservation history"` link to `/seeker/reservations` and summary copy `"See past paid holds, hold the same unit again, or leave a review."`
+2. **History page (`/seeker/reservations`):**
+   - **Navigation & header:** 48 × 48 px `"Back to dashboard"` breadcrumb link to `/seeker`, `h1` `"Reservation history"`, and subtitle `"Every reservation you paid for after it ended, newest first."`
+   - **Loading, empty, and error states:**
+     - `app/(dashboard)/seeker/reservations/loading.tsx` renders skeleton cards (`animate-pulse`).
+     - **Empty state:** Heading `"No past reservations yet"` and body `"Your completed, cancelled, and refunded holds will appear here."` with a 48 × 48 px `"Find a Space"` link to `/spaces`.
+     - **Error state:** Inline alert `"We couldn't load your reservation history. Refresh the page to try again."`
+   - **Past reservation row (`HistoryRow`):**
+     - Displays Space name (linked to `/spaces/[spaceId]` when `space_listed`, plain text otherwise), unit label (with `"(removed)"` when `unit_id` is null), and held timestamp in `Asia/Manila` (e.g., `"Nov 18, 2026, 14:00"`).
+     - Outcome wording (always words, never colour alone):
+       - `completed`: `"Visit completed"`
+       - `no_show`: `"Missed check-in (no-show)"`
+       - `cancelled`: `"Hold cancelled"`
+       - `expired` (P2 late payment): `"Payment arrived after hold ended"`
+     - Fee fate wording (`formatPeso`):
+       - `paid`: `"₱50.00 paid"`
+       - `forfeited`: `"₱50.00 forfeited"`
+       - `refunded`: `"₱50.00 refunded"` (with `refunded_at` date in `Asia/Manila`)
+     - **Hold again action:**
+       - If `!space_listed`: displays `"This Space isn't listed right now"` instead of a button (D-055).
+       - Else if `unit_id === null`: 48 × 48 px `"Hold again"` link to `/spaces/${spaceId}?from=history&unit_removed=1`.
+       - Else: 48 × 48 px `"Hold again"` link to `/spaces/${spaceId}?unit=${unitId}&from=history`.
+     - **Review action (only when `checked_in_at !== null`):**
+       - No review yet: 48 × 48 px `"Leave a review"` button opening `ReviewDialog` in create mode.
+       - `review_status === 'visible'`: displays `"Reviewed"` alongside a 48 × 48 px `"Edit your review"` button opening `ReviewDialog` in edit mode.
+       - `review_status === 'hidden'`: displays `"Review hidden by an Administrator"` (no edit button, D-080).
+       - `review_status === 'removed'`: displays `"Review removed by an Administrator"` (no edit button, D-080).
+   - **Pagination (`"Show more"`):**
+     - Reads `?show=20|40|60|80|100` (default `20`). If `hasMore` and `shown < 100`, renders a 48 × 48 px `"Show more"` link (`?show=${shown + 20}`). At 100 when `hasMore`, replaces the button with `"Showing your newest 100 past reservations."`
+3. **Hold again on the Space profile (`app/(public)/spaces/[spaceId]/page.tsx`):**
+   - Never holds anything by itself (D-001, D-077). When `from=history`:
+     - **Space closed (`!operatingStatus.isOpen`):** `SpaceProfilePage` already renders `data-testid="seeker-space-closed"` (`"This Space is closed now"`). Do **not** render a second closed banner; instead adjust that existing alert when `from=history` to add `"You can't hold that unit while the Space is closed."` so only one closed alert appears.
+     - **Unit removed (`unit_removed=1` or `?unit=<id>` does not match any unit in `zones`):** Renders an announced `Alert` (`data-testid="hold-again-notice"`, `role="status"`) above the seat map: `"The unit you held before was removed. Pick another Available unit below."`
+     - **Unit taken (`selectedUnit` exists, Space is open, and `selectedUnit.seatState !== 'available'`):** Renders `data-testid="hold-again-notice"` above the seat map: `"{unit.label} is taken right now ({stateLabel}). Pick another Available unit below."`
+     - **Unit available (`selectedUnit` exists, Space is open, and `selectedUnit.seatState === 'available'`):** No `hold-again-notice` error banner; `HoldUnitPanel` opens pre-selected for `?unit=<id>` as usual.
+4. **Leave a review and Edit your review dialog (`ReviewDialog`):**
+   - Uses `@base-ui/react/dialog` (focus-trapped; Escape or `"Cancel"` closes and returns focus to the trigger button).
+   - Title `"Leave a review — {spaceName}"` or `"Edit your review — {spaceName}"`.
+   - Embeds STORY-13's `components/review/review-form.tsx` wired to `postReviewAction` or `editReviewAction` (passing `spaceId`, `reservationId` or `reviewId`, and existing values when editing).
+   - On success: closes dialog, calls `router.refresh()` so `/seeker/reservations` immediately reflects `"Reviewed"` / `"Edit your review"`, and announces `"Review posted."` / `"Review updated."` in an `aria-live="polite"` region. On error, displays the `§1` refusal or validation message inside the dialog.
 
-- the history page and its link from the Seeker portal;
-- a past reservation's row, and "Show more";
-- Hold again, and the line the profile shows when that unit can't be held;
-- the Leave a review and Edit your review dialog.
-
-These are already decided, so the screens follow them:
-
-- **The history lists every reservation the Seeker paid for,** newest first, 20 at a
-  time. Each row shows the Space, the unit, the date it was held, how it ended
-  (completed, no-show or cancelled, or a payment that came after the hold ended), and the
-  fee's fate (paid, forfeited or refunded).
-- **Hold again** opens `/spaces/<id>?unit=<id>&from=history`. The profile already picks a
-  unit from `?unit=` and offers the hold panel while it is Available and the Space is
-  open (STORY-09, STORY-11). With `from=history`, when the unit is taken or the Space is
-  closed, the profile adds one line saying why, above the seat map (D-077). It never
-  holds anything by itself.
-- **When Hold again can't work:** for a Space that isn't listed now, the row says "This
-  Space isn't listed right now" instead of the button, because its profile reads as not
-  found (D-055). For a removed unit, Hold again opens `/spaces/<id>?from=history&unit_removed=1`,
-  and the profile says the unit you held before was removed.
-- **Reviews:** a visit with no review shows Leave a review, a visible review shows Edit
-  your review, and a hidden or removed one shows its label only (D-080). Both open
-  STORY-13's review form in a dialog on the history page, with STORY-13's actions. After
-  a success, the dialog closes and the page refreshes.
+Already-decided rules followed above: D-001, D-055, D-077, D-080, and D-081.
 
 ### Routes and components
 
-Luke's section confirms or changes these.
-
-| File                                                                | Type                 | Purpose                                                                                     |
-| ------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------- |
-| `app/(dashboard)/seeker/reservations/page.tsx`                      | Server Component     | The history: reads `my_reservation_history` and the Seeker's own reviews for the rows shown |
-| `app/(dashboard)/seeker/reservations/_components/history-row.tsx`   | Server Component     | One past reservation, its Hold again and its review state                                   |
-| `app/(dashboard)/seeker/reservations/_components/review-dialog.tsx` | Client Component     | Leave a review and Edit your review, with STORY-13's `review-form.tsx` and actions          |
-| `app/(dashboard)/seeker/layout.tsx` or `page.tsx`                   | Changed              | A link to the history                                                                       |
-| `app/(public)/spaces/[spaceId]/page.tsx`                            | Changed              | Reads `from=history` and `unit_removed`, and shows the line saying why                      |
-| `lib/data/history.ts`                                               | Server-only          | `getReservationHistory`, one more row than the page shows, to know if there are more        |
-| `lib/validation/history.ts`                                         | Pure TS              | The form rule in §2                                                                         |
-| `lib/email/transport.ts`, `lib/email/hold-confirmation.ts`          | Server-only (Adrian) | §2's email                                                                                  |
-| `app/api/webhooks/stripe/route.ts`                                  | Changed (Adrian)     | Schedules the email with `after()` on `confirmed`                                           |
+| File                                                                | Type                 | Purpose                                                                                                                                     |
+| ------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/(dashboard)/seeker/reservations/page.tsx`                      | Server Component     | The history: reads `my_reservation_history` and the Seeker's own reviews for the rows shown                                                 |
+| `app/(dashboard)/seeker/reservations/loading.tsx`                   | Server Component     | Card placeholder skeletons while the reservation history loads                                                                              |
+| `app/(dashboard)/seeker/reservations/_components/history-row.tsx`   | Server Component     | One past reservation, outcome/fee labels, Hold again link, and review state/trigger                                                         |
+| `app/(dashboard)/seeker/reservations/_components/review-dialog.tsx` | Client Component     | `@base-ui/react/dialog` modal for Leave a review and Edit your review, using `review-form.tsx`, `router.refresh()`, and `aria-live`         |
+| `app/(dashboard)/seeker/page.tsx`                                   | Changed              | Adds the `"Reservation history"` card with a 48 × 48 px link to `/seeker/reservations`                                                      |
+| `app/(public)/spaces/[spaceId]/page.tsx`                            | Changed              | Reads `from=history`, `unit_removed`, and unresolved `unit=<id>`, and shows one notice above the seat map without duplicating closed alerts |
+| `lib/data/history.ts`                                               | Server-only          | `getReservationHistory`, one more row than the page shows, to know if there are more                                                        |
+| `lib/validation/history.ts`                                         | Pure TS              | The form rule in §2                                                                                                                         |
+| `lib/email/transport.ts`, `lib/email/hold-confirmation.ts`          | Server-only (Adrian) | §2's email                                                                                                                                  |
+| `app/api/webhooks/stripe/route.ts`                                  | Changed (Adrian)     | Schedules the email with `after()` on `confirmed`                                                                                           |
 
 ### Where the files go
 
 ```
-app/(dashboard)/seeker/reservations/page.tsx, _components/
-app/(dashboard)/seeker/layout.tsx or page.tsx
+app/(dashboard)/seeker/reservations/page.tsx, loading.tsx
+app/(dashboard)/seeker/reservations/_components/history-row.tsx, review-dialog.tsx
+app/(dashboard)/seeker/page.tsx
 app/(public)/spaces/[spaceId]/page.tsx
 app/api/webhooks/stripe/route.ts
 lib/data/history.ts
