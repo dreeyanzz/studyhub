@@ -112,10 +112,11 @@ sequenceDiagram
 
 If `record_refund` fails after Stripe accepted the refund, for example on a dropped
 connection, clicking Refund again is safe: the idempotency key makes Stripe return the
-same refund, and the payment is then recorded. Stripe keeps a key for only 24 hours. A
-retry after that sends a fresh request, which Stripe refuses with the code
-`charge_already_refunded`. On that code, the action reads the earlier refund with
-`findRefund` and records it, so a payment refunded in Stripe never stays Paid here.
+same refund, and the payment is then recorded. But Stripe keeps a key for at least 24
+hours and may drop it after that, so a later retry is a new request, which Stripe refuses
+because the charge is already refunded. So whenever Stripe refuses, the action first asks
+`findRefund` whether that payment intent already has a refund, and if it has, records
+that one. A payment refunded in Stripe never stays Paid here.
 
 ## 2. Data and state
 
@@ -244,12 +245,11 @@ returns the refund's id and status. It throws `StripeApiError` on an error answe
 a refund whose status isn't `succeeded` or `pending`, or that has no `re_` id. A network
 failure or a timeout throws the helper's own error, as the checkout's does (the timeout
 is a `DOMException`), and the action treats it like a refusal: nothing was recorded, so
-the Administrator tries again. `StripeApiError` gains Stripe's error `code`, beside its
-`type`, so the action can tell `charge_already_refunded` apart.
+the Administrator tries again.
 
 `findRefund({ paymentIntentId })` reads `GET /v1/refunds?payment_intent=<id>&limit=1`
 through a GET twin of the helper, and returns that payment's refund that `succeeded` or
-is `pending`, or none. The action calls it only after `charge_already_refunded` (§1).
+is `pending`, or none. The action calls it only after Stripe refuses a refund (§1).
 
 `STRIPE_API_URL` points both at the Playwright stub, as the checkout already is.
 
@@ -310,7 +310,7 @@ Luke's section confirms or changes these.
 | `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's refunded line for an expired hold too (§0)                                                                     |
 | `lib/data/admin.ts`                                                                | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                                                   |
 | `lib/validation/admin.ts`                                                          | Pure TS          | The form rules in §2                                                                                                            |
-| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, the helper's optional headers and its GET twin, and `StripeApiError`'s `code`                     |
+| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, and the helper's optional headers and its GET twin                                                |
 | `e2e/support/stripe-stub.ts`                                                       | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                                              |
 
 Each new page sets its own `metadata` title. The `/admin` layout's "Space Verification"
@@ -382,8 +382,8 @@ the moderation ones, and the reservation lifecycle's P1 leaves its test to this 
 | pgTAP      | "admin_payment_records and admin_review_queue clamp a page size of 500 to 101, and a negative offset to 0"                                 | 101 rows at most, from the first               |
 | pgTAP      | "a Seeker's own reservation reads a refunded payment as refunded"                                                                          | `refunded`                                     |
 | Vitest     | `createRefund` sends the payment intent, the metadata and the idempotency key, and throws on an error, a failed refund or a timeout        | Against a stubbed `fetch`                      |
-| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none; `StripeApiError` carries Stripe's error `code`             | Against a stubbed `fetch`                      |
-| Vitest     | `refundPaymentAction`, given `charge_already_refunded`, finds the earlier refund and records it, and records nothing when there is none    | As described                                   |
+| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none                                                             | Against a stubbed `fetch`                      |
+| Vitest     | `refundPaymentAction`, when Stripe refuses, finds an earlier refund and records it, and records nothing when there is none                 | As described                                   |
 | Vitest     | `refundPaymentAction` calls Stripe only for a refundable payment, records only after Stripe accepts, and records nothing when Stripe fails | As described                                   |
 | Vitest     | Each action turns each hint into its message                                                                                               | As described                                   |
 | Vitest     | The form rules: the four actions, the reason's trim and limit, and the params' defaults                                                    | Pass or fail as described                      |
