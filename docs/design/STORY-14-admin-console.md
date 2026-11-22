@@ -27,12 +27,18 @@ and its Sprint 3 follow-ups are STORY-20's.
   `public.record_refund`, `public.admin_payment_records`, and the private rule that says
   which fees can be refunded (D-088).
 - **The Stripe refund (Adrian):** `createRefund` in `lib/payments/stripe.ts`, a test-mode
-  refund through Stripe's REST API with one idempotency key per payment (D-070, D-088).
+  refund through Stripe's REST API with one idempotency key per payment, and
+  `findRefund`, which reads a payment's earlier refund for a retry after Stripe has
+  forgotten the key (D-070, D-088).
 - **The pgTAP tests** in `supabase/tests/NN-review-moderation.sql` and
   `supabase/tests/NN-refunds.sql`, and `db:types` (Adrian).
 - **The pages (Luke):** the Reported, Hidden and Removed lists and the Payments page on
   `/admin`, their Server Actions, form rules and reads, and the Vitest and Playwright
   tests, including a refunds endpoint in the Playwright Stripe stub.
+- **The Seeker's hold page (Luke):** its ended view says "Your ₱50.00 payment was
+  refunded." for an expired hold too. Today only a cancelled hold's view has that line, so
+  a refunded late payment (P2), an expired hold with a `refunded` payment, would read
+  "nothing was charged". STORY-16's history shows the same status.
 
 **Out:**
 
@@ -41,9 +47,6 @@ and its Sprint 3 follow-ups are STORY-20's.
 - **Space verification** (STORY-15) and its follow-ups (STORY-20). STORY-20's take-down
   refunds fees through this story's `createRefund` and `record_refund` (D-085).
 - **Refunds recorded by Stripe's webhook, and partial refunds** (D-088).
-- **The Seeker's hold page.** It already says "Your ₱50 payment was refunded" when the
-  payment reads `refunded` (STORY-09), so it needs no change. STORY-16's history shows the
-  same status.
 - **Notifications.** Nobody is told about a moderation action (D-080) or a refund, and
   the only email is the hold confirmation (D-078, D-083).
 - **The final look** (STORY-17). Maria and James review these screens once built (D-073,
@@ -109,7 +112,10 @@ sequenceDiagram
 
 If `record_refund` fails after Stripe accepted the refund, for example on a dropped
 connection, clicking Refund again is safe: the idempotency key makes Stripe return the
-same refund, and the payment is then recorded.
+same refund, and the payment is then recorded. Stripe keeps a key for only 24 hours. A
+retry after that sends a fresh request, which Stripe refuses with the code
+`charge_already_refunded`. On that code, the action reads the earlier refund with
+`findRefund` and records it, so a payment refunded in Stripe never stays Paid here.
 
 ## 2. Data and state
 
@@ -172,6 +178,8 @@ anyone who isn't an Administrator with `42501`, as `set_space_status` does (D-04
 
 - **`public.moderate_review(p_review_id uuid, p_action review_moderation_action, p_version integer)`**,
   as the flow's "How the database enforces it" describes:
+  - It refuses with `P0001` and the hint `not_found` when the review no longer exists,
+    because its author deleted it (RV3) or it went with its Space or visit (RV9).
   - It locks the review, then refuses with `P0001` and the hint `stale_version` if its
     version isn't the one the Administrator saw (N9).
   - It allows only these, and refuses anything else with `P0001` and the hint
@@ -184,7 +192,9 @@ anyone who isn't an Administrator with `42501`, as `set_space_status` does (D-04
   - Every action adds a row to the moderation log.
 - **`public.admin_review_queue(p_list text, p_page_size integer default 25, p_page_offset integer default 0)`**:
   - `p_list` is `reported`, `hidden` or `removed`, and anything else is refused with
-    `P0001` and the hint `invalid_list`. `p_page_size` is kept between 1 and 100.
+    `P0001` and the hint `invalid_list`. `p_page_size` is clamped to 1 to 101, one more
+    than the 100 the page shows at most, so it can tell whether there are more.
+    `p_page_offset` is clamped to 0 or more.
   - **Reported:** visible reviews with at least one open report, the oldest open report
     first.
   - **Hidden:** hidden reviews, the most recently hidden first.
@@ -195,14 +205,17 @@ anyone who isn't an Administrator with `42501`, as `set_space_status` does (D-04
     reporter's full name, reason, note, the version it was about, when, and, once closed,
     its outcome. Administrators may read full names already (STORY-01's `profiles`
     policy).
-- **`public.admin_payment_records(p_status payment_status default null, p_payment_id uuid default null, p_page_size integer default 25, p_page_offset integer default 0)`**:
+- **`public.admin_payment_records(p_status payment_status default null, p_refundable_only boolean default false, p_payment_id uuid default null, p_page_size integer default 25, p_page_offset integer default 0)`**:
   - It records lapses first, for every unit with an active hold (D-047), so a fee that a
     lapsed wait window forfeited reads Forfeited.
   - It returns `paid`, `forfeited` and `refunded` payments, newest payment first, and
     never `pending` ones. `p_status` narrows it to one of those three, and `pending` or
-    anything else is refused with `P0001` and the hint `invalid_status`. `p_payment_id`
-    narrows it to that one payment, which is how the Refund action reads it again. `p_page_size` is
-    kept between 1 and 50.
+    anything else is refused with `P0001` and the hint `invalid_status`.
+    `p_refundable_only` narrows it to the payments that are refundable now, so no
+    refundable fee is ever out of reach behind newer payments. `p_payment_id` narrows it
+    to that one payment, which is how the Refund action reads it again.
+  - `p_page_size` is clamped to 1 to 101, one more than the 100 the page shows at most,
+    so it can tell whether there are more. `p_page_offset` is clamped to 0 or more.
   - Each row has the payment (its id, status, fee, `paid_at`, Stripe's payment intent id,
     and, once refunded, when, by whom and why), its reservation (id, status, unit label, `checked_in_at`,
     `ended_at`), the Space's id and name, the Seeker's full name, and `refundable`.
@@ -227,9 +240,18 @@ Administrators pass (N14).
 `payment_intent`, `metadata[payment_id]` and an `Idempotency-Key` header of
 `refund-<payment id>`, through the same `fetch` helper, API version and sandbox-key check
 as the checkout (D-070). The helper gains an optional headers argument for the key. It
-returns the refund's id and status, and throws `StripeApiError` on an error answer, a
-refund whose status is `failed` or `canceled`, or a timeout. `STRIPE_API_URL` points it at
-the Playwright stub, as the checkout already is.
+returns the refund's id and status. It throws `StripeApiError` on an error answer, or on
+a refund whose status isn't `succeeded` or `pending`, or that has no `re_` id. A network
+failure or a timeout throws the helper's own error, as the checkout's does (the timeout
+is a `DOMException`), and the action treats it like a refusal: nothing was recorded, so
+the Administrator tries again. `StripeApiError` gains Stripe's error `code`, beside its
+`type`, so the action can tell `charge_already_refunded` apart.
+
+`findRefund({ paymentIntentId })` reads `GET /v1/refunds?payment_intent=<id>&limit=1`
+through a GET twin of the helper, and returns that payment's refund that `succeeded` or
+is `pending`, or none. The action calls it only after `charge_already_refunded` (§1).
+
+`STRIPE_API_URL` points both at the Playwright stub, as the checkout already is.
 
 ### Form rules (`lib/validation/admin.ts`, Luke)
 
@@ -237,8 +259,8 @@ the Playwright stub, as the checkout already is.
   version the Administrator saw.
 - **`refundPaymentSchema`:** the payment id, and a reason: trimmed, 1 to 300 characters.
 - **`reviewQueueSchema`** and **`paymentRecordsSchema`**, from the pages' search params:
-  the list or the status filter, and how many are shown, in steps of 25 up to 100.
-  Anything else falls back to the default.
+  the list, or the filter (all, Paid, Forfeited, Refunded or Refundable), and how many
+  are shown, in steps of 25 up to 100. Anything else falls back to the default.
 
 ## 3. UI and files
 
@@ -265,38 +287,46 @@ These are already decided, so the screens follow them:
   older version says "edited after this report" (the flow's "Versions").
 - **Removed is read-only:** who removed it, when, and its reports (D-080).
 - **Payments** lists paid, forfeited and refunded payments, newest first, 25 at a time,
-  with a status filter. Refund appears only where `refundable` is true, and always refunds
-  the whole fee (D-088).
+  up to 100, with a filter: all, Paid, Forfeited, Refunded, or Refundable, which shows
+  only the fees that can be refunded now, however old. Refund appears only where
+  `refundable` is true, and always refunds the whole fee (D-088).
 - **A refund needs a reason,** which only Administrators see. The Seeker's hold page
-  already says the payment was refunded (D-088).
+  says "Your ₱50.00 payment was refunded.", for an expired hold (P2) as well as a
+  cancelled one (§0, D-088).
 
 ### Routes and components
 
 Luke's section confirms or changes these.
 
-| File                                             | Type             | Purpose                                                                                             |
-| ------------------------------------------------ | ---------------- | --------------------------------------------------------------------------------------------------- |
-| `app/(dashboard)/admin/moderation/page.tsx`      | Server Component | Reads `admin_review_queue` for the chosen list, and each shown review's history                     |
-| `app/(dashboard)/admin/moderation/actions.ts`    | Server Action    | `moderateReviewAction`: parses, calls `moderate_review`, maps each hint to its message, revalidates |
-| `app/(dashboard)/admin/moderation/_components/…` | Client Component | The lists, the review cards and the confirmations                                                   |
-| `app/(dashboard)/admin/payments/page.tsx`        | Server Component | Reads `admin_payment_records` for the chosen filter and page                                        |
-| `app/(dashboard)/admin/payments/actions.ts`      | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, then `record_refund`        |
-| `app/(dashboard)/admin/payments/_components/…`   | Client Component | The list, the filter and the Refund dialog                                                          |
-| `app/(dashboard)/admin/layout.tsx`               | Changed          | Links to verification, moderation and payments                                                      |
-| `lib/data/admin.ts`                              | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                       |
-| `lib/validation/admin.ts`                        | Pure TS          | The form rules in §2                                                                                |
-| `lib/payments/stripe.ts`                         | Changed (Adrian) | `createRefund`, and the helper's optional headers                                                   |
-| `e2e/support/stripe-stub.ts`                     | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                  |
+| File                                                                               | Type             | Purpose                                                                                                                         |
+| ---------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `app/(dashboard)/admin/moderation/page.tsx`                                        | Server Component | Reads `admin_review_queue` for the chosen list, and each shown review's history                                                 |
+| `app/(dashboard)/admin/moderation/actions.ts`                                      | Server Action    | `moderateReviewAction`: parses, calls `moderate_review`, maps each hint to its message, revalidates                             |
+| `app/(dashboard)/admin/moderation/_components/…`                                   | Client Component | The lists, the review cards and the confirmations                                                                               |
+| `app/(dashboard)/admin/payments/page.tsx`                                          | Server Component | Reads `admin_payment_records` for the chosen filter and page                                                                    |
+| `app/(dashboard)/admin/payments/actions.ts`                                        | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, then `record_refund`                                    |
+| `app/(dashboard)/admin/payments/_components/…`                                     | Client Component | The list, the filter and the Refund dialog                                                                                      |
+| `app/(dashboard)/admin/_components/admin-header.tsx`                               | Changed          | Links to verification, moderation and payments, marking the current one. Today it marks `/admin` as the current page everywhere |
+| `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's refunded line for an expired hold too (§0)                                                                     |
+| `lib/data/admin.ts`                                                                | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                                                   |
+| `lib/validation/admin.ts`                                                          | Pure TS          | The form rules in §2                                                                                                            |
+| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, the helper's optional headers and its GET twin, and `StripeApiError`'s `code`                     |
+| `e2e/support/stripe-stub.ts`                                                       | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                                              |
 
-`proxy.ts` and the `/admin` layout already keep everyone but Administrators out of
-`/admin` (STORY-15, D-032), and every function refuses them anyway.
+Each new page sets its own `metadata` title. The `/admin` layout's "Space Verification"
+is the verification queue's, and would otherwise show on every page.
+
+`proxy.ts` already sends everyone but Administrators away from `/admin` and its pages
+(STORY-15, D-032). The `/admin` layout doesn't check the role, so each new page checks
+it again, as `/admin`'s own page does, and every function refuses them anyway.
 
 ### Where the files go
 
 ```
 app/(dashboard)/admin/moderation/page.tsx, actions.ts, _components/
 app/(dashboard)/admin/payments/page.tsx, actions.ts, _components/
-app/(dashboard)/admin/layout.tsx
+app/(dashboard)/admin/_components/admin-header.tsx
+app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx
 lib/data/admin.ts
 lib/validation/admin.ts
 lib/payments/stripe.ts
@@ -333,6 +363,7 @@ the moderation ones, and the reservation lifecycle's P1 leaves its test to this 
 | pgTAP      | N7: "a Seeker and a Host cannot moderate a review"; "a signed-out visitor cannot run moderate_review"                                      | `42501`                                        |
 | pgTAP      | N8: "an Administrator cannot restore or change a removed review"; "an Administrator cannot dismiss a review with no open reports"          | `P0001`, `not_allowed`                         |
 | pgTAP      | N9: "an Administrator cannot moderate a review edited since they read it"                                                                  | `P0001`, `stale_version`                       |
+| pgTAP      | "an Administrator cannot moderate a review its author has deleted"                                                                         | `P0001`, `not_found`                           |
 | pgTAP      | N13: "nobody can edit or delete a report"; "nobody can write to the moderation log directly"                                               | `42501`                                        |
 | pgTAP      | N14: "a Seeker and a Host read 0 rows of the moderation log"                                                                               | 0 rows                                         |
 | pgTAP      | "admin_review_queue lists reported reviews oldest open report first, and hidden and removed ones most recent first"                        | As described                                   |
@@ -347,11 +378,16 @@ the moderation ones, and the reservation lifecycle's P1 leaves its test to this 
 | pgTAP      | "admin_payment_records lists paid, forfeited and refunded payments, newest first, and never unpaid ones"                                   | As described                                   |
 | pgTAP      | "admin_payment_records reads a lapsed wait window's fee as forfeited"                                                                      | `forfeited`                                    |
 | pgTAP      | "a Seeker and a Host cannot run admin_payment_records"                                                                                     | `42501`                                        |
+| pgTAP      | "admin_payment_records with p_refundable_only lists only refundable fees, older ones included"                                             | As described                                   |
+| pgTAP      | "admin_payment_records and admin_review_queue clamp a page size of 500 to 101, and a negative offset to 0"                                 | 101 rows at most, from the first               |
 | pgTAP      | "a Seeker's own reservation reads a refunded payment as refunded"                                                                          | `refunded`                                     |
 | Vitest     | `createRefund` sends the payment intent, the metadata and the idempotency key, and throws on an error, a failed refund or a timeout        | Against a stubbed `fetch`                      |
+| Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none; `StripeApiError` carries Stripe's error `code`             | Against a stubbed `fetch`                      |
+| Vitest     | `refundPaymentAction`, given `charge_already_refunded`, finds the earlier refund and records it, and records nothing when there is none    | As described                                   |
 | Vitest     | `refundPaymentAction` calls Stripe only for a refundable payment, records only after Stripe accepts, and records nothing when Stripe fails | As described                                   |
 | Vitest     | Each action turns each hint into its message                                                                                               | As described                                   |
 | Vitest     | The form rules: the four actions, the reason's trim and limit, and the params' defaults                                                    | Pass or fail as described                      |
+| Vitest     | The hold page's ended view says the fee was refunded for an expired hold with a `refunded` payment, and for a cancelled one                | "Your ₱50.00 payment was refunded."            |
 | Playwright | `e2e/admin-console.spec.ts`: an Administrator removes a reported review, and the profile's average changes                                 | As described                                   |
 | Playwright | `e2e/admin-console.spec.ts`: an Administrator refunds the fee of a hold the Host overrode, and the Seeker's hold page says it was refunded | Through the Stripe stub                        |
 | Playwright | `e2e/admin-console.spec.ts`: a Seeker and a Host who open `/admin/moderation` or `/admin/payments` go to their own portal                  | Redirected                                     |
@@ -367,13 +403,13 @@ These rows become the story's TSK sub-issues once this doc is merged. They total
 story's **7 points and 3.5 days**: 4 points for the database and the refund, and 3 for
 the pages.
 
-| Task     | What                                                                                                                                                                                               | Owner        | Points (1–10) | Days | Depends on                       |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------- |
-| TSK-14.1 | The moderation migration: the action type, the moderation log, `moderate_review` and `admin_review_queue`, with the `review-moderation` pgTAP tests (AGENTS.md rule 5), and `db:types`             | @dreeyanzz   | 2             | 1    | This design merged, and TSK-13.1 |
-| TSK-14.2 | The refund migration: the four columns, `private.is_refundable`, `record_refund` and `admin_payment_records`, with the `refunds` pgTAP tests, `db:types`, and `createRefund` with its Vitest tests | @dreeyanzz   | 2             | 1    | This design merged               |
-| TSK-14.3 | The moderation page: its lists, actions, form rules, reads and Vitest tests                                                                                                                        | @lukedongque | 1             | 0.5  | TSK-14.1                         |
-| TSK-14.4 | The Payments page: its list, filter, Refund dialog and action, form rules, reads and Vitest tests                                                                                                  | @lukedongque | 1             | 0.5  | TSK-14.2                         |
-| TSK-14.5 | `e2e/admin-console.spec.ts`, and the refunds endpoint in the Stripe stub                                                                                                                           | @lukedongque | 1             | 0.5  | TSK-14.3, TSK-14.4               |
+| Task     | What                                                                                                                                                                                                                  | Owner        | Points (1–10) | Days | Depends on                       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------- |
+| TSK-14.1 | The moderation migration: the action type, the moderation log, `moderate_review` and `admin_review_queue`, with the `review-moderation` pgTAP tests (AGENTS.md rule 5), and `db:types`                                | @dreeyanzz   | 2             | 1    | This design merged, and TSK-13.1 |
+| TSK-14.2 | The refund migration: the four columns, `private.is_refundable`, `record_refund` and `admin_payment_records`, with the `refunds` pgTAP tests, `db:types`, and `createRefund` and `findRefund` with their Vitest tests | @dreeyanzz   | 2             | 1    | This design merged               |
+| TSK-14.3 | The moderation page: its lists, actions, form rules, reads and Vitest tests                                                                                                                                           | @lukedongque | 1             | 0.5  | TSK-14.1                         |
+| TSK-14.4 | The Payments page: its list, filter, Refund dialog and action, form rules, reads and Vitest tests, and the hold page's refunded line for an expired hold (§0)                                                         | @lukedongque | 1             | 0.5  | TSK-14.2                         |
+| TSK-14.5 | `e2e/admin-console.spec.ts`, and the refunds endpoint in the Stripe stub                                                                                                                                              | @lukedongque | 1             | 0.5  | TSK-14.3, TSK-14.4               |
 
 TSK-14.2 doesn't need STORY-13, so the refund can land first, which STORY-20's take-down
 also waits for (D-085).
