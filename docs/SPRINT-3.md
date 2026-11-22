@@ -117,7 +117,7 @@ flowchart LR
 | STORY-17 UI/UX refresh (#336)           | Maria and James                         | Nothing to start; each new feature screen, to review it         |
 | STORY-13 Reviews (#78)                  | Adrian (database), Luke (app)           | The review lifecycle flow, before its design                    |
 | STORY-14 Administration console (#79)   | Adrian (database, refund), Luke (pages) | The review lifecycle flow, and STORY-13's tables                |
-| STORY-16 History and Hold again (#335)  | Adrian (database, email), Luke (pages)  | Nothing; its "Leave a review" link waits for STORY-13's form    |
+| STORY-16 History and Hold again (#335)  | Adrian (database, email), Luke (pages)  | Email: nothing. History: STORY-13's and STORY-14's tables       |
 | STORY-20 Verification follow-ups (#338) | Adrian (status rules), Luke (pages)     | The Space verification flow's change, before its design         |
 | STORY-19 Final hardening (#337)         | Adrian, Luke                            | Nothing for the production project; the rest, the other stories |
 

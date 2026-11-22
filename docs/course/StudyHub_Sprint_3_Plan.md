@@ -26,7 +26,7 @@ the Final on Monday 7 December:
 3. **Administration**: moderating reported reviews, reading sandbox payment records, and
    issuing sandbox refunds (FR-5.2, FR-5.3).
 4. **Reservation history**: a Seeker's past visits, a "Hold again" button, and an email
-   when a hold is confirmed (D-077, D-078).
+   when a hold is confirmed (D-077, D-089).
 5. **What STORY-15 left out**: rejection reasons, resubmitting a Rejected Space, and a
    second review after a Verified Space's name or location changes (D-079).
 6. **Ready for the Final**: a production database, the concurrency test in CI, journeys
@@ -355,7 +355,7 @@ leaves a day to check the deployed build before the Final.
 | STORY-17   | Nothing; its review of the new screens waits for each of them                          | The audit and the direction start on day one                 |
 | STORY-13   | The review lifecycle flow (#339)                                                       | Reviews change state from three stories (D-044)              |
 | STORY-14   | The review lifecycle flow, and STORY-13 tasks 1–2                                      | It moderates the reviews STORY-13 stores                     |
-| STORY-16   | Nothing; its "Leave a review" link waits for STORY-13's form                           | The reservation lifecycle it reads is merged                 |
+| STORY-16   | Email: nothing. History: STORY-13's and STORY-14's tables (TSK-13.1, TSK-14.2)         | The reservation lifecycle it reads is merged                 |
 | STORY-20   | The Space verification flow's Sprint 3 change (#340)                                   | It adds moves to a merged flow                               |
 | STORY-19   | Nothing for the production project; the final checks wait for the other stories        | The Final needs the database early                           |
 

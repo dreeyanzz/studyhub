@@ -68,7 +68,7 @@ sequenceDiagram
     participant DB as Postgres
     participant E as lib/email
     participant G as Gmail SMTP
-    ST->>R: checkout.session.completed, signed
+    ST->>R: checkout.session.completed or async_payment_succeeded, signed
     R->>DB: confirm_payment (reservation, session, payment intent)
     DB-->>R: outcome
     alt confirmed (R2, the first time only)
@@ -108,7 +108,8 @@ STORY-14 store.
 - It returns the caller's own reservations that have ended (`expired`, `no_show`,
   `completed` or `cancelled`) and whose payment isn't `pending`. That is every hold they
   paid for, and never an unpaid one. Newest first, by when it was held. `p_page_size` is
-  kept between 1 and 100.
+  clamped to 1 to 101, one more than the 100 the page shows at most, so the page can tell
+  whether there are more. `p_page_offset` is clamped to 0 or more.
 - Each row has:
   - the reservation's id, status, `created_at`, `checked_in_at` and `ended_at`;
   - its Space's id and name, and `space_listed`, whether the Space is Verified now;
@@ -127,6 +128,8 @@ STORY-14 store.
 - **`lib/email/hold-confirmation.ts`:** builds the email for one reservation, and decides
   whether to send it:
   - It skips an address ending in `@example.test` (D-013): every seeded and test account.
+  - It skips a missing or empty address, which `auth.admin.getUserById` can return for a
+    deleted account, and logs why.
   - **Subject:** "Your hold at Kapihan Study Hall is confirmed".
   - **Body, plain text:** the Space, the unit, when the wait window ends in Asia/Manila
     time (STORY-09's `formatManilaTime`), and the link to the hold page,
@@ -244,8 +247,9 @@ e2e/history.spec.ts
 | pgTAP      | "a Space that isn't Verified reads as not listed"                                                                                                                                            | `space_listed` false                 |
 | pgTAP      | "a visit shows its review's status, and a refunded fee when it was refunded"                                                                                                                 | As described                         |
 | pgTAP      | "a signed-out visitor cannot run my_reservation_history"                                                                                                                                     | `42501`                              |
+| pgTAP      | "my_reservation_history clamps a page size of 500 to 101, and a negative offset to 0"                                                                                                        | 101 rows at most, from the first     |
 | Vitest     | The email is built with the Space, the unit, the Manila time and the hold page's link, and never the booking token                                                                           | As described                         |
-| Vitest     | No email for an `@example.test` address, or when `GMAIL_USER` or `GMAIL_APP_PASSWORD` is unset                                                                                               | Nothing sent, the reason logged      |
+| Vitest     | No email for an `@example.test` address or a missing one, or when `GMAIL_USER` or `GMAIL_APP_PASSWORD` is unset                                                                              | Nothing sent, the reason logged      |
 | Vitest     | The webhook schedules the email only for `confirmed`, never for `already_processed`, `late_payment` or `not_found`, and answers Stripe the same whether the email succeeds or fails          | As described                         |
 | Vitest     | A transport error is logged and not retried                                                                                                                                                  | One attempt                          |
 | Vitest     | The history page's param falls back to 20; the profile's line for a taken unit, a closed Space and a removed unit                                                                            | As described                         |
