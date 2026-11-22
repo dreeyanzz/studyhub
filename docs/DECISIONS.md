@@ -1094,6 +1094,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 ## D-076 · Reviews: what they hold, who can post one, and who sees them
 
+**Amended by D-087:** the noise rating is labelled and stored as Quietness, where 5 is very quiet.
+
 **Decision:**
 
 - A Seeker can review a reservation once it has a check-in, during the visit or any time after, with no deadline. Each reservation allows one review (D-009).
@@ -1269,6 +1271,18 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** showing only the latest change; comparing with the version just before the latest edit (two edits would hide the first); listing edits to the description, hours and price tier too (noise); checking for changes every 15 to 30 seconds (a delay, though no new tool); no notice, only D-053's refusal on click.
 
 **Revisit if:** Realtime proves unreliable on Supabase's free plan, or Administrators need photos, tags and the seat map watched too.
+
+## D-087 · FR-4.1's noise rating is shown and stored as Quietness
+
+**Amends D-076.**
+
+**Decision:** The rating FR-4.1 calls "noise" is labelled "Quietness" and stored as `reviews.quietness`, from 1 to 5, where 5 is very quiet. Wi-Fi reliability, cleanliness and comfort keep their names. So a higher number is better for all four, and the overall rating stays their average (D-076).
+
+**Why:** Adrian decided on 22 November, while planning STORY-13's design. "Noise" from 1 to 5 reads both ways, and if 5 meant noisy, a noisy Space would score higher overall.
+
+**Rejected:** keeping "Noise" with a hint that 5 means quiet (the label still invites the wrong reading); 5 meaning very noisy (it breaks the overall average).
+
+**Revisit if:** The SRS is revised, or Seekers misread the label in testing.
 
 ## D-088 · Sandbox refunds: which fees, what records them, and why
 
