@@ -104,6 +104,7 @@ flowchart LR
     F1 --> S14["STORY-14 Admin console<br/>Adrian and Luke"]
     S13 --> S14
     S13 -. review form .-> S16["STORY-16 History<br/>Adrian and Luke"]
+    S14 -. refund column .-> S16
     F2["Space verification change<br/>Adrian"] --> S20["STORY-20 Verification<br/>Adrian and Luke"]
     S13 -. new screens .-> S17["STORY-17 UI/UX<br/>Maria and James"]
     S14 -.-> S17

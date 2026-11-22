@@ -252,4 +252,4 @@ public.
 
 ## Open questions
 
-None in this flow. The confirmation email (D-078) belongs to STORY-16's design.
+None in this flow. The confirmation email (D-089) belongs to STORY-16's design.

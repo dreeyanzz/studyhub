@@ -100,7 +100,7 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 | STORY-15 Space verification (#166)              | Space verification, Host setup journey                                        |
 | STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle, review lifecycle                                       |
 | STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
-| STORY-16 History and Hold again (#335)          | Reservation lifecycle, sandbox payment confirmation                           |
+| STORY-16 History and Hold again (#335)          | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
 | STORY-20 Verification follow-ups (#338)         | Space verification, with its Sprint 3 change (#340)                           |
 
 If your story needs a shared flow that isn't listed here, ask Adrian before you write its

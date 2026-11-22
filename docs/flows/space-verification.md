@@ -160,7 +160,7 @@ already has depends on who made it leave (D-079, D-085):
   the status either. A cancelled hold's page says the Space was taken down and the fee is
   refunded. R13 and R14 record that a take-down ended the hold, so the page can say so;
   STORY-20's design names the column. Nothing is emailed: the only email is the hold
-  confirmation (D-078, D-083).
+  confirmation (D-083, D-089).
 - **Putting it back:** V9 and V10 don't bring cancelled holds back. They have ended (the
   reservation lifecycle's N11).
 
