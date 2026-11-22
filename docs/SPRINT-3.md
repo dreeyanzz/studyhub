@@ -104,6 +104,7 @@ flowchart LR
     F1 --> S14["STORY-14 Admin console<br/>Adrian and Luke"]
     S13 --> S14
     S13 -. review form .-> S16["STORY-16 History<br/>Adrian and Luke"]
+    S14 -. refund column .-> S16
     F2["Space verification change<br/>Adrian"] --> S20["STORY-20 Verification<br/>Adrian and Luke"]
     S13 -. new screens .-> S17["STORY-17 UI/UX<br/>Maria and James"]
     S14 -.-> S17
@@ -117,7 +118,7 @@ flowchart LR
 | STORY-17 UI/UX refresh (#336)           | Maria and James                         | Nothing to start; each new feature screen, to review it         |
 | STORY-13 Reviews (#78)                  | Adrian (database), Luke (app)           | The review lifecycle flow, before its design                    |
 | STORY-14 Administration console (#79)   | Adrian (database, refund), Luke (pages) | The review lifecycle flow, and STORY-13's tables                |
-| STORY-16 History and Hold again (#335)  | Adrian (database, email), Luke (pages)  | Nothing; its "Leave a review" link waits for STORY-13's form    |
+| STORY-16 History and Hold again (#335)  | Adrian (database, email), Luke (pages)  | Email: nothing. History: STORY-13's and STORY-14's tables       |
 | STORY-20 Verification follow-ups (#338) | Adrian (status rules), Luke (pages)     | The Space verification flow's change, before its design         |
 | STORY-19 Final hardening (#337)         | Adrian, Luke                            | Nothing for the production project; the rest, the other stories |
 
@@ -163,7 +164,8 @@ request.
 
 **Your backend.** Everything in `supabase/` for STORY-13, STORY-14, STORY-16 and
 STORY-20: tables, policies, database functions, pgTAP tests and seed data. Also the
-Stripe sandbox refund (STORY-14), the confirmation email through Resend (STORY-16), and
+Stripe sandbox refund (STORY-14), the confirmation email through a team Gmail account
+(STORY-16, D-089), and
 for STORY-19 the production project, `npm run db:race` in CI, #218, and the Definition
 of Done check.
 
@@ -172,7 +174,7 @@ zero rows, the owner can't make a forbidden change); the Final deployment runs o
 production project; the last merge is in by Saturday 5 December.
 
 **How to test:** `npm run db:test` and `npm run db:race`; Stripe in test mode; the email
-without calling Resend from tests (D-078).
+without sending one from tests (D-089).
 
 ### Luke: the app side of the feature stories, and the end-to-end checks
 
@@ -244,7 +246,7 @@ There are no other targets (D-075). The work runs in the order of the steps in s
 - Branches are named `feature/STORY-xx-short-desc`.
 - Invented test data only: invented names and `@example.test` emails (D-013).
 - Keys go only in your own `.env.local`: never in chat, commits or screenshots. That
-  includes the payment gateway's and Resend's keys.
+  includes the payment gateway's keys and the Gmail app password.
 - Payments stay in sandbox mode: test keys only, and no real card numbers (D-005).
 - If an AI helped, say so in the pull request's "AI assistance" section and add its
   `Co-Authored-By:` line. You own the work, and you must be able to explain every line.
