@@ -1,6 +1,6 @@
 # STORY-13: Community reviews and ratings
 
-**Status:** draft · **Owner:** @dreeyanzz (database), @lukedongque (app and screens) ·
+**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (database), @lukedongque (app and screens) ·
 **Story:** #78 · **FR:** FR-4.1, FR-4.2, SRS §3.5.2 · **Depends on:** STORY-08, STORY-09,
 STORY-10, STORY-11 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md) · **Decisions:** D-009, D-047,
