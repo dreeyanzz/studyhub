@@ -123,8 +123,10 @@ asks `findRefund` whether that payment intent already has a refund, and if it ha
 records that one. A payment refunded in Stripe never stays Paid here. After a timeout,
 Stripe may still be making the refund, so `findRefund` can find none yet. Nothing is
 recorded then, and the next click is safe within the key's 24 hours. If `findRefund`
-fails or times out too, nothing is recorded either. So the message says only that nothing
-was recorded, never that Stripe didn't refund it, because after a timeout it may have.
+fails or times out too, nothing is recorded either. Only a refusal (a 4xx answer or a
+failed refund, with none found) may say Stripe didn't accept it. After a timeout, a
+network failure or a 5xx answer, the message says only that nothing was recorded, because
+Stripe may have refunded it (§3 has the wording).
 
 ## 2. Data and state
 
@@ -297,9 +299,9 @@ nothing, as when it finds none.
      - **Remove:** Title `"Remove review?"`, body `"This cannot be undone. The review stays out of public view permanently and the Seeker cannot review that visit again."`, `"Cancel"` / destructive `"Remove permanently"`.
      - **Restore:** Title `"Restore review?"`, body `"The review returns to public view and counts in the Space's averages again."`, `"Cancel"` / `"Restore"`.
      - **Dismiss reports:** Title `"Dismiss reports?"`, body `"Open reports close and the review stays visible."`, `"Cancel"` / `"Dismiss reports"`.
-     - While pending, action buttons disable (`aria-busy="true"`). Success revalidates and announces `"Review hidden."`, `"Review removed."`, `"Review restored."`, or `"Reports dismissed."` in `aria-live="polite"`. On `stale_version`, `not_found`, or `not_allowed`, shows an inline alert (`"This review changed since you loaded the page. Refresh to see its latest state."` / `"This review was already deleted."`).
+     - While pending, action buttons disable (`aria-busy="true"`). Success revalidates and announces `"Review hidden."`, `"Review removed."`, `"Review restored."`, or `"Reports dismissed."` in `aria-live="polite"`. On `stale_version` or `not_allowed`, which both mean the review changed after the page loaded, shows an inline alert `"This review changed since you loaded the page. Refresh to see its latest state."`, and on `not_found`, `"This review was already deleted."`.
 3. **Payments (`/admin/payments`):**
-   - **Header & filter:** `h1` `"Payment Records"` and subtitle `"Inspect paid, forfeited, and refunded sandbox fees, and refund holds a Host could not honour."` Filter links (`?status=all|paid|forfeited|refunded|refundable`, default `all`, `aria-current="page"`): `"All"`, `"Paid"`, `"Forfeited"`, `"Refunded"`, `"Refundable"`.
+   - **Header & filter:** `h1` `"Payment Records"` and subtitle `"Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose hold ended without a check-in."` Filter links (`?status=all|paid|forfeited|refunded|refundable`, default `all`, `aria-current="page"`): `"All"`, `"Paid"`, `"Forfeited"`, `"Refunded"`, `"Refundable"`.
    - **Loading, empty, and error states:**
      - `app/(dashboard)/admin/payments/loading.tsx` renders row skeletons.
      - Empty state: `"No payments match this filter."`
@@ -308,12 +310,12 @@ nothing, as when it finds none.
      - Ordered newest first, 25 at a time (`?show=25|50|75|100`, default `25`). If `hasMore` and `shown < 100`, renders `"Show more"`; at 100 with `hasMore`, renders `"Showing the first 100 payments for this filter."`
      - Each row displays Space name, unit label, Seeker full name, reservation status, payment status badge in words (`Paid`, `Forfeited`, `Refunded`), formatted fee (`₱50.00`), timestamps (`paid_at`, and `refunded_at` if refunded), Stripe payment intent id (`pi_…`), and when refunded: Stripe refund id (`re_…`), `refunded_by` name, and `refund_reason` (Administrators only, D-088).
      - `"Refund"` button (48 × 48 px) renders **only** when `refundable` is `true`, and always refunds the full fee (D-088).
-   - **Refund dialog (`RefundDialog` using `@base-ui/react/dialog`):**
+   - **Refund dialog (`RefundDialog`, on `Dialog` from `components/ui/dialog.tsx`):**
      - Focus-trapped modal opened by `"Refund"`. Title `"Refund reservation fee"`, showing Space, unit, Seeker name, and `"Full refund: ₱50.00"`.
      - Required `"Reason"` textarea (`1–300` characters, trimmed, `"X / 300 characters remaining"`, inline error if blank or >300).
      - `"Confirm refund"` (disabled `"Refunding..."`, `aria-busy="true"` while pending) and `"Cancel"` (closes and returns focus to trigger).
      - On success: closes dialog, revalidates `/admin/payments`, row shows `Refunded` with reason/timestamp, and announces `"Refund recorded."` in `aria-live="polite"`.
-     - On refusal or Stripe/lookup failure: shows the exact `§1` message inline (`"Stripe didn't accept the refund, so nothing changed."`, `"Nothing was recorded. Try again."`, `"This payment is already refunded."`, or `"This payment is not eligible for a refund."`), reloading/revalidating on `already_refunded` / `not_refundable`.
+     - On a refusal or a failure, shows its message inline (§1): `"Stripe didn't accept the refund, so nothing changed."` only when Stripe answered with a 4xx or a failed refund and `findRefund` found none; `"Nothing was recorded. Try again."` after a timeout, a network failure, a 5xx answer, or `findRefund` failing too; `"This payment is already refunded."` for `already_refunded` and `"This payment is not eligible for a refund."` for `not_refundable`, reloading the list for those two.
 4. **Seeker hold & confirmation pages (`EndedView` in `reservation-status-view.tsx`):**
    - When `reservation.status === 'expired' && reservation.paymentStatus === 'refunded'` (P2 late payment refunded), `EndedView` renders title `"Your payment window ran out"` and body `"Your ₱50.00 payment was refunded."` (instead of `"nothing was charged"`), covering `/seeker/reservations/[id]`, `/seeker/reservations/[id]/confirmation`, and `/seeker`'s `CurrentHoldCard`.
 
@@ -331,7 +333,8 @@ Already-decided rules followed above: D-080, D-088, and §0.
 | `app/(dashboard)/admin/payments/loading.tsx`                                       | Server Component | Row placeholder skeletons while payment records load                                                                                       |
 | `app/(dashboard)/admin/payments/actions.ts`                                        | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, `findRefund` on failure/timeout (catching errors), `record_refund` |
 | `app/(dashboard)/admin/payments/_components/payments-list.tsx`                     | Client Component | Filter bar, payment cards, Show more, and `aria-live` feedback                                                                             |
-| `app/(dashboard)/admin/payments/_components/refund-dialog.tsx`                     | Client Component | `@base-ui/react/dialog` modal with reason field (1–300 chars), confirmation, and inline error handling                                     |
+| `app/(dashboard)/admin/payments/_components/refund-dialog.tsx`                     | Client Component | Modal on `components/ui/dialog.tsx`, with reason field (1–300 chars), confirmation, and inline error handling                              |
+| `components/ui/dialog.tsx`                                                         | New primitive    | `npx shadcn add dialog`, shared with STORY-13's report and STORY-16's review dialogs. The first task that needs it adds it                 |
 | `app/(dashboard)/admin/_components/admin-header.tsx`                               | Changed          | Renders `AdminNav` alongside the Administrator badge and Log out form                                                                      |
 | `app/(dashboard)/admin/_components/admin-nav.tsx`                                  | Client Component | Portal navigation links (`/admin`, `/admin/moderation`, `/admin/payments`) using `usePathname()` for `aria-current="page"`                 |
 | `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's `"Your ₱50.00 payment was refunded."` line for an expired hold too (§0)                                                   |
@@ -355,6 +358,7 @@ app/(dashboard)/admin/moderation/_components/moderation-queue.tsx
 app/(dashboard)/admin/payments/page.tsx, loading.tsx, actions.ts
 app/(dashboard)/admin/payments/_components/payments-list.tsx, refund-dialog.tsx
 app/(dashboard)/admin/_components/admin-header.tsx, admin-nav.tsx
+components/ui/dialog.tsx
 app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx
 lib/data/admin.ts
 lib/validation/admin.ts
@@ -414,6 +418,7 @@ the moderation ones, and the reservation lifecycle's P1 leaves its test to this 
 | Vitest     | `findRefund` returns the payment intent's succeeded or pending refund, or none, and throws on an error or a timeout                                           | Against a stubbed `fetch`                      |
 | Vitest     | `refundPaymentAction`, when Stripe refuses, fails or times out, asks `findRefund`, records an earlier refund it finds, and records nothing when there is none | As described                                   |
 | Vitest     | `refundPaymentAction` records nothing and says to try again when `findRefund` fails or times out too                                                          | As described                                   |
+| Vitest     | `refundPaymentAction` says Stripe didn't accept the refund only after a 4xx answer or a failed refund, and that nothing was recorded otherwise                | As described                                   |
 | Vitest     | `refundPaymentAction` calls Stripe only for a refundable payment, records only after Stripe accepts, and records nothing when Stripe fails                    | As described                                   |
 | Vitest     | Each action turns each hint into its message                                                                                                                  | As described                                   |
 | Vitest     | The form rules: the four actions, the reason's trim and limit, and the params' defaults                                                                       | Pass or fail as described                      |
