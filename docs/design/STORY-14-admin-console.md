@@ -278,52 +278,67 @@ nothing, as when it finds none.
 
 ### Screens
 
-**Luke writes this part, on this branch, before approving it (D-073, D-075).** Maria and
-James review the screens once they're built (D-073). It has to cover each screen, the
-order of steps, the wording, and the empty, loading and error states, for:
+1. **Portal navigation (`AdminHeader` + `AdminNav`):**
+   - `AdminHeader` (Server Component) keeps the Administrator's name, `"Administrator"` badge, and `"Log out"` form, and renders a Client Component `AdminNav` (`usePathname()`) inside `<nav aria-label="Administration portal">`.
+   - Three 48 × 48 px navigation links: `"Verification Queue"` (`/admin`), `"Moderation"` (`/admin/moderation`), and `"Payments"` (`/admin/payments`). Sets `aria-current="page"` strictly on the active route (`pathname === '/admin'`, `pathname.startsWith('/admin/moderation')`, `pathname.startsWith('/admin/payments')`).
+2. **Moderation (`/admin/moderation`):**
+   - **Header & tabs:** `h1` `"Review Moderation"` and subtitle `"Review reported content, restore hidden reviews, or remove them permanently."` Filter links (`?list=reported|hidden|removed`, default `reported`, `aria-current="page"`): `"Reported"`, `"Hidden"`, `"Removed"`.
+   - **Loading, empty, and error states:**
+     - `app/(dashboard)/admin/moderation/loading.tsx` renders card skeletons (`animate-pulse`).
+     - Empty states: `"No reported reviews"`, `"No hidden reviews"`, `"No removed reviews"`.
+     - Load error: `"We couldn't load the moderation queue. Refresh the page to try again."`
+   - **List items & order:**
+     - **Reported:** Oldest open report first. Each card displays Space name (linked to `/spaces/[spaceId]` if Verified, else plain text), reviewer full name (`profiles.full_name`), posted/edited dates in `Asia/Manila`, the four ratings + plain-text comment (`SRS §3.5.2`), open-report count badge (`"2 open reports"`), each open report's reason, optional note, reporter full name, and an `"edited after this report"` badge when `report.review_version < review.version`, plus the moderation log history (`"Moderation history"`, newest first). Actions (48 × 48 px): `"Hide"`, `"Remove"`, `"Dismiss reports"`.
+     - **Hidden:** Displays who hid it, when (`Asia/Manila`), its reports, and its moderation log history. Actions (48 × 48 px): `"Restore"`, `"Remove"`.
+     - **Removed:** Read-only (no action buttons); displays who removed it, when (`Asia/Manila`), its reports, and its moderation log history.
+     - **Pagination:** 25 items at a time (`?show=25|50|75|100`, default `25`). If `hasMore` and `shown < 100`, renders `"Show more"`; at 100 with `hasMore`, renders `"Showing the first 100 reviews in this list."`
+   - **Confirmations (`AlertDialog` from `components/ui/alert-dialog.tsx`):**
+     - **Hide:** Title `"Hide review?"`, body `"The review leaves public view and averages. You can restore it later."`, `"Cancel"` / `"Hide"`.
+     - **Remove:** Title `"Remove review?"`, body `"This cannot be undone. The review stays out of public view permanently and the Seeker cannot review that visit again."`, `"Cancel"` / destructive `"Remove permanently"`.
+     - **Restore:** Title `"Restore review?"`, body `"The review returns to public view and counts in the Space's averages again."`, `"Cancel"` / `"Restore"`.
+     - **Dismiss reports:** Title `"Dismiss reports?"`, body `"Open reports close and the review stays visible."`, `"Cancel"` / `"Dismiss reports"`.
+     - While pending, action buttons disable (`aria-busy="true"`). Success revalidates and announces `"Review hidden."`, `"Review removed."`, `"Review restored."`, or `"Reports dismissed."` in `aria-live="polite"`. On `stale_version`, `not_found`, or `not_allowed`, shows an inline alert (`"This review changed since you loaded the page. Refresh to see its latest state."` / `"This review was already deleted."`).
+3. **Payments (`/admin/payments`):**
+   - **Header & filter:** `h1` `"Payment Records"` and subtitle `"Inspect paid, forfeited, and refunded sandbox fees, and refund holds a Host could not honour."` Filter links (`?status=all|paid|forfeited|refunded|refundable`, default `all`, `aria-current="page"`): `"All"`, `"Paid"`, `"Forfeited"`, `"Refunded"`, `"Refundable"`.
+   - **Loading, empty, and error states:**
+     - `app/(dashboard)/admin/payments/loading.tsx` renders row skeletons.
+     - Empty state: `"No payments match this filter."`
+     - Load error: `"We couldn't load payment records. Refresh the page to try again."`
+   - **List items & pagination:**
+     - Ordered newest first, 25 at a time (`?show=25|50|75|100`, default `25`). If `hasMore` and `shown < 100`, renders `"Show more"`; at 100 with `hasMore`, renders `"Showing the first 100 payments for this filter."`
+     - Each row displays Space name, unit label, Seeker full name, reservation status, payment status badge in words (`Paid`, `Forfeited`, `Refunded`), formatted fee (`₱50.00`), timestamps (`paid_at`, and `refunded_at` if refunded), Stripe payment intent id (`pi_…`), and when refunded: Stripe refund id (`re_…`), `refunded_by` name, and `refund_reason` (Administrators only, D-088).
+     - `"Refund"` button (48 × 48 px) renders **only** when `refundable` is `true`, and always refunds the full fee (D-088).
+   - **Refund dialog (`RefundDialog` using `@base-ui/react/dialog`):**
+     - Focus-trapped modal opened by `"Refund"`. Title `"Refund reservation fee"`, showing Space, unit, Seeker name, and `"Full refund: ₱50.00"`.
+     - Required `"Reason"` textarea (`1–300` characters, trimmed, `"X / 300 characters remaining"`, inline error if blank or >300).
+     - `"Confirm refund"` (disabled `"Refunding..."`, `aria-busy="true"` while pending) and `"Cancel"` (closes and returns focus to trigger).
+     - On success: closes dialog, revalidates `/admin/payments`, row shows `Refunded` with reason/timestamp, and announces `"Refund recorded."` in `aria-live="polite"`.
+     - On refusal or Stripe/lookup failure: shows the exact `§1` message inline (`"Stripe didn't accept the refund, so nothing changed."`, `"Nothing was recorded. Try again."`, `"This payment is already refunded."`, or `"This payment is not eligible for a refund."`), reloading/revalidating on `already_refunded` / `not_refundable`.
+4. **Seeker hold & confirmation pages (`EndedView` in `reservation-status-view.tsx`):**
+   - When `reservation.status === 'expired' && reservation.paymentStatus === 'refunded'` (P2 late payment refunded), `EndedView` renders title `"Your payment window ran out"` and body `"Your ₱50.00 payment was refunded."` (instead of `"nothing was charged"`), covering `/seeker/reservations/[id]`, `/seeker/reservations/[id]/confirmation`, and `/seeker`'s `CurrentHoldCard`.
 
-- the moderation page on `/admin`, with its Reported, Hidden and Removed lists, each
-  review's reports, and its history from the moderation log;
-- Hide, Remove, Restore and Dismiss, each with a confirmation, Remove saying that it
-  can't be undone;
-- the Payments page on `/admin`, with its status filter, "Show more", and each payment's
-  details;
-- the Refund dialog, with its reason field and its confirmation;
-- how the three areas of `/admin` (verification, moderation, payments) are reached from
-  STORY-15's portal.
-
-These are already decided, so the screens follow them:
-
-- **Reported** lists the oldest open report first, with each review's count of open
-  reports, and each report's reason, note and reporter's full name. A report about an
-  older version says "edited after this report" (the flow's "Versions").
-- **Removed is read-only:** who removed it, when, and its reports (D-080).
-- **Payments** lists paid, forfeited and refunded payments, newest first, 25 at a time,
-  up to 100, with a filter: all, Paid, Forfeited, Refunded, or Refundable, which shows
-  only the fees that can be refunded now, however old. Refund appears only where
-  `refundable` is true, and always refunds the whole fee (D-088).
-- **A refund needs a reason,** which only Administrators see. The Seeker's hold page
-  says "Your ₱50.00 payment was refunded.", for an expired hold (P2) as well as a
-  cancelled one (§0, D-088).
+Already-decided rules followed above: D-080, D-088, and §0.
 
 ### Routes and components
 
-Luke's section confirms or changes these.
-
-| File                                                                               | Type             | Purpose                                                                                                                                  |
-| ---------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `app/(dashboard)/admin/moderation/page.tsx`                                        | Server Component | Reads `admin_review_queue` for the chosen list, and each shown review's history                                                          |
-| `app/(dashboard)/admin/moderation/actions.ts`                                      | Server Action    | `moderateReviewAction`: parses, calls `moderate_review`, maps each hint to its message, revalidates                                      |
-| `app/(dashboard)/admin/moderation/_components/…`                                   | Client Component | The lists, the review cards and the confirmations                                                                                        |
-| `app/(dashboard)/admin/payments/page.tsx`                                          | Server Component | Reads `admin_payment_records` for the chosen filter and page                                                                             |
-| `app/(dashboard)/admin/payments/actions.ts`                                        | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, `findRefund` when Stripe doesn't accept it, then `record_refund` |
-| `app/(dashboard)/admin/payments/_components/…`                                     | Client Component | The list, the filter and the Refund dialog                                                                                               |
-| `app/(dashboard)/admin/_components/admin-header.tsx`                               | Changed          | Links to verification, moderation and payments, marking the current one. Today it marks `/admin` as the current page everywhere          |
-| `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's refunded line for an expired hold too (§0)                                                                              |
-| `lib/data/admin.ts`                                                                | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                                                            |
-| `lib/validation/admin.ts`                                                          | Pure TS          | The form rules in §2                                                                                                                     |
-| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, and the helper's optional headers and its GET twin                                                         |
-| `e2e/support/stripe-stub.ts`                                                       | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                                                       |
+| File                                                                               | Type             | Purpose                                                                                                                                    |
+| ---------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/(dashboard)/admin/moderation/page.tsx`                                        | Server Component | Reads `admin_review_queue` for the chosen list, and each shown review's history                                                            |
+| `app/(dashboard)/admin/moderation/loading.tsx`                                     | Server Component | Card placeholder skeletons while the moderation queue loads                                                                                |
+| `app/(dashboard)/admin/moderation/actions.ts`                                      | Server Action    | `moderateReviewAction`: parses, calls `moderate_review`, maps each hint to its message, revalidates                                        |
+| `app/(dashboard)/admin/moderation/_components/moderation-queue.tsx`                | Client Component | List tabs, review cards, moderation history, `AlertDialog` confirmations, `aria-live` feedback, and Show more                              |
+| `app/(dashboard)/admin/payments/page.tsx`                                          | Server Component | Reads `admin_payment_records` for the chosen filter and page                                                                               |
+| `app/(dashboard)/admin/payments/loading.tsx`                                       | Server Component | Row placeholder skeletons while payment records load                                                                                       |
+| `app/(dashboard)/admin/payments/actions.ts`                                        | Server Action    | `refundPaymentAction`, in §1's order: read the payment, `createRefund`, `findRefund` on failure/timeout (catching errors), `record_refund` |
+| `app/(dashboard)/admin/payments/_components/payments-list.tsx`                     | Client Component | Filter bar, payment cards, Show more, and `aria-live` feedback                                                                             |
+| `app/(dashboard)/admin/payments/_components/refund-dialog.tsx`                     | Client Component | `@base-ui/react/dialog` modal with reason field (1–300 chars), confirmation, and inline error handling                                     |
+| `app/(dashboard)/admin/_components/admin-header.tsx`                               | Changed          | Renders `AdminNav` alongside the Administrator badge and Log out form                                                                      |
+| `app/(dashboard)/admin/_components/admin-nav.tsx`                                  | Client Component | Portal navigation links (`/admin`, `/admin/moderation`, `/admin/payments`) using `usePathname()` for `aria-current="page"`                 |
+| `app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx` | Changed          | The ended view's `"Your ₱50.00 payment was refunded."` line for an expired hold too (§0)                                                   |
+| `lib/data/admin.ts`                                                                | Server-only      | `getReviewQueue`, `getModerationHistory`, `getPaymentRecords`                                                                              |
+| `lib/validation/admin.ts`                                                          | Pure TS          | The form rules in §2                                                                                                                       |
+| `lib/payments/stripe.ts`                                                           | Changed (Adrian) | `createRefund`, `findRefund`, and the helper's optional headers and its GET twin                                                           |
+| `e2e/support/stripe-stub.ts`                                                       | Changed          | Answers `POST /v1/refunds` with a succeeded refund                                                                                         |
 
 Each new page sets its own `metadata` title. The `/admin` layout's "Space Verification"
 is the verification queue's, and would otherwise show on every page.
@@ -335,9 +350,11 @@ it again, as `/admin`'s own page does, and every function refuses them anyway.
 ### Where the files go
 
 ```
-app/(dashboard)/admin/moderation/page.tsx, actions.ts, _components/
-app/(dashboard)/admin/payments/page.tsx, actions.ts, _components/
-app/(dashboard)/admin/_components/admin-header.tsx
+app/(dashboard)/admin/moderation/page.tsx, loading.tsx, actions.ts
+app/(dashboard)/admin/moderation/_components/moderation-queue.tsx
+app/(dashboard)/admin/payments/page.tsx, loading.tsx, actions.ts
+app/(dashboard)/admin/payments/_components/payments-list.tsx, refund-dialog.tsx
+app/(dashboard)/admin/_components/admin-header.tsx, admin-nav.tsx
 app/(dashboard)/seeker/reservations/[id]/_components/reservation-status-view.tsx
 lib/data/admin.ts
 lib/validation/admin.ts
@@ -463,9 +480,7 @@ One PR per row, and every PR targets `main`.
 
 ## 8. Open questions
 
-None blocking. TSK-14.1 waits for STORY-13's tables (TSK-13.1), which #347's design
-sets. Luke's screens section may move a file or rename a component in §3, recorded on
-this branch.
+None blocking. TSK-14.1 waits for STORY-13's tables (TSK-13.1), which #347's design sets.
 
 ## 9. After the build
 
