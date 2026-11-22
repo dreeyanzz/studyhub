@@ -162,8 +162,10 @@ It is unique on `(review_id, reporter_id, review_version)` (N11), and a check ke
 ### Triggers
 
 - **`reviews`, `before update`:** when any of the four ratings or the comment changes, it
-  raises `version` by 1 and sets `edited_at` to now (RV2). A change to the status alone,
-  which only STORY-14 makes, leaves both as they were.
+  raises `version` by 1 and sets `edited_at` to now (RV2). It compares them with
+  `is distinct from`, so a comment added to a review that had none, or cleared, counts
+  as an edit. A change to the status alone, which only STORY-14 makes, leaves both as
+  they were.
 - **`review_reports`, `before insert`:** `security definer`. It sets `review_version` to
   the review's current version, so a report is always about the text that was there when
   it was filed. The insert policy then refuses a review the reporter may not report.
@@ -215,7 +217,9 @@ Each runs as `security definer` with an empty `search_path`, revokes execute fro
 - **`public.space_reviews(p_space_id uuid, p_sort text default 'newest', p_page_size integer default 10, p_page_offset integer default 0)`**,
   for `anon` and `authenticated`:
   - It returns the visible reviews of the Space, and only while the Space is Verified
-    (N10, D-055). It leaves out the caller's own reviews, which the page reads itself.
+    (N10, D-055). It leaves out the caller's own reviews, which the page reads itself,
+    with `author_id is distinct from` the caller: a plain `<>` against a signed-out
+    visitor's null `auth.uid()` would leave out every review.
   - Each row has the review's id, the reviewer's short name (never the full name, N17),
     the four ratings, its overall rating, the comment, `created_at`, whether it has been
     edited, its `version`, and whether the caller has reported that version.
@@ -368,6 +372,7 @@ a user, because STORY-14's function doesn't exist yet. The flow names most of th
 | pgTAP      | RV1: "a Seeker with a visit posts a review, and it is visible at version 1"                                                                                                           | Saved                                |
 | pgTAP      | RV1: "a Seeker reviews a visit to a Pending Space, and only they can read it"                                                                                                         | Saved, and others read 0 rows        |
 | pgTAP      | RV2: "an author edits their review: its version goes up and edited_at is set"                                                                                                         | Saved                                |
+| pgTAP      | RV2: "adding a comment to a review that had none counts as an edit"                                                                                                                   | Version 2, `edited_at` set           |
 | pgTAP      | RV3: "an author deletes their visible review and posts a new one for the same visit"                                                                                                  | Both succeed                         |
 | pgTAP      | RV9: "deleting a Space deletes its reviews and their reports"                                                                                                                         | 0 rows left                          |
 | pgTAP      | RP1: "a Seeker reports another Seeker's review"; "a user reports a review again after its author edits it"                                                                            | Saved                                |
@@ -387,6 +392,7 @@ a user, because STORY-14's function doesn't exist yet. The flow names most of th
 | pgTAP      | "the short name is the first word and the last word's initial, a one-word name as it is, and Worq Seeker for an empty name"                                                           | As described                         |
 | pgTAP      | "a report records the review's current version"                                                                                                                                       | The review's `version`               |
 | pgTAP      | "space_reviews sorts by newest, highest and lowest, pages by size and offset, and leaves out the caller's own reviews"                                                                | As described                         |
+| pgTAP      | "a signed-out visitor gets every visible review from space_reviews"                                                                                                                   | All of them                          |
 | pgTAP      | "space_reviews clamps a page size of 100 to 51, and a negative offset to 0"                                                                                                           | 51 rows at most, from the first      |
 | pgTAP      | "space_reviews refuses an unknown sort"; "space_review_summary refuses more than 100 Spaces"                                                                                          | `P0001`                              |
 | pgTAP      | "space_review_summary gives a Verified Space with no reviews a count of 0"                                                                                                            | Count 0, null averages               |
