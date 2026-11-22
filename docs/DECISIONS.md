@@ -1094,6 +1094,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 ## D-076 · Reviews: what they hold, who can post one, and who sees them
 
+**Amended by D-087:** the noise rating is labelled and stored as Quietness, where 5 is very quiet.
+
 **Decision:**
 
 - A Seeker can review a reservation once it has a check-in, during the visit or any time after, with no deadline. Each reservation allows one review (D-009).
@@ -1271,6 +1273,32 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** showing only the latest change; comparing with the version just before the latest edit (two edits would hide the first); listing edits to the description, hours and price tier too (noise); checking for changes every 15 to 30 seconds (a delay, though no new tool); no notice, only D-053's refusal on click.
 
 **Revisit if:** Realtime proves unreliable on Supabase's free plan, or Administrators need photos, tags and the seat map watched too.
+
+## D-087 · FR-4.1's noise rating is shown and stored as Quietness
+
+**Amends D-076.**
+
+**Decision:** The rating FR-4.1 calls "noise" is labelled "Quietness" and stored as `reviews.quietness`, from 1 to 5, where 5 is very quiet. Wi-Fi reliability, cleanliness and comfort keep their names. So a higher number is better for all four, and the overall rating stays their average (D-076).
+
+**Why:** Adrian decided on 22 November, while planning STORY-13's design. "Noise" from 1 to 5 reads both ways, and if 5 meant noisy, a noisy Space would score higher overall.
+
+**Rejected:** keeping "Noise" with a hint that 5 means quiet (the label still invites the wrong reading); 5 meaning very noisy (it breaks the overall average).
+
+**Revisit if:** The SRS is revised, or Seekers misread the label in testing.
+
+## D-088 · Sandbox refunds: which fees, what records them, and why
+
+**Decision:**
+
+- An Administrator can refund a fee only when it is `paid` and its hold ended without a check-in: a Host's override (R9), a take-down (R14, D-085), or a payment that arrived after its hold ended (P2). A forfeited fee, a visit that happened and an active hold's fee can't be refunded. A refund is always the whole fee, once.
+- The refund call records it. The Server Action asks Stripe, with one idempotency key per payment, so a double click or a retry refunds once. Stripe keeps a key for at least 24 hours and may drop it after that, so when Stripe refuses a refund, or the call fails or times out, the action looks for an earlier refund on that payment intent and, if there is one, records it. If that search fails too, nothing is recorded, and the Administrator tries again. When Stripe accepts the refund (succeeded or pending), the action records it through `public.record_refund`, which only Administrators may run and which checks the rule above again.
+- Each refund keeps Stripe's refund id, who made it, when, and a typed reason of up to 300 characters, which only Administrators read. The Seeker sees that the payment was refunded.
+
+**Why:** Adrian chose these on 22 November, for STORY-14's design. The rule is FR-5.3's case, a Host who can't honour a paid hold, and D-005 already forfeits a fee for the Seeker's own no-show. Recording from the call needs no change to the Stripe endpoint, and STORY-20's take-down (D-085) reuses it.
+
+**Rejected:** recording from Stripe's refund webhook (one more event on the deployed endpoint and in `stripe listen`, and a delay before the Seeker sees it); refunding forfeited fees at the Administrator's judgment; refunding any paid or forfeited fee; partial refunds; refunds without a reason.
+
+**Revisit if:** A refund Stripe accepted as pending later fails, or Seekers dispute forfeited fees.
 
 ## D-089 · The hold confirmation email goes through a team Gmail account
 
