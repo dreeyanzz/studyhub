@@ -1,6 +1,6 @@
 # STORY-19: Final hardening
 
-**Status:** draft · **Owner:** @dreeyanzz (production and the Definition of Done),
+**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (production and the Definition of Done),
 @lukedongque (accessibility, speed and the journeys) · **Story:** #337 · **FR:** FR-2.5,
 SRS §3.2.2, §3.4 · **Depends on:** every Sprint 3 story, for the final checks ·
 **Flows:** [Host setup journey](../flows/host-setup-journey.md),
