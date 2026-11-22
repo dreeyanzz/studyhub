@@ -1283,3 +1283,17 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** keeping "Noise" with a hint that 5 means quiet (the label still invites the wrong reading); 5 meaning very noisy (it breaks the overall average).
 
 **Revisit if:** The SRS is revised, or Seekers misread the label in testing.
+
+## D-088 · Sandbox refunds: which fees, what records them, and why
+
+**Decision:**
+
+- An Administrator can refund a fee only when it is `paid` and its hold ended without a check-in: a Host's override (R9), a take-down (R14, D-085), or a payment that arrived after its hold ended (P2). A forfeited fee, a visit that happened and an active hold's fee can't be refunded. A refund is always the whole fee, once.
+- The refund call records it. The Server Action asks Stripe, with one idempotency key per payment, so a double click or a retry refunds once. Stripe keeps a key for at least 24 hours and may drop it after that, so when Stripe refuses a refund, or the call fails or times out, the action looks for an earlier refund on that payment intent and, if there is one, records it. If that search fails too, nothing is recorded, and the Administrator tries again. When Stripe accepts the refund (succeeded or pending), the action records it through `public.record_refund`, which only Administrators may run and which checks the rule above again.
+- Each refund keeps Stripe's refund id, who made it, when, and a typed reason of up to 300 characters, which only Administrators read. The Seeker sees that the payment was refunded.
+
+**Why:** Adrian chose these on 22 November, for STORY-14's design. The rule is FR-5.3's case, a Host who can't honour a paid hold, and D-005 already forfeits a fee for the Seeker's own no-show. Recording from the call needs no change to the Stripe endpoint, and STORY-20's take-down (D-085) reuses it.
+
+**Rejected:** recording from Stripe's refund webhook (one more event on the deployed endpoint and in `stripe listen`, and a delay before the Seeker sees it); refunding forfeited fees at the Administrator's judgment; refunding any paid or forfeited fee; partial refunds; refunds without a reason.
+
+**Revisit if:** A refund Stripe accepted as pending later fails, or Seekers dispute forfeited fees.
