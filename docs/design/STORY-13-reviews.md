@@ -280,67 +280,68 @@ that count reviews use a Space of their own.
 
 ### Screens
 
-**Luke writes this part, on this branch, before approving it (D-073, D-075).** Maria and
-James review the screens once they're built (D-073). It has to cover each screen and the
-order of steps, the wording, and the empty, loading and error states, for:
+1. **Reviews section on `/spaces/[spaceId]` (`SpaceReviews`):**
+   - **Placement:** Below `SpaceSeatMapView`, inside a `<section aria-labelledby="reviews-heading">` with heading `"Reviews"`.
+   - **Averages summary:**
+     - When `review_count > 0`, displays overall average + count via `ReviewRating` (`"4.3 · 2 reviews"`, singular `"1 review"`, accessible label `"Overall 4.3 out of 5, from 2 reviews"`), plus the four category averages (`Quietness`, `Wi-Fi reliability`, `Cleanliness`, `Comfort`, each `X.X / 5`).
+     - **Empty state (`review_count === 0`):** Displays `"No reviews yet"` and `"Be the first to review after checking in."`
+     - **Error state:** If loading the summary or list fails, renders `"We couldn't load reviews right now. Refresh the page to try again."`
+   - **Write a review (when `my_reviewable_visit` returns a visit):**
+     - Renders a `"Write a review"` panel above the list with `ReviewForm` (`postReviewAction` for that visit, the newest unreviewed visit; older visits are reviewed from STORY-16's history).
+     - After submitting successfully, revalidates the page, moves the new review into `"Your review"`, and announces `"Review posted."` in an `aria-live="polite"` region. On refusal or validation error, displays the `§1` message inline above the form.
+   - **Seeker's own reviews (pinned above others' reviews):**
+     - Shown for signed-in Seekers under `"Your review"` (or `"Your reviews"` if more than one), in any status.
+     - Each card displays short name, `"Checked-in visit"`, posted date in `Asia/Manila` (never visit date), an `"Edited"` badge when `edited_at` is set, and `"Hidden by an Administrator"` or `"Removed by an Administrator"` when hidden/removed (D-080). Comments render as plain React text nodes (SRS §3.5.2).
+     - While `status === 'visible'`, `AuthorReviewCard` offers `"Edit"` (toggles inline `ReviewForm` prefilled with current values, `"Save changes"` / `"Cancel"`) and `"Delete"` (opens `AlertDialog` from `components/ui/alert-dialog.tsx`: `"Delete this review?"`, `"This permanently removes your review. You can post a new review for that visit later."`, `"Cancel"` / destructive `"Delete review"`). While submitting, buttons disable (`aria-busy="true"`); results announce `"Review updated."`, `"Review deleted."`, or the `§1` error in `aria-live="polite"`.
+   - **Sort, list, and `"Show more reviews"`:**
+     - Sort links (`?sort=newest`, `?sort=highest`, `?sort=lowest`, preserving `view`, `unit`, and `reviews` params): `"Newest"`, `"Highest rated"`, `"Lowest rated"`, with `aria-current="page"` on the active sort.
+     - Visible reviews from `space_reviews` show short name, `"Checked-in visit"`, posted date (`Asia/Manila`), `"Edited"` badge if edited, the four ratings + overall, and plain-text comment.
+     - Shows 10 reviews initially (`reviews=10`, stepping by 10 up to 50). If `hasMore` and `shown < 50`, renders a `"Show more reviews"` link (`?reviews=${shown + 10}`). At 50 shown when `hasMore`, replaces the button with `"Showing the first 50 reviews in this order."`
+     - **Empty state (no others' visible reviews):** `"No other reviews yet."` (omitted when `review_count === 0` already shows `"No reviews yet"`).
+2. **The review form (`components/review/review-form.tsx`):**
+   - Shared between `/spaces/[spaceId]` (`Write a review` / inline `Edit`) and STORY-16's history dialog.
+   - Four required 1–5 radio groups with visible `<legend>`s labelled `Quietness`, `Wi-Fi reliability`, `Cleanliness`, and `Comfort` (`5` is best, D-087), each radio control at least 48 × 48 px.
+   - Optional `"Comment (optional)"` textarea (`maxLength={500}`) with live counter `"X / 500 characters remaining"`.
+   - Submit button (`"Post review"` or `"Save changes"`) disables with `"Saving..."` (`aria-busy="true"`) while pending. Inline `role="alert"` displays Zod or `§1` refusal messages.
+3. **Report dialog and `"You reported this"` (`ReportReviewDialog`):**
+   - Offered on others' visible reviews for signed-in users via a `"Report"` button; if `reported_by_caller` is true, renders a `"You reported this"` badge/text instead of the button.
+   - Uses `@base-ui/react/dialog` (focus-trapped; Escape or `"Cancel"` closes and returns focus to the trigger).
+   - Title `"Report review"`, `<legend>` `"Reason"` with four 48 × 48 px radio options (`Spam`, `Offensive`, `Not about this Space`, `Other`), optional `"Note (optional)"` textarea (`maxLength={300}`, `"X / 300 characters remaining"`), `"Submit report"` (disabled `"Submitting..."` while pending), and `"Cancel"`.
+   - Errors (`§1` messages: `"You can't report this review"`, `"You have already reported this review"`, or validation errors) render inline inside the dialog; success closes the dialog, revalidates, announces `"Report submitted."` in `aria-live="polite"`, and shows `"You reported this"`.
+4. **Space card (`components/discovery/space-card.tsx`) and Map popup (`app/(public)/spaces/_components/discovery-map.tsx`):**
+   - `SpaceCard` renders `ReviewRating`: `"4.3 · 2 reviews"` (singular `"1 review"`, accessible label `"Overall 4.3 out of 5, from 2 reviews"`) when `review_count > 0`, or `"No reviews yet"` when `review_count === 0`.
+   - `buildPopupHtml(space)` in `discovery-map.tsx` renders the same rating line (`"4.3 · 2 reviews"` or `"No reviews yet"`) passed through `escapeHtml(...)` below the address/price tier inside the popup card.
 
-- the reviews section on the Space profile: the averages, the list, the sort control,
-  "Show more reviews", the Seeker's own reviews, and Write a review;
-- the review form, used on the profile and from STORY-16's history;
-- editing, and deleting with a confirmation (`alert-dialog`, STORY-12);
-- the report dialog, and the "You reported this" mark;
-- the overall average on the Space card, in the list view and on the map's card.
-
-These are already decided, so the screens follow them:
-
-- **The ratings are labelled** Quietness, Wi-Fi reliability, Cleanliness and Comfort, and
-  5 is the best for each (D-087).
-- **A reviewer shows** by their short name, with "Checked-in visit" and the date the
-  review was posted, never the date of the visit (D-076, D-081).
-- **The averages** show from the first review, always with the count, such as "4.3 · 2
-  reviews", and a Space with none says so. The overall average is the average of the four
-  (D-076).
-- **The list** reads newest first, 10 at a time, with "Show more reviews", and can be
-  sorted by newest, highest or lowest rating. It shows at most 50: when there are more,
-  a line in place of "Show more reviews" says only the first 50 in that order are shown,
-  so a reader knows the list doesn't end there. A signed-in Seeker's own reviews of the
-  Space are pinned above it in any status, with "Hidden by an Administrator" or "Removed
-  by an Administrator" where that applies, and Edit and Delete only while visible (D-080).
-- **Write a review** appears only when `my_reviewable_visit` returns a visit, and reviews
-  that visit, the newest one with no review. Older ones are reviewed from STORY-16's
-  history.
-- **Report** is offered on others' visible reviews to a signed-in user, with the four
-  reasons and an optional note. Once reported, the review shows "You reported this"
-  (D-080).
-- **Review text is text.** The comment renders as a text node, never as HTML (SRS §3.5.2).
+Already-decided rules followed above: D-076, D-080, D-081, D-087, and SRS §3.5.2 (plain-text comment nodes, never HTML).
 
 ### Routes and components
-
-Luke's section confirms or changes these.
 
 | File                                                                 | Type             | Purpose                                                                                                                                                                                  |
 | -------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `app/(public)/spaces/[spaceId]/page.tsx`                             | Server Component | Reads the summary, the list (from `reviewListSchema`), the Seeker's own reviews and their reviewable visit                                                                               |
 | `app/(public)/spaces/[spaceId]/actions.ts`                           | Server Actions   | `postReviewAction`, `editReviewAction`, `deleteReviewAction`, `reportReviewAction`, beside the hold actions                                                                              |
-| `app/(public)/spaces/[spaceId]/_components/space-reviews.tsx`        | Server Component | The reviews section: averages, list, sort, Show more, own reviews                                                                                                                        |
-| `app/(public)/spaces/[spaceId]/_components/report-review-dialog.tsx` | Client Component | The report dialog                                                                                                                                                                        |
+| `app/(public)/spaces/[spaceId]/_components/space-reviews.tsx`        | Server Component | The reviews section: averages, list, sort links, Show more, pinned own reviews                                                                                                           |
+| `app/(public)/spaces/[spaceId]/_components/author-review-card.tsx`   | Client Component | Own review card with inline edit (`ReviewForm`) toggle, `AlertDialog` delete confirmation, and `aria-live` feedback                                                                      |
+| `app/(public)/spaces/[spaceId]/_components/report-review-dialog.tsx` | Client Component | Report modal using `@base-ui/react/dialog` with four reasons, optional note, inline errors, and `aria-live` announcement                                                                 |
 | `components/review/review-form.tsx`                                  | Client Component | The four ratings and the comment, for posting and editing. It takes the action, so STORY-16 reuses it                                                                                    |
 | `components/review/review-rating.tsx`                                | Shared, no state | A rating's number and its accessible label, shared by the profile and the Space card                                                                                                     |
-| `components/discovery/space-card.tsx`                                | Changed          | Shows the overall average and the count, or that there are no reviews yet                                                                                                                |
+| `components/discovery/space-card.tsx`                                | Changed          | Shows the overall average and the count, or `"No reviews yet"`                                                                                                                           |
+| `app/(public)/spaces/_components/discovery-map.tsx`                  | Changed          | `buildPopupHtml` renders the overall average and count (or `"No reviews yet"`) through `escapeHtml`                                                                                      |
 | `lib/data/spaces.ts`                                                 | Changed          | `searchVerifiedSpaces` adds `review_count` and `avg_overall` from `getReviewSummaries`                                                                                                   |
 | `lib/data/reviews.ts`                                                | Server-only      | `getReviewSummaries` (`space_review_summary` in batches of 100 ids), `getSpaceReviews` (one more than the page shows, to know if there are more), `getMyReviews`, `getMyReviewableVisit` |
 | `lib/validation/review.ts`                                           | Pure TS          | The form rules in §2                                                                                                                                                                     |
 
 **Each action** parses its input, writes with the signed-in client, turns each refusal
 into the message §1 shows, and revalidates `/spaces/[spaceId]` and, for posting, editing
-and deleting, `/spaces`. STORY-16's history imports `postReviewAction` from here, so one
-action holds the rules.
+and deleting, `/spaces`. STORY-16's history imports `postReviewAction` and
+`editReviewAction` from here, so one file holds the rules.
 
 ### Where the files go
 
 ```
 app/(public)/spaces/[spaceId]/page.tsx, actions.ts
-app/(public)/spaces/[spaceId]/_components/space-reviews.tsx, report-review-dialog.tsx
+app/(public)/spaces/[spaceId]/_components/space-reviews.tsx, author-review-card.tsx, report-review-dialog.tsx
+app/(public)/spaces/_components/discovery-map.tsx, discovery-map.test.ts
 components/review/review-form.tsx, review-rating.tsx
 components/discovery/space-card.tsx
 lib/data/reviews.ts, spaces.ts
