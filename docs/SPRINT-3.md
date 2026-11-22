@@ -165,9 +165,8 @@ request.
 **Your backend.** Everything in `supabase/` for STORY-13, STORY-14, STORY-16 and
 STORY-20: tables, policies, database functions, pgTAP tests and seed data. Also the
 Stripe sandbox refund (STORY-14), the confirmation email through a team Gmail account
-(STORY-16, D-089), and
-for STORY-19 the production project, `npm run db:race` in CI, #218, and the Definition
-of Done check.
+(STORY-16, D-089), and for STORY-19 the production project, #218 and the Definition of
+Done check. `npm run db:race` already runs in CI (#262).
 
 **Done when:** each story's database half passes its pgTAP negatives (the wrong user gets
 zero rows, the owner can't make a forbidden change); the Final deployment runs on the
