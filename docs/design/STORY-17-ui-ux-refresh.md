@@ -1,6 +1,6 @@
 # STORY-17: UI/UX refresh
 
-**Status:** draft · **Owner:** @fayeye-09, @JamesNino-Mandawe · **Story:** #336 · **FR:** SRS §3.2.1, §3.2.2, §3.4, §3.7.1 ·
+**Status:** approved 2026-11-23 · **Owner:** @fayeye-09, @JamesNino-Mandawe · **Story:** #336 · **FR:** SRS §3.2.1, §3.2.2, §3.4, §3.7.1 ·
 **Depends on:** none to start (post-build review waits for STORY-13, STORY-14, STORY-16, STORY-20) · **Flows:** none (UI/UX only; D-074) · **Decisions:** D-031, D-033, D-042, D-073, D-074, D-075
 
 ## 0. Scope
