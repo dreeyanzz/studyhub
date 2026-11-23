@@ -1,6 +1,9 @@
 # STORY-13: Community reviews and ratings
 
-**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (database), @lukedongque (app and screens) ·
+> **Adrian builds this story end to end (D-094).** On 23 November its owners changed:
+> every task below is Adrian's, so where this doc says Luke builds a part, read Adrian.
+
+**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz, end to end (D-094) ·
 **Story:** #78 · **FR:** FR-4.1, FR-4.2, SRS §3.5.2 · **Depends on:** STORY-08, STORY-09,
 STORY-10, STORY-11 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md) · **Decisions:** D-009, D-047,
@@ -421,15 +424,15 @@ rows.
 These rows become the story's TSK sub-issues once this doc is merged. They total the
 story's **8 points and 4 days**: 4 points for the database, and 4 for the app.
 
-| Task     | What                                                                                                                                                                                                                               | Owner        | Points (1–10) | Days | Depends on         |
-| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | ------------------ |
-| TSK-13.1 | The migration: the three types, `reviews` and `review_reports` with their policies, grants and triggers, the two private helpers and the three read functions. The pgTAP tests in §4 ride along (AGENTS.md rule 5), and `db:types` | @dreeyanzz   | 3             | 1.5  | This design merged |
-| TSK-13.2 | Seed data: two finished visits with reviews and a report (§2), checked against `npm run db:test`, `npm run db:race` and the Playwright suite                                                                                       | @dreeyanzz   | 1             | 0.5  | TSK-13.1           |
-| TSK-13.3 | `lib/validation/review.ts` and `lib/data/reviews.ts`, with their Vitest tests                                                                                                                                                      | @lukedongque | 1             | 0.5  | TSK-13.1           |
-| TSK-13.4 | The reviews section on the profile, the review form component, the post, edit and delete actions, and the Space card's rating, with their Vitest tests                                                                             | @lukedongque | 2             | 1    | TSK-13.3           |
-| TSK-13.5 | The report dialog, its action and "You reported this", the text-not-HTML test, and `e2e/reviews.spec.ts`                                                                                                                           | @lukedongque | 1             | 0.5  | TSK-13.4           |
+| Task     | What                                                                                                                                                                                                                               | Owner      | Points (1–10) | Days | Depends on         |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------- | ---- | ------------------ |
+| TSK-13.1 | The migration: the three types, `reviews` and `review_reports` with their policies, grants and triggers, the two private helpers and the three read functions. The pgTAP tests in §4 ride along (AGENTS.md rule 5), and `db:types` | @dreeyanzz | 3             | 1.5  | This design merged |
+| TSK-13.2 | Seed data: two finished visits with reviews and a report (§2), checked against `npm run db:test`, `npm run db:race` and the Playwright suite                                                                                       | @dreeyanzz | 1             | 0.5  | TSK-13.1           |
+| TSK-13.3 | `lib/validation/review.ts` and `lib/data/reviews.ts`, with their Vitest tests                                                                                                                                                      | @dreeyanzz | 1             | 0.5  | TSK-13.1           |
+| TSK-13.4 | The reviews section on the profile, the review form component, the post, edit and delete actions, and the Space card's rating, with their Vitest tests                                                                             | @dreeyanzz | 2             | 1    | TSK-13.3           |
+| TSK-13.5 | The report dialog, its action and "You reported this", the text-not-HTML test, and `e2e/reviews.spec.ts`                                                                                                                           | @dreeyanzz | 1             | 0.5  | TSK-13.4           |
 
-Luke can build TSK-13.3 and TSK-13.4 against sample data while TSK-13.1 is in review, as
+TSK-13.3 and TSK-13.4 can be built against sample data while TSK-13.1 is in review, as
 the Sprint 3 brief suggests. They merge after it, because they use its `db:types`.
 
 ## 6. Build order
@@ -440,10 +443,10 @@ One PR per row, and every PR targets `main`.
 | --- | --------------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
 | 1   | `feature/STORY-13-design`         | `docs(STORY-13): design community reviews and ratings`       | This doc, the index, D-087, the glossary |
 | 2   | `feature/STORY-13-reviews-db`     | `feat(STORY-13): add the reviews and review reports tables`  | TSK-13.1 (Adrian)                        |
-| 3   | `feature/STORY-13-review-rules`   | `feat(STORY-13): add the review form rules and data reads`   | TSK-13.3 (Luke)                          |
+| 3   | `feature/STORY-13-review-rules`   | `feat(STORY-13): add the review form rules and data reads`   | TSK-13.3 (Adrian)                        |
 | 4   | `feature/STORY-13-review-seed`    | `feat(STORY-13): seed demo visits and reviews`               | TSK-13.2 (Adrian)                        |
-| 5   | `feature/STORY-13-review-profile` | `feat(STORY-13): show and post reviews on the space profile` | TSK-13.4 (Luke)                          |
-| 6   | `feature/STORY-13-review-reports` | `feat(STORY-13): report a review`                            | TSK-13.5 (Luke)                          |
+| 5   | `feature/STORY-13-review-profile` | `feat(STORY-13): show and post reviews on the space profile` | TSK-13.4 (Adrian)                        |
+| 6   | `feature/STORY-13-review-reports` | `feat(STORY-13): report a review`                            | TSK-13.5 (Adrian)                        |
 
 ## 7. Rejected alternatives
 

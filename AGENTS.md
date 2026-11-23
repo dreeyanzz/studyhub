@@ -265,7 +265,7 @@ Stop only at the 🛑 points.
 
 - the story or its design is unclear;
 - the work needs another story's files, a table or policy that doesn't exist yet
-  (Adrian writes those, except that Luke writes STORY-08's and STORY-10's, D-066), or a
+  (Adrian writes those, except that Luke writes STORY-08's, STORY-10's and STORY-16's, D-066, D-094), or a
   change to a decision;
 - the story needs a shared flow that has no doc in `docs/flows/` yet (D-044);
 - the approved design, or a merged flow, turns out to be wrong;
