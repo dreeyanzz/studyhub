@@ -64,7 +64,13 @@ export default function AuthLayout({ children }: LayoutProps<'/'>) {
             </svg>
             Worq
           </Link>
-          <Link href="/spaces" className={buttonVariants({ variant: 'ghost' })}>
+          <Link
+            href="/spaces"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'rounded-full border-border bg-card/80 px-5 text-sm font-medium',
+            )}
+          >
             Find a Space
           </Link>
         </div>

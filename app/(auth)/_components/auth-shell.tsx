@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { MapPin } from 'lucide-react'
+
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 /**
  * Split white-and-photo card shell for /login and /register (STORY-17).
@@ -23,9 +27,17 @@ export function AuthShell({
     >
       <div className="grid gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
         <div className="flex flex-col justify-center px-4 py-6 sm:px-8 sm:py-8">
-          <p className="mb-2 text-center font-heading text-sm font-semibold tracking-wide text-primary">
-            Worq
-          </p>
+          <div className="mb-1 flex justify-center">
+            <Link
+              href="/"
+              className={cn(
+                buttonVariants({ variant: 'ghost' }),
+                'rounded-full px-4 font-heading text-base font-semibold text-primary',
+              )}
+            >
+              Worq
+            </Link>
+          </div>
           <div className="mb-6 space-y-1.5 text-center">
             <h1
               id="auth-title"
