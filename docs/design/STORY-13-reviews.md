@@ -159,8 +159,11 @@ stored (D-076).
 | `closed_at`      | `timestamptz`           | Null while open                                                                  |
 | `created_at`     | `timestamptz`           | Not null, default `now()`                                                        |
 
-It is unique on `(review_id, reporter_id, review_version)` (N11), and a check keeps
-`outcome`, `closed_by` and `closed_at` set together or not at all.
+It is unique on `(review_id, reporter_id, review_version)` (N11). A check keeps an open
+report with none of `outcome`, `closed_by` and `closed_at`, and a closed one with
+`outcome` and `closed_at`. `closed_by` is set on closing too, but can be null afterwards,
+if that Administrator's account is deleted, as `payments.refunded_by` can (STORY-14 §2):
+a check that required it would make `on delete set null` fail, and the account with it.
 
 ### Triggers
 

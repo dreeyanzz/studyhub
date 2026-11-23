@@ -211,6 +211,150 @@ export type Database = {
           },
         ]
       }
+      review_reports: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          id: string
+          note: string | null
+          outcome: Database["public"]["Enums"]["review_report_outcome"] | null
+          reason: Database["public"]["Enums"]["review_report_reason"]
+          reporter_id: string
+          review_id: string
+          review_version: number
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          outcome?: Database["public"]["Enums"]["review_report_outcome"] | null
+          reason: Database["public"]["Enums"]["review_report_reason"]
+          reporter_id?: string
+          review_id: string
+          review_version: number
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          outcome?: Database["public"]["Enums"]["review_report_outcome"] | null
+          reason?: Database["public"]["Enums"]["review_report_reason"]
+          reporter_id?: string
+          review_id?: string
+          review_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_reports_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_reports_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          author_id: string
+          cleanliness: number
+          comfort: number
+          comment: string | null
+          created_at: string
+          edited_at: string | null
+          id: string
+          quietness: number
+          reservation_id: string
+          space_id: string
+          status: Database["public"]["Enums"]["review_status"]
+          status_changed_at: string | null
+          status_changed_by: string | null
+          version: number
+          wifi_reliability: number
+        }
+        Insert: {
+          author_id?: string
+          cleanliness: number
+          comfort: number
+          comment?: string | null
+          created_at?: string
+          edited_at?: string | null
+          id?: string
+          quietness: number
+          reservation_id: string
+          space_id: string
+          status?: Database["public"]["Enums"]["review_status"]
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          version?: number
+          wifi_reliability: number
+        }
+        Update: {
+          author_id?: string
+          cleanliness?: number
+          comfort?: number
+          comment?: string | null
+          created_at?: string
+          edited_at?: string | null
+          id?: string
+          quietness?: number
+          reservation_id?: string
+          space_id?: string
+          status?: Database["public"]["Enums"]["review_status"]
+          status_changed_at?: string | null
+          status_changed_by?: string | null
+          version?: number
+          wifi_reliability?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reservation_id_fkey"
+            columns: ["reservation_id"]
+            isOneToOne: true
+            referencedRelation: "reservations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_status_changed_by_fkey"
+            columns: ["status_changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       space_curated_tags: {
         Row: {
           created_at: string
@@ -504,6 +648,13 @@ export type Database = {
           zone_name: string
         }[]
       }
+      my_reviewable_visit: {
+        Args: { p_space_id: string }
+        Returns: {
+          checked_in_at: string
+          reservation_id: string
+        }[]
+      }
       reorder_zones: {
         Args: { p_space_id: string; p_zone_ids: string[] }
         Returns: undefined
@@ -524,6 +675,40 @@ export type Database = {
           p_unit_id: string
         }
         Returns: undefined
+      }
+      space_review_summary: {
+        Args: { p_space_ids: string[] }
+        Returns: {
+          avg_cleanliness: number
+          avg_comfort: number
+          avg_overall: number
+          avg_quietness: number
+          avg_wifi_reliability: number
+          review_count: number
+          space_id: string
+        }[]
+      }
+      space_reviews: {
+        Args: {
+          p_page_offset?: number
+          p_page_size?: number
+          p_sort?: string
+          p_space_id: string
+        }
+        Returns: {
+          cleanliness: number
+          comfort: number
+          comment: string
+          created_at: string
+          edited: boolean
+          id: string
+          overall: number
+          quietness: number
+          reported_by_caller: boolean
+          reviewer_name: string
+          version: number
+          wifi_reliability: number
+        }[]
       }
       unit_states: {
         Args: { p_space_id: string }
@@ -547,6 +732,9 @@ export type Database = {
         | "no_show"
         | "completed"
         | "cancelled"
+      review_report_outcome: "dismissed" | "hidden" | "removed"
+      review_report_reason: "spam" | "offensive" | "not_about_space" | "other"
+      review_status: "visible" | "hidden" | "removed"
       space_status: "pending" | "verified" | "rejected"
       unit_type: "seat" | "standing_desk" | "room"
       user_role: "seeker" | "host" | "admin"
@@ -691,6 +879,9 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      review_report_outcome: ["dismissed", "hidden", "removed"],
+      review_report_reason: ["spam", "offensive", "not_about_space", "other"],
+      review_status: ["visible", "hidden", "removed"],
       space_status: ["pending", "verified", "rejected"],
       unit_type: ["seat", "standing_desk", "room"],
       user_role: ["seeker", "host", "admin"],
