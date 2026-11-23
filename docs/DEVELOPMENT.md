@@ -138,7 +138,7 @@ locally with the steps above (STORY-19's design).
 ## Changing the database
 
 Adrian, the database owner, does this for every change, except that Luke does steps 1 to 5
-for STORY-08 and STORY-10 (D-066). Step 6 is always Adrian's.
+for STORY-08, STORY-10 and STORY-16 (D-066, D-094). Step 6 is always Adrian's.
 
 Work on the local stack. To try a change in the app, put the stack's URL and publishable
 key in a gitignored `.env.development.local` (`npx supabase status` prints them), because
@@ -229,5 +229,5 @@ example, expiry checked in the query itself, with Supabase `pg_cron` for clean-u
 | The automated test suite (STORY-06)       | Luke   |
 | Portal shells, QA                         | James  |
 
-Luke writes STORY-08's and STORY-10's migrations, which Adrian reviews and pushes (D-066).
+Luke writes STORY-08's, STORY-10's and STORY-16's migrations, which Adrian reviews and pushes (D-066, D-094).
 Stories after Sprint 1 are assigned at sprint planning.

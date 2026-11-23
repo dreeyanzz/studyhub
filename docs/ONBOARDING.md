@@ -34,7 +34,7 @@ do something. The teammate answers questions and clicks things in a browser.
    `&&` one at a time. PowerShell versions are given where a command itself differs.
 2. **Do you write migrations, or only use the cloud dev project?** Whoever writes
    migrations runs the local database in Docker too: Adrian, the database owner, and Luke
-   for STORY-08 and STORY-10 (D-066). Everyone else is a cloud-dev user.
+   for STORY-08, STORY-10 and STORY-16 (D-066, D-094). Everyone else is a cloud-dev user.
 3. **Which email does git commit with, and is it verified on your GitHub account?** Commits
    with an unverified email do not show as yours. That matters for the code authorship
    check in the Final phase.

@@ -1,7 +1,9 @@
 # STORY-14: Administration console
 
-**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (database and refund), @lukedongque (pages and
-screens) · **Story:** #79 · **FR:** FR-5.2, FR-5.3 · **Depends on:** STORY-09, STORY-10,
+> **Adrian builds this story end to end (D-094).** On 23 November its owners changed:
+> every task below is Adrian's, so where this doc says Luke builds a part, read Adrian.
+
+**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz, end to end (D-094) · **Story:** #79 · **FR:** FR-5.2, FR-5.3 · **Depends on:** STORY-09, STORY-10,
 STORY-12, STORY-13, STORY-15 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
 [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md) ·
@@ -438,13 +440,13 @@ These rows become the story's TSK sub-issues once this doc is merged. They total
 story's **7 points and 3.5 days**: 4 points for the database and the refund, and 3 for
 the pages.
 
-| Task     | What                                                                                                                                                                                                                  | Owner        | Points (1–10) | Days | Depends on                       |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------- |
-| TSK-14.1 | The moderation migration: the action type, the moderation log, `moderate_review` and `admin_review_queue`, with the `review-moderation` pgTAP tests (AGENTS.md rule 5), and `db:types`                                | @dreeyanzz   | 2             | 1    | This design merged, and TSK-13.1 |
-| TSK-14.2 | The refund migration: the four columns, `private.is_refundable`, `record_refund` and `admin_payment_records`, with the `refunds` pgTAP tests, `db:types`, and `createRefund` and `findRefund` with their Vitest tests | @dreeyanzz   | 2             | 1    | This design merged               |
-| TSK-14.3 | The moderation page: its lists, actions, form rules, reads and Vitest tests                                                                                                                                           | @lukedongque | 1             | 0.5  | TSK-14.1                         |
-| TSK-14.4 | The Payments page: its list, filter, Refund dialog and action, form rules, reads and Vitest tests, and the hold page's refunded line for an expired hold (§0)                                                         | @lukedongque | 1             | 0.5  | TSK-14.2                         |
-| TSK-14.5 | `e2e/admin-console.spec.ts`, and the refunds endpoint in the Stripe stub                                                                                                                                              | @lukedongque | 1             | 0.5  | TSK-14.3, TSK-14.4               |
+| Task     | What                                                                                                                                                                                                                  | Owner      | Points (1–10) | Days | Depends on                       |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------- | ---- | -------------------------------- |
+| TSK-14.1 | The moderation migration: the action type, the moderation log, `moderate_review` and `admin_review_queue`, with the `review-moderation` pgTAP tests (AGENTS.md rule 5), and `db:types`                                | @dreeyanzz | 2             | 1    | This design merged, and TSK-13.1 |
+| TSK-14.2 | The refund migration: the four columns, `private.is_refundable`, `record_refund` and `admin_payment_records`, with the `refunds` pgTAP tests, `db:types`, and `createRefund` and `findRefund` with their Vitest tests | @dreeyanzz | 2             | 1    | This design merged               |
+| TSK-14.3 | The moderation page: its lists, actions, form rules, reads and Vitest tests                                                                                                                                           | @dreeyanzz | 1             | 0.5  | TSK-14.1                         |
+| TSK-14.4 | The Payments page: its list, filter, Refund dialog and action, form rules, reads and Vitest tests, and the hold page's refunded line for an expired hold (§0)                                                         | @dreeyanzz | 1             | 0.5  | TSK-14.2                         |
+| TSK-14.5 | `e2e/admin-console.spec.ts`, and the refunds endpoint in the Stripe stub                                                                                                                                              | @dreeyanzz | 1             | 0.5  | TSK-14.3, TSK-14.4               |
 
 TSK-14.2 doesn't need STORY-13, so the refund can land first, which STORY-20's take-down
 also waits for (D-085).
@@ -458,9 +460,9 @@ One PR per row, and every PR targets `main`.
 | 1   | `feature/STORY-14-design`          | `docs(STORY-14): design the administration console`             | This doc, the index, D-088, the glossary |
 | 2   | `feature/STORY-14-refunds-db`      | `feat(STORY-14): record sandbox refunds and read payments`      | TSK-14.2 (Adrian)                        |
 | 3   | `feature/STORY-14-moderation-db`   | `feat(STORY-14): moderate reviews and keep a moderation log`    | TSK-14.1 (Adrian), after TSK-13.1        |
-| 4   | `feature/STORY-14-payments-page`   | `feat(STORY-14): list payments and refund a fee on /admin`      | TSK-14.4 (Luke)                          |
-| 5   | `feature/STORY-14-moderation-page` | `feat(STORY-14): moderate reported reviews on /admin`           | TSK-14.3 (Luke)                          |
-| 6   | `feature/STORY-14-admin-e2e`       | `test(STORY-14): walk the administration console in Playwright` | TSK-14.5 (Luke)                          |
+| 4   | `feature/STORY-14-payments-page`   | `feat(STORY-14): list payments and refund a fee on /admin`      | TSK-14.4 (Adrian)                        |
+| 5   | `feature/STORY-14-moderation-page` | `feat(STORY-14): moderate reported reviews on /admin`           | TSK-14.3 (Adrian)                        |
+| 6   | `feature/STORY-14-admin-e2e`       | `test(STORY-14): walk the administration console in Playwright` | TSK-14.5 (Adrian)                        |
 
 ## 7. Rejected alternatives
 

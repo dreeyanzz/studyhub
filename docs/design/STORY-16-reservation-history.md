@@ -1,7 +1,10 @@
 # STORY-16: Reservation history, Hold again and the confirmation email
 
-**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz (database and email), @lukedongque (pages and
-screens) · **Story:** #335 · **FR:** none (a Sprint 3 addition, D-075) · **Depends on:**
+> **Luke builds this story end to end, the email included (D-094).** On 23 November its
+> owners changed: every task below is Luke's, so where this doc says Adrian builds a part,
+> read Luke. Adrian still reviews and merges its migration and pushes it (D-066).
+
+**Status:** approved 2026-11-22 · **Owner:** @lukedongque, end to end (D-094) · **Story:** #335 · **FR:** none (a Sprint 3 addition, D-075) · **Depends on:**
 STORY-09, STORY-10, STORY-11, STORY-13, STORY-14 · **Flows:**
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
 [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md),
@@ -288,29 +291,29 @@ pages.
 
 | Task     | What                                                                                                                                                                 | Owner        | Points (1–10) | Days | Depends on                             |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- | ---- | -------------------------------------- |
-| TSK-16.1 | `my_reservation_history`, with its pgTAP tests (AGENTS.md rule 5), and `db:types`                                                                                    | @dreeyanzz   | 1             | 0.5  | This design merged, TSK-13.1, TSK-14.2 |
-| TSK-16.2 | The email: `lib/email/`, `nodemailer`, the webhook's `after()`, the skip rules and their Vitest tests, and `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `DEVELOPMENT.md` | @dreeyanzz   | 2             | 1    | This design merged                     |
+| TSK-16.1 | `my_reservation_history`, with its pgTAP tests (AGENTS.md rule 5), and `db:types`                                                                                    | @lukedongque | 1             | 0.5  | This design merged, TSK-13.1, TSK-14.2 |
+| TSK-16.2 | The email: `lib/email/`, `nodemailer`, the webhook's `after()`, the skip rules and their Vitest tests, and `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `DEVELOPMENT.md` | @lukedongque | 2             | 1    | This design merged                     |
 | TSK-16.3 | The history page, its reads and form rule, and the portal's link, with Vitest tests                                                                                  | @lukedongque | 1             | 0.5  | TSK-16.1                               |
 | TSK-16.4 | Hold again, the profile's line saying why, and the review dialog                                                                                                     | @lukedongque | 1             | 0.5  | TSK-16.3, TSK-13.4                     |
 | TSK-16.5 | `e2e/history.spec.ts`                                                                                                                                                | @lukedongque | 1             | 0.5  | TSK-16.4                               |
 
 TSK-16.1 needs STORY-13's `reviews` table for each visit's review state (TSK-13.1), and
 STORY-14's `payments.refunded_at` for when a fee was refunded (TSK-14.2). TSK-16.2 needs
-nothing else, so the email can land first. Luke can build the history page against
+nothing else, so the email can land first. The history page can be built against
 sample data before TSK-16.1 merges.
 
 ## 6. Build order
 
 One PR per row, and every PR targets `main`.
 
-| #   | Branch                          | PR title                                                      | Contains                                       |
-| --- | ------------------------------- | ------------------------------------------------------------- | ---------------------------------------------- |
-| 1   | `feature/STORY-16-design`       | `docs(STORY-16): design reservation history and the email`    | This doc, the index, D-089, stale docs         |
-| 2   | `feature/STORY-16-email`        | `feat(STORY-16): email the seeker when a hold is confirmed`   | TSK-16.2 (Adrian)                              |
-| 3   | `feature/STORY-16-history-db`   | `feat(STORY-16): read a seeker's reservation history`         | TSK-16.1 (Adrian), after TSK-13.1 and TSK-14.2 |
-| 4   | `feature/STORY-16-history-page` | `feat(STORY-16): list past reservations on the seeker portal` | TSK-16.3 (Luke)                                |
-| 5   | `feature/STORY-16-hold-again`   | `feat(STORY-16): hold again and review from the history`      | TSK-16.4 (Luke), after TSK-13.4                |
-| 6   | `feature/STORY-16-history-e2e`  | `test(STORY-16): walk the reservation history in Playwright`  | TSK-16.5 (Luke)                                |
+| #   | Branch                          | PR title                                                      | Contains                                     |
+| --- | ------------------------------- | ------------------------------------------------------------- | -------------------------------------------- |
+| 1   | `feature/STORY-16-design`       | `docs(STORY-16): design reservation history and the email`    | This doc, the index, D-089, stale docs       |
+| 2   | `feature/STORY-16-email`        | `feat(STORY-16): email the seeker when a hold is confirmed`   | TSK-16.2 (Luke)                              |
+| 3   | `feature/STORY-16-history-db`   | `feat(STORY-16): read a seeker's reservation history`         | TSK-16.1 (Luke), after TSK-13.1 and TSK-14.2 |
+| 4   | `feature/STORY-16-history-page` | `feat(STORY-16): list past reservations on the seeker portal` | TSK-16.3 (Luke)                              |
+| 5   | `feature/STORY-16-hold-again`   | `feat(STORY-16): hold again and review from the history`      | TSK-16.4 (Luke), after TSK-13.4              |
+| 6   | `feature/STORY-16-history-e2e`  | `test(STORY-16): walk the reservation history in Playwright`  | TSK-16.5 (Luke)                              |
 
 ## 7. Rejected alternatives
 
