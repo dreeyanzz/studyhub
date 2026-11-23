@@ -1,5 +1,10 @@
 # STORY-02: Accessible design system and public shell
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** original shell implemented 2026-09-28; option A follow-up approved 2026-09-28 (#117) and implemented 2026-10-04 (#161) · **Owner:** @fayeye-09 · **Story:** [#51](https://github.com/dreeyanzz/studyhub/issues/51)
 **FR:** SRS §3.2.2, §3.7.1 · **Depends on:** none · **Decisions:** D-002, D-005, D-010, D-016, D-018, D-026, D-031, D-033
 
@@ -181,3 +186,10 @@ Built in two PRs, in the §6 order: #102 (tokens and primitives) and the public 
 ### TSK-02.3 implementation — 2026-10-02 (#161)
 
 Option A is implemented in #161. It reuses the original layout/header/footer and adds the static photo composition, explanatory panel and four noninteractive examples. Photography is local and attributed above. The old client-side filtering prototype was not ported. See the [verification evidence](evidence/TSK-02.3/verification.md). The original shell history above remains unchanged.
+
+### After Sprint 2
+
+Discovery and holds shipped in Sprint 2, but the landing page still said they were coming ("Space discovery arrives in Sprint 2; holds follow in Sprint 3", and "Coming in Sprint 2/3" on each How it works card), and no public page linked to `/spaces`. The Antigravity E2E pass of 16 Nov found it. Now:
+
+- The header, the hero and the footer each have a "Find a Space" link to `/spaces`. In the hero it is the main button, before "Get started".
+- The hero's caption is the sandbox note the footer already makes (D-005), and the How it works cards describe what Worq does today, without a sprint line.

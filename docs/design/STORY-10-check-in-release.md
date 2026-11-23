@@ -1,9 +1,14 @@
 # STORY-10: Booking token, QR check-in and unit release
 
-**Status:** approved 2026-11-13 · **Owner:** @lukedongque · **Story:** #59 · **FR:** FR-2.3, FR-2.4, FR-3.3 ·
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
+**Status:** implemented 2026-11-15 · **Owner:** @lukedongque · **Story:** #59 · **FR:** FR-2.3, FR-2.4, FR-3.3 ·
 **Depends on:** STORY-01, STORY-03, STORY-05, STORY-07, STORY-09, STORY-12 ·
 **Flows:** [Check-in](../flows/check-in.md) (approved), [Reservation lifecycle](../flows/reservation-lifecycle.md) (approved), [Seeker journey](../flows/seeker-journey.md) (approved) ·
-**Decisions:** D-002, D-004, D-008, D-009, D-010, D-011, D-027, D-031, D-042, D-044, D-046 to D-052, D-057, D-059, D-060, D-066, D-067, D-068
+**Decisions:** D-002, D-004, D-008, D-009, D-010, D-011, D-027, D-031, D-042, D-044, D-046 to D-052, D-057, D-059, D-060, D-066, D-067, D-068, D-071
 
 ---
 
@@ -545,14 +550,76 @@ One pull request per row, and every pull request targets `main`.
 - **#199 (`decision-needed`): Network latency grace period after `wait_window_ends_at`:**
   - _Question:_ Should `public.check_in` allow a small grace period (e.g. 30 to 60 seconds) past `reservations.wait_window_ends_at` to tolerate network latency or cellular delays at the door, or should `clock_timestamp()` strictly enforce the exact deadline?
   - _Current baseline:_ In accordance with the approved [Check-in flow](../flows/check-in.md) and [Reservation lifecycle](../flows/reservation-lifecycle.md) (N10), `clock_timestamp()` strictly enforces the deadline with zero grace period. If Adrian settles #199 in favor of a grace period, `record_lapses` and `check_in` can evaluate `clock_timestamp() <= wait_window_ends_at + interval '60 seconds'`.
+  - _Settled on 2026-11-15 by D-071:_ no grace period. The deadline stays strict, as built.
 
 ---
 
 ## 9. After the build
 
-_(To be filled in when the story is done)_
+Implemented 2026-11-15. All five tasks are built, in the §6 order. Luke built every task, with Antigravity, and wrote the migration himself (D-066). Adrian's agent (Claude Code) added review fixes to #291, #299, #300, #304 and #305, and made #307 after the build.
 
-- what turned out different from this plan, and why
-- the status line changed to `implemented YYYY-MM-DD`
-- the docs this story changed
-- who verified each acceptance criterion
+| Task     | PR   | What it added                                                                                                                                                                                                                         |
+| -------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| (design) | #282 | This design, approved 2026-11-13                                                                                                                                                                                                      |
+| TSK-10.2 | #291 | `lib/check-in/normalize.ts`, `lib/validation/check-in.ts` and `lib/check-in/countdown.ts`, with unit tests                                                                                                                            |
+| TSK-10.1 | #299 | The migration: `last_closing_time`, the lapse steps 2 to 4, `check_in`, `check_out`, and the `unit_states`, `my_reservation` and hours-trigger changes; 73 pgTAP tests in `10-check-in-release.sql`; `check-in.race.mjs` in `db:race` |
+| TSK-10.3 | #300 | The pure SVG QR code (`components/reservation/qr-code.tsx`), the Seeker card's Reserved, Checked In and ended states with check-out, and the QR code on STORY-09's hold page                                                          |
+| TSK-10.4 | #304 | The Host's check-in desk at `/host/spaces/[spaceId]/check-in`: the camera scanner, manual entry and the C1 to C7 banners                                                                                                              |
+| TSK-10.5 | #305 | The "Check-in desk" links, the wait-window badge on the occupancy views, and `e2e/check-in.spec.ts`                                                                                                                                   |
+| (fix)    | #307 | The banner keeps its light colours when the OS is in dark mode (#306)                                                                                                                                                                 |
+
+### What turned out different from this plan, and why
+
+- **The countdown rounds up (#291).** The server ends a wait window when `wait_window_ends_at <= now`, so rounding down showed 00:00 and reloaded while the reservation was still Reserved.
+- **The Seeker's countdown announces a threshold only as it passes one (#300).** Before, a card opened with 19 seconds left said "1 minute remaining". The Checked In badge also took the seat map's Occupied amber and person icon, instead of Available's emerald.
+- **The camera submits a code once, until it leaves the frame (#304).** Before, a QR code held up for 8 seconds was checked in three times, and the banner turned into "Already checked in". The banner speaks from two live regions that are on the page from the start, and focus returns to the code field after each typed code.
+- **In Seat Map View, the Host's wait badge shows only on the selected unit's card (#305).** List View shows it on every Reserved unit. §3 asks for it on each tile, but §3's file table names only `unit-control-card.tsx` and `occupancy-list.tsx`, which is what was built. Maria decides whether the tiles need it.
+- **The badge says "Wait: 18 min left" and "Wait: < 1 min"**, from #291's `formatRelative`. §3 wrote "18m left" and "< 1m".
+- **The banner has no `dark:` colours (#307).** The app ships light mode only (D-031), so those colours followed the OS and made the banner hard to read in dark mode.
+- **#199 is settled by D-071:** no grace period. The deadline stays strict, as built.
+
+### Left open at the close-out
+
+- **For Maria (D-042):**
+  - from #300: the Checked In badge's colour, the "Couldn't copy" wording, and whether the Reserved card should drop its repeated unit, zone and Space line;
+  - from #304: an expired hold paid late (P2) shows "Invalid booking token. Please check the code." although the code is right and the hold has ended;
+  - from #305: whether the seat-map tiles show the wait, and the badge's wording.
+- **For Luke:** checking the review commits on his PRs, including `72dc493` and `3ecf010` on #305, which merged with no review on 15 Nov.
+- **Nits left from the reviews:**
+  - #291: `bookingTokenSchema` repeats `normalizeToken`'s steps, and `secondsRemaining` returns NaN for an invalid date.
+  - #304: the check-in tabs don't follow the arrow-key tab pattern, and "This browser can't scan QR codes" shows until the page hydrates.
+  - #305: in List View each Reserved unit has two badges on the page, so its expiry refreshes the page twice.
+- **The check-in flow still reads `approved`.** Five of the tests it names exist under other titles, and one, a `lib/check-in` test that rejects a used token, can't exist, because pure code can't know a token was used (pgTAP C3 covers it). The flow's table needs correcting before it can read `implemented`.
+
+### Docs this story changed
+
+- This design: the status line, §8 and §9, at the close-out.
+- `docs/DECISIONS.md`: D-071, which settles #199, at the close-out.
+- `docs/flows/check-in.md`: its #199 notes point to D-071, at the close-out.
+- `AGENTS.md`: the `db:race` command (#299), and the layout note's `lib/check-in/` (#291), `components/reservation/` (#300), check-in desk (#304) and check-in journey test (#305).
+- `docs/guides/testing.md`: `db:race` also runs the check-in race test (#299).
+- `docs/SPRINT-2.md`: the "STORY-10 is done" note. The design index. Both at the close-out.
+
+### Final checks
+
+On `main` at `3e9d79a`, with every STORY-10 task merged:
+
+- `npm run check`: 935 of 935 unit tests.
+- All 558 pgTAP tests in 9 files on the local stack, with 73 of 73 in `10-check-in-release.sql`. `02-spaces.sql` ran with the 8 Spaces that earlier Playwright runs had left on the local stack hidden in a rolled-back transaction.
+- `npm run db:race`: 16 of 16 in `holds.race.mjs`, and 6 of 6 in `check-in.race.mjs`.
+- All 34 Playwright tests, in Edge, both check-in journeys included.
+
+CI's `checks`, `db` and `e2e` jobs passed on `3e9d79a`.
+
+### Acceptance criteria (#59)
+
+Checked in the PRs named below, and again at the close-out on 15 Nov by Adrian's agent (Claude Code), on `main` at `3e9d79a`. The close-out ran on the local stack, in headless Edge, as `seeker@`, `seeker2@`, `host@`, `host2@` and a signed-out visitor, on Sulok Co-working's U1 and U2 and Kapihan's S6. Every row it made was deleted afterwards, and nothing was written to the shared cloud database.
+
+| Criterion                                                                                | How it was verified                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| The Seeker's dashboard shows their booking token as a QR code                            | `qr-code.test.tsx`: "matches a known-good matrix for ABCDEFGHJKMN", a matrix from an independent encoder, and the ISO/IEC 18004 structure checks. #300's review matched the encoder against an independent one for 504 tokens. `e2e/check-in.spec.ts`'s first journey finds the QR code by its name. At the close-out, `seeker@`'s `/seeker` showed "Booking QR code for token JMFR-TBBP-QNC8" and the grouped token.                                                                                                                                                                                                                |
+| Scanning or entering a valid token moves that unit to Occupied                           | `10-check-in-release.sql`: "a Host checks in a Reserved unit, which reads Occupied (C1, R6)". #304's review held a QR code up to Edge's fake camera, with a stubbed `BarcodeDetector`. At the close-out, `host2@` typed U1's token on the check-in desk and got "Checked in unit U1 (Open desks)". The hold was `occupied` with `checked_in_at` stamped, and the occupancy page read 1 / 3 units occupied.                                                                                                                                                                                                                           |
+| A token works once, and only at the Space that owns the unit                             | `10-check-in-release.sql`: "a token cannot be checked in twice" and "a Host cannot check in a token for another Space". `check-in.race.mjs` Case 1: two scans at once give one check-in. `e2e/check-in.spec.ts`: "Host at another Space receives wrong_space without releasing the hold (C5)". At the close-out, `host@` at Kapihan got "Wrong Space" for U1's token, and the hold stayed `reserved`. After the check-in, the same token at Sulok got "Already checked in".                                                                                                                                                          |
+| A no-show releases the unit and records the fee as forfeited, without a cron job (D-011) | `10-check-in-release.sql`: "a no-show releases the unit and forfeits the fee (R7)" and "a booking token cannot check in once its wait window has lapsed (C2, N10)". At the close-out, `seeker2@`'s paid hold on U2 had its wait window moved into the past, and `host2@`'s next read of the occupancy page recorded `no_show`, with the payment `forfeited` and U2 Available. #305's review watched a 75-second wait window run out on the occupancy page, with the same result. There is no scheduled job: the lapse is recorded on read (D-011, D-047).                                                                            |
+| Check-out, and the Space's closing time, return the unit to Available                    | `10-check-in-release.sql`: "a Seeker checks out, and the unit reads Available (R10)" and "closing time completes a visit, and the unit reads Available (R12)". `e2e/check-in.spec.ts`'s first journey checks out. At the close-out, `seeker@` checked out of U1: "Visit completed", the hold `completed` with its fee still `paid`, and 0 / 3 units occupied. Kapihan (07:00 to 22:00) was closed at 22:50, so a visit to S6, inserted as `postgres` with a check-in at 21:00 because `hold_unit` refuses a closed Space, read `completed` with no `checked_out_at` and its fee `paid` once a signed-out visitor opened the profile. |
+| The Host sees each Reserved unit's remaining wait window (FR-3.3)                        | `occupancy-view.test.tsx`: the four wait-window badge tests (18 min left, < 1 min, expired, and none for walk-ins or Occupied units). `e2e/check-in.spec.ts`'s first journey. `10-check-in-release.sql`: "only the Space's Host sees when a wait window ends" (N20). At the close-out, `host2@`'s List View showed "Wait: 30 min left" for U1.                                                                                                                                                                                                                                                                                       |

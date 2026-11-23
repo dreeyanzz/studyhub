@@ -75,7 +75,7 @@ export function SiteFooter() {
                   className: 'justify-start',
                 })}
               >
-                Explore Spaces
+                Find a Space
               </Link>
               <Link
                 href="/#how-it-works"
@@ -122,7 +122,6 @@ export function SiteFooter() {
             </div>
           </nav>
         </div>
-
         {/* Honest about payments (D-005) and about who keeps availability current (D-002). */}
         <div className="flex flex-col justify-between gap-2 border-t border-border pt-5 text-sm text-muted-foreground sm:flex-row sm:items-center">
           <p>

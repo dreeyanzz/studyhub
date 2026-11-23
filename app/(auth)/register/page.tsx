@@ -15,9 +15,12 @@ const first = (value: string | string[] | undefined) =>
 export default async function RegisterPage({ searchParams }: PageProps<'/register'>) {
   const params = await searchParams
   // A hold prompt sends people here with its Space profile and the Seeker role
-  // (D-058, STORY-09). register checks returnUrl again.
+  // (D-058, STORY-09); the landing page's "Become a Host" sends the Host role. The
+  // role only preselects a radio: register validates the submitted role again, and
+  // never accepts admin (D-013). register checks returnUrl again.
   const returnUrl = sanitizeReturnUrl(first(params.returnUrl), '')
-  const defaultRole = first(params.role) === 'seeker' ? 'seeker' : undefined
+  const role = first(params.role)
+  const defaultRole = role === 'seeker' || role === 'host' ? role : undefined
   const loginHref = returnUrl
     ? `/login?returnUrl=${encodeURIComponent(returnUrl)}`
     : '/login'

@@ -148,10 +148,12 @@ export function TagForm({
           {categories.map((category) => {
             const options = catalog.filter((tag) => tag.category === category.id)
             if (options.length === 0) return null
+            // min-w-0: a fieldset is as wide as its content by default, which made the
+            // page scroll sideways at 360 px with 200% text (D-031).
             return (
               <fieldset
                 key={category.id}
-                className="flex flex-col gap-2 rounded-lg border border-border p-4"
+                className="flex min-w-0 flex-col gap-2 rounded-lg border border-border p-4"
               >
                 <legend className="px-1 text-sm font-medium">{category.heading}</legend>
                 {options.map((tag) => (

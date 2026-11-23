@@ -8,24 +8,24 @@ requirement (D-038).
 
 Exactly these five, in this order. The course checks them.
 
-| Status           | Means                                                                                                   |
-| ---------------- | ------------------------------------------------------------------------------------------------------- |
-| Product Backlog  | Stories and tasks for later sprints                                                                     |
-| Sprint 2 Backlog | Planned for the current sprint, not started. It becomes "Sprint 3 Backlog" when Sprint 3 starts (D-038) |
-| In Progress      | Someone is working on it on a feature branch                                                            |
-| Code Review      | Its pull request is open and waiting for review                                                         |
-| Done             | Merged and verified; the issue is closed                                                                |
+| Status           | Means                                                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| Product Backlog  | Stories and tasks for later sprints                                                                   |
+| Sprint 3 Backlog | Planned for the current sprint, not started. It was "Sprint 2 Backlog" until Sprint 3 started (D-038) |
+| In Progress      | Someone is working on it on a feature branch                                                          |
+| Code Review      | Its pull request is open and waiting for review                                                       |
+| Done             | Merged and verified; the issue is closed                                                              |
 
 ## Fields
 
-| Field           | Values                                                            |
-| --------------- | ----------------------------------------------------------------- |
-| Status          | The five columns above                                            |
-| Sprint          | Iteration: Sprint 1, 2 and 3. Sprint 2 ends on 1 December (D-045) |
-| Points          | 1–10                                                              |
-| Estimate (days) | Working days                                                      |
-| MoSCoW          | Must, Should, Could, Won't                                        |
-| Parent issue    | The STORY that a task belongs to (a built-in field)               |
+| Field           | Values                                                                        |
+| --------------- | ----------------------------------------------------------------------------- |
+| Status          | The five columns above                                                        |
+| Sprint          | Iteration: Sprint 1, 2 and 3. Sprint 3 runs 17 November to 6 December (D-075) |
+| Points          | 1–10                                                                          |
+| Estimate (days) | Working days                                                                  |
+| MoSCoW          | Must, Should, Could, Won't                                                    |
+| Parent issue    | The STORY that a task belongs to (a built-in field)                           |
 
 The issue forms apply `type:story` and `type:task` automatically. Add the `moscow:*` and
 `area:*` labels by hand to match the dropdown answers in the issue body, and set the
@@ -65,9 +65,13 @@ Not automatic:
   request merged" stays off, and so does "Auto-close issue", which would close an issue as
   soon as someone dragged its card to Done.
 
-**If a workflow shows a red warning** in that list, the column it sets was deleted or
-recreated, and GitHub has turned the workflow off. Open it, choose the column again, and
-save it, which turns it back on.
+**If one of the four workflows above shows a red warning** in that list, the column it
+sets was deleted or recreated, and GitHub has turned the workflow off. Open it, choose the
+column again, and save it, which turns it back on.
+
+"Pull request merged" and "Auto-close issue" always show a red warning, because they are
+off on purpose and have no column set. Leave them as they are: setting a column would
+turn them on.
 
 ## Who moves cards
 
@@ -126,7 +130,7 @@ task form's headings.
 
 ```bash
 gh issue create --title "TSK-07.1: add the zones and units tables" \
-  --label type:task --label area:db --milestone "Sprint 2 (Prefinal)" --assignee @me \
+  --label type:task --label area:db --milestone "Sprint 3 (Final)" --assignee @me \
   --body $'### Parent story\n\n#56\n\n### What\n\n…\n\n### Done when\n\n- [ ] …\n\n### Story points (1–10)\n\n3\n\n### Estimate (working days)\n\n1\n\n### Area\n\ndb'
 gh api repos/dreeyanzz/studyhub/issues/56/sub_issues \
   -F sub_issue_id="$(gh api repos/dreeyanzz/studyhub/issues/<task number> --jq .id)"
@@ -153,11 +157,11 @@ gh project item-list 4 --owner dreeyanzz --limit 200 --format json \
 
 | Option                                                                        | Id                                                             |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Status: Product Backlog · Sprint 2 Backlog · In Progress · Code Review · Done | `4e0171a5` · `84205269` · `a939e066` · `cb631dc3` · `29f6bcd9` |
+| Status: Product Backlog · Sprint 3 Backlog · In Progress · Code Review · Done | `4e0171a5` · `84205269` · `a939e066` · `cb631dc3` · `29f6bcd9` |
 | MoSCoW: Must · Should · Could · Won't                                         | `3eed1178` · `8fda412d` · `cb02434e` · `45aa925b`              |
 | Sprint: Sprint 1 · Sprint 2 · Sprint 3                                        | `ab8798f2` · `4cfb2471` · `4573e4ab`                           |
 
-A new task goes to Sprint 2 Backlog with its points, estimate and sprint set. After
+A new task goes to Sprint 3 Backlog with its points, estimate and sprint set. After
 that, the card moves with the work, as the table in "Who moves cards" says. When its
 human asks, an agent may also catch up any other card, including another person's
 (D-035). It then leaves a one-line comment on that issue saying what moved and why. It
@@ -166,16 +170,17 @@ never moves an open issue to Done: closing the issue does that (D-030).
 **Changing sprint dates.** Send every sprint again with its id, its title and its dates.
 With the ids, the ids above stay and every card keeps its sprint. Without them, every
 sprint gets a new id and every card loses its sprint. A duration counts days, the start
-day included. This is the change D-045 made: Sprint 2 ends on 1 December, and Sprint 3's
-two weeks from 2 December hold its place until it is planned.
+day included. D-045 moved Sprint 2's end to 1 December this way, and D-072 moved it to 16
+November: 38 days from 10 October. D-075 set Sprint 3 to 17 November through 6 December:
+20 days.
 
 ```bash
 gh api graphql -f query='mutation { updateProjectV2Field(input: {
   fieldId: "PVTIF_lAHOCUJgA84BjmvkzhiabdE"
   iterationConfiguration: { startDate: "2026-09-26", duration: 14, iterations: [
     { id: "ab8798f2", title: "Sprint 1", startDate: "2026-09-26", duration: 14 }
-    { id: "4cfb2471", title: "Sprint 2", startDate: "2026-10-10", duration: 53 }
-    { id: "4573e4ab", title: "Sprint 3", startDate: "2026-12-02", duration: 14 } ] }
+    { id: "4cfb2471", title: "Sprint 2", startDate: "2026-10-10", duration: 38 }
+    { id: "4573e4ab", title: "Sprint 3", startDate: "2026-11-17", duration: 20 } ] }
 }) { projectV2Field { ... on ProjectV2IterationField { id } } } }'
 ```
 

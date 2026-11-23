@@ -1,20 +1,13 @@
-# Requests Adrian's review automatically on every pull request, and Maria's on
-# design docs, shared flows and the files that decide what users see, because
-# Maria owns the user experience (docs/DECISIONS.md, D-042, D-044).
+# Requests Adrian's review automatically on every pull request (D-014).
+#
+# Maria is no longer a code owner (D-082). Her approval is still required where
+# DECISIONS says so: design docs with screens (D-042, except D-073's Sprint 3
+# feature stories), the shared flows the flows index names her for (D-044), and
+# look changes to a screen she or James restyled (D-074). Request her review by
+# hand on those pull requests.
 #
 # Do NOT turn on "Require review from Code Owners" in the rulesets. Adrian owns
 # every path, and nobody can approve their own pull request, so Adrian's pull
 # requests could never merge. Ruleset A is where review requirements live: one
 # approving review (D-014).
-#
-# The last matching line wins, so the lines below repeat @dreeyanzz.
 * @dreeyanzz
-
-/app/**/*.tsx @dreeyanzz @fayeye-09
-/app/**/_components/ @dreeyanzz @fayeye-09
-/app/globals.css @dreeyanzz @fayeye-09
-/components/ @dreeyanzz @fayeye-09
-/hooks/ @dreeyanzz @fayeye-09
-/public/ @dreeyanzz @fayeye-09
-/docs/design/ @dreeyanzz @fayeye-09
-/docs/flows/ @dreeyanzz @fayeye-09

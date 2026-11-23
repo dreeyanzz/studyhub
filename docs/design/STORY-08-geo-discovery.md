@@ -1,5 +1,10 @@
 # STORY-08: Map discovery and curated tag filters
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-11-13 · **Owner:** @lukedongque · **Story:** #57 · **FR:** FR-1.1, FR-1.2, FR-5.1 ·
 **Depends on:** none ·
 **Flows:** [Space verification](../flows/space-verification.md) (approved), [Host setup journey](../flows/host-setup-journey.md) (approved), [Seeker journey](../flows/seeker-journey.md) (approved) ·

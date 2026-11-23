@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Armchair, BookOpen, Leaf, Users } from 'lucide-react'
+import { ArrowRight, Armchair, BookOpen, Leaf, Search, Users } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import './discovery.css'
 
@@ -75,10 +75,13 @@ export default function Home() {
             </h1>
             <p className="hero-description">
               Find an open seat and hold it now. Worq connects Seekers with verified study
-              and co-working Spaces—complete with live seat maps and instant holds.
+              and co-working Spaces—complete with seat maps and instant holds.
             </p>
             <div className="hero-actions">
-              <Link href="/register" className={buttonVariants()}>
+              <Link href="/spaces" className={buttonVariants()}>
+                <Search aria-hidden="true" size={18} /> Find a Space
+              </Link>
+              <Link href="/register" className={buttonVariants({ variant: 'outline' })}>
                 Get started <ArrowRight aria-hidden="true" size={18} />
               </Link>
               <Link
@@ -88,9 +91,9 @@ export default function Home() {
                 How it works
               </Link>
             </div>
+            {/* Honest about payments, as the footer is (D-005). */}
             <p className="discovery-caption">
-              Browse verified Spaces on the map, pick your exact desk, and hold it in
-              seconds.
+              Reservation fees run in sandbox mode, so no real money moves.
             </p>
           </div>
           <p className="hero-note">
@@ -150,7 +153,10 @@ export default function Home() {
               Welcome focused Seekers to your empty desks. Set up your Space, keep your
               seat map current, and manage check-ins with ease.
             </p>
-            <Link href="/register" className={buttonVariants({ variant: 'secondary' })}>
+            <Link
+              href="/register?role=host"
+              className={buttonVariants({ variant: 'secondary' })}
+            >
               Become a Host <ArrowRight aria-hidden="true" size={18} />
             </Link>
           </div>

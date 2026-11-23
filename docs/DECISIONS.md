@@ -146,6 +146,8 @@ Their lengths are decided in STORY-09's design.
 
 **Amended by D-061** for the cloud dev project's one Administrator.
 
+**Amended by D-091** for the production project, whose accounts use real addresses on the team Gmail account.
+
 **Decision:** Seed and demo data are invented, and emails use `@example.test`. The admin account is seeded locally only, never in a cloud project.
 
 **Why:** Seed passwords are public in this repository, and no real person's data belongs in a class demo.
@@ -201,6 +203,8 @@ Their lengths are decided in STORY-09's design.
 ## D-017 · Supabase environments
 
 **Amended by D-066:** Luke writes the migrations for STORY-08 and STORY-10 too.
+
+**Amended by D-090:** the production project is made ready for any day, in its own organization, and Adrian chooses when the app moves onto it.
 
 **Decision:**
 
@@ -302,6 +306,8 @@ one PR rather than leaving a submission half-restyled.
 
 ## D-027 · Sprint 1 profiles and spaces stay minimal
 
+**Last bullet amended by D-079:** a Host's edit to a Verified Space's name or location sends it back to Pending.
+
 **Decision:**
 
 - In Sprint 1, a profile holds a name and a phone number. A space holds a name, a description, an address, one opening and one closing time used every day, and a verification status.
@@ -318,6 +324,8 @@ one PR rather than leaving a submission half-restyled.
 ## D-028 · Shared test accounts on the cloud dev project
 
 **Amended by D-061:** the cloud dev project has one Administrator account.
+
+**Amended by D-091** for the production project: real addresses, signed up through `/register`.
 
 **Decision:**
 
@@ -337,6 +345,8 @@ one PR rather than leaving a submission half-restyled.
 **Amended by D-061:** `npm run db:accounts` is the first thing to use the secret key.
 
 **Amended by D-065:** every teammate's `.env.local` holds the cloud dev project's secret key too.
+
+**Amended by D-090:** only Adrian holds the production project's database password, keys and secret key, in a Supabase organization of its own.
 
 **Decision:**
 
@@ -452,6 +462,8 @@ Use free-license Unsplash or Pexels photography with no identifiable people. Ver
 
 **Second bullet replaced by D-053**: a function changes `spaces.status`, not a policy and a grant.
 
+**Amended by D-079:** a Host's resubmission, or an edit to a Verified Space's name or location, makes it Pending. Only an Administrator makes a Space Verified or Rejected.
+
 **Decision:**
 
 - A new Space stays Pending until an Administrator approves it on `/admin`; a rejected Space stays hidden (FR-5.1). This is STORY-15 (#166), in Sprint 2: James builds the page and its actions, and Adrian adds the policy.
@@ -542,6 +554,10 @@ Maria maintains the board; Adrian is Project Manager.
 
 ## D-042 · Maria owns the user experience
 
+**Amended by D-073 and D-074:** in Sprint 3, the feature stories' design docs don't wait for Maria's approval, and Maria's and James's built UI wins over older docs on what users see.
+
+**Fourth bullet amended by D-082:** GitHub no longer asks for Maria's review automatically. Her approval is still required where this entry says.
+
 **Decision:**
 
 - Maria decides the user experience of every story: what users see, do and are told. That covers screens and the order of steps, wording, empty, loading and error states, accessibility, the design system, and journeys that cross stories, such as a Seeker going from search to a hold.
@@ -588,6 +604,8 @@ Maria maintains the board; Adrian is Project Manager.
 **Revisit if:** A merged flow keeps changing while its stories are built, or most flows turn out to serve one story.
 
 ## D-045 · Sprint 2 ends on Tuesday 1 December
+
+**Superseded by D-072**, which ends Sprint 2 on Monday 16 November.
 
 **Decision:**
 
@@ -714,6 +732,8 @@ Proposes D-041 again, which D-043 withdrew, now from the reservation lifecycle (
 
 Replaces D-037's second bullet. D-037's other bullets stand.
 
+**Amended by D-084:** a Host's resubmission (`public.resubmit_space`) and a trigger for a name or location edit also change `spaces.status`, each only to Pending.
+
 **Decision:**
 
 - `public.set_space_status`, a `security definer` function that STORY-15 adds, is the only way to change `spaces.status`. It refuses anyone who isn't an Administrator with `42501`, and makes only the moves the [Space verification flow](flows/space-verification.md) draws (D-054).
@@ -728,6 +748,10 @@ Replaces D-037's second bullet. D-037's other bullets stand.
 **Revisit if:** Administrators need to edit a Space's details (FR-5.2, STORY-14).
 
 ## D-054 · In Sprint 2, an Administrator decides only Pending Spaces
+
+**Amended by D-079** for Sprint 3: rejection reasons, resubmitting, a second review after a name or location edit, and taking a Space down.
+
+**Amended by D-084 and D-085:** a taken-down Space has a status of its own, an Administrator can undo a decision, and a take-down cancels the holds whose visit hasn't started.
 
 **Decision:**
 
@@ -838,6 +862,8 @@ Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing
 
 **Amended by D-065:** every teammate holds this account's password and the secret key.
 
+**Amended by D-091:** the production project's Administrator is planned, a real address promoted with `npm run db:promote-admin`.
+
 **Decision:**
 
 - The cloud dev project has one Administrator account: `admin@example.test`, registered and promoted by `npm run db:accounts`. The production project still has no Administrator until planned (D-028).
@@ -870,6 +896,8 @@ Proposes D-039 again, which D-043 withdrew, now that the flows STORY-07 uses are
 ## D-063 · Venue photos are public
 
 Proposes D-040 again, which D-043 withdrew, now that the flows STORY-07 uses are merged (D-044).
+
+**Amended by D-092:** whatever deletes a Space, or its owner's account, empties its photo folder first.
 
 **Decision:**
 
@@ -999,3 +1027,372 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Keeping PayMongo (no test keys in time); the `stripe` npm package (a new dependency, and it throws one error type for a bad signature and an old timestamp, which the flow answers differently, W3 and W4); Stripe's thin events (they carry only ids, so the route would fetch the session before `confirm_payment`); naming the payment methods in each checkout with `allowed_payment_method_types` (the Dashboard settings already give card, Link and Apple Pay, and `payment_method_types` is gone since `2026-09-30.endive`); leaving the API version unpinned (upgrading the sandbox's default would change what the route receives).
 
 **Revisit if:** Worq takes real payments (a live Stripe account needs a business in a country Stripe supports), or the sandbox can't do what STORY-09 needs.
+
+## D-071 · Check-in keeps a strict deadline, with no grace period
+
+**Decision:** `public.check_in` and the lapse step treat a wait window as over the moment the database clock passes `wait_window_ends_at` (N10). A check-in that arrives even a second later finds the hold a no-show, with its fee forfeited (R7). There is no grace period after the deadline. This settles #199.
+
+**Why:** It is what the approved [check-in flow](flows/check-in.md) and the [reservation lifecycle](flows/reservation-lifecycle.md) draw, and STORY-10 built and tested it (`10-check-in-release.sql`, C2 and N10). The Seeker picks their own wait window, from 15 minutes up to the Space's longest, and sees it count down, so the margin is theirs to choose. A grace period would need a migration and new pgTAP tests the day before the Sprint 2 review (D-072).
+
+**Rejected:** A grace period of 30 to 60 seconds after `wait_window_ends_at`. It moves the deadline the Seeker sees, and a unit would stay held after its countdown said it was released.
+
+**Revisit if:** Seekers miss check-in by seconds in practice, for example at the Sprint 3 demo.
+
+## D-072 · Sprint 2 ends on Monday 16 November
+
+**Supersedes D-045**, which ended Sprint 2 on Tuesday 1 December.
+
+**Decision:**
+
+- Sprint 2 runs from Saturday 10 October to Monday 16 November 2026. Its review and the Prefinal deadline are on its last day.
+- Sprint 2's scope doesn't change: every Must Have, 55 points (D-036). All seven Sprint 2 stories were merged by 15 November, and STORY-10's close-out finishes the last one.
+- Sprint 3 starts after Sprint 2 ends. Its dates are set when it is planned, at the Sprint 2 review.
+- The Sprint 2 plan stays as baselined (D-043). The Sprint 2 brief, the board guide and the board's Sprint field change to match this entry.
+
+**Why:** The course's Prefinal deadline is Monday 16 November, earlier than the 1 December D-045 planned for.
+
+**Rejected:** Keeping 1 December in the docs (it would no longer match the course); cutting scope (nothing needs cutting, because every Sprint 2 story is merged).
+
+**Revisit if:** The course moves the Prefinal deadline again.
+
+## D-073 · Sprint 3's feature screens get their UI review after they're built
+
+**Amended by D-082:** GitHub no longer asks for Maria's review on UI files.
+
+**Decision:**
+
+- In Sprint 3, Adrian and Luke build STORY-13, STORY-14, STORY-16 and STORY-20 end to end, screens included (D-075).
+- Their design docs merge without Maria's approval of the user's steps and the UI, an exception to D-042's third point. GitHub still asks for Maria's review on UI files (`.github/CODEOWNERS`), but it isn't required.
+- Maria and James review those screens once they're built, and restyle what doesn't fit, in STORY-17.
+
+**Why:** Sprint 3 reworks the UI anyway, so a review of each feature's screens before the build would review screens that are about to change. Adrian and Luke can build without waiting for Maria and James's audit.
+
+**Rejected:** Maria approving each feature design's screens first, as D-042 says (D-042's own reason, that changes cost more after the build, is accepted here as a cost); Maria and James building the feature screens, as tasks inside those stories (Adrian and Luke own their stories end to end).
+
+**Revisit if:** Restyling the feature screens can't finish before the last merge on 5 December.
+
+## D-074 · Maria's and James's built UI wins on what users see
+
+**Decision:**
+
+- Once Maria or James merge a change to a screen, that screen as built is the reference for what users see there: layout, look, wording, and the order of steps on the screen. It wins over any older flow or design doc on those points.
+- It stays below the course brief, the SRS and this log. The SRS still binds the UI (WCAG 2.1 AA and 48 × 48 px controls, SRS §3.2.2), and changing a UI decision, such as D-031's light mode only, takes a new entry here. What the system allows and stores stays with the docs and its owners (D-042).
+- Older design docs aren't rewritten to match. Each one with screens carries one note at its top, and [the docs map](README.md#which-document-wins) says so. STORY-17's design doc is the written record of the new look.
+- After Maria or James restyle a screen, a pull request by anyone else that changes its look needs Maria's or James's approval. Changes to its behaviour or data don't.
+
+**Why:** Today's UI was mostly generated, and Maria and James are reworking it in Sprint 3. Rewriting every older doc to match each restyle (AGENTS.md rule 7) would cost more than the restyle.
+
+**Rejected:** Ranking the built UI above the SRS (the SRS is graded); each UI pull request updating the older docs it makes stale; leaving the docs above the code, so that every restyle reads as a bug against an older design.
+
+**Revisit if:** A disagreement about what a screen should show can't be settled from the built screen.
+
+## D-075 · Sprint 3: scope, dates, owners and the cut order
+
+**Cut order amended by D-083:** the confirmation email is never cut.
+
+**Decision:**
+
+- Sprint 3 runs from Tuesday 17 November to Sunday 6 December 2026. The last merge is Saturday 5 December, and the Final is Monday 7 December. There are no other date targets.
+- Its stories: STORY-17 (UI/UX refresh), STORY-13 (reviews), STORY-14 (moderation, payment records and refunds), STORY-16 (reservation history, Hold again and the confirmation email), STORY-20 (verification follow-ups, split out of STORY-14) and STORY-19 (hardening). STORY-18 is kept for a second UI/UX story if the audit splits STORY-17.
+- The work splits by layer. Maria and James own the UI/UX. Adrian builds `supabase/`, `app/api/`, the Stripe refund, the email, the production project and CI, draws both flows and writes the feature designs. Luke builds `lib/data/`, `lib/validation/`, Server Actions, pages, components and their tests, writes each feature design's screens section, and approves Adrian's pull requests (D-014).
+- A UI change is a **fix**, which makes a screen match its merged design and goes under the story that built it with no design doc (D-016), or a **design change**, which goes into STORY-17.
+- If time runs short, work is cut from the bottom of this order: UI/UX fixes; UI/UX design changes; reviews and moderation; history and Hold again; refunds; rejection reasons, resubmitting and the second review; taking a Space down; the email. The production project is never cut (D-017).
+
+**Why:** Sprint 2 left the Should Haves and nothing else, and the team wanted Sprint 3 to be about the UI. Adrian chose the backend layer, so each feature story has a backend and an app owner.
+
+**Rejected:** a separate hardening week (the Final is on 7 December); owners by story, each person building whole stories; dropping the email (the draft's condition, no new cost, still holds with D-078); weekly date targets.
+
+**Revisit if:** The Final moves, or the cut order is reached.
+
+## D-076 · Reviews: what they hold, who can post one, and who sees them
+
+**Amended by D-087:** the noise rating is labelled and stored as Quietness, where 5 is very quiet.
+
+**Decision:**
+
+- A Seeker can review a reservation once it has a check-in, during the visit or any time after, with no deadline. Each reservation allows one review (D-009).
+- A review holds four required ratings from 1 to 5, for noise, Wi-Fi reliability, cleanliness and comfort (FR-4.1), and an optional comment of up to 500 characters. The overall rating is the average of the four.
+- Its author can edit it, which shows "edited", or delete it. A review an Administrator hid or removed can't be edited back into view.
+- Reviews are public: a signed-out visitor reads them. The averages appear on the Space profile and the Space card. Search isn't sorted or filtered by rating in Sprint 3.
+- A reviewer is shown by first name and last initial, with "Checked-in visit".
+
+**Why:** The check-in already proves the Seeker was there, so waiting for the visit to end adds nothing. The four ratings are the SRS's own.
+
+**Rejected:** only after the visit is completed; a review deadline; a separate overall rating, or only an overall rating; reviews that can't be edited; full names, or anonymous reviews.
+
+**Revisit if:** Reviews written during a visit turn out to be unreliable.
+
+## D-077 · Hold again opens the Space profile with the same unit picked
+
+**Decision:** From a past reservation, Hold again opens its Space's profile with the same unit picked in the hold panel, if that unit is Available now. Otherwise it shows the seat map and says why: the unit is taken, the Space is closed or no longer listed, or the unit was removed. It never holds anything by itself, and never for later (D-001).
+
+**Why:** The Seeker still sees today's state and fee before holding, and the hold goes through STORY-09's checks like any other.
+
+**Rejected:** one tap re-holding the same unit and going straight to payment (a hold the Seeker didn't check); a plain link to the profile.
+
+**Revisit if:** Seekers mostly want a different unit at the same Space.
+
+## D-078 · The hold confirmation email goes through Resend's free tier
+
+**Superseded by D-089:** the email goes through a team Gmail account over SMTP.
+
+**Decision:**
+
+- When a payment confirms a hold, Worq emails the Seeker once, sent from `app/api/` through Resend's free tier, with no domain of our own. The key lives only in environment variables.
+- Without a verified domain, Resend delivers only to its account owner's address. So the account, and the demo Seeker who receives the email, use one mailbox made for the team's demo, never a teammate's personal address. This amends D-013 for that one account, as D-061 did for the Administrator.
+- Local tests and CI never call Resend. STORY-16's design says how they check the email instead.
+
+**Why:** It costs nothing and shows the email working at the Final.
+
+**Rejected:** buying a domain so anyone receives the email (a cost); Gmail SMTP with an app password (a personal account's secret in Vercel); an in-app notice instead of an email.
+
+**Revisit if:** The team buys a domain.
+
+## D-079 · Rejection reasons, resubmitting, and the edits that need a new approval
+
+**Amends D-027, D-037 and D-054.**
+
+**Amended by D-083:** the email is never cut, so taking a Space down is now the first thing cut.
+
+**Amended by D-084 to D-086:** the Space verification flow's change (#340) settles what this entry left to it. A taken-down Space is `taken_down`, a take-down cancels holds whose visit hasn't started, and Administrators get a list of changes and a live notice.
+
+**Decision:**
+
+- Rejecting a Space needs a reason, and its Host sees it.
+- The Host can edit a Rejected Space and resubmit it, which returns it to Pending for a second review.
+- A Host's edit to a Verified Space's name or location sends it back to Pending. It leaves search until an Administrator approves it again, the Host is warned before saving, the queue marks it "Edited", and holds already made there keep running. Other edits, such as hours, tags, photos, the seat map and occupancy, leave its status as it is.
+- An Administrator can take a Verified Space down. It is the last thing cut before the email (D-075).
+- A Host's edit or resubmission can make a Space Pending, never Verified or Rejected: only an Administrator decides (D-037).
+- The Space verification flow changes first (D-044, #340). It says what status a taken-down Space has, and how a Space with holds leaves Verified, which D-054's invariant didn't allow.
+
+**Why:** A reason is useless if the Host can't fix the Space and resubmit it. A name or location makes it a different place, while Hosts change hours, tags and seat maps all the time.
+
+**Rejected:** every edit needing a new approval (a Space would leave the map whenever its hours change); name, location and photos (reported content is what moderation is for); keeping a rejection final (D-054's accepted risk).
+
+**Revisit if:** Hosts change what a Space is through edits this rule doesn't cover.
+
+## D-080 · How reviews are moderated
+
+**Decision:**
+
+- A review's status is `visible`, `hidden` or `removed`. A report is a separate record, with who filed it, why (spam, offensive, not about this Space, other, plus an optional note), and which version of the review it was about. A review stays visible while it is reported.
+- A signed-in user who isn't the author may report each version of a review once. An edit makes a new version, so earlier reporters can report the new text, and only the author can make a review reportable again. Users never see versions, only "edited".
+- Nothing hides a review automatically. From `/admin`, an Administrator hides, removes or dismisses a reported review, and restores or removes a hidden one. Hiding can be undone; removing can't. Each of these closes the review's open reports, and acts only on the version the Administrator saw.
+- Only Administrators read reports, besides each reporter's own. Authors and reporters are told nothing beyond a label on the review: no reason, no notification.
+- History has two layers: each review and report records who acted last and when, and a moderation log keeps every action in order. `/admin` lists Reported, Hidden and Removed reviews; Removed is read-only.
+
+**Why:** Several people can report one review, and an Administrator needs to say "this one is fine". A report count that hides reviews is easy to game with a class-sized group of users.
+
+**Rejected:** "reported" as a review status; one report per user, ever (an edit could turn a dismissed review offensive); reports keeping a copy of the text; editing closing reports; hiding after a number of reports; hide and remove meaning the same; a single history layer.
+
+**Revisit if:** Reviews need reasons sent to their authors.
+
+## D-081 · When a review can be posted, edited or deleted, and who sees it
+
+**Decision:**
+
+- A Seeker can post or edit a review of their visit whatever its Space's status, because the visit was real. Others read it only while the Space is Verified (D-055). For a hidden Space, the Seeker writes it from their reservation history (STORY-16).
+- An author can delete only a visible review, and may then post a new one for that visit. A hidden or removed review keeps the visit used, so moderation can't be undone by deleting and posting again.
+- Only the check-in matters: a refund doesn't take away a review.
+- A review is deleted with its Space, its visit or its author's account, as reservations are (D-052).
+- A reviewer is shown by a short name worked out from `full_name` when it is read: the first word and the last word's initial, the name as it is if it is one word, or "Worq Seeker" if it is empty. Reads never return the full name.
+
+**Why:** It follows D-009 (a review needs a visit) without making a Seeker wait on a Host's renaming. The short name keeps profiles private without new profile fields.
+
+**Rejected:** posting only while the Space is Verified; deleting any review, with or without posting again; separate first and last name fields on profiles (a migration and a form change for a display name).
+
+**Revisit if:** Reviews of hidden Spaces cause confusion when the Space comes back.
+
+## D-082 · Maria is no longer a code owner
+
+**Amends D-042 and D-073.**
+
+**Decision:**
+
+- `.github/CODEOWNERS` lists only Adrian. GitHub no longer requests Maria's review automatically on design docs, shared flows and UI files.
+- Her approval is still required where this log says so: design docs with screens (D-042), except Sprint 3's feature stories (D-073); the shared flows the [flows index](flows/README.md) names her for (D-044); and look changes to a screen she or James restyled (D-074). The author requests her review by hand on those.
+- Nothing else changes. Code owner reviews were never required by the rulesets (D-014).
+
+**Why:** Adrian decided it on 19 November. Since D-073, Maria reviews Sprint 3's feature screens after they're built, so an automatic request on every pull request that touches a UI file asks her for reviews nobody waits for.
+
+**Rejected:** keeping the automatic request.
+
+**Revisit if:** A pull request that needed Maria's approval merges without it.
+
+## D-083 · The confirmation email is never cut
+
+**Amends D-075 and D-079.**
+
+**Decision:**
+
+- The hold confirmation email (STORY-16) leaves the cut order. Like the production project (D-017), it is never cut, and the Sprint 3 plan lists it as a Must Have instead of a Could Have.
+- The other seven items keep their order, so taking a Space down is now the first thing cut and the UI/UX fixes are still the last.
+- How the email is sent isn't decided here: STORY-16's design settles its provider (D-078).
+
+**Why:** Adrian decided on 22 November, while planning the Space verification flow's change (#340), that the Final needs the email, so a slow sprint mustn't drop it. It still costs nothing (D-078).
+
+**Rejected:** keeping it the first thing cut (D-075); making it the last thing cut, which would still let it go.
+
+**Revisit if:** The email can't be sent without a cost, or the sprint runs so short that a Must Have is at risk.
+
+## D-084 · A taken-down Space has a status of its own, and a decision can be undone
+
+**Amends D-053, D-054 and D-079.**
+
+**Decision:**
+
+- `space_status` gains `taken_down`, shown as "Taken down". An Administrator takes a Verified Space down with a reason, as for a rejection (D-079). Each reason is typed, required and at most 500 characters, and only the Space's Host and Administrators read it.
+- An Administrator can undo a rejection (Rejected → Verified) and put a Taken down Space back (Taken down → Verified), without the queue.
+- The Host can resubmit a Rejected or Taken down Space with no edit first and no limit. It returns to Pending, and the queue marks it "Resubmitted", with the last reason.
+- A Verified Space goes back to Pending (D-079) only when its name, address or map pin gets a different value. Adding a pin it didn't have counts.
+- The status changes only through `set_space_status` (Administrators), `resubmit_space` (the Space's Host) and a trigger for the edit. No role writes the column (D-053).
+- The queue lists Pending Spaces by how long they have waited, and `/admin` gets lists of Rejected and Taken down Spaces.
+
+**Why:** Adrian decided on 22 November, while planning #340, that a Space pulled from public view should read differently from one never approved, to its Host and on `/admin`, and that an Administrator should be able to undo a mistaken rejection. The cost is one enum value, and fixing `hold_terms` and `unit_states`, which check for `pending` or `rejected` instead of "not Verified".
+
+**Rejected:** filing a taken-down Space under Rejected (cheaper, but the two read alike); sending it back to Pending (the queue the Administrator just took it out of); a take-down that is final, or that only an Administrator can undo; picking a reason from a list; needing an edit before a resubmit, or limiting resubmits.
+
+**Revisit if:** Hosts resubmit the same Space over and over without fixing it.
+
+## D-085 · A take-down cancels the holds whose visit hasn't started
+
+**Amends D-054.**
+
+**Decision:**
+
+- When an Administrator takes a Space down, or rejects one that a Host's edit sent back to Pending, its Pending Payment holds are cancelled and their Stripe checkout closed, and its Reserved holds are cancelled and their fees refunded through STORY-14's sandbox refund (FR-5.3, D-005). These are the reservation lifecycle's R13 and R14.
+- Occupied holds keep running to check-out or closing time, with no refund, because the Host honoured them. A Host's name or location edit cancels nothing (D-079).
+- A refund that fails stays `paid` on the payments page for an Administrator to retry. A payment that gets through anyway is the payment flow's P2, refunded from the same page. Putting the Space back doesn't bring cancelled holds back.
+- The Seeker's hold page says the Space was taken down and the fee is refunded. Nothing is emailed.
+
+**Why:** Adrian chose it on 22 November: a Seeker who paid shouldn't travel to a Space an Administrator has pulled, and D-005 already refunds a hold the Host can't honour. The refund is safe in the cut order, which drops taking a Space down before refunds (D-075).
+
+**Rejected:** letting every hold run to its end (Seekers would still travel there that day); refusing a take-down while a hold is active (a busy Space might never be free of holds); ending visits under way, with or without a refund; letting a checkout in progress finish, then refunding it.
+
+**Revisit if:** Sandbox refunds fail often enough to leave Seekers waiting, or Hosts ask for visits under way to end too.
+
+## D-086 · A Space's list of changes, and a live notice for the Administrator
+
+**Decision:**
+
+- Each Space keeps a list of changes, `space_events`. It records every status move but creation and deletion, with who made it, when and its reason, and every change to the Space's name, address or map pin, as old → new, whatever its status. Only Administrators read it, only the database writes it, and it is deleted with its Space.
+- On `/admin` it reads newest first. Everything since the Space was last Verified stands out, and the newest entry stands out most.
+- While an Administrator has a Space open, a change to its row reaches them at once through Supabase Realtime, and their decision waits until the latest version has loaded. `set_space_status`'s version check (D-053) stays as the backstop.
+- Supabase Realtime is new to the project: `spaces` joins its publication, and each listener hears only about rows its row level security lets it read.
+
+**Why:** Adrian wants an Administrator to see everything that changed since they approved a Space, with the latest change standing out, and to hear about a Host's edit while they look, instead of only being refused when they click.
+
+**Rejected:** showing only the latest change; comparing with the version just before the latest edit (two edits would hide the first); listing edits to the description, hours and price tier too (noise); checking for changes every 15 to 30 seconds (a delay, though no new tool); no notice, only D-053's refusal on click.
+
+**Revisit if:** Realtime proves unreliable on Supabase's free plan, or Administrators need photos, tags and the seat map watched too.
+
+## D-087 · FR-4.1's noise rating is shown and stored as Quietness
+
+**Amends D-076.**
+
+**Decision:** The rating FR-4.1 calls "noise" is labelled "Quietness" and stored as `reviews.quietness`, from 1 to 5, where 5 is very quiet. Wi-Fi reliability, cleanliness and comfort keep their names. So a higher number is better for all four, and the overall rating stays their average (D-076).
+
+**Why:** Adrian decided on 22 November, while planning STORY-13's design. "Noise" from 1 to 5 reads both ways, and if 5 meant noisy, a noisy Space would score higher overall.
+
+**Rejected:** keeping "Noise" with a hint that 5 means quiet (the label still invites the wrong reading); 5 meaning very noisy (it breaks the overall average).
+
+**Revisit if:** The SRS is revised, or Seekers misread the label in testing.
+
+## D-088 · Sandbox refunds: which fees, what records them, and why
+
+**Decision:**
+
+- An Administrator can refund a fee only when it is `paid` and its hold ended without a check-in: a Host's override (R9), a take-down (R14, D-085), or a payment that arrived after its hold ended (P2). A forfeited fee, a visit that happened and an active hold's fee can't be refunded. A refund is always the whole fee, once.
+- The refund call records it. The Server Action asks Stripe, with one idempotency key per payment, so a double click or a retry refunds once. Stripe keeps a key for at least 24 hours and may drop it after that, so when Stripe refuses a refund, or the call fails or times out, the action looks for an earlier refund on that payment intent and, if there is one, records it. If that search fails too, nothing is recorded, and the Administrator tries again. When Stripe accepts the refund (succeeded or pending), the action records it through `public.record_refund`, which only Administrators may run and which checks the rule above again.
+- Each refund keeps Stripe's refund id, who made it, when, and a typed reason of up to 300 characters, which only Administrators read. The Seeker sees that the payment was refunded.
+
+**Why:** Adrian chose these on 22 November, for STORY-14's design. The rule is FR-5.3's case, a Host who can't honour a paid hold, and D-005 already forfeits a fee for the Seeker's own no-show. Recording from the call needs no change to the Stripe endpoint, and STORY-20's take-down (D-085) reuses it.
+
+**Rejected:** recording from Stripe's refund webhook (one more event on the deployed endpoint and in `stripe listen`, and a delay before the Seeker sees it); refunding forfeited fees at the Administrator's judgment; refunding any paid or forfeited fee; partial refunds; refunds without a reason.
+
+**Revisit if:** A refund Stripe accepted as pending later fails, or Seekers dispute forfeited fees.
+
+## D-089 · The hold confirmation email goes through a team Gmail account
+
+**Supersedes D-078.**
+
+**Decision:**
+
+- When a payment confirms a hold (R2, `confirm_payment` answers `confirmed`), Worq emails the Seeker once, to the address they signed up with. The Stripe webhook route sends it with Next's `after()`, once Stripe has its answer, through Gmail's SMTP with an app password.
+- The email is plain text: the Space, the unit, when the wait window ends in Asia/Manila time, and a link to the hold page. It never contains the booking token.
+- Adrian creates the account for the team, with 2-Step Verification. `GMAIL_USER` and `GMAIL_APP_PASSWORD` live only in Vercel's Production environment and in Adrian's `.env.local`, never in Preview, CI, code or chat. Without them, nothing is sent. The team knows the address, not the password.
+- Addresses ending in `@example.test` are skipped (D-013), so seeded accounts and tests never send. A failed send is logged and never retried.
+
+**Why:** Adrian chose a team Gmail account on 18 November, while planning the review lifecycle, so the email reaches real addresses without paying for a domain. Resend without a domain delivers only to its owner's inbox. D-078 had rejected Gmail because it would put a personal account's secret in Vercel, and a team account answers that. The rest was settled on 22 November, in STORY-16's design.
+
+**Rejected:** Resend's free tier without a domain (one inbox, D-078); buying a domain (a cost); a teammate's personal Gmail; sending from Preview deployments, which would email whoever signs up on cloud dev from every pull request; the booking token in the email (whoever has it gets the seat); retrying a failed send (Vercel's free plan runs scheduled jobs at most once a day, D-011).
+
+**Revisit if:** Gmail limits or blocks the account, or the team buys a domain.
+
+## D-090 · A production project ready for any day, at production level
+
+**Amends D-017 and D-029.**
+
+**Decision:**
+
+- Worq is built to be presented and pitched as a product, not only for the course. So `studyhub-prod` is made ready to run the app on any day, and Adrian chooses the day Vercel's Production environment moves onto it. Until then, worqph and every preview use cloud dev.
+- It lives in a Supabase organization of its own, with Adrian as its only member: on the Free plan, a role in an organization covers every project in it, and `lamph-org` gives the team roles for cloud dev (D-065). Only Adrian holds its database password, keys and secret key (D-029).
+- Migrations reach it from merged `main` only, after cloud dev, with `supabase db push --db-url` and a connection string in Adrian's `.env.local`, never by re-linking the CLI.
+- Supabase Auth runs at production level: email confirmation on, STORY-03's password rules, the site and redirect addresses on worqph, and the team Gmail account as its SMTP sender (D-089).
+- Payments stay in Stripe's sandbox (D-005, SRS §1.2), with its one webhook endpoint on worqph. So after the switch a sandbox payment on a preview, which still uses cloud dev, is never confirmed, and payments are tried locally with the Stripe CLI or `npm run webhook:simulate`.
+
+**Why:** Adrian decided it on 22 November, in STORY-19's design: the team wants to pitch Worq as close to the real product as it can be, without having to choose the switch date yet.
+
+**Rejected:** a fixed switch date, either now or on 5 December; production in `lamph-org`, where every teammate would hold a role on it; the team reaching production, as on cloud dev; Supabase's built-in email sender, which sends a few emails an hour and isn't meant for production; live payments.
+
+**Revisit if:** The team pays for Supabase, or adds members who need production.
+
+## D-091 · Production accounts use real addresses
+
+**Amends D-013, D-028 and D-061 for the production project.**
+
+**Decision:**
+
+- Production's accounts for each role use real addresses on the team Gmail account, with a `+` tag: `+host`, `+seeker` and `+admin`. Gmail delivers them all to the one team inbox, and Supabase treats each as its own account.
+- Each signs up on worqph's `/register` on the switch day, once worqph runs on production, and confirms by email, like any user. The Administrator signs up as a Seeker and is then promoted with the production secret key (`npm run db:promote-admin`), on Adrian's machine only.
+- Adrian chooses their passwords and gives them privately to teammates for rehearsals. `seed.sql` never runs on production, and demo Spaces are built through the app.
+- D-013's invented people and `@example.test` addresses still hold for the repository, the seed, the tests and cloud dev.
+
+**Why:** Adrian chose it on 22 November: real addresses are what production has, so sign-up confirmation, password resets and STORY-16's email all really happen. The `+` tags keep anyone's personal address out of it.
+
+**Rejected:** `@example.test` addresses on production (no email could reach them); teammates' personal addresses; a separate Gmail account for each role; a production seed script.
+
+**Revisit if:** Gmail stops treating `+` addresses as one inbox, or the team buys a domain.
+
+## D-092 · Whatever deletes a Space empties its photos first
+
+**Amends D-063. Settles #218.**
+
+**Decision:**
+
+- Whatever deletes a Space, or the account that owns it, empties `space-photos/<space_id>` first, as `deleteSpace` does (D-063).
+- In Sprint 3, nothing in the app deletes an account or a listing, so the only other way is deleting an account in the Supabase dashboard. Before that, the Space's Host deletes their Spaces in the app, or the folders are emptied on the dashboard's Storage page (`DEVELOPMENT.md`).
+- A later story that adds deleting accounts or listings empties the folders first.
+
+**Why:** Adrian chose #218's first option on 22 November, in STORY-19's design. The bucket is public, so a photo left behind stays readable by anyone with its address, but only a dashboard deletion leaves one behind today.
+
+**Rejected:** a daily sweep of folders whose Space is gone (a route handler with the secret key and a cron job, for a gap only the dashboard opens); a trigger on `spaces` (Supabase refuses deletes in `storage.objects`, and the files would stay).
+
+**Revisit if:** A story adds deleting accounts or listings, or a photo is found left behind.
+
+## D-093 · The accessibility sweep runs on every pull request, and e2e becomes required
+
+**Amends D-014's required checks once it lands.**
+
+**Decision:**
+
+- `e2e/accessibility.spec.ts` visits every route, signed out and as each role, against axe's WCAG 2.1 A and AA rules (`@axe-core/playwright`), and checks what axe can't: 48 × 48 px controls, no horizontal scrolling at 360, 768 and 1024 px, nothing clipped at 200% text, and a keyboard path with visible focus.
+- It finds elements by role and label, never by styling, so it follows Maria and James's restyle. A failure on a restyled screen is fixed by whoever restyled it, as a STORY-17 fix (D-074, SRS §3.2.2).
+- A manual keyboard and screen-reader pass runs after the last restyle, before the last merge.
+- Once the sweep lands, `e2e` joins `checks`, `pr-title` and `db` as a required check, and `AGENTS.md` lists four. The sweep's pull request updates `AGENTS.md` and the ruleset file, and Adrian applies the rule when it merges.
+
+**Why:** Adrian chose it on 22 November. A sweep run once at the end would find problems far from the pull request that caused them, and the restyle changes every screen in the last two weeks.
+
+**Rejected:** a sweep only at the end, or only by hand; selectors tied to class names or layout, which the restyle would break; leaving `e2e` optional.
+
+**Revisit if:** The sweep is too slow for every pull request, or axe's rules disagree with the SRS.

@@ -9,7 +9,7 @@ These are the documents submitted for CPEPE361. The `.md` files are the source, 
 | `StudyHub_Project_Planning_Worksheet.md` / `.docx` | Project Planning Worksheet v2.0                                                               |
 | `StudyHub_Sprint_1_Plan.md` / `.docx`              | Sprint 1 plan: backlog, stories, tasks, estimates. Its `.docx` is created on the first export |
 | `StudyHub_Sprint_2_Plan.md` / `.docx`              | Sprint 2 plan: backlog, stories, tasks, estimates, baselined Tue 13 Oct (D-036)               |
-| `StudyHub_Sprint_3_Plan_DRAFT.md`                  | Sprint 3 plan, **draft**: tentative until the Sprint 2 review. Not for submission             |
+| `StudyHub_Sprint_3_Plan.md` / `.docx`              | Sprint 3 plan: backlog, stories, tasks, estimates, baselined Wed 18 Nov (D-075)               |
 | `StudyHub_Project_Management_Board.html` / `.svg`  | The board snapshot for the Sprint 1 submission                                                |
 | `diagrams/`                                        | The figures used by the SRS                                                                   |
 | `archive/`                                         | The v1 originals, kept for audit                                                              |

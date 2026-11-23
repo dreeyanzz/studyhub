@@ -3,8 +3,9 @@ import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-// Everyone sees Log in and Sign up in Sprint 1: the public pages read no session
-// (STORY-02 design §4, §8). The links wrap on small screens instead of a menu.
+// Everyone sees Log in and Sign up: the public pages read no session (STORY-02
+// design §4, §8). The links wrap on small screens instead of a menu. Find a Space
+// leads to the discovery map, which nothing else on the landing page linked to.
 export function SiteHeader() {
   return (
     <header className="border-b border-border bg-background">
@@ -64,7 +65,10 @@ export function SiteHeader() {
         </Link>
         <nav aria-label="Main" className="flex flex-wrap items-center gap-2">
           <Link href="/spaces" className={buttonVariants({ variant: 'ghost' })}>
-            Discover
+            Find a Space
+          </Link>
+          <Link href="/#how-it-works" className={buttonVariants({ variant: 'ghost' })}>
+            How it works
           </Link>
           <Link href="/#for-hosts" className={buttonVariants({ variant: 'ghost' })}>
             Be a Host

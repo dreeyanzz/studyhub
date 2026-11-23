@@ -1,5 +1,10 @@
 # STORY-12: Host occupancy control
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-11-10 · **Owner:** @JamesNino-Mandawe · **Story:** #77 · **FR:** FR-3.2 ·
 **Depends on:** STORY-05, STORY-07, STORY-09 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md) ·
 **Decisions:** D-002, D-004, D-010, D-031, D-036, D-042, D-044, D-046, D-047, D-048, D-050, D-051, D-052, D-057
@@ -315,6 +320,10 @@ Two PRs also carry fix commits from their review by Adrian's agent (Claude Code)
 - **Responsive dialog scaling:** Enhanced `AlertDialogContent` and its buttons with `max-h-[calc(100dvh-2rem)]`, vertical scrolling, and `whitespace-normal` so that all titles, copy, and buttons fit cleanly on 360 px viewports with 200% text zoom without sideways scrolling.
 - **Focus retention during transitions:** Added `focusableWhenDisabled` to `AlertDialogAction` to keep screen reader focus steady while an override server action is in flight.
 - **Two fixes at the close-out (#275):** the page's intro line said "Manage real-time seat states and walk-ins", and the glossary rules "real-time" out for Host-maintained availability (D-002), so the word is gone. The loading placeholder had fixed widths that came to 624 px on a 360 px screen at 200% text; its placeholders now wrap and shrink like the header they stand for.
+
+### Changed after Sprint 2
+
+- **A way in from the Host portal:** §3 named no link to the occupancy page, so Hosts reached it only from the check-in desk (STORY-10 added that link). Each Space card in `space-list.tsx` now has an "Occupancy" link after "Seat map". The Antigravity E2E pass of 16 Nov found it.
 
 ### Left open at the close-out
 

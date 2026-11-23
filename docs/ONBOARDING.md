@@ -218,9 +218,9 @@ Tell the teammate, in this order:
 2. Anything skipped or failed, and why.
 3. Any file you changed other than `.env.local` and, for a migration writer,
    `.env.development.local`. There should be none.
-4. What to read next: [`SPRINT-2.md`](SPRINT-2.md), [`AGENTS.md`](../AGENTS.md) and
+4. What to read next: [`SPRINT-3.md`](SPRINT-3.md), [`AGENTS.md`](../AGENTS.md) and
    [`CONTRIBUTING.md`](../CONTRIBUTING.md).
-5. What to say next: **"Start my Sprint 2 story."** That runs the story loop in
+5. What to say next: **"Start my Sprint 3 story."** That runs the story loop in
    `AGENTS.md`: the shared flows and the design doc first, and code only after Adrian
    merges them.
 
