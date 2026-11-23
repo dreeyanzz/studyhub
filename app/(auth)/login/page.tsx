@@ -3,9 +3,9 @@ import Link from 'next/link'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { sanitizeReturnUrl } from '@/lib/validation/auth'
 
+import { AuthShell } from '../_components/auth-shell'
 import { LoginForm } from './_components/login-form'
 
 export const metadata: Metadata = { title: 'Log in' }
@@ -24,12 +24,14 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
     : '/register'
 
   return (
-    <Card className="w-full max-w-md self-start">
-      <CardHeader>
-        <h1 className="font-heading text-3xl font-semibold">Log in</h1>
-        <p className="text-base text-muted-foreground">Welcome back to Worq.</p>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+    <AuthShell
+      asideEyebrow="Worq · Study & Co-Working"
+      asideTitle="Your seat is waiting."
+      asideBody="Pick up where you left off—check open seats on your favourite Space's map or manage your Host check-ins."
+      title="Log in"
+      subtitle="Welcome back to Worq."
+    >
+      <div className="flex flex-col gap-5">
         {linkFailed && (
           <Alert role="status">
             <AlertDescription>
@@ -44,7 +46,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
             Sign up
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </AuthShell>
   )
 }

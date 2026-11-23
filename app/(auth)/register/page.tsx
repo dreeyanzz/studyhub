@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { sanitizeReturnUrl } from '@/lib/validation/auth'
 
+import { AuthShell } from '../_components/auth-shell'
 import { RegisterForm } from './_components/register-form'
 
 export const metadata: Metadata = { title: 'Sign up' }
@@ -26,14 +26,14 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
     : '/login'
 
   return (
-    <Card className="w-full max-w-md self-start">
-      <CardHeader>
-        <h1 className="font-heading text-3xl font-semibold">Create your account</h1>
-        <p className="text-base text-muted-foreground">
-          Join Worq as a Seeker or a Host.
-        </p>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+    <AuthShell
+      asideEyebrow="Worq · Study & Co-Working"
+      asideTitle="Find your focus."
+      asideBody="Create an account to hold an open desk before you commute, or list your Space and keep its seat map current."
+      title="Create your account"
+      subtitle="Join Worq as a Seeker or a Host."
+    >
+      <div className="flex flex-col gap-5">
         <RegisterForm returnUrl={returnUrl} defaultRole={defaultRole} />
         <p className="flex flex-wrap items-center gap-x-1 text-sm">
           Already have an account?
@@ -41,7 +41,7 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
             Log in
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </AuthShell>
   )
 }
