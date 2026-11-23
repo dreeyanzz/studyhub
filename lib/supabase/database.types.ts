@@ -115,6 +115,7 @@ export type Database = {
           id: string
           phone_number: string | null
           role: Database["public"]["Enums"]["user_role"]
+          role_confirmed: boolean
           updated_at: string
         }
         Insert: {
@@ -123,6 +124,7 @@ export type Database = {
           id: string
           phone_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          role_confirmed?: boolean
           updated_at?: string
         }
         Update: {
@@ -131,6 +133,7 @@ export type Database = {
           id?: string
           phone_number?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          role_confirmed?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -452,6 +455,13 @@ export type Database = {
       }
       check_in: { Args: { p_space_id: string; p_token: string }; Returns: Json }
       check_out: { Args: { p_reservation_id: string }; Returns: Json }
+      complete_oauth_role: {
+        Args: {
+          p_full_name: string
+          p_role: Database["public"]["Enums"]["user_role"]
+        }
+        Returns: Json
+      }
       confirm_payment: {
         Args: {
           p_checkout_session_id: string
