@@ -21,7 +21,7 @@ export function LoginForm({ returnUrl }: { returnUrl: string }) {
   const [email, setEmail] = useState(state.values?.email ?? '')
 
   return (
-    <form {...formProps} className="flex flex-col gap-5">
+    <form {...formProps} className="flex flex-col gap-4">
       {showServerMessage && state.formError && (
         <Alert variant="destructive">
           <AlertDescription>{state.formError}</AlertDescription>
@@ -46,7 +46,12 @@ export function LoginForm({ returnUrl }: { returnUrl: string }) {
         required
         errors={errors.password}
       />
-      <Button type="submit" disabled={pending} focusableWhenDisabled>
+      <Button
+        type="submit"
+        className="mt-1 w-full rounded-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+        disabled={pending}
+        focusableWhenDisabled
+      >
         {pending ? 'Logging in…' : 'Log in'}
       </Button>
     </form>

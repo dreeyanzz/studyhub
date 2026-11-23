@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
 import { sanitizeReturnUrl } from '@/lib/validation/auth'
+import { cn } from '@/lib/utils'
 
 import { AuthShell } from '../_components/auth-shell'
 import { LoginForm } from './_components/login-form'
@@ -24,13 +25,7 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
     : '/register'
 
   return (
-    <AuthShell
-      asideEyebrow="Worq · Study & Co-Working"
-      asideTitle="Your seat is waiting."
-      asideBody="Pick up where you left off—check open seats on your favourite Space's map or manage your Host check-ins."
-      title="Log in"
-      subtitle="Welcome back to Worq."
-    >
+    <AuthShell title="Welcome back" subtitle="Log in to continue to Worq.">
       <div className="flex flex-col gap-5">
         {linkFailed && (
           <Alert role="status">
@@ -40,9 +35,15 @@ export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
           </Alert>
         )}
         <LoginForm returnUrl={returnUrl} />
-        <p className="flex flex-wrap items-center gap-x-1 text-sm">
+        <p className="flex flex-wrap items-center justify-center gap-x-1 text-sm text-muted-foreground">
           New to Worq?
-          <Link href={registerHref} className={buttonVariants({ variant: 'link' })}>
+          <Link
+            href={registerHref}
+            className={cn(
+              buttonVariants({ variant: 'link' }),
+              'px-1.5 font-semibold text-foreground',
+            )}
+          >
             Sign up
           </Link>
         </p>

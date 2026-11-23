@@ -40,7 +40,7 @@ export function RegisterForm({
   const [email, setEmail] = useState(state.values?.email ?? '')
 
   return (
-    <form {...formProps} className="flex flex-col gap-5">
+    <form {...formProps} className="flex flex-col gap-4">
       {showServerMessage && state.formError && (
         <Alert variant="destructive">
           <AlertDescription>{state.formError}</AlertDescription>
@@ -64,7 +64,7 @@ export function RegisterForm({
         aria-describedby={roleError ? 'role-error' : undefined}
         className="flex flex-col gap-2"
       >
-        <legend id="role-legend" className="mb-2 text-sm font-medium">
+        <legend id="role-legend" className="mb-1.5 px-1 text-sm font-medium">
           I want to join as
         </legend>
         <div className="grid gap-2 sm:grid-cols-2">
@@ -72,7 +72,7 @@ export function RegisterForm({
             <label
               key={role.value}
               htmlFor={`role-${role.value}`}
-              className="grid min-h-12 cursor-pointer grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 rounded-lg border border-input p-3 has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
+              className="grid min-h-12 cursor-pointer grid-cols-[auto_1fr] items-start gap-x-2.5 gap-y-0.5 rounded-2xl border border-input bg-muted/40 p-3 transition-colors has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
             >
               <input
                 id={`role-${role.value}`}
@@ -89,7 +89,7 @@ export function RegisterForm({
               </span>
               <span
                 id={`role-${role.value}-text`}
-                className="text-sm text-muted-foreground"
+                className="text-xs text-muted-foreground"
               >
                 {role.text}
               </span>
@@ -97,7 +97,7 @@ export function RegisterForm({
           ))}
         </div>
         {roleError && (
-          <p id="role-error" className="text-sm text-destructive">
+          <p id="role-error" className="px-1 text-sm text-destructive">
             {roleError}
           </p>
         )}
@@ -139,7 +139,12 @@ export function RegisterForm({
         required
         errors={errors.confirmPassword}
       />
-      <Button type="submit" disabled={pending} focusableWhenDisabled>
+      <Button
+        type="submit"
+        className="mt-1 w-full rounded-full font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+        disabled={pending}
+        focusableWhenDisabled
+      >
         {pending ? 'Creating your account…' : 'Create account'}
       </Button>
     </form>

@@ -3,6 +3,7 @@ import Link from 'next/link'
 
 import { buttonVariants } from '@/components/ui/button'
 import { sanitizeReturnUrl } from '@/lib/validation/auth'
+import { cn } from '@/lib/utils'
 
 import { AuthShell } from '../_components/auth-shell'
 import { RegisterForm } from './_components/register-form'
@@ -27,17 +28,20 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
 
   return (
     <AuthShell
-      asideEyebrow="Worq · Study & Co-Working"
-      asideTitle="Find your focus."
-      asideBody="Create an account to hold an open desk before you commute, or list your Space and keep its seat map current."
-      title="Create your account"
-      subtitle="Join Worq as a Seeker or a Host."
+      title="Start your focus"
+      subtitle="Create your Worq account as a Seeker or a Host."
     >
       <div className="flex flex-col gap-5">
         <RegisterForm returnUrl={returnUrl} defaultRole={defaultRole} />
-        <p className="flex flex-wrap items-center gap-x-1 text-sm">
+        <p className="flex flex-wrap items-center justify-center gap-x-1 text-sm text-muted-foreground">
           Already have an account?
-          <Link href={loginHref} className={buttonVariants({ variant: 'link' })}>
+          <Link
+            href={loginHref}
+            className={cn(
+              buttonVariants({ variant: 'link' }),
+              'px-1.5 font-semibold text-foreground',
+            )}
+          >
             Log in
           </Link>
         </p>

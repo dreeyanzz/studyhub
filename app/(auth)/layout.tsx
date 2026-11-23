@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+import './auth.css'
+
 // The shell around /login and /register: a way home or to discovery, then the form.
 export default function AuthLayout({ children }: LayoutProps<'/'>) {
   return (
@@ -69,7 +71,7 @@ export default function AuthLayout({ children }: LayoutProps<'/'>) {
       </header>
       <main
         id="main-content"
-        className="flex flex-1 justify-center bg-muted/40 px-4 py-8 sm:py-12"
+        className="flex flex-1 items-center justify-center bg-muted/40 px-4 py-8 sm:py-12"
       >
         {children}
       </main>
