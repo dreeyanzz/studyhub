@@ -109,7 +109,7 @@ only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
 search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, and the Host setup and Seeker journey tests, with the Seeker journey's Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
+test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-19's route-wide accessibility sweep, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
 `app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
 
 ## Commands
@@ -142,6 +142,7 @@ Required CI checks on `main`:
 - `checks`
 - `pr-title`
 - `db`
+- `e2e`
 
 These job names are a contract, because renaming one blocks every PR.
 
