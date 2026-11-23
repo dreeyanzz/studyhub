@@ -1,7 +1,7 @@
 # Google OAuth
 
 **Status:** approved 2026-11-24 · **Owner:** @dreeyanzz · **Approved by:** @dreeyanzz ·
-**Stories:** STORY-01, STORY-03, STORY-09, STORY-17, STORY-19 (and the Google OAuth build story once opened) ·
+**Stories:** STORY-01, STORY-03, STORY-09, STORY-17, STORY-19, STORY-21 (#392) ·
 **Decisions:** D-007, D-010, D-013, D-031, D-032, D-042, D-044, D-058, D-074, D-090, D-091, D-093, D-095
 
 This flow follows a visitor signing in or signing up with Google on Worq: starting the

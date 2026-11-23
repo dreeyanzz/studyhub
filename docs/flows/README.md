@@ -95,19 +95,20 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 
 ### Which story designs wait for which flows
 
-| Story                                           | Its design waits for                                                          |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| STORY-07 Seat map builder (#56)                 | Reservation lifecycle, Host setup journey                                     |
-| STORY-08 Map and filters (#57)                  | Space verification, Host setup journey, Seeker journey                        |
-| STORY-09 Holds and sandbox payment (#58)        | Reservation lifecycle, sandbox payment confirmation, check-in, Seeker journey |
-| STORY-10 QR check-in and release (#59)          | Reservation lifecycle, check-in, Seeker journey                               |
-| STORY-11 Space profile (#76)                    | Reservation lifecycle, Space verification, Host setup journey, Seeker journey |
-| STORY-12 Host occupancy (#77)                   | Reservation lifecycle                                                         |
-| STORY-15 Space verification (#166)              | Space verification, Host setup journey                                        |
-| STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle, review lifecycle                                       |
-| STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
-| STORY-16 History and Hold again (#335)          | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
-| STORY-20 Verification follow-ups (#338)         | Space verification, with its Sprint 3 change (#340)                           |
+| Story                                            | Its design waits for                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| STORY-07 Seat map builder (#56)                  | Reservation lifecycle, Host setup journey                                     |
+| STORY-08 Map and filters (#57)                   | Space verification, Host setup journey, Seeker journey                        |
+| STORY-09 Holds and sandbox payment (#58)         | Reservation lifecycle, sandbox payment confirmation, check-in, Seeker journey |
+| STORY-10 QR check-in and release (#59)           | Reservation lifecycle, check-in, Seeker journey                               |
+| STORY-11 Space profile (#76)                     | Reservation lifecycle, Space verification, Host setup journey, Seeker journey |
+| STORY-12 Host occupancy (#77)                    | Reservation lifecycle                                                         |
+| STORY-15 Space verification (#166)               | Space verification, Host setup journey                                        |
+| STORY-13 Reviews (#78), Sprint 3                 | Reservation lifecycle, review lifecycle                                       |
+| STORY-14 Administration console (#79), Sprint 3  | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-16 History and Hold again (#335)           | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-20 Verification follow-ups (#338)          | Space verification, with its Sprint 3 change (#340)                           |
+| STORY-21 Google OAuth sign-in and sign-up (#392) | Google OAuth                                                                  |
 
 If your story needs a shared flow that isn't listed here, ask Adrian before you write its
 design. Adrian decides whether it gets a doc, and the next section says who draws it.
