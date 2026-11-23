@@ -1,161 +1,68 @@
 'use client'
 
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'worq-lamp-lit'
-const STORAGE_EVENT = 'worq-lamp-storage'
-const STARTUP_PHRASES = ['DISCOVER SPACES', 'PLAN YOUR COMFORT', 'ALL IN ONE GO'] as const
+import { cn } from '@/lib/utils'
 
-const MAX_PULL = 68
-const TRIGGER_PULL = 36
-const BASE_CHAIN_END = 188
-const BASE_KNOB_Y = 196
+export const STARTUP_LAMP_STORAGE_KEY = 'worq-lamp-lit'
 
-function subscribeLit(callback: () => void) {
-  window.addEventListener(STORAGE_EVENT, callback)
-  window.addEventListener('storage', callback)
-  return () => {
-    window.removeEventListener(STORAGE_EVENT, callback)
-    window.removeEventListener('storage', callback)
+type StorageLike = Pick<Storage, 'getItem' | 'setItem'>
+
+export interface StartupLampCheckInput {
+  reducedMotion: boolean
+  storage: StorageLike | null
+}
+
+function getBrowserSessionStorage(): StorageLike | null {
+  try {
+    return window.sessionStorage
+  } catch {
+    return null
   }
 }
 
-function getLitSnapshot() {
+/**
+ * Checks whether the decorative startup lamp may play in this browser session
+ * (STORY-17 §3). Skips when reduced motion is enabled, storage is blocked, or
+ * the session flag is already set.
+ */
+export function canShowStartupLamp(input: StartupLampCheckInput): boolean {
+  if (input.reducedMotion || !input.storage) return false
   try {
-    return window.sessionStorage.getItem(STORAGE_KEY) === '1'
+    return input.storage.getItem(STARTUP_LAMP_STORAGE_KEY) !== '1'
   } catch {
     return false
   }
 }
 
-function getLitServerSnapshot() {
-  return false
-}
-
-function setSessionLit(lit: boolean) {
+/**
+ * Records that the startup lamp has played this session. Returns false when
+ * storage writes are blocked so the overlay is skipped cleanly (STORY-17 §3).
+ */
+export function markStartupLampPlayed(storage: StorageLike | null): boolean {
+  if (!storage) return false
   try {
-    if (lit) {
-      window.sessionStorage.setItem(STORAGE_KEY, '1')
-    } else {
-      window.sessionStorage.removeItem(STORAGE_KEY)
-    }
-    window.dispatchEvent(new Event(STORAGE_EVENT))
+    storage.setItem(STARTUP_LAMP_STORAGE_KEY, '1')
+    return true
   } catch {
-    // Ignore storage errors in restricted browsing contexts
+    return false
   }
 }
 
 /**
- * Interactive desk-lamp startup overlay shown once per browser session when
- * opening Worq. Pulling or clicking the brass handle illuminates the screen
- * and reveals the landing page underneath.
+ * Purely decorative presentation markup for the startup lamp overlay.
+ * Kept `aria-hidden="true"` and `pointer-events: none` with zero focusable
+ * controls so clicks and Tab always reach `/` underneath (STORY-17 §3 & §7).
  */
-export function StartupLamp() {
-  const isLit = useSyncExternalStore(subscribeLit, getLitSnapshot, getLitServerSnapshot)
-
-  const [pullOffset, setPullOffset] = useState(0)
-  const [isDragging, setIsDragging] = useState(false)
-  const [phraseIndex, setPhraseIndex] = useState(0)
-  const [isSwapping, setIsSwapping] = useState(false)
-  const [isEmerging, setIsEmerging] = useState(false)
-
-  const startYRef = useRef(0)
-  const hasMovedRef = useRef(false)
-  const currentPullRef = useRef(0)
-
-  useEffect(() => {
-    if (isLit) return
-
-    const intervalId = window.setInterval(() => {
-      setIsSwapping(true)
-      window.setTimeout(() => {
-        setPhraseIndex((prev) => (prev + 1) % STARTUP_PHRASES.length)
-        setIsSwapping(false)
-      }, 360)
-    }, 2200)
-
-    return () => window.clearInterval(intervalId)
-  }, [isLit])
-
-  function updatePull(dy: number) {
-    const clamped = Math.max(0, Math.min(MAX_PULL, dy))
-    currentPullRef.current = clamped
-    setPullOffset(clamped)
-  }
-
-  function triggerLampOn() {
-    if (isLit) return
-    setIsEmerging(true)
-    setSessionLit(true)
-    window.setTimeout(() => updatePull(0), 220)
-    window.setTimeout(() => setIsEmerging(false), 960)
-  }
-
-  function handlePointerDown(event: React.PointerEvent<SVGGElement>) {
-    if (isLit) return
-    setIsDragging(true)
-    hasMovedRef.current = false
-    startYRef.current = event.clientY
-    event.currentTarget.setPointerCapture(event.pointerId)
-  }
-
-  function handlePointerMove(event: React.PointerEvent<SVGGElement>) {
-    if (!isDragging || isLit) return
-    const dy = event.clientY - startYRef.current
-    if (Math.abs(dy) > 4) hasMovedRef.current = true
-    updatePull(dy)
-  }
-
-  function finishPull(event: React.PointerEvent<SVGGElement>) {
-    if (!isDragging) return
-    setIsDragging(false)
-    try {
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId)
-      }
-    } catch {
-      // Ignore release errors if pointer is already gone
-    }
-
-    if (currentPullRef.current >= TRIGGER_PULL || !hasMovedRef.current) {
-      if (!hasMovedRef.current) {
-        updatePull(48)
-        window.setTimeout(triggerLampOn, 260)
-      } else {
-        window.setTimeout(triggerLampOn, 120)
-      }
-    } else {
-      updatePull(0)
-    }
-  }
-
-  function handleKeyDown(event: React.KeyboardEvent<SVGGElement>) {
-    if ((event.key === 'Enter' || event.key === ' ') && !isLit) {
-      event.preventDefault()
-      updatePull(48)
-      window.setTimeout(triggerLampOn, 260)
-    }
-  }
-
-  const preGlow = pullOffset > 12
-  const statusText =
-    pullOffset >= TRIGGER_PULL ? 'Release to turn on the light!' : "Let's start to Worq!"
-
-  if (isLit && !isEmerging) {
-    return null
-  }
-
+export function StartupLampOverlay({ fading }: { fading: boolean }) {
   return (
     <div
-      className={`startup-lamp-overlay${isLit ? 'is-lit' : ''}${preGlow ? 'pre-glow' : ''}`}
-      aria-hidden={isLit}
+      className={cn('startup-lamp-overlay', fading && 'is-lit')}
+      aria-hidden="true"
+      data-testid="startup-lamp-overlay"
     >
       <div className="startup-lamp-center">
-        <div className="startup-phrase-bar" aria-live="polite">
-          <span className={`startup-rotating-word${isSwapping ? 'is-swapping' : ''}`}>
-            {STARTUP_PHRASES[phraseIndex]}
-          </span>
-        </div>
+        <p className="startup-phrase-bar">DISCOVER SPACES</p>
 
         <svg
           width="280"
@@ -164,8 +71,7 @@ export function StartupLamp() {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           className="startup-lamp-svg"
-          role="img"
-          aria-label="Desk lamp with a pull handle"
+          aria-hidden="true"
         >
           <defs>
             <linearGradient
@@ -280,43 +186,18 @@ export function StartupLamp() {
             strokeLinecap="round"
           />
 
-          <g
-            className={`startup-pull-group${isDragging ? 'is-dragging' : ''}`}
-            tabIndex={isLit ? -1 : 0}
-            role="button"
-            aria-label="Pull handle to turn on the Worq landing page"
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={finishPull}
-            onPointerCancel={finishPull}
-            onKeyDown={handleKeyDown}
-          >
-            <rect x="164" y="122" width="44" height="120" fill="transparent" />
+          <g className="startup-pull-group">
             <line
               x1="185"
               y1="120"
               x2="185"
-              y2={BASE_CHAIN_END}
+              y2="188"
               stroke="url(#worqBrassGrad)"
               strokeWidth="2.5"
               strokeDasharray="3 3"
               strokeLinecap="round"
-              style={{
-                transformOrigin: '185px 120px',
-                transform: `scaleY(${(BASE_CHAIN_END - 120 + pullOffset) / (BASE_CHAIN_END - 120)})`,
-                transition: isDragging
-                  ? 'none'
-                  : 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-              }}
             />
-            <g
-              style={{
-                transform: `translate(185px, ${BASE_KNOB_Y + pullOffset}px)`,
-                transition: isDragging
-                  ? 'none'
-                  : 'transform 240ms cubic-bezier(0.22, 1, 0.36, 1)',
-              }}
-            >
+            <g transform="translate(185, 196)">
               <circle cx="0" cy="-6" r="3" fill="url(#worqBrassGrad)" />
               <rect
                 x="-7"
@@ -351,12 +232,47 @@ export function StartupLamp() {
             </g>
           </g>
         </svg>
-
-        <div className="startup-pull-hint">
-          <p className="startup-pull-status">{statusText}</p>
-          <p className="startup-pull-sub">Drag down or click the brass handle</p>
-        </div>
       </div>
     </div>
   )
+}
+
+/**
+ * Decorative desk-lamp intro shown once per browser session on `/` (STORY-17 §3).
+ * Renders nothing on the server or without JavaScript, skips under reduced motion
+ * or blocked storage, never blocks clicks or Tab, and fades out within ~1 s.
+ */
+export function StartupLamp() {
+  const [phase, setPhase] = useState<'idle' | 'showing' | 'fading'>('idle')
+
+  useEffect(() => {
+    const reducedMotion =
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+    if (!canShowStartupLamp({ reducedMotion, storage: getBrowserSessionStorage() })) {
+      return
+    }
+
+    let fadeTimer: number | undefined
+    let doneTimer: number | undefined
+    const frameId = window.requestAnimationFrame(() => {
+      if (!markStartupLampPlayed(getBrowserSessionStorage())) return
+      setPhase('showing')
+      fadeTimer = window.setTimeout(() => setPhase('fading'), 350)
+      doneTimer = window.setTimeout(() => setPhase('idle'), 1050)
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frameId)
+      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer)
+      if (doneTimer !== undefined) window.clearTimeout(doneTimer)
+    }
+  }, [])
+
+  if (phase === 'idle') {
+    return null
+  }
+
+  return <StartupLampOverlay fading={phase === 'fading'} />
 }
