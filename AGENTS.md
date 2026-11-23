@@ -100,7 +100,7 @@ renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-0
 wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search
 and STORY-09's reservation queries), `lib/geo/` (STORY-08's Haversine distance and
 campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
-(STORY-09's Stripe checkout, webhook and hold refusals), `lib/reservations/` (STORY-09's
+(STORY-09's Stripe checkout, webhook and hold refusals, and STORY-14's Stripe refund), `lib/reservations/` (STORY-09's
 fee, time and countdown formatters), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
