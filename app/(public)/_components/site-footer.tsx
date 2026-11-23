@@ -5,12 +5,12 @@ import { buttonVariants } from '@/components/ui/button'
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-muted">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10">
-        <div className="flex flex-col justify-between gap-8 md:flex-row md:items-start">
-          <div className="max-w-sm space-y-2">
+      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-5">
+        <div className="flex flex-wrap items-start justify-between gap-8">
+          <div className="max-w-sm min-w-0 space-y-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 font-heading text-2xl font-semibold text-foreground"
+              className="inline-flex min-h-12 min-w-12 items-center gap-2 font-heading text-2xl font-semibold text-foreground focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               <svg
                 width="32"
@@ -63,8 +63,11 @@ export function SiteFooter() {
             </p>
           </div>
 
-          <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:gap-12">
-            <div className="flex flex-col gap-1">
+          <nav
+            aria-label="Footer"
+            className="flex min-w-0 flex-wrap gap-x-8 gap-y-6 sm:gap-x-12"
+          >
+            <div className="flex min-w-0 flex-col gap-1">
               <p className="px-3 text-xs font-bold tracking-wider text-primary uppercase">
                 Explore
               </p>
@@ -72,7 +75,8 @@ export function SiteFooter() {
                 href="/spaces"
                 className={buttonVariants({
                   variant: 'link',
-                  className: 'justify-start',
+                  className:
+                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
                 })}
               >
                 Find a Space
@@ -81,7 +85,8 @@ export function SiteFooter() {
                 href="/#how-it-works"
                 className={buttonVariants({
                   variant: 'link',
-                  className: 'justify-start',
+                  className:
+                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
                 })}
               >
                 How it works
@@ -90,14 +95,15 @@ export function SiteFooter() {
                 href="/#for-hosts"
                 className={buttonVariants({
                   variant: 'link',
-                  className: 'justify-start',
+                  className:
+                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
                 })}
               >
                 For Hosts
               </Link>
             </div>
 
-            <div className="flex flex-col gap-1">
+            <div className="flex min-w-0 flex-col gap-1">
               <p className="px-3 text-xs font-bold tracking-wider text-primary uppercase">
                 Account
               </p>
@@ -105,7 +111,8 @@ export function SiteFooter() {
                 href="/login"
                 className={buttonVariants({
                   variant: 'link',
-                  className: 'justify-start',
+                  className:
+                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
                 })}
               >
                 Log in
@@ -114,7 +121,8 @@ export function SiteFooter() {
                 href="/register"
                 className={buttonVariants({
                   variant: 'link',
-                  className: 'justify-start',
+                  className:
+                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
                 })}
               >
                 Sign up

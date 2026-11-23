@@ -46,7 +46,7 @@
 }
 .discovery-container {
   max-width: 80rem;
-  padding-inline: 1.25rem;
+  padding-inline: min(1.25rem, 4vw);
   margin-inline: auto;
 }
 .discovery-home h1,
@@ -65,15 +65,18 @@
 .discovery-home p {
   line-height: 1.6;
 }
-.discovery-home a {
+.discovery-home a,
+.discovery-home button {
   min-height: 3rem;
   min-width: 3rem;
+  max-width: 100%;
   height: auto;
   padding-block: 0.75rem;
   white-space: normal;
   transition: none;
 }
-.discovery-home a:focus-visible {
+.discovery-home a:focus-visible,
+.discovery-home button:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 4px;
 }
@@ -136,11 +139,12 @@
   gap: 1.5rem;
 }
 .hero-copy {
+  width: 100%;
   max-width: 34rem;
-  padding: 2rem;
+  padding: min(2rem, 5vw);
   border-radius: 2.25rem 0.65rem 2.75rem 0.65rem;
   border: 1px solid rgba(216, 223, 208, 0.85);
-  background: rgba(248, 249, 243, 0.82);
+  background: rgba(248, 249, 243, 0.92);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 1rem 2.5rem rgba(23, 60, 45, 0.14);
@@ -160,11 +164,24 @@
   font-size: 1.125rem;
   color: var(--foreground);
 }
+.hero-search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+.hero-search-field {
+  position: relative;
+  min-width: 0;
+  flex: 1 1 13rem;
+}
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-block: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
 }
 .hero-copy > .discovery-caption {
   max-width: 30rem;
@@ -330,7 +347,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem 1.5rem;
-  padding: 1.25rem 1.5rem;
+  padding: min(1.25rem, 4vw) min(1.5rem, 4.5vw);
   border: 1px solid var(--border);
   border-radius: 1.75rem 0.5rem 1.75rem 0.5rem;
   background: var(--secondary);
@@ -392,6 +409,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .discovery-home::before,
+  .discovery-home::after,
   .discovery-home *,
   .discovery-home *::before,
   .discovery-home *::after {

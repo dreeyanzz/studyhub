@@ -77,8 +77,37 @@ export default function Home() {
               Find an open seat and hold it now. Worq connects Seekers with verified study
               and co-working Spaces—complete with seat maps and instant holds.
             </p>
+            {/* Plain GET form works before JavaScript loads (STORY-17 §3, SRS §3.7.1). */}
+            <form
+              action="/spaces"
+              method="get"
+              role="search"
+              aria-label="Search study Spaces"
+              className="hero-search"
+            >
+              <div className="hero-search-field">
+                <label htmlFor="hero-search-input" className="sr-only">
+                  Search by campus, city, or Space name
+                </label>
+                <Search
+                  className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <input
+                  id="hero-search-input"
+                  name="q"
+                  type="search"
+                  maxLength={100}
+                  placeholder="Search by campus, city, or Space name..."
+                  className="min-h-12 w-full min-w-0 rounded-xl border border-input bg-background px-4 pl-10 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm"
+                />
+              </div>
+              <button type="submit" className={buttonVariants({ className: 'shrink-0' })}>
+                Search
+              </button>
+            </form>
             <div className="hero-actions">
-              <Link href="/spaces" className={buttonVariants()}>
+              <Link href="/spaces" className={buttonVariants({ variant: 'outline' })}>
                 <Search aria-hidden="true" size={18} /> Find a Space
               </Link>
               <Link href="/register" className={buttonVariants({ variant: 'outline' })}>
