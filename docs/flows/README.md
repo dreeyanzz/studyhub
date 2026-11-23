@@ -16,6 +16,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian                             | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
 | [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke                       | No other flow         | implemented 2026-11-15                                             |
 | [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James                              | Reservation lifecycle | approved 2026-11-19                                                |
+| [Google OAuth](google-oauth.md)                                 | #379  | Sequence | Adrian   | Adrian                             | No other flow         | approved 2026-11-24                                                |
 
 **Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
 approve them:
@@ -86,6 +87,11 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
   (STORY-08), the Space profile and picking a unit (STORY-11), the hold and the sandbox
   payment (STORY-09), and the booking token on their dashboard (STORY-10). It includes
   what a signed-out visitor gets when they try to hold a unit.
+- **Google OAuth** (D-095, #379). Signing in or signing up with Google from `/login` or
+  `/register`: PKCE initiation via Server Action, `/api/auth/callback` code exchange and
+  error paths, automatic linking for existing verified emails, one-time Seeker/Host role
+  and name confirmation on `/choose-role`, and Postgres RLS gating on
+  `profiles.role_confirmed`.
 
 ### Which story designs wait for which flows
 
