@@ -51,16 +51,18 @@ project after about a week without activity, so wake it the day before any demo.
 `.env.example` lists every variable and is committed. `.env.local` holds your values
 and is gitignored.
 
-| Variable                               | Where it may appear                                                                                                                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                                                      |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                                          |
-| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                                             |
-| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                                                     |
-| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers (the Stripe webhook) and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065)            |
-| `STRIPE_SECRET_KEY`                    | Server only, in `lib/payments/stripe.ts`. The Stripe sandbox's `sk_test_` or `rk_test_` key; a live key is refused (D-005, D-070)                                              |
-| `STRIPE_WEBHOOK_SECRET`                | Server only, in the Stripe webhook route and `npm run webhook:simulate`. Locally, the `whsec_` that `stripe listen --print-secret` prints; on Vercel, the Dashboard endpoint's |
-| `STRIPE_API_URL`                       | Optional, server only. Points the Stripe calls at a stub; unset, they go to `https://api.stripe.com`                                                                           |
+| Variable                               | Where it may appear                                                                                                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                                                                  |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                                                      |
+| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                                                         |
+| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                                                                 |
+| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers (the Stripe webhook) and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065)                        |
+| `STRIPE_SECRET_KEY`                    | Server only, in `lib/payments/stripe.ts`. The Stripe sandbox's `sk_test_` or `rk_test_` key; a live key is refused (D-005, D-070)                                                          |
+| `STRIPE_WEBHOOK_SECRET`                | Server only, in the Stripe webhook route and `npm run webhook:simulate`. Locally, the `whsec_` that `stripe listen --print-secret` prints; on Vercel, the Dashboard endpoint's             |
+| `STRIPE_API_URL`                       | Optional, server only. Points the Stripe calls at a stub; unset, they go to `https://api.stripe.com`                                                                                       |
+| `GMAIL_USER`                           | Optional, server only, in `lib/email/transport.ts`. The team Gmail address that sends STORY-16's hold confirmation email. In Vercel Production and optional in `.env.local` (D-089)        |
+| `GMAIL_APP_PASSWORD`                   | Optional, server only, in `lib/email/transport.ts`. The team Gmail account's app password. In Vercel Production and Adrian's `.env.local` only; never in Preview, CI, code or chat (D-089) |
 
 `proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
 without them every page, the landing page included, fails with an error that names them.
