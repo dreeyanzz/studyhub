@@ -29,8 +29,8 @@ export function AuthShell({
 }) {
   return (
     <Card className="w-full max-w-4xl self-start overflow-hidden p-0">
-      <div className="grid md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-        <aside className="flex flex-col justify-between gap-6 bg-primary p-6 text-primary-foreground sm:p-8">
+      <div className="grid grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <aside className="flex min-w-0 flex-col justify-between gap-6 bg-primary p-[min(1.5rem,4vw)] text-primary-foreground sm:p-8">
           <div className="space-y-3">
             <p className="text-xs font-semibold tracking-wider text-primary-foreground/85 uppercase">
               {asideEyebrow}
@@ -55,7 +55,7 @@ export function AuthShell({
           </ul>
         </aside>
 
-        <div className="flex flex-col gap-6 p-6 sm:p-8">
+        <div className="flex min-w-0 flex-col gap-6 p-[min(1.5rem,4vw)] sm:p-8">
           <div className="space-y-1.5">
             <h1 className="font-heading text-3xl font-semibold tracking-tight">
               {title}

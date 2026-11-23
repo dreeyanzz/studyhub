@@ -139,7 +139,12 @@ export function RegisterForm({
         required
         errors={errors.confirmPassword}
       />
-      <Button type="submit" disabled={pending} focusableWhenDisabled>
+      <Button
+        type="submit"
+        disabled={pending}
+        focusableWhenDisabled
+        className="h-auto min-h-12 whitespace-normal"
+      >
         {pending ? 'Creating your account…' : 'Create account'}
       </Button>
     </form>

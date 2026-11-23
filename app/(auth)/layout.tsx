@@ -69,7 +69,7 @@ export default function AuthLayout({ children }: LayoutProps<'/'>) {
       </header>
       <main
         id="main-content"
-        className="flex flex-1 justify-center bg-muted/40 px-4 py-8 sm:py-12"
+        className="flex flex-1 justify-center bg-muted/40 px-[min(1rem,3vw)] py-8 sm:px-4 sm:py-12"
       >
         {children}
       </main>
