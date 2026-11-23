@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, Armchair, BookOpen, Leaf, Search, Users } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
+import { StartupLamp } from './_components/startup-lamp'
 import './discovery.css'
 
 // D-033: these are illustrative content, never inventory or interactive cards.
@@ -49,6 +50,7 @@ const pillars = [
 export default function Home() {
   return (
     <div className="discovery-home">
+      <StartupLamp />
       <section
         className="discovery-hero discovery-container"
         aria-labelledby="hero-title"
