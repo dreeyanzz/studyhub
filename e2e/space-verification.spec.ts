@@ -1,10 +1,73 @@
 import { expect, test } from '@playwright/test'
+import postgres from 'postgres'
 
 // The shared seed password for all local test accounts (supabase/seed.sql).
 // Local and CI only (D-013). Never used against the cloud dev project (D-028).
 const SEED_PASSWORD = 'Worq-demo-2026'
 
+const databaseUrl =
+  process.env.DB_URL ||
+  process.env.DATABASE_URL ||
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+
+// host@example.test (supabase/seed.sql), who creates this test's Spaces.
+const HOST_1_ID = 'b0000000-0000-4000-8000-000000000001'
+
+/**
+ * Deletes the Spaces this test creates. Left behind, they piled up on the local stack
+ * and broke the Space counts in supabase/tests/02-spaces.sql.
+ */
+async function deleteTestSpaces() {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    await sql`
+      delete from public.spaces
+      where host_id = ${HOST_1_ID}
+        and name ~ '^(Approval|Rejection) Space [0-9]+$'
+    `
+  } finally {
+    await sql.end()
+  }
+}
+
 test.describe('Space verification portal (STORY-15)', () => {
+  test.afterAll(deleteTestSpaces)
+
+  test('Approve and Reject stay on screen at 360 px with 200% text (D-031)', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 900 })
+    await page.goto('/login?returnUrl=%2Fadmin')
+    await page.getByLabel('Email').fill('admin@example.test')
+    await page.getByLabel('Password').fill(SEED_PASSWORD)
+    await page.getByRole('button', { name: 'Log in' }).click()
+    await expect(page).toHaveURL('/admin')
+    // The seed's Pending Space gives the queue at least one card.
+    await expect(page.getByRole('button', { name: /^Reject / }).first()).toBeVisible()
+
+    await page.evaluate(() => {
+      document.documentElement.style.fontSize = '200%'
+    })
+    await page.waitForTimeout(700)
+
+    const outside = await page.evaluate(() => {
+      const width = document.documentElement.clientWidth
+      return Array.from(document.querySelectorAll('main button'))
+        .map((button) => ({
+          name: button.textContent?.trim(),
+          box: button.getBoundingClientRect(),
+        }))
+        .filter(
+          ({ box }) => box.width > 0 && (box.left < -0.5 || box.right > width + 0.5),
+        )
+        .map(
+          ({ name, box }) =>
+            `${name}: ${Math.round(box.left)} to ${Math.round(box.right)}`,
+        )
+    })
+    expect(outside).toEqual([])
+  })
+
   test('Anonymous visitor is redirected to /login with returnUrl', async ({ page }) => {
     await page.goto('/admin')
     await expect(page).toHaveURL(/\/login\?returnUrl=%2Fadmin$/)

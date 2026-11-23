@@ -17,6 +17,10 @@ a design doc.
 - Pull request title: `docs(STORY-xx): design <short description>`.
 - Reviewers: Adrian, plus Maria if the story has screens. Maria approves the user's steps
   in §1 and the UI in §3 (D-042).
+- **Sprint 3's feature stories** (STORY-13, STORY-14, STORY-16, STORY-20) work
+  differently (D-073, D-075). Adrian writes the design, Luke adds its screens section as
+  his own commits on the same branch and approves it, and Maria's approval isn't needed:
+  Maria and James review those screens once they're built.
 - Start from [`TEMPLATE.md`](TEMPLATE.md).
 - Keep it as short as the story allows.
 
@@ -65,11 +69,15 @@ and what the right user is prevented from doing to their own rows.
 | STORY-07 | [STORY-07-seat-map-builder.md](STORY-07-seat-map-builder.md)       | implemented 2026-11-09                                              |
 | STORY-08 | [STORY-08-geo-discovery.md](STORY-08-geo-discovery.md)             | implemented 2026-11-13                                              |
 | STORY-09 | [STORY-09-reserve-now-holds.md](STORY-09-reserve-now-holds.md)     | implemented 2026-11-14                                              |
-| STORY-10 | [STORY-10-check-in-release.md](STORY-10-check-in-release.md)       | approved 2026-11-13                                                 |
+| STORY-10 | [STORY-10-check-in-release.md](STORY-10-check-in-release.md)       | implemented 2026-11-15                                              |
 | STORY-11 | [STORY-11-space-profile.md](STORY-11-space-profile.md)             | implemented 2026-11-14                                              |
 | STORY-12 | [STORY-12-host-occupancy.md](STORY-12-host-occupancy.md)           | implemented 2026-11-10                                              |
-| STORY-13 |                                                                    | not written                                                         |
-| STORY-14 |                                                                    | not written                                                         |
+| STORY-13 | [STORY-13-reviews.md](STORY-13-reviews.md)                         | approved 2026-11-22                                                 |
+| STORY-14 | [STORY-14-admin-console.md](STORY-14-admin-console.md)             | approved 2026-11-22                                                 |
 | STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)   | implemented 2026-11-09                                              |
+| STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md) | approved 2026-11-22                                                 |
+| STORY-17 | [STORY-17-ui-ux-refresh.md](STORY-17-ui-ux-refresh.md)             | approved 2026-11-23                                                 |
+| STORY-19 | [STORY-19-final-hardening.md](STORY-19-final-hardening.md)         | approved 2026-11-22                                                 |
+| STORY-20 |                                                                    | not written                                                         |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.

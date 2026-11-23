@@ -7,14 +7,27 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 
 ## The flows
 
-| Flow                                                            | Issue | Diagram  | Drawn by | Approved by   | Waits for             | Status              |
-| --------------------------------------------------------------- | ----- | -------- | -------- | ------------- | --------------------- | ------------------- |
-| [Reservation lifecycle](reservation-lifecycle.md)               | #173  | State    | Adrian   | Maria         | No other flow         | approved 2026-11-06 |
-| [Space verification](space-verification.md)                     | #174  | State    | Adrian   | Maria         | No other flow         | approved 2026-11-06 |
-| [Sandbox payment confirmation](sandbox-payment-confirmation.md) | #175  | Sequence | Adrian   | Luke, Maria   | Reservation lifecycle | approved 2026-11-02 |
-| [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria | Reservation lifecycle | approved 2026-11-02 |
-| [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian        | No other flow         | approved 2026-10-31 |
-| [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke  | No other flow         | approved 2026-11-06 |
+| Flow                                                            | Issue | Diagram  | Drawn by | Approved by                        | Waits for             | Status                                                             |
+| --------------------------------------------------------------- | ----- | -------- | -------- | ---------------------------------- | --------------------- | ------------------------------------------------------------------ |
+| [Reservation lifecycle](reservation-lifecycle.md)               | #173  | State    | Adrian   | Maria; the Sprint 3 change, Adrian | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
+| [Space verification](space-verification.md)                     | #174  | State    | Adrian   | Maria; the Sprint 3 change, Adrian | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
+| [Sandbox payment confirmation](sandbox-payment-confirmation.md) | #175  | Sequence | Adrian   | Luke, Maria                        | Reservation lifecycle | implemented 2026-11-15                                             |
+| [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria                      | Reservation lifecycle | implemented 2026-11-15                                             |
+| [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian                             | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
+| [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke                       | No other flow         | implemented 2026-11-15                                             |
+| [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James                              | Reservation lifecycle | approved 2026-11-19                                                |
+
+**Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
+approve them:
+
+- the [review lifecycle](review-lifecycle.md) (#339), in the table above. It merged in
+  #342 with James's approval only: Luke and Maria were asked to review it, and didn't
+  before it merged;
+- a change to the **Space verification** flow (#340, D-079), as
+  [Changing a flow after it merges](#changing-a-flow-after-it-merges) says. It also
+  changes the reservation lifecycle and the Host setup journey, which a take-down and a
+  resubmission reach. It merged in #346 with no review, so Adrian, who merged it, is
+  recorded as its approver.
 
 [Who draws and approves a flow](#who-draws-and-approves-a-flow) explains the "Drawn by"
 and "Approved by" columns. "Waits for" names the flows that must merge before a flow is
@@ -45,9 +58,12 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
   bounds and the fee are kept. Closing time for a Space that closes after midnight or
   never closes (D-027). What deleting a unit with a hold does. What moves the
   Host-updated time (D-002). The record of a completed visit that a review needs (D-009).
-- **Space verification.** A Space's verification status, Pending, Verified or Rejected
-  (FR-5.1): who changes it (D-037), what each status shows Hosts, Seekers and
-  Administrators, and what a Host's edit does to it (D-027).
+- **Space verification.** A Space's verification status, Pending, Verified, Rejected or
+  Taken down (FR-5.1, D-084): who changes it (D-037), what each status shows Hosts,
+  Seekers and Administrators, and what a Host's edit does to it (D-027). Its Sprint 3
+  change (#340) adds rejection reasons, resubmitting, a name or location edit going back
+  to Pending, taking a Space down and what that does to its holds, undoing a decision,
+  the list of changes, and the live notice (D-079, D-085, D-086).
 - **Sandbox payment confirmation.** From the gateway's hosted checkout to a Reserved
   unit: the gateway calling a route in `app/api/` (D-010), the signature check, a
   message that comes twice, comes after the payment window has lapsed, or reports a
@@ -60,6 +76,12 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 - **Host setup journey.** A Host from a new Space to a public one: its details
   (STORY-05), the seat map (STORY-07), tags (STORY-08), photos (STORY-11), and an
   Administrator's approval (STORY-15).
+- **Review lifecycle** (Sprint 3). A review's states and every move between them (D-076,
+  D-080, D-081): a Seeker with a check-in posting one (D-009), its author editing or
+  deleting it, someone reporting each version of it, and an Administrator hiding,
+  restoring, removing it or dismissing its reports. Which reviews the averages count,
+  what each state shows signed-out visitors, Seekers, Hosts and Administrators, and the
+  moderation history.
 - **Seeker journey.** A Seeker from search to a held unit: search and filters
   (STORY-08), the Space profile and picking a unit (STORY-11), the hold and the sandbox
   payment (STORY-09), and the booking token on their dashboard (STORY-10). It includes
@@ -76,8 +98,10 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
 | STORY-11 Space profile (#76)                    | Reservation lifecycle, Space verification, Host setup journey, Seeker journey |
 | STORY-12 Host occupancy (#77)                   | Reservation lifecycle                                                         |
 | STORY-15 Space verification (#166)              | Space verification, Host setup journey                                        |
-| STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle                                                         |
-| STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, Space verification, sandbox payment confirmation       |
+| STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle, review lifecycle                                       |
+| STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-16 History and Hold again (#335)          | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-20 Verification follow-ups (#338)         | Space verification, with its Sprint 3 change (#340)                           |
 
 If your story needs a shared flow that isn't listed here, ask Adrian before you write its
 design. Adrian decides whether it gets a doc, and the next section says who draws it.
@@ -193,3 +217,8 @@ Open a pull request to the flow doc, approved like the first one. It updates the
 designs it makes stale in the same pull request (AGENTS.md rule 7). If code already
 follows the old flow, it says what has to change, and each change is a fix under its
 story. A story design never changes a flow on its own.
+
+The flow keeps its own status, and its status line adds the change's: for example
+`implemented 2026-11-15 · Sprint 3 change (#340): draft`. The change's status moves
+like a new flow's, from `draft` to `approved YYYY-MM-DD` in the pull request that merges
+it, and to `implemented YYYY-MM-DD` once every test it adds passes on `main`.

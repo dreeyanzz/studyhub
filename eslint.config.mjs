@@ -15,6 +15,18 @@ export default defineConfig([
   {
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
+      // A key after a spread makes the JSX transform fall back to createElement, which
+      // leaves static children unkeyed: React's "unique key" warning in UnitForm.
+      // react/jsx-key's checkKeyMustBeforeSpread only looks inside lists, so this does.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "JSXOpeningElement > JSXSpreadAttribute ~ JSXAttribute[name.name='key']",
+          message:
+            'Put key before the {...spread}. After a spread, JSX falls back to createElement, and static children lose their keys.',
+        },
+      ],
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },

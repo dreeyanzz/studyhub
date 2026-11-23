@@ -44,7 +44,7 @@ into a chat tool that cannot see the repository.
 1. This file.
 2. [`docs/README.md`](docs/README.md): the map of every document, and which one wins
    when two disagree.
-3. [`docs/SPRINT-2.md`](docs/SPRINT-2.md): the current sprint: who owns which story,
+3. [`docs/SPRINT-3.md`](docs/SPRINT-3.md): the current sprint: who owns which story,
    who waits for whom, and how each story is tested.
 4. [`docs/course/StudyHub_SRS.md`](docs/course/StudyHub_SRS.md): the requirements,
    cited as `FR-x.y`.
@@ -80,7 +80,7 @@ supabase/             config.toml, migrations/, tests/ (pgTAP), seed.sql
 e2e/                  Playwright journeys
 scripts/              repo scripts (docx export)
 docs/                 README (map), DECISIONS, GLOSSARY, ONBOARDING, DEVELOPMENT,
-                      SPRINT-1, SPRINT-2, guides/, flows/ (shared flows), design/,
+                      SPRINT-1, SPRINT-2, SPRINT-3, guides/, flows/ (shared flows), design/,
                       course/ (course deliverables)
 notes/                postmortems
 ```
@@ -109,7 +109,7 @@ only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
 search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, and STORY-10's check-in journey test) and `docs/`. The other route groups and
+test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, and the Host setup and Seeker journey tests, with the Seeker journey's Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
 `app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
 
 ## Commands
@@ -205,12 +205,12 @@ These job names are a contract, because renaming one blocks every PR.
 ### The story loop
 
 Most work here is done by an agent while a teammate prompts it. When your human says
-**"Start my Sprint 2 story"** or **"Continue my story"**, run this loop on your own.
+**"Start my Sprint 3 story"** or **"Continue my story"**, run this loop on your own.
 Stop only at the 🛑 points.
 
 1. **Find the story.** Run `git switch main && git pull`, then
    `gh issue list --assignee @me --label type:story --state open`. Read the story
-   issue, the human's section of `docs/SPRINT-2.md`, and every `FR-x.y` and `D-NNN`
+   issue, the human's section of `docs/SPRINT-3.md`, and every `FR-x.y` and `D-NNN`
    the story cites. If they have more than one story, work on the lowest-numbered one
    that isn't blocked.
 2. **Flows first.** [`docs/flows/README.md`](docs/flows/README.md) lists the shared
@@ -235,8 +235,10 @@ Stop only at the 🛑 points.
      Read the flows it uses and the design docs of the stories it depends on first. Its
      §1 links each flow and draws only this story's part. Open the PR (title
      `docs(STORY-xx): design <summary>`, first body line `Refs #<story>`, reviewer
-     `dreeyanzz`, plus `fayeye-09` if the story has screens, D-042). 🛑 Stop: no code
-     until Adrian merges it.
+     `dreeyanzz`, plus `fayeye-09` if the story has screens, D-042). In Sprint 3,
+     Adrian writes the feature stories' designs, Luke adds their screens section and
+     approves, and Maria's approval isn't needed (D-073, D-075). 🛑 Stop: no code until
+     Adrian merges it.
    - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
    - **Merged:** go on.
 4. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
@@ -342,8 +344,10 @@ Every non-trivial change leaves a trace in the right place:
 ## Docs map
 
 - [`docs/README.md`](docs/README.md): map, ground-truth order, where things go
-- [`docs/SPRINT-2.md`](docs/SPRINT-2.md): the Sprint 2 brief in plain English: who
+- [`docs/SPRINT-3.md`](docs/SPRINT-3.md): the Sprint 3 brief in plain English: who
   does what, who waits for whom, how to test, and the dates
+- [`docs/SPRINT-2.md`](docs/SPRINT-2.md): the Sprint 2 brief, kept as the record of
+  how Sprint 2 ran
 - [`docs/SPRINT-1.md`](docs/SPRINT-1.md): the Sprint 1 brief, kept as the record of
   how Sprint 1 ran
 - [`docs/DECISIONS.md`](docs/DECISIONS.md): decisions and what was rejected

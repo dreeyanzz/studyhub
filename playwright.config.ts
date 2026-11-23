@@ -2,6 +2,8 @@ import { execSync } from 'node:child_process'
 
 import { defineConfig, devices } from '@playwright/test'
 
+import { STRIPE_STUB_URL, STRIPE_STUB_WEBHOOK_SECRET } from './e2e/support/stripe-stub'
+
 const PORT = 3100
 // localhost, not 127.0.0.1: Next 16 blocks its dev resources (the HMR socket) for
 // any other host name unless next.config.ts lists it in allowedDevOrigins.
@@ -51,6 +53,14 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_SUPABASE_URL: localStack.get('API_URL') ?? '',
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: localStack.get('PUBLISHABLE_KEY') ?? '',
+      // The local stack's own secret key, for the payment webhook route's admin client
+      // (app/api only, D-010). It never leaves this machine or the CI runner.
+      SUPABASE_SECRET_KEY: localStack.get('SECRET_KEY') ?? '',
+      // Payments go to e2e/seeker-journey.spec.ts's stub of the Stripe API, never to
+      // Stripe (D-005, D-070). These are placeholders, not keys: the stub accepts anything.
+      STRIPE_API_URL: STRIPE_STUB_URL,
+      STRIPE_SECRET_KEY: 'sk_test_e2e-stub-placeholder',
+      STRIPE_WEBHOOK_SECRET: STRIPE_STUB_WEBHOOK_SECRET,
     },
   },
 })

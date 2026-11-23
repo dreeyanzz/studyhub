@@ -1,7 +1,11 @@
 # Sprint 2 brief
 
-**Sprint 2 · Saturday 10 October to Tuesday 1 December 2026 (D-045) · Read all of it
+**Sprint 2 · Saturday 10 October to Monday 16 November 2026 (D-072) · Read all of it
 before you start.**
+
+> **Sprint 2 is closed.** It ended with its review and the Prefinal demo on Mon 16 Nov,
+> with every story merged and nothing carried over. This page stays as the record of how
+> it ran. The current sprint is in the [Sprint 3 brief](SPRINT-3.md).
 
 This page tells each of us what to do in Sprint 2, in plain English:
 
@@ -33,7 +37,7 @@ issue or with [`AGENTS.md`](../AGENTS.md), ask Adrian, and one of them gets fixe
 ## What we are building this sprint
 
 Sprint 1 was the walking skeleton. Sprint 2 builds the **booking journey**, the heart of
-Worq, from start to finish (D-036). By Tuesday 1 December, anyone watching our Prefinal
+Worq, from start to finish (D-036). By Monday 16 November, anyone watching our Prefinal
 demo should see this:
 
 1. A Host lays out their Space on a snap grid: zones, seats, standing desks and whole
@@ -152,7 +156,7 @@ the flows our stories wait for, and approves the ones the flows index names.
 | **3. Tables first**     | STORY-07's tables and RLS; then STORY-15's function                                           | STORY-08's tag tables, map and search                                             | STORY-11's layout and photo gallery                   | STORY-15's `/admin` page; STORY-12's layout                        |
 | **4. Build**            | STORY-07's builder; STORY-09's hold and payment                                               | STORY-08's filters; STORY-10's QR code and scan page; then its database functions | STORY-11's availability view and seat map             | STORY-12's one-tap states and walk-ins                             |
 | **5. Wire it together** | Wire it together; review and merge                                                            | STORY-10 on STORY-09's reservations                                               | Responsive and keyboard checks                        | The Playwright journeys; walk-through as each role                 |
-| **Tue 1 Dec**           | Sprint 2 review and Prefinal demo                                                             | Same, together                                                                    | Same, together                                        | Same, together                                                     |
+| **Mon 16 Nov**          | Sprint 2 review and Prefinal demo                                                             | Same, together                                                                    | Same, together                                        | Same, together                                                     |
 
 ## 4. Your part
 
@@ -260,6 +264,13 @@ whatever is left. The Host sees each reservation's remaining wait window.
 releases the unit and records the fee as forfeited; check-out and closing time return
 units to Available; the Host sees the remaining wait windows.
 
+> **Update, Sun 15 Nov: STORY-10 is done** (#291, #299, #300, #304, #305, and #307 for a
+> fix). A Seeker gets their booking token as a QR code. A Host scans or types it on the
+> check-in desk, and the unit turns Occupied, once, and only at its own Space. Check-out,
+> closing time and a no-show, which forfeits the fee, return the unit to Available with no
+> cron job, and the Host sees each Reserved unit's remaining wait window (design §9).
+> #199 is settled by D-071: there is no grace period after a wait window ends.
+
 **Waits for:** STORY-09's reservations, which your check-in, check-out and release
 functions build on. Build the QR code, the scan page and the token rules first, against
 sample data.
@@ -353,6 +364,14 @@ every path in them can be tested, and the flows your stories wait for: the reser
 lifecycle (STORY-12) and the Space verification flow (STORY-15). Before the Sprint 2
 review, check every merged story against the Definition of Done.
 
+> **Update, Mon 16 Nov: Sprint 2 QA is done**, by Adrian's agent at Adrian's request.
+> Both journeys are Playwright tests: `e2e/host-setup.spec.ts` (#322) walks the Host
+> setup journey's 15 paths, and `e2e/seeker-journey.spec.ts` (#323) the Seeker journey's
+> 25 automated paths, paying through a stub of the Stripe API. With #321, all six flows
+> read `implemented`. The Definition of Done check (#315) passed every story. It records
+> two exceptions: PRs merged without the required approval, and review threads left
+> open. It found two layout bugs, fixed by #316 and #317.
+
 **How to test:** `npm run test:e2e` against the local stack. By hand, locally or on the
 cloud dev project, as `host@example.test` and `admin@example.test`. The cloud
 Administrator's password is in your `.env.local` (D-061, D-065).
@@ -366,7 +385,7 @@ day.
 | ---------- | -------------------------------------------------------------------------- |
 | Tue 13 Oct | Sprint 2 plan merged                                                       |
 | Tue 20 Oct | Story designs start again (D-043), after the shared flows they use (D-044) |
-| Tue 1 Dec  | Sprint 2 review and Prefinal demo (D-045)                                  |
+| Mon 16 Nov | Sprint 2 review and Prefinal demo (D-072)                                  |
 
 In between, the work runs in the order of the steps in section 3: flows, designs, tables
 first, the build, then wiring it together, ending with a full walk-through as each role.

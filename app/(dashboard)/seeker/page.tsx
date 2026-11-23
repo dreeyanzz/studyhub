@@ -4,17 +4,21 @@ import { getMyReservation } from '@/lib/data/reservations'
 import { createClient } from '@/lib/supabase/server'
 
 import { CurrentHoldCard } from './_components/current-hold-card'
-import { PreviewCards } from './_components/preview-cards'
+import { FindSpaceCard } from './_components/find-space-card'
 import { ProfileForm } from './_components/profile-form'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
+// A hold is a reservation that is still active (GLOSSARY).
+const HOLD_STATUSES = new Set(['pending_payment', 'reserved', 'occupied'])
+
 /**
  * SeekerPage component (STORY-04, STORY-09, STORY-10).
  * Server Component fetching user profile data from Supabase Postgres profiles table
- * and rendering ProfileForm pre-filled with the signed-in user's details, plus PreviewCards.
+ * and rendering ProfileForm pre-filled with the signed-in user's details.
  * Displays the Seeker's active hold/visit (`my_reservation()`) or `?reservation=<id>` outcome
- * at the top (STORY-09/STORY-10 design §3).
+ * at the top (STORY-09/STORY-10 design §3), and a link to the discovery map while the
+ * Seeker has no hold.
  */
 export default async function SeekerPage({
   searchParams,
@@ -48,6 +52,7 @@ export default async function SeekerPage({
 
   // my_reservation records lapses first (D-047), so an expired hold shows its outcome.
   const hold = await getMyReservation(supabase, reservationId)
+  const hasHold = hold !== null && HOLD_STATUSES.has(hold.status)
 
   return (
     <div className="space-y-8">
@@ -56,7 +61,7 @@ export default async function SeekerPage({
           Seeker Dashboard
         </h1>
         <p className="text-sm text-muted-foreground">
-          Manage your profile details and view upcoming feature updates.
+          See your hold, find a Space, and manage your profile details.
         </p>
       </div>
 
@@ -67,8 +72,8 @@ export default async function SeekerPage({
           confirmingCheckOut={confirmingCheckOut}
           checkOutError={checkOutError}
         />
+        {!hasHold && <FindSpaceCard />}
         <ProfileForm profile={profile} />
-        <PreviewCards />
       </div>
     </div>
   )

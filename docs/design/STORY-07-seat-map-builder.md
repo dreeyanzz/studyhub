@@ -1,5 +1,10 @@
 # STORY-07: Snap-grid seat map builder
 
+> **What users see now follows the built screens (D-074).** Where Maria or James have
+> restyled a screen since this doc merged, what they built wins on its layout, look,
+> wording and order of steps. This doc still holds for what the system allows and
+> stores.
+
 **Status:** implemented 2026-11-09 · **Owner:** @dreeyanzz · **Story:** #56 · **FR:** FR-3.1, SRS §3.2.2 ·
 **Depends on:** STORY-01, STORY-05 · **Flows:** [Reservation lifecycle](../flows/reservation-lifecycle.md), [Host setup journey](../flows/host-setup-journey.md) ·
 **Decisions:** D-002, D-003, D-004, D-006, D-007, D-010, D-011, D-013, D-027, D-031, D-032, D-042, D-044, D-046, D-047, D-051, D-052, D-055, D-057, D-062, D-063
@@ -554,7 +559,7 @@ smaller PRs followed: #221 named the N19 tests as the reservation lifecycle does
 
 - **The Seeker's half of the first acceptance criterion.** No Seeker page shows a seat map until STORY-11's TSK-11.5. As §4 says, STORY-11's review checks that the Seeker's profile draws the same rows with the same renderer.
 - **#218 (decision needed):** a Space deleted some other way than `deleteSpace`, such as an account deleted in the dashboard, leaves its photos in the public bucket.
-- **In development only**, the browser console logs a React "unique key" warning from `UnitForm` (#247). Nothing visible is affected, and no issue tracks it yet.
+- ~~**In development only**, the browser console logs a React "unique key" warning from `UnitForm` (#247). Nothing visible is affected, and no issue tracks it yet.~~ Fixed after Sprint 2: it fired each time a whole room's form opened. Each control's `key` came after `{...aria}`, so the JSX transform fell back to `createElement`, which passed the Width select's two `<option>`s as an unkeyed list. The keys now come first, and `eslint.config.mjs` refuses a `key` after a spread (`react/jsx-key`'s `checkKeyMustBeforeSpread` only looks inside lists). The Antigravity E2E pass of 16 Nov found it again.
 - **Reviews:** Maria hasn't re-reviewed #234's atomic reorder, a later push dismissed her approval of #247, and #258 merged with no review. Adrian merged each without one. Anything she finds goes in a follow-up PR.
 
 ### Docs this story changed

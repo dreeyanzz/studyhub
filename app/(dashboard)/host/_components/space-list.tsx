@@ -83,6 +83,13 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
         >
           Seat map<span className="sr-only"> for {space.name}</span>
         </Link>
+        {/* STORY-12's view had no way in from here, only from the check-in desk. */}
+        <Link
+          href={`/host/spaces/${space.id}/occupancy`}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Occupancy<span className="sr-only"> for {space.name}</span>
+        </Link>
         <Link
           href={`/host/spaces/${space.id}/check-in`}
           className={buttonVariants({ variant: 'outline' })}

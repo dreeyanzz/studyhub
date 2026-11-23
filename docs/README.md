@@ -6,7 +6,7 @@
   1. [`../README.md`](../README.md)
   2. [`../CONTRIBUTING.md`](../CONTRIBUTING.md)
   3. [`ONBOARDING.md`](ONBOARDING.md): ask your AI assistant to run it
-  4. [`SPRINT-2.md`](SPRINT-2.md): what each of us does this sprint
+  4. [`SPRINT-3.md`](SPRINT-3.md): what each of us does this sprint
 - **AI agents:** [`../AGENTS.md`](../AGENTS.md) first, every session.
 
 ## Which document wins
@@ -21,6 +21,11 @@ When two documents disagree, the higher one wins and the lower one gets a fix PR
 6. `supabase/migrations/` and its Row-Level Security policies
 7. The code
 
+One exception, for what users see (D-074): once Maria or James merge a change to a
+screen, that screen as built wins over any older flow or design doc on its layout, look,
+wording and the order of its steps. It still ranks below the brief, the SRS and
+`DECISIONS.md`, and rules about what the system allows and stores keep the order above.
+
 ## Documents
 
 | Document                           | What it is for                                                                  |
@@ -29,7 +34,8 @@ When two documents disagree, the higher one wins and the lower one gets a fix PR
 | [`GLOSSARY.md`](GLOSSARY.md)       | The words to use in code, UI and docs                                           |
 | [`ONBOARDING.md`](ONBOARDING.md)   | Machine setup, written for an AI agent to run                                   |
 | [`DEVELOPMENT.md`](DEVELOPMENT.md) | Accounts, environments, secrets, the daily loop, changing the database          |
-| [`SPRINT-2.md`](SPRINT-2.md)       | The Sprint 2 brief: who does what, who waits for whom, how to test, the dates   |
+| [`SPRINT-3.md`](SPRINT-3.md)       | The Sprint 3 brief: who does what, who waits for whom, how to test, the dates   |
+| [`SPRINT-2.md`](SPRINT-2.md)       | The Sprint 2 brief, kept as the record of how Sprint 2 ran                      |
 | [`SPRINT-1.md`](SPRINT-1.md)       | The Sprint 1 brief, kept as the record of how Sprint 1 ran                      |
 | [`guides/`](guides/)               | How-to guides for the team workflow                                             |
 | [`flows/`](flows/README.md)        | The flows several stories share, drawn before the designs that use them         |
