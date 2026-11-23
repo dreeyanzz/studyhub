@@ -952,6 +952,8 @@ Amends D-029 and D-061, for the cloud dev project only.
 
 Amends D-017 and D-036, which rejected this.
 
+**Extended by D-094:** Luke writes STORY-16's database half too.
+
 **Decision:**
 
 - Luke writes the migrations, policies, pgTAP tests and database functions for STORY-08 (its tag tables) and STORY-10 (check-in, check-out and release), on a local stack, from those stories' merged designs (D-016).
@@ -1089,6 +1091,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 ## D-075 · Sprint 3: scope, dates, owners and the cut order
 
 **Cut order amended by D-083:** the confirmation email is never cut.
+
+**Owners amended by D-094:** Adrian builds STORY-13 and STORY-14 end to end, and Luke builds STORY-16 end to end.
 
 **Decision:**
 
@@ -1396,3 +1400,20 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** a sweep only at the end, or only by hand; selectors tied to class names or layout, which the restyle would break; leaving `e2e` optional.
 
 **Revisit if:** The sweep is too slow for every pull request, or axe's rules disagree with the SRS.
+
+## D-094 · Adrian builds STORY-13 and STORY-14 end to end, and Luke builds STORY-16
+
+**Amends D-075's owners, and extends D-066.**
+
+**Decision:**
+
+- Adrian builds STORY-13 (reviews) and STORY-14 (the administration console) end to end: the database, the Stripe refund, and the pages, actions and their tests. Their ten tasks are #359 to #368.
+- Luke builds STORY-16 (reservation history, Hold again and the confirmation email) end to end: `my_reservation_history` with its pgTAP tests, the email through the team Gmail account (D-089), and the pages. As with D-066, Adrian reviews and merges his migration, and runs `supabase db push` right after.
+- STORY-19 and STORY-20 keep D-075's split: Adrian the backend, Luke the app side. Luke still approves Adrian's pull requests (D-014), and Maria and James still review the new screens once they're built (D-073).
+- The three designs aren't rewritten. Their owner lines and task owners change, and a note at the top of each points here.
+
+**Why:** Adrian chose to build STORY-13 and STORY-14 himself on 23 November, while creating their tasks. With one owner, the critical path (STORY-13's tables, then its screens and STORY-14's) has no handoff between two people. Luke taking STORY-16 in exchange evens the load: by the designs' points, STORY-20 aside, about 18 for Adrian and 9 for Luke, against 21 and 6 without the swap. The Sprint 3 Plan's totals, STORY-20 included, become 22 and 10.
+
+**Rejected:** keeping D-075's split for STORY-13 and STORY-14 (a handoff on every page of the critical path); Adrian taking both with no swap (21 points against 6, with 12 days left); Luke also taking STORY-20 end to end, its design included (more change than the load needs, for the story first in the cut order).
+
+**Revisit if:** Adrian falls behind on STORY-13 or STORY-14, so that Luke takes back their pages, or STORY-16's history waits on STORY-13 and STORY-14's tables with nothing else for Luke to build.

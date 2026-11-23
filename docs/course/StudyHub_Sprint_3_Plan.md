@@ -55,22 +55,24 @@ cards in Done, so nothing carries over.
 
 ## 3. Team Workload & Domain Distribution
 
-Sprint 3 splits the work by layer, not by story (D-075):
+Sprint 3 splits the work by layer, not by story (D-075), except for three stories, which
+one person builds end to end (D-094):
 
 - **Maria and James own the UI/UX.** They decide the visual direction (D-042), restyle
   the existing screens, and review the new ones once they're built (D-073).
 - **Adrian builds the backend**: everything in `supabase/` (tables, policies, database
-  functions, pgTAP tests, seed data), `app/api/`, the Stripe refund, the confirmation
-  email, the production project and CI. He also draws both shared flows and writes the
-  design docs of the feature stories.
+  functions, pgTAP tests, seed data), `app/api/`, the Stripe refund, the production
+  project and CI. He builds STORY-13 and STORY-14 end to end, pages included (D-094). He
+  also draws both shared flows and writes the design docs of the feature stories.
 - **Luke builds the app**: `lib/data/`, `lib/validation/`, Server Actions, pages and
-  components, and their Vitest and Playwright tests. He writes the screens section of
-  each feature design, and approves Adrian's pull requests (D-014).
+  components, and their Vitest and Playwright tests. He builds STORY-16 end to end, its
+  database function and the confirmation email included (D-094). He writes the screens
+  section of each feature design, and approves Adrian's pull requests (D-014).
 
-| Developer                | Role & Primary Domain             | Sprint 3 work                                                                                                 | Points |
-| ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| **Adrian Seth Tabotabo** | Backend Lead & Database Architect | The database half of **STORY-13**, **STORY-14**, **STORY-16** and **STORY-20**; **STORY-19**'s production project, #218 and the Definition of Done check | 18     |
-| **Luke Miguel Dongque**  | Auth & Security Specialist        | The app half of the same four stories; **STORY-19**'s accessibility, performance and end-to-end tests          | 14     |
+| Developer | Role & Primary Domain | Sprint 3 work | Points |
+| --- | --- | --- | --- |
+| **Adrian Seth Tabotabo** | Backend Lead & Database Architect | **STORY-13** and **STORY-14** end to end (D-094); the database half of **STORY-20**; **STORY-19**'s production project, #218 and the Definition of Done check | 22 |
+| **Luke Miguel Dongque** | Auth & Security Specialist | **STORY-16** end to end, the email included (D-094); the app half of **STORY-20**; **STORY-19**'s accessibility, performance and end-to-end tests | 10 |
 | **Maria Faith Antigua**  | Frontend Design System Lead       | **STORY-17**: the audit, the visual direction and the restyle, with James                                      | 4      |
 | **James Niño Mandawe**   | Portal Shells & QA Engineer       | **STORY-17**, with Maria                                                                                       | 4      |
 
@@ -158,7 +160,7 @@ it.
 - **Story**: _As a Seeker who actually visited, I want to review the amenities, so that other Seekers can trust what a space claims._
 - **Story Points**: `8 / 10`
 - **Time Estimate**: `4 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (the database), `Luke Miguel Dongque` (the app)
+- **Assignee**: `Adrian Seth Tabotabo` (end to end, D-094)
 - **Git Branch**: `feature/STORY-13-reviews`
 - **MoSCoW**: `Should Have`
 - **Requirements**: FR-4.1, FR-4.2, SRS §3.5.2 · **Decisions**: D-009, D-076
@@ -177,11 +179,11 @@ it.
 4. pgTAP negatives (Adrian): a Seeker with no check-in **cannot** insert a review; a
    second review of one reservation is refused; another user gets **0 rows** when
    editing someone's review; the author **cannot** edit a hidden one.
-5. The review form (Luke): a Server Action with its Zod schema, on the Space profile and
+5. The review form (Adrian): a Server Action with its Zod schema, on the Space profile and
    from STORY-16's history, shown only to an eligible Seeker.
 6. The reviews and averages on the Space profile, and the overall average on STORY-08's
-   Space card (Luke).
-7. Editing, deleting and "Report this review" (Luke). Review text renders as text, never
+   Space card (Adrian).
+7. Editing, deleting and "Report this review" (Adrian). Review text renders as text, never
    as HTML (SRS §3.5.2), with a test.
 8. Regenerate `lib/supabase/database.types.ts` (Adrian).
 
@@ -202,7 +204,7 @@ it.
 - **Story**: _As an Administrator, I want to moderate reported reviews and oversee sandbox payments, so that the platform stays trustworthy._
 - **Story Points**: `7 / 10`
 - **Time Estimate**: `3.5 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (the database and the refund), `Luke Miguel Dongque` (the pages)
+- **Assignee**: `Adrian Seth Tabotabo` (end to end, D-094)
 - **Git Branch**: `feature/STORY-14-admin-console`
 - **MoSCoW**: `Should Have`
 - **Requirements**: FR-5.2, FR-5.3 · **Decisions**: D-005, D-013, D-076
@@ -222,10 +224,10 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
    recorded on the payment as refunded (D-005, D-070).
 4. pgTAP negatives (Adrian): a Seeker or Host gets **0 rows** from the admin queues and
    **cannot** hide or remove a review or issue a refund.
-5. The moderation page on `/admin` (Luke): reported reviews, with hide and remove.
-6. The payments page on `/admin` (Luke), with its Refund action; the Seeker's reservation
+5. The moderation page on `/admin` (Adrian): reported reviews, with hide and remove.
+6. The payments page on `/admin` (Adrian), with its Refund action; the Seeker's reservation
    page shows the refund.
-7. A Playwright test (Luke): an Administrator removes a reported review, and the average
+7. A Playwright test (Adrian): an Administrator removes a reported review, and the average
    changes.
 
 #### Acceptance criteria
@@ -242,18 +244,18 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
 - **Story**: _As a Seeker, I want to see my past visits and hold the same seat again, so that going back to a Space I liked takes one tap._
 - **Story Points**: `6 / 10`
 - **Time Estimate**: `3 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (the database and the email), `Luke Miguel Dongque` (the pages)
+- **Assignee**: `Luke Miguel Dongque` (end to end, the email included, D-094)
 - **Git Branch**: `feature/STORY-16-reservation-history`
 - **MoSCoW**: `Should Have` (the email: `Must Have`, D-083)
 - **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-083, D-089
 
 #### Tasks
 
-1. A database function (Adrian) returning the Seeker's past reservations: Space, unit,
+1. A database function (Luke) returning the Seeker's past reservations: Space, unit,
    dates, how it ended, its payment status, and whether it has a review. Reservations are
    read only through functions, so this is new.
-2. pgTAP negatives (Adrian): another Seeker gets **0 rows**, and so does a Host.
-3. The confirmation email (Adrian): when the payment webhook confirms a hold, a team
+2. pgTAP negatives (Luke): another Seeker gets **0 rows**, and so does a Host.
+3. The confirmation email (Luke): when the payment webhook confirms a hold, a team
    Gmail account sends the Seeker one email over SMTP, never two for a repeated event.
    Local tests and CI never send one (D-089).
 4. The history page on the Seeker's dashboard (Luke): newest first, with an empty state.
