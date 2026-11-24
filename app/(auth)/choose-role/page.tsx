@@ -44,9 +44,6 @@ export default async function ChooseRolePage({
 
   return (
     <AuthShell
-      asideEyebrow="Worq · Study & Co-Working"
-      asideTitle="One quick step."
-      asideBody="Pick whether you are looking for a seat or listing your Space so Worq opens the right workspace for you."
       title="Finish setting up your account"
       subtitle={
         <>

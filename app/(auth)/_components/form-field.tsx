@@ -29,6 +29,7 @@ export function FormField({
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const effectiveType = isPassword && showPassword ? 'text' : type
+  const toggleTarget = id === 'confirmPassword' ? 'confirmation characters' : 'characters'
   const error = errors?.[0]
   const describedBy = [hint && `${id}-hint`, error && `${id}-error`]
     .filter(Boolean)
@@ -47,7 +48,7 @@ export function FormField({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'rounded-full border-transparent bg-muted/85 px-4 text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background',
+            'rounded-full border-input bg-muted/85 px-4 text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background',
             isPassword && 'pr-12',
             className,
           )}
@@ -57,7 +58,8 @@ export function FormField({
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? 'Hide characters' : 'Show characters'}
+            aria-controls={id}
+            aria-label={showPassword ? `Hide ${toggleTarget}` : `Show ${toggleTarget}`}
             aria-pressed={showPassword}
             className="absolute top-0 right-0 flex size-12 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
           >

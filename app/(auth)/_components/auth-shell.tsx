@@ -16,9 +16,6 @@ export function AuthShell({
   subtitle,
   children,
 }: {
-  asideEyebrow?: string
-  asideTitle?: string
-  asideBody?: string
   title: string
   subtitle: ReactNode
   children: ReactNode
@@ -64,7 +61,7 @@ export function AuthShell({
           />
           <div
             aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#173c2d]/60 via-transparent to-[#173c2d]/20"
+            className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-foreground/20"
           />
 
           {/* Floating frosted-glass study-space callouts */}
@@ -72,7 +69,7 @@ export function AuthShell({
             aria-hidden="true"
             className="auth-pin-a absolute top-14 left-6 flex flex-col items-start"
           >
-            <div className="flex items-center gap-2.5 rounded-2xl border border-white/25 bg-[#173c2d]/60 px-3.5 py-2.5 text-white shadow-lg backdrop-blur-md">
+            <div className="flex items-center gap-2.5 rounded-2xl border border-white/25 bg-foreground/60 px-3.5 py-2.5 text-white shadow-lg backdrop-blur-md">
               <span className="flex size-7 items-center justify-center rounded-full bg-white/15">
                 <MapPin className="size-3.5" />
               </span>
@@ -89,7 +86,7 @@ export function AuthShell({
             aria-hidden="true"
             className="auth-pin-b absolute top-1/2 right-6 flex -translate-y-1/2 flex-col items-end"
           >
-            <div className="rounded-2xl border border-white/25 bg-[#173c2d]/60 px-3.5 py-2.5 text-white shadow-lg backdrop-blur-md">
+            <div className="rounded-2xl border border-white/25 bg-foreground/60 px-3.5 py-2.5 text-white shadow-lg backdrop-blur-md">
               <p className="text-xs font-semibold">Snap-grid seat map</p>
               <p className="text-xs text-white/80">Pick your exact unit</p>
             </div>
