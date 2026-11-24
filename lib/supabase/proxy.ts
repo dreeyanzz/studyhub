@@ -10,6 +10,8 @@ import type { Database } from './database.types'
 export type ProxySession = {
   /** The role in the user's own profiles row; null when signed out. */
   role: UserRole | null
+  /** False for brand-new OAuth accounts until /choose-role completes (STORY-21, D-095). */
+  roleConfirmed: boolean
   /** Continue to the page, with the refreshed session. */
   next: () => NextResponse
   /** Redirect to a path on this site, with the refreshed session. */
@@ -57,14 +59,16 @@ export async function updateSession(request: NextRequest): Promise<ProxySession>
   } = await supabase.auth.getUser()
 
   let role: UserRole | null = null
+  let roleConfirmed = false
   if (user) {
-    // Never user_metadata: a user can rewrite their own (STORY-03 design §2).
+    // Never user_metadata: a user can rewrite their own (STORY-03 design §2, D-095).
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, role_confirmed')
       .eq('id', user.id)
       .maybeSingle()
     role = profile?.role ?? null
+    roleConfirmed = profile?.role_confirmed ?? false
   }
 
   function withSession(response: NextResponse) {
@@ -79,6 +83,7 @@ export async function updateSession(request: NextRequest): Promise<ProxySession>
 
   return {
     role,
+    roleConfirmed,
     next: () => withSession(NextResponse.next({ request: { headers: request.headers } })),
     redirect: (path) => withSession(NextResponse.redirect(new URL(path, request.url))),
   }

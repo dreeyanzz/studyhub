@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { dashboardFor, evaluateRouteAccess, landingPathFor } from './role-guard'
+import {
+  chooseRolePath,
+  dashboardFor,
+  evaluateRouteAccess,
+  landingPathFor,
+} from './role-guard'
 
 const allow = { type: 'allow' }
 const redirectTo = (to: string) => ({ type: 'redirect', to })
@@ -171,5 +176,93 @@ describe('landingPathFor', () => {
 
   it('returns to a public page', () => {
     expect(landingPathFor('seeker', '/')).toBe('/')
+  })
+
+  it('never returns a confirmed user to /choose-role', () => {
+    expect(landingPathFor('seeker', '/choose-role')).toBe('/seeker')
+    expect(landingPathFor('host', '/choose-role?role=host')).toBe('/host')
+  })
+})
+
+describe('chooseRolePath (STORY-21, D-095)', () => {
+  it('builds /choose-role with sanitized returnUrl and valid role hint', () => {
+    expect(chooseRolePath()).toBe('/choose-role')
+    expect(chooseRolePath('/spaces/1', 'host')).toBe(
+      '/choose-role?returnUrl=%2Fspaces%2F1&role=host',
+    )
+    expect(chooseRolePath('//evil.example', 'seeker')).toBe('/choose-role?role=seeker')
+  })
+})
+
+describe('evaluateRouteAccess: unconfirmed Google OAuth user and /choose-role (G11, G13)', () => {
+  it('redirects a signed-out visitor on /choose-role to /login', () => {
+    expect(evaluateRouteAccess('/choose-role', null)).toEqual(redirectTo('/login'))
+  })
+
+  it('redirects confirmed users away from /choose-role to their dashboard', () => {
+    expect(evaluateRouteAccess('/choose-role', 'seeker', '', 'GET', true)).toEqual(
+      redirectTo('/seeker'),
+    )
+    expect(evaluateRouteAccess('/choose-role', 'host', '', 'GET', true)).toEqual(
+      redirectTo('/host'),
+    )
+    expect(evaluateRouteAccess('/choose-role', 'admin', '', 'GET', true)).toEqual(
+      redirectTo('/admin'),
+    )
+  })
+
+  it('allows an unconfirmed user on /choose-role and public routes', () => {
+    for (const path of [
+      '/choose-role',
+      '/',
+      '/spaces',
+      '/spaces/1',
+      '/choose-role-help',
+    ]) {
+      expect(evaluateRouteAccess(path, 'seeker', '', 'GET', false)).toEqual(allow)
+    }
+  })
+
+  it.each(['/seeker', '/seeker/reservations/1', '/host', '/host/spaces', '/admin'])(
+    'redirects an unconfirmed user from %s to /choose-role with returnUrl (G11)',
+    (path) => {
+      expect(evaluateRouteAccess(path, 'seeker', '?tab=1', 'GET', false)).toEqual(
+        redirectTo(`/choose-role?returnUrl=${encodeURIComponent(`${path}?tab=1`)}`),
+      )
+    },
+  )
+
+  it('redirects an unconfirmed user from /login and /register to /choose-role keeping safe params', () => {
+    expect(
+      evaluateRouteAccess('/login', 'seeker', '?returnUrl=%2Fspaces%2F1', 'GET', false),
+    ).toEqual(redirectTo('/choose-role?returnUrl=%2Fspaces%2F1'))
+    expect(
+      evaluateRouteAccess(
+        '/register',
+        'seeker',
+        '?role=host&returnUrl=%2Fspaces%2F1',
+        'GET',
+        false,
+      ),
+    ).toEqual(redirectTo('/choose-role?returnUrl=%2Fspaces%2F1&role=host'))
+  })
+
+  it('drops unsafe returnUrl and invalid role=admin when forwarding from /register (O-N8, O-N9)', () => {
+    expect(
+      evaluateRouteAccess(
+        '/register',
+        'seeker',
+        '?role=admin&returnUrl=//evil.example',
+        'GET',
+        false,
+      ),
+    ).toEqual(redirectTo('/choose-role'))
+  })
+
+  it('still lets POST Server Actions through on /choose-role and portals (#137)', () => {
+    expect(evaluateRouteAccess('/choose-role', 'seeker', '', 'POST', false)).toEqual(
+      allow,
+    )
+    expect(evaluateRouteAccess('/seeker', 'seeker', '', 'POST', false)).toEqual(allow)
   })
 })
