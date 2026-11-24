@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getReviewSummaries } from '@/lib/data/reviews'
 import { resolveCampusCoordinates } from '@/lib/geo/campuses'
 import { haversineDistance } from '@/lib/geo/haversine'
 import type { Database } from '@/lib/supabase/database.types'
@@ -8,7 +9,7 @@ import {
 } from '@/lib/validation/search'
 
 /**
- * Result shape returned by searchVerifiedSpaces for discovery map & list (STORY-08, FR-1.1, FR-1.2).
+ * Result shape returned by searchVerifiedSpaces for discovery map & list (STORY-08, FR-1.1, FR-1.2, STORY-13).
  */
 export interface VerifiedSpaceSearchResult {
   id: string
@@ -27,6 +28,8 @@ export interface VerifiedSpaceSearchResult {
     category: string
   }>
   custom_tags: string[]
+  review_count: number
+  avg_overall: number | null
 }
 
 export interface SearchSpacesOptions {
@@ -360,10 +363,29 @@ export async function searchVerifiedSpaces(
       distance_km: distanceKm,
       curated_tags: curatedTags,
       custom_tags: customTags,
+      review_count: 0,
+      avg_overall: null,
     })
   }
 
-  // 7. Sort: distance ascending when geo search, otherwise name ascending
+  // 7. Attach visible review count and overall average in 100-id batches (STORY-13, TSK-13.4, N16)
+  if (resultsWithDistance.length > 0) {
+    const summaries = await getReviewSummaries(
+      supabase,
+      resultsWithDistance.map((s) => s.id),
+    )
+    if (summaries) {
+      for (const result of resultsWithDistance) {
+        const summary = summaries.get(result.id)
+        if (summary) {
+          result.review_count = summary.reviewCount
+          result.avg_overall = summary.avgOverall
+        }
+      }
+    }
+  }
+
+  // 8. Sort: distance ascending when geo search, otherwise name ascending
   if (isGeoSearch) {
     resultsWithDistance.sort((a, b) => {
       if (a.distance_km === null) return 1

@@ -12,6 +12,8 @@ const space = {
     { id: 'wifi_fast', label: 'Wi-Fi: Fast (50+ Mbps)', category: 'wifi' },
     { id: 'outlets_all', label: 'Outlets: Every Seat', category: 'power' },
   ],
+  review_count: 2,
+  avg_overall: 4.25,
 }
 
 describe('escapeHtml', () => {
@@ -23,16 +25,25 @@ describe('escapeHtml', () => {
 })
 
 describe('buildPopupHtml (pin popup, D-003)', () => {
-  it('shows the name, price tier, address, distance, curated tags and the profile link', () => {
+  it('shows the name, price tier, address, rating, distance, curated tags and the profile link', () => {
     const html = buildPopupHtml(space)
     expect(html).toContain('>Sulok Co-working</h3>')
     expect(html).toContain('>Budget</span>')
     expect(html).toContain('48 Sample Avenue, IT Park, Cebu City')
+    expect(html).toContain('4.3 · 2 reviews')
     expect(html).toContain('1.2 km away')
     expect(html).toContain('>Wi-Fi: Fast (50+ Mbps)</span>')
     expect(html).toContain('>Outlets: Every Seat</span>')
     expect(html).toContain('href="/spaces/e0000000-0000-4000-8000-000000000003"')
     expect(html).toContain('min-height: 48px;')
+  })
+
+  it('shows "No reviews yet" when review_count is 0 and singular "1 review" for one review (STORY-13, TSK-13.4)', () => {
+    const unrated = buildPopupHtml({ ...space, review_count: 0, avg_overall: null })
+    expect(unrated).toContain('No reviews yet')
+
+    const single = buildPopupHtml({ ...space, review_count: 1, avg_overall: 4 })
+    expect(single).toContain('4.0 · 1 review')
   })
 
   it('leaves out the distance and tag list when empty', () => {
