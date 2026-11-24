@@ -4,12 +4,12 @@ import { redirect } from 'next/navigation'
 import { ArrowLeft, Search } from 'lucide-react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { buttonVariants } from '@/components/ui/button'
 import { getReservationHistory } from '@/lib/data/history'
 import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { historyPageSchema } from '@/lib/validation/history'
 
+import { buttonLinkClass } from './[id]/_components/reservation-status-view'
 import { HistoryRow } from './_components/history-row'
 
 export const metadata: Metadata = {
@@ -85,13 +85,7 @@ export default async function ReservationHistoryPage({
               </p>
             </div>
             <div>
-              <Link
-                href="/spaces"
-                className={cn(
-                  buttonVariants({ variant: 'default' }),
-                  'min-h-12 min-w-12',
-                )}
-              >
+              <Link href="/spaces" className={buttonLinkClass()}>
                 <Search aria-hidden="true" className="size-4" />
                 Find a Space
               </Link>
@@ -109,10 +103,7 @@ export default async function ReservationHistoryPage({
               <div className="pt-2 text-center">
                 <Link
                   href={`/seeker/reservations?show=${show + 20}`}
-                  className={cn(
-                    buttonVariants({ variant: 'outline' }),
-                    'min-h-12 w-full min-w-12 sm:w-auto',
-                  )}
+                  className={cn(buttonLinkClass('outline'), 'w-full sm:w-auto')}
                 >
                   Show more
                 </Link>

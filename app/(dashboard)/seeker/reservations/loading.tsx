@@ -10,7 +10,8 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
  */
 export default function ReservationHistoryLoading() {
   return (
-    <div className="space-y-6" aria-busy="true" aria-live="polite">
+    <div role="status" aria-busy="true" aria-live="polite" className="space-y-6">
+      <span className="sr-only">Loading reservation history…</span>
       <div>
         <Link
           href="/seeker"
@@ -27,22 +28,24 @@ export default function ReservationHistoryLoading() {
         </p>
       </div>
 
-      <div className="space-y-4">
+      {/* The placeholders may wrap and shrink, like the rows they stand for, so they
+          fit a 360 px screen at 200% text (design §3). */}
+      <div className="max-w-2xl space-y-4">
         {[1, 2, 3].map((placeholderId) => (
           <Card key={placeholderId} className="animate-pulse bg-muted/50">
             <CardHeader className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="h-6 w-48 rounded bg-muted" />
-                <div className="h-4 w-32 rounded bg-muted" />
+                <div className="h-6 w-48 max-w-full rounded bg-muted" />
+                <div className="h-4 w-32 max-w-full rounded bg-muted" />
               </div>
-              <div className="h-4 w-28 rounded bg-muted" />
+              <div className="h-4 w-28 max-w-full rounded bg-muted" />
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="h-4 w-60 rounded bg-muted" />
+              <div className="h-4 w-60 max-w-full rounded bg-muted" />
             </CardContent>
-            <CardFooter className="flex items-center justify-between gap-3 pt-3">
-              <div className="h-12 w-28 rounded bg-muted" />
-              <div className="h-12 w-28 rounded bg-muted" />
+            <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-3">
+              <div className="h-12 w-28 max-w-full rounded bg-muted" />
+              <div className="h-12 w-28 max-w-full rounded bg-muted" />
             </CardFooter>
           </Card>
         ))}

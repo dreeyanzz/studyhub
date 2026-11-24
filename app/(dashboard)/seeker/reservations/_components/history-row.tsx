@@ -1,6 +1,5 @@
 import Link from 'next/link'
 
-import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -10,12 +9,14 @@ import {
 } from '@/components/ui/card'
 import type {
   HistoryPaymentStatus,
+  HistoryReviewStatus,
   ReservationHistoryItem,
   ReservationHistoryStatus,
 } from '@/lib/data/history'
 import { formatManilaDate, formatPeso } from '@/lib/reservations/format'
 import { formatDateTime } from '@/lib/space/format'
-import { cn } from '@/lib/utils'
+
+import { buttonLinkClass } from '../[id]/_components/reservation-status-view'
 
 /**
  * Returns human-readable outcome wording for an ended reservation (STORY-16 design §3).
@@ -59,6 +60,23 @@ export function getFeeFateLabel(
   }
 }
 
+/**
+ * Read-only review status for a checked-in visit (STORY-16 design §3, D-080).
+ * Hidden and removed reviews name the Administrator, so the Seeker knows why.
+ */
+export function getReviewStatusLabel(status: HistoryReviewStatus): string {
+  switch (status) {
+    case 'visible':
+      return 'Reviewed'
+    case 'hidden':
+      return 'Review hidden by an Administrator'
+    case 'removed':
+      return 'Review removed by an Administrator'
+    default:
+      return status
+  }
+}
+
 export interface HistoryRowProps {
   item: ReservationHistoryItem
 }
@@ -66,7 +84,8 @@ export interface HistoryRowProps {
 /**
  * Past reservation card (STORY-16 design §3).
  * Server Component displaying one past reservation with its Space name, unit label,
- * Manila timestamp, outcome/fee labels, Hold again link, and review action state.
+ * Manila timestamp, outcome/fee labels, Hold again link, and review status.
+ * Leave a review and Edit your review arrive with ReviewDialog in TSK-16.4 (#385).
  */
 export function HistoryRow({ item }: HistoryRowProps) {
   const outcomeText = getOutcomeLabel(item.reservationStatus)
@@ -83,17 +102,19 @@ export function HistoryRow({ item }: HistoryRowProps) {
     <Card data-testid="history-row" className="gap-3">
       <CardHeader className="space-y-1">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <CardTitle className="text-lg">
-            {item.spaceListed ? (
-              <Link
-                href={`/spaces/${item.spaceId}`}
-                className="hover:underline focus-visible:underline"
-              >
-                {item.spaceName}
-              </Link>
-            ) : (
-              <span>{item.spaceName}</span>
-            )}
+          <CardTitle className="min-w-0">
+            <h2 className="text-lg font-semibold break-words">
+              {item.spaceListed ? (
+                <Link
+                  href={`/spaces/${item.spaceId}`}
+                  className="inline-flex min-h-12 min-w-12 items-center break-words hover:underline focus-visible:underline"
+                >
+                  {item.spaceName}
+                </Link>
+              ) : (
+                <span>{item.spaceName}</span>
+              )}
+            </h2>
           </CardTitle>
           <time dateTime={item.createdAt} className="text-sm text-muted-foreground">
             {formatDateTime(item.createdAt)}
@@ -113,46 +134,22 @@ export function HistoryRow({ item }: HistoryRowProps) {
       </CardContent>
 
       <CardFooter className="flex flex-wrap items-center justify-between gap-3 pt-3">
-        <div>
+        <div className="max-w-full min-w-0">
           {!item.spaceListed ? (
             <p className="text-sm text-muted-foreground">
               This Space isn&apos;t listed right now
             </p>
           ) : (
-            <Link
-              href={holdAgainHref}
-              className={cn(buttonVariants({ variant: 'outline' }), 'min-h-12 min-w-12')}
-            >
+            <Link href={holdAgainHref} className={buttonLinkClass('outline')}>
               Hold again
             </Link>
           )}
         </div>
 
-        {item.checkedInAt !== null && (
-          <div className="flex flex-wrap items-center gap-2">
-            {!item.reviewId || !item.reviewStatus ? (
-              <Button variant="outline" className="min-h-12 min-w-12">
-                Leave a review
-              </Button>
-            ) : item.reviewStatus === 'visible' ? (
-              <>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Reviewed
-                </span>
-                <Button variant="outline" className="min-h-12 min-w-12">
-                  Edit your review
-                </Button>
-              </>
-            ) : item.reviewStatus === 'hidden' ? (
-              <p className="text-sm text-muted-foreground">
-                Review hidden by an Administrator
-              </p>
-            ) : item.reviewStatus === 'removed' ? (
-              <p className="text-sm text-muted-foreground">
-                Review removed by an Administrator
-              </p>
-            ) : null}
-          </div>
+        {item.checkedInAt !== null && item.reviewStatus !== null && (
+          <p className="text-sm font-medium text-muted-foreground">
+            {getReviewStatusLabel(item.reviewStatus)}
+          </p>
         )}
       </CardFooter>
     </Card>

@@ -30,6 +30,17 @@ describe('HistoryRow (STORY-16 design §3)', () => {
     expect(html).toContain('Kapihan Study Hall')
   })
 
+  it('gives each row a heading and a 48 px Space-name link (Accessibility)', () => {
+    const html = renderToStaticMarkup(<HistoryRow item={baseItem} />)
+    expect(html).toMatch(/<h2[^>]*>.*Kapihan Study Hall.*<\/h2>/)
+    expect(html).toContain('inline-flex min-h-12 min-w-12 items-center')
+  })
+
+  it('lets the Hold again label wrap on narrow screens', () => {
+    const html = renderToStaticMarkup(<HistoryRow item={baseItem} />)
+    expect(html).toMatch(/class="[^"]*whitespace-normal[^"]*"[^>]*>Hold again/)
+  })
+
   it('renders Space name as text when spaceListed is false', () => {
     const html = renderToStaticMarkup(
       <HistoryRow item={{ ...baseItem, spaceListed: false }} />,
@@ -108,12 +119,14 @@ describe('HistoryRow (STORY-16 design §3)', () => {
     expect(html).not.toContain('Reviewed')
   })
 
-  it('renders Leave a review when checked-in but not yet reviewed', () => {
+  it('shows no review controls before TSK-16.4 wires ReviewDialog (#385)', () => {
     const html = renderToStaticMarkup(<HistoryRow item={baseItem} />)
-    expect(html).toContain('Leave a review')
+    expect(html).not.toContain('Leave a review')
+    expect(html).not.toContain('Edit your review')
+    expect(html).not.toContain('<button')
   })
 
-  it('renders Reviewed and Edit your review when review is visible', () => {
+  it('renders Reviewed, without an edit control, when review is visible', () => {
     const html = renderToStaticMarkup(
       <HistoryRow
         item={{
@@ -124,7 +137,7 @@ describe('HistoryRow (STORY-16 design §3)', () => {
       />,
     )
     expect(html).toContain('Reviewed')
-    expect(html).toContain('Edit your review')
+    expect(html).not.toContain('Edit your review')
   })
 
   it('renders hidden or removed notice when review was moderated', () => {

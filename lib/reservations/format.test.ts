@@ -51,5 +51,7 @@ describe('countdownAnnouncement (design §3, Accessibility)', () => {
 describe('formatManilaDate (D-048)', () => {
   it('shows the date in Asia/Manila', () => {
     expect(formatManilaDate('2026-11-18T10:00:00Z')).toMatch(/Nov 18, 2026/)
+    // 17:00 UTC is already 01:00 the next day in Manila, so this fails without the time zone.
+    expect(formatManilaDate('2026-11-18T17:00:00Z')).toMatch(/Nov 19, 2026/)
   })
 })
