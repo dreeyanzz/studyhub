@@ -1,15 +1,54 @@
 'use server'
 
-// "Hold this unit" on the Space profile (STORY-09 design §3, TSK-09.6, R1, D-068).
-// An action can be called directly, so it checks its own input and session.
-// public.hold_unit is the security boundary: it refuses anyone but a Seeker (N5) and
-// every unit that can't be held (N1 to N4).
+// Space profile Server Actions:
+// - holdUnit (STORY-09 design §3, TSK-09.6, R1, D-068)
+// - postReviewAction, editReviewAction, deleteReviewAction (STORY-13 design §1 & §3, TSK-13.4, RV1-RV3)
+//
+// Every action can be called directly, so each validates its own input and session.
+// Postgres RLS and functions remain the security boundary (D-007).
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import type { z } from 'zod'
 
 import { holdRefusalReason } from '@/lib/payments/refusals'
 import { createClient } from '@/lib/supabase/server'
 import { holdUnitSchema } from '@/lib/validation/reservation'
+import {
+  deleteReviewSchema,
+  editReviewSchema,
+  postReviewSchema,
+  type ReviewActionState,
+  type ReviewFormField,
+} from '@/lib/validation/review'
 import { spaceIdSchema } from '@/lib/validation/space'
+
+export type { ReviewActionState, ReviewFormField }
+
+const REVIEW_FORM_FIELDS = new Set<string>([
+  'quietness',
+  'wifiReliability',
+  'cleanliness',
+  'comfort',
+  'comment',
+])
+
+function formatValidationError(error: z.ZodError): ReviewActionState {
+  const fieldErrors: Partial<Record<ReviewFormField, string>> = {}
+  for (const issue of error.issues) {
+    const key = issue.path[0]
+    if (typeof key === 'string' && REVIEW_FORM_FIELDS.has(key)) {
+      const field = key as ReviewFormField
+      if (!fieldErrors[field]) {
+        fieldErrors[field] = issue.message
+      }
+    }
+  }
+  return {
+    status: 'error',
+    message: error.issues[0]?.message ?? 'Please check your review and try again.',
+    fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+  }
+}
 
 export async function holdUnit(formData: FormData): Promise<void> {
   const space = spaceIdSchema.safeParse(formData.get('spaceId'))
@@ -50,4 +89,216 @@ export async function holdUnit(formData: FormData): Promise<void> {
 
   // A new hold, or the same hold again after a double tap (W2): its page either way.
   redirect(`/seeker/reservations/${data.reservation_id}`)
+}
+
+/**
+ * Posts a review for a checked-in visit (STORY-13 design §1 & §3, RV1, FR-4.1, D-081).
+ * Exported here so STORY-16's reservation history dialog can reuse the same action.
+ */
+export async function postReviewAction(
+  _prevState: ReviewActionState,
+  formData: FormData,
+): Promise<ReviewActionState> {
+  const parsed = postReviewSchema.safeParse({
+    spaceId: formData.get('spaceId'),
+    reservationId: formData.get('reservationId'),
+    quietness: formData.get('quietness'),
+    wifiReliability: formData.get('wifiReliability'),
+    cleanliness: formData.get('cleanliness'),
+    comfort: formData.get('comfort'),
+    comment: formData.get('comment') ?? undefined,
+  })
+  if (!parsed.success) {
+    return formatValidationError(parsed.error)
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      status: 'error',
+      message: 'You can review a Space only after checking in there',
+    }
+  }
+
+  const {
+    spaceId,
+    reservationId,
+    quietness,
+    wifiReliability,
+    cleanliness,
+    comfort,
+    comment,
+  } = parsed.data
+
+  const { error } = await supabase.from('reviews').insert({
+    reservation_id: reservationId,
+    space_id: spaceId,
+    quietness,
+    wifi_reliability: wifiReliability,
+    cleanliness,
+    comfort,
+    comment,
+  })
+
+  if (error) {
+    if (error.code === '42501') {
+      return {
+        status: 'error',
+        message: 'You can review a Space only after checking in there',
+      }
+    }
+    if (error.code === '23505') {
+      return {
+        status: 'error',
+        message: 'You have already reviewed this visit',
+      }
+    }
+    return {
+      status: 'error',
+      message: 'Could not save your review right now. Please try again.',
+    }
+  }
+
+  revalidatePath(`/spaces/${spaceId}`)
+  revalidatePath('/spaces')
+
+  return {
+    status: 'success',
+    message: 'Review posted.',
+  }
+}
+
+/**
+ * Edits the signed-in Seeker's own visible review (STORY-13 design §1 & §3, RV2, FR-4.1).
+ * Exported here so STORY-16's reservation history dialog can reuse the same action.
+ */
+export async function editReviewAction(
+  _prevState: ReviewActionState,
+  formData: FormData,
+): Promise<ReviewActionState> {
+  const parsed = editReviewSchema.safeParse({
+    spaceId: formData.get('spaceId'),
+    reviewId: formData.get('reviewId'),
+    quietness: formData.get('quietness'),
+    wifiReliability: formData.get('wifiReliability'),
+    cleanliness: formData.get('cleanliness'),
+    comfort: formData.get('comfort'),
+    comment: formData.get('comment') ?? undefined,
+  })
+  if (!parsed.success) {
+    return formatValidationError(parsed.error)
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      status: 'error',
+      message: "This review can't be changed now",
+    }
+  }
+
+  const { spaceId, reviewId, quietness, wifiReliability, cleanliness, comfort, comment } =
+    parsed.data
+
+  // Select id so RLS zero-row refusals (hidden, removed, or another user's review, N4/N5)
+  // are distinguished from a saved update.
+  const { data, error } = await supabase
+    .from('reviews')
+    .update({
+      quietness,
+      wifi_reliability: wifiReliability,
+      cleanliness,
+      comfort,
+      comment,
+    })
+    .eq('id', reviewId)
+    .eq('space_id', spaceId)
+    .select('id')
+
+  if (error) {
+    if (error.code === '42501') {
+      return { status: 'error', message: "This review can't be changed now" }
+    }
+    return {
+      status: 'error',
+      message: 'Could not update your review right now. Please try again.',
+    }
+  }
+
+  if (!data || data.length === 0) {
+    return { status: 'error', message: "This review can't be changed now" }
+  }
+
+  revalidatePath(`/spaces/${spaceId}`)
+  revalidatePath('/spaces')
+
+  return {
+    status: 'success',
+    message: 'Review updated.',
+  }
+}
+
+/**
+ * Deletes the signed-in Seeker's own visible review (STORY-13 design §1 & §3, RV3).
+ */
+export async function deleteReviewAction(
+  input: FormData | { spaceId: string; reviewId: string },
+): Promise<ReviewActionState> {
+  const raw =
+    input instanceof FormData
+      ? {
+          spaceId: input.get('spaceId'),
+          reviewId: input.get('reviewId'),
+        }
+      : input
+
+  const parsed = deleteReviewSchema.safeParse(raw)
+  if (!parsed.success) {
+    return { status: 'error', message: "This review can't be changed now" }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return { status: 'error', message: "This review can't be changed now" }
+  }
+
+  const { spaceId, reviewId } = parsed.data
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .delete()
+    .eq('id', reviewId)
+    .eq('space_id', spaceId)
+    .select('id')
+
+  if (error) {
+    if (error.code === '42501') {
+      return { status: 'error', message: "This review can't be changed now" }
+    }
+    return {
+      status: 'error',
+      message: 'Could not delete your review right now. Please try again.',
+    }
+  }
+
+  if (!data || data.length === 0) {
+    return { status: 'error', message: "This review can't be changed now" }
+  }
+
+  revalidatePath(`/spaces/${spaceId}`)
+  revalidatePath('/spaces')
+
+  return {
+    status: 'success',
+    message: 'Review deleted.',
+  }
 }

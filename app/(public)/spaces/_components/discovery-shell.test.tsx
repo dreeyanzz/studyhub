@@ -27,6 +27,8 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
         { id: 'outlets_all', label: 'Outlets: Every Seat', category: 'power' },
       ],
       custom_tags: ['beanbags'],
+      review_count: 2,
+      avg_overall: 4.25,
     },
     {
       id: 'space-2',
@@ -44,6 +46,8 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
         { id: 'ac_full', label: 'Air Conditioning', category: 'ac' },
       ],
       custom_tags: ['free-coffee'],
+      review_count: 0,
+      avg_overall: null,
     },
   ]
 

@@ -1,5 +1,3 @@
-import 'server-only'
-
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 
@@ -297,4 +295,39 @@ export async function getMyReviewableVisit(
     reservationId: data.reservation_id,
     checkedInAt: data.checked_in_at,
   }
+}
+
+/**
+ * Formats a full name into the same short form Postgres's `private.reviewer_short_name`
+ * produces: first word + last word's initial ("Juan dela Cruz" -> "Juan C."), single word
+ * unchanged, empty/null -> "Worq Seeker" (D-081, N17).
+ */
+export function formatReviewerShortName(fullName: string | null | undefined): string {
+  const trimmed = (fullName ?? '').trim()
+  if (!trimmed) return 'Worq Seeker'
+  const words = trimmed.split(/\s+/)
+  if (words.length === 1) return words[0]!
+  const last = words[words.length - 1]!
+  return `${words[0]} ${last.slice(0, 1)}.`
+}
+
+/**
+ * Reads the signed-in caller's display short name from their own `profiles` row,
+ * for pinning their own review cards on `/spaces/[spaceId]` (D-081).
+ */
+export async function getMyShortName(
+  supabase: SupabaseClient<Database>,
+): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return 'Worq Seeker'
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  return formatReviewerShortName(profile?.full_name)
 }

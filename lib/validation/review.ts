@@ -158,3 +158,24 @@ export const reviewListSchema = z.object({
 })
 
 export type ReviewListParams = z.infer<typeof reviewListSchema>
+
+/** Field names shown in `ReviewForm` and returned in `ReviewActionState.fieldErrors`. */
+export type ReviewFormField =
+  'quietness' | 'wifiReliability' | 'cleanliness' | 'comfort' | 'comment'
+
+/** Shared Server Action result shape for posting, editing, and deleting a review (TSK-13.4). */
+export type ReviewActionState = {
+  status: 'idle' | 'success' | 'error'
+  message: string | null
+  fieldErrors?: Partial<Record<ReviewFormField, string>>
+}
+
+/** Category rating fields in canonical display order (FR-4.1, D-087). */
+export const REVIEW_RATING_CATEGORIES = [
+  { key: 'quietness', label: 'Quietness' },
+  { key: 'wifiReliability', label: 'Wi-Fi reliability' },
+  { key: 'cleanliness', label: 'Cleanliness' },
+  { key: 'comfort', label: 'Comfort' },
+] as const
+
+export type ReviewRatingCategoryKey = (typeof REVIEW_RATING_CATEGORIES)[number]['key']

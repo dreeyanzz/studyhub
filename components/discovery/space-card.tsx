@@ -1,5 +1,6 @@
 import { Clock, MapPin } from 'lucide-react'
 import Link from 'next/link'
+import { ReviewRating } from '@/components/review/review-rating'
 import { PriceTierBadge } from './price-tier-badge'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 import { isSpaceOpen24h } from '@/lib/data/spaces'
@@ -94,6 +95,15 @@ export function SpaceCard({
         <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
           <Clock className="size-3.5 shrink-0" aria-hidden="true" />
           <span>{formatHours(space.opens_at, space.closes_at)}</span>
+        </div>
+
+        {/* Community Rating Summary (STORY-13, TSK-13.4, D-076) */}
+        <div className="mt-2">
+          <ReviewRating
+            average={space.avg_overall}
+            count={space.review_count}
+            data-testid={`space-rating-${space.id}`}
+          />
         </div>
 
         {/* Description Snippet */}

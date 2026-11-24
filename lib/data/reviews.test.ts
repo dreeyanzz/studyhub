@@ -5,8 +5,10 @@ import type { Database } from '@/lib/supabase/database.types'
 
 import {
   REVIEW_SUMMARY_BATCH_SIZE,
+  formatReviewerShortName,
   getMyReviewableVisit,
   getMyReviews,
+  getMyShortName,
   getReviewSummaries,
   getSpaceReviews,
 } from './reviews'
@@ -348,5 +350,36 @@ describe('getMyReviewableVisit', () => {
         spaceId,
       ),
     ).toBeNull()
+  })
+})
+
+describe('formatReviewerShortName and getMyShortName (D-081, N17)', () => {
+  it('formats multi-word, single-word, and empty names like private.reviewer_short_name', () => {
+    expect(formatReviewerShortName('Juan dela Cruz')).toBe('Juan C.')
+    expect(formatReviewerShortName('Rina Bautista')).toBe('Rina B.')
+    expect(formatReviewerShortName('Cher')).toBe('Cher')
+    expect(formatReviewerShortName('   ')).toBe('Worq Seeker')
+    expect(formatReviewerShortName(null)).toBe('Worq Seeker')
+  })
+
+  it('reads the signed-in caller short name and falls back when signed out', async () => {
+    const maybeSingle = vi.fn(async () => ({
+      data: { full_name: 'Juan dela Cruz' },
+      error: null,
+    }))
+    const signedInClient = {
+      auth: { getUser: vi.fn(async () => ({ data: { user: { id: authorId } } })) },
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({ eq: vi.fn(() => ({ maybeSingle })) })),
+      })),
+    } as unknown as SupabaseClient<Database>
+
+    expect(await getMyShortName(signedInClient)).toBe('Juan C.')
+
+    const signedOutClient = {
+      auth: { getUser: vi.fn(async () => ({ data: { user: null } })) },
+      from: vi.fn(),
+    } as unknown as SupabaseClient<Database>
+    expect(await getMyShortName(signedOutClient)).toBe('Worq Seeker')
   })
 })
