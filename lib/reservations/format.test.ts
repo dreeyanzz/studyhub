@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   countdownAnnouncement,
+  formatManilaDate,
   formatManilaTime,
   formatPeso,
   minutesLeft,
@@ -44,5 +45,11 @@ describe('countdownAnnouncement (design §3, Accessibility)', () => {
     expect(countdownAnnouncement(0)).toBe('Your payment window has run out.')
     for (const minutes of [10, 9, 6, 4, 3, 2])
       expect(countdownAnnouncement(minutes)).toBeNull()
+  })
+})
+
+describe('formatManilaDate (D-048)', () => {
+  it('shows the date in Asia/Manila', () => {
+    expect(formatManilaDate('2026-11-18T10:00:00Z')).toMatch(/Nov 18, 2026/)
   })
 })
