@@ -1,13 +1,13 @@
-# Requests Adrian's review automatically on every pull request (D-014).
+# Requests Adrian's review automatically on database and CI/CD paths (D-096).
+# Other paths are not auto-assigned so any teammate can review and squash-merge
+# without waiting on Adrian (D-096).
 #
-# Maria is no longer a code owner (D-082). Her approval is still required where
-# DECISIONS says so: design docs with screens (D-042, except D-073's Sprint 3
-# feature stories), the shared flows the flows index names her for (D-044), and
-# look changes to a screen she or James restyled (D-074). Request her review by
-# hand on those pull requests.
+# Domain approvals still apply where DECISIONS.md says so: design docs
+# (D-016, D-042, D-073), shared flows (D-044), and look changes to a screen
+# Maria or James restyled (D-074). Request those reviewers by hand.
 #
-# Do NOT turn on "Require review from Code Owners" in the rulesets. Adrian owns
-# every path, and nobody can approve their own pull request, so Adrian's pull
-# requests could never merge. Ruleset A is where review requirements live: one
-# approving review (D-014).
-* @dreeyanzz
+# Do NOT turn on "Require review from Code Owners" in the rulesets. Nobody can
+# approve their own pull request, and Adrian owns these paths. Ruleset A is
+# where review requirements live: 1 approving peer review (D-014, D-096).
+/supabase/ @dreeyanzz
+/.github/ @dreeyanzz

@@ -21,7 +21,7 @@ Worq (technical codename: StudyHub, D-026) is a web app for finding a study or c
 
 **Team:**
 
-- Adrian Seth Tabotabo: Project Manager, the only merger, backend and database.
+- Adrian Seth Tabotabo: Project Manager, backend and database.
 - Maria Faith Antigua: design system and user experience (D-042); maintains the board.
 - Luke Miguel Dongque: auth and security.
 - James Niño Mandawe: portal shells and QA.
@@ -129,6 +129,7 @@ npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
 npm run db:race        # concurrent hold, payment and check-in race tests
 npm run db:new <name>  # new migration file
+npm run db:check-order # verify migrations are append-only and newer than origin/main (D-066, D-096)
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
 npm run stripe:listen  # forward Stripe sandbox events to the local webhook (Stripe CLI, D-070)
@@ -175,8 +176,8 @@ These job names are a contract, because renaming one blocks every PR.
 
 ## Git and pull requests
 
-- **`main` is protected** (D-014). Every change is a pull request, squash-merged, and only Adrian lands it.
-  - **Reviews:** 1 approving review required (D-014). Adrian approves teammates' PRs; a teammate approves Adrian's.
+- **`main` is protected** (D-014, D-096). Every change is a pull request, squash-merged, and direct pushes to `main` are blocked. Any teammate can squash-merge once CI is green and the PR is approved (or enable auto-merge).
+  - **Reviews:** 1 approving review from a teammate is required (D-014, D-096); nobody can approve their own PR. Domain-approval rules still apply where `DECISIONS.md` says so (designs D-016/D-073, flows D-044, restyled UI D-074).
 - **Branch:** `feature/STORY-xx-short-desc`. The course requires it.
   - Several small branches per story are fine.
   - A fix uses the story it fixes; repo chores and shared flows use STORY-00 (D-044).
@@ -239,7 +240,7 @@ Stop only at the 🛑 points.
      `dreeyanzz`, plus `fayeye-09` if the story has screens, D-042). In Sprint 3,
      Adrian writes the feature stories' designs, Luke adds their screens section and
      approves, and Maria's approval isn't needed (D-073, D-075). 🛑 Stop: no code until
-     Adrian merges it.
+     it merges.
    - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
    - **Merged:** go on.
 4. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
@@ -258,8 +259,9 @@ Stop only at the 🛑 points.
    does, and why. They must be able to defend every line in the Final phase.
    🛑 Wait for their go-ahead.
 9. **Open the PR.** Fill in the template: first line `Closes #<task>`, then
-   `Refs #<story>`, and the AI assistance section. Request review from `dreeyanzz` (on
-   Adrian's own PRs, from a teammate), and move the task's card to Code Review.
+   `Refs #<story>`, and the AI assistance section. Request review from a teammate (plus
+   Adrian for `supabase/` or `.github/` changes, or the named owner for designs, flows
+   and restyled UI, D-096), and move the task's card to Code Review.
    🛑 Stop until the PR merges or your human asks for the next task.
 
 **Stop and ask** (your human asks Adrian, or Maria about what users see, D-042) when:

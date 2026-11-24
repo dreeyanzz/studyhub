@@ -154,6 +154,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-014 · Governance of `main`
 
+**Amended by D-093** (`e2e` becomes a required check) **and D-096** (`update` removed so any teammate can squash-merge after 1 peer approval and green CI).
+
 **Decision:** Two rulesets protect `main`. Their exported JSON is kept in `.github/rulesets/`.
 
 - **A, "main: PR, CI, reviews, and merge control"** (`.github/rulesets/main-pr-ci-reviews.json`):
@@ -194,6 +196,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-016 · Plan gate: design before code
 
+**Amended by D-096:** any teammate may merge a design PR once its named approvers (D-042, D-073) have approved it and CI is green.
+
 **Decision:** Every story has a design doc (`docs/design/STORY-xx-*.md`) merged before its code starts. Adrian's merge is the approval. Fixes, chores and docs-only changes are exempt.
 
 **Why:** Mistakes are cheapest to fix in a design, and the course already requires reviews.
@@ -205,6 +209,8 @@ Their lengths are decided in STORY-09's design.
 **Amended by D-066:** Luke writes the migrations for STORY-08 and STORY-10 too.
 
 **Amended by D-090:** the production project is made ready for any day, in its own organization, and Adrian chooses when the app moves onto it.
+
+**Amended by D-096:** merged migrations auto-push to `studyhub-dev` via GitHub Actions; `studyhub-prod` stays manual from Adrian's machine.
 
 **Decision:**
 
@@ -932,6 +938,8 @@ Proposes D-040 again, which D-043 withdrew, now that the flows STORY-07 uses are
 
 Amends D-029 and D-061, for the cloud dev project only.
 
+**Amended by D-096:** any teammate may squash-merge pull requests after 1 peer approval and CI, and `studyhub-dev` migrations auto-push on merge to `main`.
+
 **Decision:**
 
 - Every teammate's `.env.local` holds what Adrian's does: the cloud dev project's URL and publishable key, `CLOUD_DEV_ACCOUNT_PASSWORD`, `CLOUD_DEV_ADMIN_PASSWORD` and `SUPABASE_SECRET_KEY`. Adrian sends it privately, never in the group chat, an issue or a PR.
@@ -953,6 +961,8 @@ Amends D-029 and D-061, for the cloud dev project only.
 Amends D-017 and D-036, which rejected this.
 
 **Extended by D-094:** Luke writes STORY-16's database half too.
+
+**Amended by D-096:** CI checks migration timestamp order and immutability automatically, and `studyhub-dev` migrations auto-push on merge to `main`.
 
 **Decision:**
 
@@ -1437,3 +1447,21 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Apple Sign In (paid Apple Developer account required); defaulting every Google sign-up silently to Seeker with no Host option (blocks Hosts who want Google sign-in); making `profiles.role` nullable (ripples across generated types and every existing query); letting `proxy.ts` alone enforce `/choose-role` without gating `private.has_role()` (violates `D-007`); skipping the editable Full name field on `/choose-role` (leaves empty or over-long Google names uneditable before Host Spaces reach `/admin`).
 
 **Revisit if:** Worq adds an iOS app or Apple Developer account later (re-evaluating Sign in with Apple), or adds a second OAuth provider that does not return verified emails.
+
+## D-096 · Any teammate can merge after 1 peer approval and CI, and dev migrations auto-push
+
+**Amends D-014, D-016, D-017, D-065 and D-066.**
+
+**Decision:**
+
+- Ruleset A (`.github/rulesets/main-pr-ci-reviews.json`) removes `{ "type": "update" }` ("Restrict updates"). Any teammate with write access may squash-merge a pull request once it has 1 peer approval, all review threads resolved, and all four required CI checks (`checks`, `pr-title`, `db` and `e2e`) green. Direct pushes to `main` remain blocked by the `pull_request` rule, Ruleset B (no force-push or branch deletion) stays unchanged, and Adrian keeps Repository Admin bypass for emergencies.
+- Repository auto-merge (`allow_auto_merge`) is enabled so a pull request squash-merges automatically once approved and CI finishes.
+- `.github/CODEOWNERS` narrows from `* @dreeyanzz` to `/supabase/` and `/.github/` (`@dreeyanzz`) so Adrian is only auto-requested on database and CI/CD changes. Domain-approval rules still apply by hand: design docs (D-016, D-042, D-073), shared flows (D-044) and look changes to restyled screens (D-074). AI agents still never merge, approve without instruction, push to `main`, change rulesets or run `supabase db push` (D-034).
+- The `db` CI job runs `scripts/check-migration-order.mjs` (`npm run db:check-order`) on every pull request before starting Docker: it blocks edits, renames or deletes of applied migrations (AGENTS.md rule 9) and rejects any new migration whose timestamp is not strictly newer than `main`'s latest (D-066).
+- `.github/workflows/db-push-dev.yml` automatically runs `npx supabase db push --db-url "$SUPABASE_DEV_DB_URL" --yes` on every push to `main` that changes `supabase/migrations/`, with `cancel-in-progress: false` and never `--include-seed` (D-013) or `--include-all`. `SUPABASE_DEV_DB_URL` is a GitHub Actions secret holding `studyhub-dev`'s Session Pooler URI (port 5432, IPv4-compatible). `studyhub-prod` stays completely isolated and manual from Adrian's machine (D-090).
+
+**Why:** Adrian decided it on 24 November: routing every merge and dev `db push` through one person bottlenecked Sprint 3 while four CI checks (including `db:race` and the WCAG 2.1 AA `e2e` sweep, D-093) already guard `main`. Keeping 1 peer approval preserves CPEPE361's peer-review requirement without waiting specifically on Adrian, and a scoped `SUPABASE_DEV_DB_URL` secret automates cloud dev migrations without exposing a Supabase account token that could reach `studyhub-prod`.
+
+**Rejected:** Dropping required peer approvals to `0` (removes GitHub-enforced peer review required by CPEPE361 and the Sprint DoD); keeping Adrian as the sole merger with Luke as backup (still bottlenecks on one or two people); using `SUPABASE_ACCESS_TOKEN` in GitHub Actions (account-wide scope reaches `studyhub-prod`'s separate organization, violating D-090); leaving `studyhub-dev` migrations manual after teammates can merge (Vercel deploys `main` immediately, leaving the live app ahead of the schema).
+
+**Revisit if:** Peer-merged pull requests break `main` or miss domain approvals, or `studyhub-dev` auto-pushes hit migration collisions.

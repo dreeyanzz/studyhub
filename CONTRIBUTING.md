@@ -8,12 +8,12 @@ the short version of how we work.
 
 ## Team
 
-| Member               | Role                                                 | GitHub               |
-| -------------------- | ---------------------------------------------------- | -------------------- |
-| Adrian Seth Tabotabo | Project Manager · the only merger · backend and data | `@dreeyanzz`         |
-| Maria Faith Antigua  | UX and design system · maintains the board           | `@fayeye-09`         |
-| Luke Miguel Dongque  | Auth and security                                    | `@lukedongque`       |
-| James Niño Mandawe   | Portal shells and QA                                 | `@JamesNino-Mandawe` |
+| Member               | Role                                       | GitHub               |
+| -------------------- | ------------------------------------------ | -------------------- |
+| Adrian Seth Tabotabo | Project Manager · backend and data         | `@dreeyanzz`         |
+| Maria Faith Antigua  | UX and design system · maintains the board | `@fayeye-09`         |
+| Luke Miguel Dongque  | Auth and security                          | `@lukedongque`       |
+| James Niño Mandawe   | Portal shells and QA                       | `@JamesNino-Mandawe` |
 
 ## Course rules we never break
 
@@ -37,17 +37,18 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
    [`docs/flows/`](docs/flows/README.md) (D-044). A story's design waits for the flows it
    uses.
 3. **Design.** The story owner writes `docs/design/STORY-xx-*.md`
-   ([planning a story](docs/guides/planning-a-story.md)). Adrian merging it is the
-   approval, after Maria approves it if the story has screens (D-042). No code before
-   that.
+   ([planning a story](docs/guides/planning-a-story.md)). Once its named approvers
+   approve it (D-016, D-042, D-073) and CI is green, any teammate may squash-merge it
+   (D-096). No code before that.
 4. **Tasks.** The design's task table becomes TSK sub-issues with points and days.
 5. **Branch.** From an up-to-date `main`: `git switch -c feature/STORY-xx-short-desc`.
 6. **Build.** Small commits, tests alongside the code, and `npm run check` before you
    push ([git and PRs](docs/guides/working-with-git-and-prs.md),
    [testing](docs/guides/testing.md)).
-7. **Pull request.** Fill in the template, and ask for a review
+7. **Pull request.** Fill in the template, and ask a teammate for a review
    ([reviewing and merging](docs/guides/reviewing-and-merging.md)).
-8. **Merge.** Adrian squash-merges it. The issue closes, and the card moves to Done.
+8. **Merge.** Once approved and CI is green, any teammate squash-merges it (or enables
+   auto-merge). The issue closes, and the card moves to Done.
 
 ## Formats
 
@@ -65,20 +66,20 @@ Then read [`AGENTS.md`](AGENTS.md). It takes ten minutes and saves days.
 
 - **Direct pushes to `main` are blocked for every change**, including docs. Everything goes through a pull request.
 - **Every PR targets `main`.** Never base a PR on another PR's branch.
-- **Every PR is reviewed.** 1 approval is required ([D-014](docs/DECISIONS.md)). Adrian approves teammates' PRs, and a teammate approves Adrian's.
-- **Only Adrian can merge** ([D-014](docs/DECISIONS.md)). If he is unavailable, nothing merges, so keep PRs small.
+- **Every PR is reviewed.** 1 approval from a teammate is required ([D-014](docs/DECISIONS.md), [D-096](docs/DECISIONS.md)); nobody can approve their own PR.
+- **Any teammate can squash-merge** once approved and all 4 required CI checks pass (or enable auto-merge, [D-096](docs/DECISIONS.md)). Keep PRs small.
 - **Squash merge only.** The PR title and body become the commit on `main`, so write them for someone reading the history later.
 
 ## Definition of Done
 
 A task or story is done when:
 
-- [ ] CI is green (`checks`, `pr-title` and `db`)
+- [ ] CI is green (`checks`, `pr-title`, `db` and `e2e`)
 - [ ] every acceptance criterion is ticked by the person who verified it, named in the PR
 - [ ] docs the change makes stale are updated in the same PR
 - [ ] accessibility is checked (48×48 px targets, keyboard, focus, contrast, 360/768/1024
       px)
-- [ ] it has been reviewed, and Adrian squash-merged it
+- [ ] it has 1 peer approval and is squash-merged to `main`
 - [ ] the issue is closed and the card is in Done
 
 ## AI assistants

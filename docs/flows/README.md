@@ -127,7 +127,8 @@ about:
 The owners of the other areas a flow touches approve it, so a flow can need more than one
 approval: Maria approves what it says users see, do and are told, Luke what it says about
 security, and Adrian what it says about data and money. If they disagree, Adrian decides
-as Project Manager, and Adrian merges every flow. That is how the table at the top was
+as Project Manager. Once the named approvers approve and CI is green, any teammate may
+squash-merge the flow (D-096). That is how the table at the top was
 filled in: the reservation lifecycle is about states, so Adrian draws it, and Maria
 approves what it shows Seekers and Hosts. The sandbox payment confirmation is about money,
 so Adrian draws it; Luke approves its signature check, and Maria what the Seeker sees when

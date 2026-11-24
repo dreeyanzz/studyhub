@@ -52,9 +52,10 @@ last. The email and the production project are never cut (D-017, D-083).
 ## 1. What's new this sprint
 
 The path is the same as in Sprint 2 ([section 1 of its brief](SPRINT-2.md)): the shared
-flows, then the design doc, Adrian merges it, tasks on the board, one small pull request
-per task with its tests, review, and Adrian merges. Tell your AI tool **"Start my Sprint
-3 story."** It follows [the story loop](../AGENTS.md#the-story-loop).
+flows, then the design doc, merge once approved, tasks on the board, one small pull request
+per task with its tests, 1 peer approval + green CI, and any teammate merges (D-096). Tell
+your AI tool **"Start my Sprint 3 story."** It follows
+[the story loop](../AGENTS.md#the-story-loop).
 
 Four things are new:
 
@@ -170,8 +171,9 @@ and their Vitest and Playwright tests. Their tasks are #359 to #368.
 
 **Your backend.** Everything in `supabase/` for STORY-20: tables, policies, database
 functions, pgTAP tests and seed data. For STORY-19, the production project, #218 and the
-Definition of Done check. You also review and merge Luke's STORY-16 migration, and push
-it (D-066). `npm run db:race` already runs in CI (#262).
+Definition of Done check. You also review Luke's STORY-16 migration (D-066); once merged,
+GitHub Actions pushes it to `studyhub-dev` automatically (D-096). `npm run db:race`
+already runs in CI (#262).
 
 **Done when:** STORY-13's and STORY-14's acceptance criteria pass; each database half
 passes its pgTAP negatives (the wrong user gets zero rows, the owner can't make a
@@ -188,7 +190,7 @@ and STORY-20's designs, on Adrian's branch. You also approve Adrian's pull reque
 (D-014).
 
 **Your story, end to end (D-094).** STORY-16: `my_reservation_history` with its pgTAP
-tests and `db:types`, which Adrian reviews, merges and pushes (D-066); the confirmation
+tests and `db:types` (D-066; auto-pushed to `studyhub-dev` on merge, D-096); the confirmation
 email through the team Gmail account (D-089); and the history page, Hold again, and
 "Leave a review", with their tests.
 
@@ -249,7 +251,8 @@ There are no other targets (D-075). The work runs in the order of the steps in s
 
 ## 6. Rules we never break
 
-- Never push to `main`, and never force-push. Only Adrian merges.
+- Never push to `main`, and never force-push. Every change goes through a PR with 1 peer
+  approval and all four required CI checks green; any teammate can squash-merge it (D-096).
 - Branches are named `feature/STORY-xx-short-desc`.
 - Invented test data only: invented names and `@example.test` emails (D-013).
 - Keys go only in your own `.env.local`: never in chat, commits or screenshots. That
