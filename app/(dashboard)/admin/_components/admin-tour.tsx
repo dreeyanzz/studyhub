@@ -129,6 +129,16 @@ export function AdminTour() {
 
   // Auto-launch on first visit
   useEffect(() => {
+    // Suppress auto-launch in automated test environments (Playwright, WebDriver, CI, or unit test)
+    if (
+      typeof window !== 'undefined' &&
+      (window.navigator?.webdriver ||
+        process.env.NODE_ENV === 'test' ||
+        window.localStorage.getItem('studyhub:suppress-tour') === 'true')
+    ) {
+      return
+    }
+
     const hasSeen = localStorage.getItem(STORAGE_KEY)
     if (!hasSeen) {
       const timer = setTimeout(() => {

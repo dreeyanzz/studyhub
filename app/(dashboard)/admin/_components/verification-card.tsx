@@ -169,48 +169,43 @@ export function VerificationCard({
         ) : null}
 
         <dl className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
-          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all duration-200 hover:border-emerald-400/60 hover:bg-emerald-50/30 hover:shadow-xs">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100/90 text-emerald-800 ring-1 ring-emerald-300/50 dark:bg-emerald-950/70 dark:text-emerald-300">
-              <User className="size-4 shrink-0" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <dt className="block text-xs font-bold tracking-wider text-foreground/75 uppercase">
-                Host:{' '}
-              </dt>
-              <dd className="block truncate font-bold wrap-anywhere text-foreground">
-                {hostDisplay}
-              </dd>
-            </div>
+          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all duration-200 hover:border-emerald-400/60 hover:bg-emerald-50/30 hover:shadow-xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-foreground/75 uppercase">
+              <User
+                className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400"
+                aria-hidden="true"
+              />
+              Host:{' '}
+            </dt>
+            <dd className="mt-1 block truncate font-bold wrap-anywhere text-foreground">
+              {hostDisplay}
+            </dd>
           </div>
 
-          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all duration-200 hover:border-sky-400/60 hover:bg-sky-50/30 hover:shadow-xs">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sky-100/90 text-sky-800 ring-1 ring-sky-300/50 dark:bg-sky-950/70 dark:text-sky-300">
-              <Clock className="size-4 shrink-0" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <dt className="block text-xs font-bold tracking-wider text-foreground/75 uppercase">
-                Daily hours:{' '}
-              </dt>
-              <dd className="block truncate font-bold wrap-anywhere text-foreground">
-                {formatOpeningHours(space.opens_at, space.closes_at)}
-              </dd>
-            </div>
+          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all duration-200 hover:border-sky-400/60 hover:bg-sky-50/30 hover:shadow-xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-foreground/75 uppercase">
+              <Clock
+                className="size-3.5 shrink-0 text-sky-600 dark:text-sky-400"
+                aria-hidden="true"
+              />
+              Daily hours:{' '}
+            </dt>
+            <dd className="mt-1 block truncate font-bold wrap-anywhere text-foreground">
+              {formatOpeningHours(space.opens_at, space.closes_at)}
+            </dd>
           </div>
 
-          <div className="flex items-center gap-3 rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all duration-200 hover:border-amber-400/60 hover:bg-amber-50/30 hover:shadow-xs">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-amber-100/90 text-amber-800 ring-1 ring-amber-300/50 dark:bg-amber-950/70 dark:text-amber-300">
-              <Calendar className="size-4 shrink-0" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <dt className="block text-xs font-bold tracking-wider text-foreground/75 uppercase">
-                Submitted:{' '}
-              </dt>
-              <dd className="block truncate font-bold wrap-anywhere text-foreground">
-                <time dateTime={space.created_at}>
-                  {formatDateTime(space.created_at)}
-                </time>
-              </dd>
-            </div>
+          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs transition-all duration-200 hover:border-amber-400/60 hover:bg-amber-50/30 hover:shadow-xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-foreground/75 uppercase">
+              <Calendar
+                className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400"
+                aria-hidden="true"
+              />
+              Submitted:{' '}
+            </dt>
+            <dd className="mt-1 block truncate font-bold wrap-anywhere text-foreground">
+              <time dateTime={space.created_at}>{formatDateTime(space.created_at)}</time>
+            </dd>
           </div>
         </dl>
       </CardContent>
