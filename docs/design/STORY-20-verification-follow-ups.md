@@ -157,11 +157,11 @@ sequenceDiagram
 
 #### `public.spaces` (three new columns, no role granted insert or update)
 
-| Column              | Type          | Rule                                                                                                       |
-| ------------------- | ------------- | ---------------------------------------------------------------------------------------------------------- |
-| `status_reason`     | `text`        | Null, or 1 to 500 characters after trimming. Set on V3/V7, preserved on V8, cleared on V2/V9/V10 (N10/N12) |
-| `status_changed_at` | `timestamptz` | Not null, default `now()`. Backfilled from `created_at` for existing rows; drives queue wait order         |
-| `status_changed_by` | `uuid`        | Null, references `public.profiles(id)` `on delete set null`                                                |
+| Column              | Type          | Rule                                                                                                                                                                                                                                               |
+| ------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status_reason`     | `text`        | Null, or 1 to 500 characters after trimming. Set on V3/V7, preserved on V8, cleared on V2/V9/V10 (N10/N12)                                                                                                                                         |
+| `status_changed_at` | `timestamptz` | Not null, default `now()`. Backfilled from `created_at` for existing rows (so pre-existing Sprint 2 Verified and Rejected rows display their creation date as `"Verified:"` / `"Rejected:"` until their next status move); drives queue wait order |
+| `status_changed_by` | `uuid`        | Null, references `public.profiles(id)` `on delete set null`                                                                                                                                                                                        |
 
 Check constraints on `public.spaces`:
 
@@ -279,8 +279,8 @@ from `public`, `anon`, and `authenticated`, and grant execute to `authenticated`
      lock order: units → reservations → payments). Cancels those holds (`status = 'cancelled'`,
      `ended_at = v_now`, `cancelled_by_take_down = true`) and leaves `occupied` holds
      untouched (D-085). Collects each cancelled hold's `reservation_id`, `previous_status`,
-     `payment_id`, `payment_status`, `checkout_session_id`, and `payment_intent_id` into
-     `cancelled_holds`.
+     `payment_id`, `payment_status`, `checkout_session_id`, and `payment_intent_id` (from
+     `payments.external_payment_id`, D-070) into `cancelled_holds`.
    - Updates `spaces`: `status = p_status`, `status_reason = (v_reason for V3/V7, else null)`,
      `status_changed_at = v_now`, `status_changed_by = v_caller_id`. (`set_updated_at`
      advances `spaces.updated_at`.)
@@ -328,15 +328,18 @@ from `public`, `anon`, and `authenticated`, and grant execute to `authenticated`
 
 ### Take-down Stripe cleanup helper (`lib/payments/take-down.ts`, Adrian)
 
-Server-only helper `cleanupTakeDownHolds(supabase, cancelledHolds, reason)`:
+Server-only helper `cleanupTakeDownHolds(supabase, cancelledHolds, reason, action)` where
+`action` is `'taken_down'` (V7) or `'rejected'` (V3 after V6):
 
 - Closes each `pending_payment` hold's open Stripe checkout via `expireCheckoutSession`
   (best-effort; failures are logged because Stripe expires or P2 catches late payments).
-- For each `reserved` hold whose `payment_status === 'paid'` and `payment_intent_id` is
-  present, calls `createRefund({ paymentIntentId, paymentId })` with `findRefund` recovery
-  (matching STORY-14 §1, D-088), then calls `supabase.rpc('record_refund', { p_payment_id, p_refund_id, p_reason })`
-  with a bounded reason derived from the take-down reason (`"Space taken down: …"`,
-  truncated to 300 chars).
+- For each `reserved` hold whose `payment_status === 'paid'` and `payment_intent_id`
+  (`payments.external_payment_id`, D-070) is present, calls
+  `createRefund({ paymentIntentId, paymentId })` with `findRefund` recovery (matching
+  STORY-14 §1, D-088), then calls
+  `supabase.rpc('record_refund', { p_payment_id, p_refund_id, p_reason })` with a bounded
+  reason derived from the move and Administrator's reason (`"Space taken down: …"` for V7
+  or `"Space rejected after an edit: …"` for V3, truncated to 300 chars).
 - Returns `{ expiredCheckouts, refundedCount, failedRefundPaymentIds }`. Any payment in
   `failedRefundPaymentIds` stays `paid` on `/admin/payments` for manual retry (D-085).
 
@@ -372,11 +375,11 @@ Server-only helper `cleanupTakeDownHolds(supabase, cancelledHolds, reason)`:
      - **Pending (`?tab=pending`):** ordered by `status_changed_at asc` (oldest waiting first, D-084). Shows `"Pending verification"` badge and `"Waiting since:"` timestamp, plus an origin badge derived from the latest `space_events` row with `to_status = 'pending'`:
        - no origin badge after V1 (newly created);
        - `"Edited"` badge after V6 (Verified name, address, or map pin changed);
-       - `"Resubmitted"` badge after V8, accompanied by a `"Previous reason:"` callout showing `spaces.status_reason` (plain text).
+       - `"Resubmitted"` badge after V8, accompanied by a `"Previous reason:"` callout showing `spaces.status_reason` (plain text) when `status_reason` is non-null.
        - Actions: destructive outline `"Reject"` (opens `VerificationReasonDialog` in `'rejected'` mode) and primary `"Approve"` (calls `setSpaceStatusAction` directly for V2, disabling with `"Approving..."` and `aria-busy="true"`).
      - **Verified (`?tab=verified`):** ordered by `status_changed_at desc`. Shows `"Verified"` badge and `"Verified:"` timestamp. Action: destructive outline `"Take down"` (opens `VerificationReasonDialog` in `'taken_down'` mode).
-     - **Rejected (`?tab=rejected`):** ordered by `status_changed_at desc`. Shows `"Rejected"` badge, `"Reason:"` callout displaying `spaces.status_reason`, and `"Rejected:"` timestamp. Action: `"Undo"` (opens `VerificationConfirmDialog` for V9).
-     - **Taken down (`?tab=taken_down`):** ordered by `status_changed_at desc`. Shows `"Taken down"` badge, `"Reason:"` callout displaying `spaces.status_reason`, and `"Taken down:"` timestamp. Action: `"Put back"` (opens `VerificationConfirmDialog` for V10).
+     - **Rejected (`?tab=rejected`):** ordered by `status_changed_at desc`. Shows `"Rejected"` badge, `"Reason:"` callout displaying `spaces.status_reason` when `status_reason` is non-null, and `"Rejected:"` timestamp. Action: `"Undo"` (opens `VerificationConfirmDialog` for V9).
+     - **Taken down (`?tab=taken_down`):** ordered by `status_changed_at desc`. Shows `"Taken down"` badge, `"Reason:"` callout displaying `spaces.status_reason` when `status_reason` is non-null, and `"Taken down:"` timestamp. Action: `"Put back"` (opens `VerificationConfirmDialog` for V10).
    - **Reject & Take down reason dialog (`VerificationReasonDialog`, on `Dialog` from `components/ui/dialog.tsx`):**
      - Focus-trapped modal; Escape or `"Cancel"` closes it and returns focus to the triggering card button.
      - **Reject mode (V3):**
@@ -391,7 +394,7 @@ Server-only helper `cleanupTakeDownHolds(supabase, cancelledHolds, reason)`:
        - Actions (48 × 48 px): `"Cancel"` and destructive `"Take down Space"` (disabled `"Taking down..."`, `aria-busy="true"` while pending).
    - **Undo & Put back confirmation (`VerificationConfirmDialog`, on `AlertDialog` from `components/ui/alert-dialog.tsx`):**
      - Focus-trapped confirmation dialog; Escape or `"Cancel"` closes and returns focus to trigger.
-     - **Undo (V9, Rejected → Verified):** Title `"Undo rejection?"`, body `"{space.name} will become Verified and visible in public search immediately, and its rejection reason will be cleared."`, actions `"Cancel"` / `"Undo rejection"` (`"Undoing..."`, `aria-busy="true"`).
+     - **Undo (V9, Rejected → Verified):** Title `"Undo rejection?"`, body `"{space.name} will become Verified and visible in public search immediately, and its rejection reason will be cleared. Holds cancelled by the rejection stay cancelled."`, actions `"Cancel"` / `"Undo rejection"` (`"Undoing..."`, `aria-busy="true"`).
      - **Put back (V10, Taken down → Verified):** Title `"Put Space back?"`, body `"{space.name} will become Verified and visible in public search again, and its take-down reason will be cleared. Holds cancelled by the take-down stay cancelled."`, actions `"Cancel"` / `"Put back"` (`"Putting back..."`, `aria-busy="true"`).
    - **Feedback and error announcements (`role="status"` / `aria-live="polite"` dismissible `Alert`):**
      - On success, removes the decided Space card from the active tab list, closes any open dialog, and announces:
@@ -417,8 +420,8 @@ Server-only helper `cleanupTakeDownHolds(supabase, cancelledHolds, reason)`:
      - Highlighting (D-086, always words + visual style, never colour alone): every entry newer than the Space's most recent `to_status = 'verified'` event (or all entries if never Verified) carries a `"Since last verified"` badge and highlighted left border; the newest entry (`index === 0`) carries a `"Latest"` badge and the strongest visual emphasis.
    - **Live notice (`RealtimeSpaceNotice`, D-086):**
      - Client Component mounted by `VerificationQueue` using `createClient()` (`lib/supabase/client.ts`).
-     - Subscribes to `postgres_changes` (`event: 'UPDATE'`, `schema: 'public'`, `table: 'spaces'`) for the currently displayed Space IDs (RLS enforced by Supabase Realtime) and removes the channel on unmount or list update.
-     - When an `UPDATE` arrives whose `new.updated_at !== renderedSpace.updated_at` (ignoring updates triggered by the Administrator's own in-flight action), marks that Space as stale:
+     - Subscribes to `postgres_changes` (`event: 'UPDATE'`, `schema: 'public'`, `table: 'spaces'`) without an `in` filter (because Supabase Realtime caps `in` filters at 100 IDs), filters incoming events client-side to the Space IDs currently displayed (RLS enforced by Supabase Realtime), and removes the channel on unmount.
+     - When an `UPDATE` arrives for a displayed Space (ignoring updates triggered by the Administrator's own in-flight action) and either `Date.parse(newUpdatedAt) !== Date.parse(renderedSpace.updated_at)` or `updated_at` cannot be parsed as an identical instant, marks that Space as stale:
        - Displays an `Alert` (`role="status"`, `aria-live="polite"`) inside that Space's `VerificationCard`: title `"Updated by Host"`, body `"{space.name} was just changed. Reload to inspect the latest details and list of changes before deciding."`, and a 48 × 48 px `"Reload latest version"` button calling `router.refresh()` (which loads fresh server data and clears the stale mark once `initialSpaces` updates).
        - Disables all decision buttons on that card (and closes any open dialog for that Space) until reloaded.
        - If Realtime disconnects or misses an event, N9 (`stale_version`) still blocks the decision and presents the same reload prompt.
