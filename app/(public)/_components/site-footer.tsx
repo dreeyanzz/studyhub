@@ -127,6 +127,16 @@ export function SiteFooter() {
               >
                 Sign up
               </Link>
+              <Link
+                href="/privacy"
+                className={buttonVariants({
+                  variant: 'link',
+                  className:
+                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
+                })}
+              >
+                Privacy policy
+              </Link>
             </div>
           </nav>
         </div>
