@@ -3,6 +3,7 @@
 // Space profile Server Actions:
 // - holdUnit (STORY-09 design §3, TSK-09.6, R1, D-068)
 // - postReviewAction, editReviewAction, deleteReviewAction (STORY-13 design §1 & §3, TSK-13.4, RV1-RV3)
+// - reportReviewAction (STORY-13 design §1 & §3, TSK-13.5, RP1, FR-4.2, D-080)
 //
 // Every action can be called directly, so each validates its own input and session.
 // Postgres RLS and functions remain the security boundary (D-007).
@@ -11,18 +12,27 @@ import { redirect } from 'next/navigation'
 import type { z } from 'zod'
 
 import { holdRefusalReason } from '@/lib/payments/refusals'
+import type { TablesInsert } from '@/lib/supabase/database.types'
 import { createClient } from '@/lib/supabase/server'
 import { holdUnitSchema } from '@/lib/validation/reservation'
 import {
   deleteReviewSchema,
   editReviewSchema,
   postReviewSchema,
+  reportReviewSchema,
+  type ReportReviewActionState,
+  type ReportReviewFormField,
   type ReviewActionState,
   type ReviewFormField,
 } from '@/lib/validation/review'
 import { spaceIdSchema } from '@/lib/validation/space'
 
-export type { ReviewActionState, ReviewFormField }
+export type {
+  ReportReviewActionState,
+  ReportReviewFormField,
+  ReviewActionState,
+  ReviewFormField,
+}
 
 const REVIEW_FORM_FIELDS = new Set<string>([
   'quietness',
@@ -300,5 +310,94 @@ export async function deleteReviewAction(
   return {
     status: 'success',
     message: 'Review deleted.',
+  }
+}
+
+const REPORT_FORM_FIELDS = new Set<string>(['reason', 'note'])
+
+function formatReportValidationError(error: z.ZodError): ReportReviewActionState {
+  const fieldErrors: Partial<Record<ReportReviewFormField, string>> = {}
+  for (const issue of error.issues) {
+    const key = issue.path[0]
+    if (typeof key === 'string' && REPORT_FORM_FIELDS.has(key)) {
+      const field = key as ReportReviewFormField
+      if (!fieldErrors[field]) {
+        fieldErrors[field] = issue.message
+      }
+    }
+  }
+  return {
+    status: 'error',
+    message: error.issues[0]?.message ?? 'Please check your report and try again.',
+    fieldErrors: Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+  }
+}
+
+/**
+ * Reports another user's visible review for Administrator moderation
+ * (STORY-13 design §1 & §3, TSK-13.5, RP1, FR-4.2, D-080, N11).
+ */
+export async function reportReviewAction(
+  _prevState: ReportReviewActionState,
+  formData: FormData,
+): Promise<ReportReviewActionState> {
+  const parsed = reportReviewSchema.safeParse({
+    spaceId: formData.get('spaceId'),
+    reviewId: formData.get('reviewId'),
+    reason: formData.get('reason'),
+    note: formData.get('note') ?? undefined,
+  })
+  if (!parsed.success) {
+    return formatReportValidationError(parsed.error)
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      status: 'error',
+      message: "You can't report this review",
+    }
+  }
+
+  const { spaceId, reviewId, reason, note } = parsed.data
+
+  // Only columns granted for authenticated insert (review_id, reason, note) are sent;
+  // Postgres's `set_review_report_version` BEFORE INSERT trigger populates `review_version`
+  // from the review's current version (D-080, STORY-13 design §2).
+  const payload = {
+    review_id: reviewId,
+    reason,
+    note,
+  } as TablesInsert<'review_reports'>
+
+  const { error } = await supabase.from('review_reports').insert(payload)
+
+  if (error) {
+    if (error.code === '42501' || error.code === '23502' || error.code === '23503') {
+      return {
+        status: 'error',
+        message: "You can't report this review",
+      }
+    }
+    if (error.code === '23505') {
+      return {
+        status: 'error',
+        message: 'You have already reported this review',
+      }
+    }
+    return {
+      status: 'error',
+      message: 'Could not submit your report right now. Please try again.',
+    }
+  }
+
+  revalidatePath(`/spaces/${spaceId}`)
+
+  return {
+    status: 'success',
+    message: 'Report submitted.',
   }
 }

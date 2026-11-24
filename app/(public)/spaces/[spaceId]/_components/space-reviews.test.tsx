@@ -12,6 +12,7 @@ vi.mock('../actions', () => ({
   postReviewAction: vi.fn(),
   editReviewAction: vi.fn(),
   deleteReviewAction: vi.fn(),
+  reportReviewAction: vi.fn(),
 }))
 
 const SPACE_ID = 'e0000000-0000-4000-8000-000000000001'
@@ -252,6 +253,54 @@ describe('SpaceReviews (STORY-13, TSK-13.4, FR-4.1, SRS §3.5.2)', () => {
     // Edit and Delete buttons appear only once (for the visible review, not hidden/removed)
     expect([...html.matchAll(/>Edit<\/button>/g)]).toHaveLength(1)
     expect([...html.matchAll(/>Delete<\/button>/g)]).toHaveLength(1)
+  })
+
+  it('shows Report and "You reported this" only when canReport is true (TSK-13.5, RP1)', () => {
+    const signedOutHtml = renderToStaticMarkup(
+      <SpaceReviews
+        spaceId={SPACE_ID}
+        summary={makeSummary()}
+        reviewsPage={{
+          reviews: [
+            makeReview({ id: 'rev-open', reportedByCaller: false }),
+            makeReview({ id: 'rev-done', reportedByCaller: true }),
+          ],
+          hasMore: false,
+        }}
+        myReviews={[]}
+        reviewableVisit={null}
+        viewerShortName="Worq Seeker"
+        canReport={false}
+        sort="newest"
+        shown={10}
+      />,
+    )
+    expect(signedOutHtml).not.toContain('report-review-trigger-')
+    expect(signedOutHtml).not.toContain('You reported this')
+
+    const signedInHtml = renderToStaticMarkup(
+      <SpaceReviews
+        spaceId={SPACE_ID}
+        summary={makeSummary()}
+        reviewsPage={{
+          reviews: [
+            makeReview({ id: 'rev-open', reportedByCaller: false }),
+            makeReview({ id: 'rev-done', reportedByCaller: true }),
+          ],
+          hasMore: false,
+        }}
+        myReviews={[]}
+        reviewableVisit={null}
+        viewerShortName="Juan C."
+        canReport
+        sort="newest"
+        shown={10}
+      />,
+    )
+    expect(signedInHtml).toContain('data-testid="report-review-trigger-rev-open"')
+    expect(signedInHtml).toContain('data-testid="review-reported-rev-done"')
+    expect(signedInHtml).toContain('You reported this')
+    expect(signedInHtml).not.toContain('data-testid="report-review-trigger-rev-done"')
   })
 
   it('builds review query URLs cleanly', () => {

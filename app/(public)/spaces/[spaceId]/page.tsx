@@ -279,7 +279,7 @@ export default async function SpaceProfilePage({
         selectedUnitActionSlot={holdPanel}
       />
 
-      {/* Community reviews and ratings (STORY-13, TSK-13.4, FR-4.1) */}
+      {/* Community reviews and ratings (STORY-13, TSK-13.4, TSK-13.5, FR-4.1, FR-4.2) */}
       <SpaceReviews
         spaceId={space.id}
         summary={reviewSummary}
@@ -287,6 +287,7 @@ export default async function SpaceProfilePage({
         myReviews={myReviews}
         reviewableVisit={reviewableVisit}
         viewerShortName={viewerShortName}
+        canReport={viewer.role !== null}
         sort={reviewSort}
         shown={reviewShown}
         view={viewParam === 'list' ? 'list' : undefined}

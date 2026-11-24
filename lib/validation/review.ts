@@ -170,6 +170,16 @@ export type ReviewActionState = {
   fieldErrors?: Partial<Record<ReviewFormField, string>>
 }
 
+/** Field names shown in `ReportReviewDialog` and returned in `ReportReviewActionState.fieldErrors`. */
+export type ReportReviewFormField = 'reason' | 'note'
+
+/** Shared Server Action result shape for reporting another user's review (TSK-13.5). */
+export type ReportReviewActionState = {
+  status: 'idle' | 'success' | 'error'
+  message: string | null
+  fieldErrors?: Partial<Record<ReportReviewFormField, string>>
+}
+
 /** Category rating fields in canonical display order (FR-4.1, D-087). */
 export const REVIEW_RATING_CATEGORIES = [
   { key: 'quietness', label: 'Quietness' },
