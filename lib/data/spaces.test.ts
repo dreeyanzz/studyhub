@@ -175,6 +175,16 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
       return chain
     }
 
+    function createMockSupabase(
+      fromImpl: (table: string) => unknown,
+      rpcImpl = vi.fn().mockResolvedValue({ data: [], error: null }),
+    ): SupabaseClient<Database> {
+      return {
+        from: vi.fn().mockImplementation(fromImpl),
+        rpc: rpcImpl,
+      } as unknown as SupabaseClient<Database>
+    }
+
     it('enforces status = verified invariant (D-055)', async () => {
       let statusFilter = ''
 
@@ -184,11 +194,9 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
         },
       })
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockQueryBuilder),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockQueryBuilder),
+      }))
 
       const results = await searchVerifiedSpaces(mockSupabase, {})
 
@@ -222,16 +230,14 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
         }),
       }
 
-      const mockSupabase = {
-        from: vi.fn().mockImplementation((table: string) => {
-          if (table === 'space_curated_tags') return mockTagsChain
-          if (table === 'spaces')
-            return {
-              select: vi.fn().mockReturnValue(mockSpacesChain),
-            }
-          throw new Error(`Unexpected table ${table}`)
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase((table: string) => {
+        if (table === 'space_curated_tags') return mockTagsChain
+        if (table === 'spaces')
+          return {
+            select: vi.fn().mockReturnValue(mockSpacesChain),
+          }
+        throw new Error(`Unexpected table ${table}`)
+      })
 
       const results = await searchVerifiedSpaces(mockSupabase, {
         tags: ['wifi_fast', 'outlets_all'],
@@ -254,12 +260,10 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
         }),
       }
 
-      const mockSupabase = {
-        from: vi.fn().mockImplementation((table: string) => {
-          if (table === 'space_curated_tags') return mockTagsChain
-          throw new Error('Should not query spaces if tags did not match')
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase((table: string) => {
+        if (table === 'space_curated_tags') return mockTagsChain
+        throw new Error('Should not query spaces if tags did not match')
+      })
 
       const results = await searchVerifiedSpaces(mockSupabase, {
         tags: ['wifi_fast', 'outlets_all'],
@@ -284,16 +288,14 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
         },
       })
 
-      const mockSupabase = {
-        from: vi.fn().mockImplementation((table: string) => {
-          if (table === 'units') return mockUnitsChain
-          if (table === 'spaces')
-            return {
-              select: vi.fn().mockReturnValue(mockSpacesChain),
-            }
-          throw new Error(`Unexpected table ${table}`)
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase((table: string) => {
+        if (table === 'units') return mockUnitsChain
+        if (table === 'spaces')
+          return {
+            select: vi.fn().mockReturnValue(mockSpacesChain),
+          }
+        throw new Error(`Unexpected table ${table}`)
+      })
 
       const results = await searchVerifiedSpaces(mockSupabase, {
         unitType: ['room'],
@@ -312,11 +314,9 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
         },
       })
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockSpacesChain),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockSpacesChain),
+      }))
 
       await searchVerifiedSpaces(mockSupabase, {
         price: ['budget'],
@@ -328,11 +328,9 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
     it('evaluates dynamic hours filter open_now at specified Manila reference time', async () => {
       const mockSpacesChain = createMockSpacesChain([space1, space2])
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockSpacesChain),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockSpacesChain),
+      }))
 
       // At 21:00 Manila time (13:00 UTC):
       // space1 (closes 23:00) is OPEN
@@ -352,11 +350,9 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
     it('evaluates dynamic hours filter open_late', async () => {
       const mockSpacesChain = createMockSpacesChain([space1, space2])
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockSpacesChain),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockSpacesChain),
+      }))
 
       // space1 closes at 23:00 (Open Late: true)
       // space2 closes at 20:00 (Open Late: false)
@@ -371,11 +367,9 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
     it('resolves campus search "USC Talamban" and computes distance within radius', async () => {
       const mockSpacesChain = createMockSpacesChain([space1, space2])
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockSpacesChain),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockSpacesChain),
+      }))
 
       // Searching for "USC Talamban":
       // space1 is ~0.1 km away from USC TC (10.354, 123.9114)
@@ -399,11 +393,9 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
         },
       })
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockSpacesChain),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockSpacesChain),
+      }))
 
       await searchVerifiedSpaces(mockSupabase, {
         q: 'Nasipit',
@@ -414,14 +406,69 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
       expect(orFilter).toContain('address.ilike')
     })
 
+    it('attaches review_count and avg_overall from space_review_summary (STORY-13, TSK-13.4)', async () => {
+      const mockSpacesChain = createMockSpacesChain([space1, space2])
+      const rpc = vi.fn().mockResolvedValue({
+        data: [
+          {
+            space_id: space1.id,
+            review_count: 2,
+            avg_quietness: 4.5,
+            avg_wifi_reliability: 4.0,
+            avg_cleanliness: 4.5,
+            avg_comfort: 4.0,
+            avg_overall: 4.25,
+          },
+          {
+            space_id: space2.id,
+            review_count: 0,
+            avg_quietness: null,
+            avg_wifi_reliability: null,
+            avg_cleanliness: null,
+            avg_comfort: null,
+            avg_overall: null,
+          },
+        ],
+        error: null,
+      })
+
+      const mockSupabase = createMockSupabase(
+        () => ({ select: vi.fn().mockReturnValue(mockSpacesChain) }),
+        rpc,
+      )
+
+      const results = await searchVerifiedSpaces(mockSupabase, {})
+
+      expect(rpc).toHaveBeenCalledWith('space_review_summary', {
+        p_space_ids: [space1.id, space2.id],
+      })
+      const byId = new Map(results.map((r) => [r.id, r]))
+      expect(byId.get(space1.id)?.review_count).toBe(2)
+      expect(byId.get(space1.id)?.avg_overall).toBe(4.25)
+      expect(byId.get(space2.id)?.review_count).toBe(0)
+      expect(byId.get(space2.id)?.avg_overall).toBeNull()
+    })
+
+    it('falls back to 0 / null ratings when space_review_summary errors', async () => {
+      const mockSpacesChain = createMockSpacesChain([space1])
+      const rpc = vi.fn().mockResolvedValue({ data: null, error: { code: 'XX000' } })
+      const mockSupabase = createMockSupabase(
+        () => ({ select: vi.fn().mockReturnValue(mockSpacesChain) }),
+        rpc,
+      )
+
+      const results = await searchVerifiedSpaces(mockSupabase, {})
+      expect(results).toHaveLength(1)
+      expect(results[0]?.review_count).toBe(0)
+      expect(results[0]?.avg_overall).toBeNull()
+    })
+
     it('returns empty array when database returns an error', async () => {
       const mockSpacesChain = createMockSpacesChain(null, new Error('Postgres error'))
 
-      const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue(mockSpacesChain),
-        }),
-      } as unknown as SupabaseClient<Database>
+      const mockSupabase = createMockSupabase(() => ({
+        select: vi.fn().mockReturnValue(mockSpacesChain),
+      }))
 
       const results = await searchVerifiedSpaces(mockSupabase, {})
       expect(results).toEqual([])

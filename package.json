@@ -25,6 +25,7 @@
     "db:test": "supabase test db",
     "db:race": "node supabase/tests/race/holds.race.mjs && node supabase/tests/race/check-in.race.mjs",
     "db:new": "supabase migration new",
+    "db:check-order": "node scripts/check-migration-order.mjs",
     "db:types": "supabase gen types typescript --local > lib/supabase/database.types.ts",
     "db:accounts": "node --env-file=.env.local scripts/register-cloud-accounts.mjs",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/webhooks/stripe --events checkout.session.completed,checkout.session.async_payment_succeeded",

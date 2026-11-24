@@ -3,6 +3,7 @@
 import type * as LeafletType from 'leaflet'
 import { useEffect, useRef, useState } from 'react'
 import { PRICE_TIER_LABELS } from '@/components/discovery/price-tier-badge'
+import { formatReviewRating } from '@/components/review/review-rating'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 import type { PriceTier } from '@/lib/validation/search'
 
@@ -88,9 +89,18 @@ export function escapeHtml(text: string): string {
 export function buildPopupHtml(
   space: Pick<
     VerifiedSpaceSearchResult,
-    'id' | 'name' | 'address' | 'price_tier' | 'distance_km' | 'curated_tags'
+    | 'id'
+    | 'name'
+    | 'address'
+    | 'price_tier'
+    | 'distance_km'
+    | 'curated_tags'
+    | 'review_count'
+    | 'avg_overall'
   >,
 ): string {
+  const rating = formatReviewRating(space.avg_overall, space.review_count)
+  const ratingHtml = `<div style="font-size: 12px; color: ${rating.hasReviews ? 'var(--foreground)' : 'var(--muted-foreground)'}; font-weight: ${rating.hasReviews ? '600' : '400'}; margin-top: 4px;">${escapeHtml(rating.text)}</div>`
   const distance =
     space.distance_km !== null
       ? `<div style="font-size: 12px; color: var(--foreground); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
@@ -111,6 +121,7 @@ export function buildPopupHtml(
         <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
       </div>
       <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
+      ${ratingHtml}
       ${distance}
       ${tags}
       <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">

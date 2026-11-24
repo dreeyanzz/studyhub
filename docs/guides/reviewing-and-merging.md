@@ -1,7 +1,8 @@
 # Reviewing and merging
 
-Every pull request is reviewed before it merges, and only Adrian can merge (D-014). The required approval count is 1. Adrian approves teammates' PRs, and a teammate approves Adrian's. Nobody can
-approve their own PR.
+Every pull request is reviewed before it merges, and any teammate can squash-merge once
+it is approved and CI is green (D-014, D-096). The required approval count is 1 from a
+peer. Nobody can approve their own PR, and direct pushes to `main` stay blocked.
 
 ## Reviewing a pull request
 
@@ -41,26 +42,37 @@ Comment on specific lines, then submit your review:
 Answer every comment, either with a change or a reply. Resolve each thread once it is
 settled. After pushing changes, request the review again.
 
-## How Adrian merges
+## How to merge a pull request
+
+Any teammate (usually the author or reviewer) can squash-merge a pull request once the
+requirements are met (D-096). AI agents still never merge (D-034).
 
 1. **Check** that:
-   - the required checks are green
+   - the four required checks (`checks`, `pr-title`, `db` and `e2e`) are green
    - it has 1 approving review from a peer
-   - every thread is resolved
-   - for story work, the design doc is merged
+   - every review thread is resolved
+   - for story work, the design doc is merged (D-016)
    - for a design doc, the shared flows it uses are merged (D-044)
    - for a design doc with screens, Maria has approved it (D-042), except the designs of
      Sprint 3's feature stories, STORY-13, STORY-14, STORY-16 and STORY-20, which Luke
      approves and Maria and James review once built (D-073)
    - for a flow doc, the approvers the [flows index](../flows/README.md) names have
      approved it (D-044)
-   - for a new migration, its timestamp is later than every migration on `main`, which
-     CI doesn't check (D-066)
+   - for a look change to a screen Maria or James restyled, Maria or James has approved
+     it (D-074)
+   - for a new migration, the `db` job passed `check-migration-order.mjs` (append-only
+     and newer timestamp than `main`, D-066, D-096)
 2. **Read the squash commit title and message** in the merge box. They are what stays on `main`, and you can fix the wording there. The `Co-Authored-By:` line must stay last.
-3. **Merge.** Tick "Merge without waiting for requirements to be met (bypass rules)" and choose "Squash and merge".
-   - The bypass skips only the rule that stops teammates from merging. The approval and the checks still apply.
-   - From a terminal: `gh pr merge <number> --squash --admin`.
-4. **If the PR changed the database**, run `npx supabase db push` against the cloud dev project.
+3. **Merge.** Choose **Squash and merge** — or click **Enable auto-merge (squash)** so
+   GitHub lands the pull request automatically as soon as the approval and all four CI
+   checks are green.
+   - From a terminal: `gh pr merge <number> --squash` (or `--auto` while CI is still
+     running).
+   - Adrian keeps Repository Admin bypass (`--admin`) for emergencies only (D-014, D-096).
+4. **If the PR changed `supabase/migrations/`**, GitHub Actions (`Deploy dev migrations`)
+   automatically pushes the new migration to `studyhub-dev` (D-096). Check the Actions
+   tab to confirm `push-dev` turns green. Production (`studyhub-prod`) stays manual from
+   Adrian's machine (D-090).
 5. **Check the board.** The task should be in Done and the story's progress updated.
 
 GitHub deletes the PR's branch automatically.

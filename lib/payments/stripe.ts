@@ -1,7 +1,8 @@
 // The Stripe API calls: make a hosted Checkout Session, and expire one (sandbox
-// payment confirmation flow §1.1, D-070). Plain fetch to Stripe's form-encoded REST
-// API, no SDK (D-070). Server only: it reads STRIPE_SECRET_KEY, which must never
-// reach a browser.
+// payment confirmation flow §1.1, D-070), and refund a paid fee, or find its earlier
+// refund (STORY-14 design §2, D-088). Plain fetch to Stripe's form-encoded REST API,
+// no SDK (D-070). Server only: it reads STRIPE_SECRET_KEY, which must never reach a
+// browser.
 import 'server-only'
 
 export class StripeApiError extends Error {
@@ -91,20 +92,28 @@ interface StripeDeps {
 /** Long enough for Stripe, short enough that the Seeker sees "Try again" (W14). */
 const REQUEST_TIMEOUT_MS = 10_000
 
-async function post(
-  path: string,
-  form: URLSearchParams | null,
+/**
+ * One call to Stripe, with the sandbox key and the pinned API version (D-070). The key
+ * is checked before anything is sent. A timeout rejects with a DOMException, and a
+ * network failure with fetch's own error.
+ */
+async function send(
+  method: 'GET' | 'POST',
+  pathAndQuery: string,
+  extraHeaders: Record<string, string>,
+  body: string | undefined,
   deps: StripeDeps,
 ): Promise<unknown> {
   const env = deps.env ?? process.env
-  const response = await (deps.fetch ?? fetch)(`${stripeApiUrl(env)}${path}`, {
-    method: 'POST',
+  const response = await (deps.fetch ?? fetch)(`${stripeApiUrl(env)}${pathAndQuery}`, {
+    method,
+    // The caller's headers first, so none of them can replace the key or the version.
     headers: {
+      ...extraHeaders,
       Authorization: `Bearer ${sandboxSecretKey(env)}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
       'Stripe-Version': STRIPE_API_VERSION,
     },
-    body: form?.toString() ?? '',
+    body,
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   })
   const json: unknown = await response.json().catch(() => null)
@@ -117,6 +126,27 @@ async function post(
     )
   }
   return json
+}
+
+/** A form-encoded POST. `headers` adds to the fixed ones, such as an Idempotency-Key. */
+function post(
+  path: string,
+  form: URLSearchParams | null,
+  deps: StripeDeps,
+  headers: Record<string, string> = {},
+): Promise<unknown> {
+  return send(
+    'POST',
+    path,
+    { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' },
+    form?.toString() ?? '',
+    deps,
+  )
+}
+
+/** The GET twin of post, for Stripe's list endpoints. */
+function get(path: string, query: URLSearchParams, deps: StripeDeps): Promise<unknown> {
+  return send('GET', `${path}?${query.toString()}`, {}, undefined, deps)
 }
 
 /** Makes the hosted checkout. Throws a StripeApiError, or a network or timeout error. */
@@ -149,4 +179,91 @@ export async function expireCheckoutSession(
 ): Promise<void> {
   if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) throw new Error('Not a Checkout Session id')
   await post(`/v1/checkout/sessions/${sessionId}/expire`, null, deps)
+}
+
+/** A refund Stripe accepted: it succeeded, or Stripe is still making it (D-088). */
+export interface AcceptedRefund {
+  id: string
+  status: 'succeeded' | 'pending'
+}
+
+const PAYMENT_INTENT_ID = /^pi_[A-Za-z0-9_]+$/
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function acceptedRefund(refund: unknown): AcceptedRefund | null {
+  const { id, status } = (refund ?? {}) as { id?: unknown; status?: unknown }
+  if (typeof id !== 'string' || !id.startsWith('re_')) return null
+  if (status !== 'succeeded' && status !== 'pending') return null
+  return { id, status }
+}
+
+export interface RefundInput {
+  /** The payment's gateway reference, `payments.external_payment_id` (D-070). */
+  paymentIntentId: string
+  /** Worq's `payments.id`: the idempotency key and the refund's metadata. */
+  paymentId: string
+}
+
+/**
+ * Refunds the whole fee of one payment in test mode (D-088). One Idempotency-Key per
+ * payment, so a double click or a retry within Stripe's 24 hours gets the same refund
+ * back. Throws a StripeApiError on an error answer, a 402 for a refund that failed or
+ * was cancelled (Stripe's "valid but failed"), and a 502 for an answer with no `re_`
+ * id. A timeout throws a DOMException, and a network failure fetch's own error.
+ */
+export async function createRefund(
+  input: RefundInput,
+  deps: StripeDeps = {},
+): Promise<AcceptedRefund> {
+  if (!PAYMENT_INTENT_ID.test(input.paymentIntentId)) {
+    throw new Error('Not a PaymentIntent id')
+  }
+  if (!UUID.test(input.paymentId)) throw new Error('Not a payment id')
+
+  const json = (await post(
+    '/v1/refunds',
+    new URLSearchParams({
+      payment_intent: input.paymentIntentId,
+      'metadata[payment_id]': input.paymentId,
+    }),
+    deps,
+    { 'Idempotency-Key': `refund-${input.paymentId}` },
+  )) as { id?: unknown; status?: unknown } | null
+
+  if (typeof json?.id !== 'string' || !json.id.startsWith('re_')) {
+    throw new StripeApiError(502, 'Stripe answered without a refund id')
+  }
+  const refund = acceptedRefund(json)
+  if (!refund) {
+    throw new StripeApiError(402, `Stripe's refund ${json.id} is ${String(json.status)}`)
+  }
+  return refund
+}
+
+/**
+ * The payment intent's refund that succeeded or is pending, or null (design §1). It
+ * reads up to 10, because a refund that failed can sit beside the one that succeeded.
+ * Throws as createRefund does.
+ */
+export async function findRefund(
+  input: Pick<RefundInput, 'paymentIntentId'>,
+  deps: StripeDeps = {},
+): Promise<AcceptedRefund | null> {
+  if (!PAYMENT_INTENT_ID.test(input.paymentIntentId)) {
+    throw new Error('Not a PaymentIntent id')
+  }
+  const json = (await get(
+    '/v1/refunds',
+    new URLSearchParams({ payment_intent: input.paymentIntentId, limit: '10' }),
+    deps,
+  )) as { data?: unknown } | null
+
+  if (!Array.isArray(json?.data)) {
+    throw new StripeApiError(502, 'Stripe answered without a list of refunds')
+  }
+  for (const refund of json.data) {
+    const accepted = acceptedRefund(refund)
+    if (accepted) return accepted
+  }
+  return null
 }
