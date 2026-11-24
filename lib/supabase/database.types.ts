@@ -70,6 +70,10 @@ export type Database = {
           fee_amount: number
           id: string
           paid_at: string | null
+          refund_id: string | null
+          refund_reason: string | null
+          refunded_at: string | null
+          refunded_by: string | null
           reservation_id: string
           status: Database["public"]["Enums"]["payment_status"]
           updated_at: string
@@ -82,6 +86,10 @@ export type Database = {
           fee_amount: number
           id?: string
           paid_at?: string | null
+          refund_id?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          refunded_by?: string | null
           reservation_id: string
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
@@ -94,11 +102,22 @@ export type Database = {
           fee_amount?: number
           id?: string
           paid_at?: string | null
+          refund_id?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          refunded_by?: string | null
           reservation_id?: string
           status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_refunded_by_fkey"
+            columns: ["refunded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_reservation_id_fkey"
             columns: ["reservation_id"]
@@ -582,6 +601,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_payment_records: {
+        Args: {
+          p_page_offset?: number
+          p_page_size?: number
+          p_payment_id?: string
+          p_refundable_only?: boolean
+          p_status?: Database["public"]["Enums"]["payment_status"]
+        }
+        Returns: {
+          checked_in_at: string
+          ended_at: string
+          fee_amount: number
+          paid_at: string
+          payment_id: string
+          payment_intent_id: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          refund_id: string
+          refund_reason: string
+          refundable: boolean
+          refunded_at: string
+          refunded_by: string
+          refunded_by_full_name: string
+          reservation_id: string
+          reservation_status: Database["public"]["Enums"]["reservation_status"]
+          seeker_full_name: string
+          space_id: string
+          space_name: string
+          unit_label: string
+        }[]
+      }
       attach_checkout_session: {
         Args: {
           p_checkout_session_id: string
@@ -664,6 +713,10 @@ export type Database = {
           checked_in_at: string
           reservation_id: string
         }[]
+      }
+      record_refund: {
+        Args: { p_payment_id: string; p_reason: string; p_refund_id: string }
+        Returns: Json
       }
       reorder_zones: {
         Args: { p_space_id: string; p_zone_ids: string[] }
