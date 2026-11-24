@@ -3,9 +3,10 @@ import Link from 'next/link'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { parseRegistrationRole, sanitizeReturnUrl } from '@/lib/validation/auth'
+import { cn } from '@/lib/utils'
 
+import { AuthShell } from '../_components/auth-shell'
 import { GoogleAuthButton } from '../_components/google-auth-button'
 import { RegisterForm } from './_components/register-form'
 
@@ -47,14 +48,11 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
     : '/login'
 
   return (
-    <Card className="w-full max-w-md min-w-0 self-start">
-      <CardHeader>
-        <h1 className="font-heading text-3xl font-semibold">Create your account</h1>
-        <p className="text-base text-muted-foreground">
-          Join Worq as a Seeker or a Host.
-        </p>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+    <AuthShell
+      title="Start your focus"
+      subtitle="Create your Worq account as a Seeker or a Host."
+    >
+      <div className="flex flex-col gap-5">
         {notice && (
           <Alert variant={notice.variant} role={notice.role}>
             <AlertDescription>{notice.message}</AlertDescription>
@@ -66,13 +64,19 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
           defaultRole={defaultRole}
         />
         <RegisterForm returnUrl={returnUrl} defaultRole={defaultRole} />
-        <p className="flex flex-wrap items-center gap-x-1 text-sm">
+        <p className="flex flex-wrap items-center justify-center gap-x-1 text-sm text-muted-foreground">
           Already have an account?
-          <Link href={loginHref} className={buttonVariants({ variant: 'link' })}>
+          <Link
+            href={loginHref}
+            className={cn(
+              buttonVariants({ variant: 'link' }),
+              'px-1.5 font-semibold text-foreground',
+            )}
+          >
             Log in
           </Link>
         </p>
-      </CardContent>
-    </Card>
+      </div>
+    </AuthShell>
   )
 }

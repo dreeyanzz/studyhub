@@ -94,6 +94,14 @@ Not applicable: STORY-17 adds or modifies no Postgres tables, columns, enums, Zo
   - Zero horizontal scrolling at 360, 768, and 1024 px and at 200% text zoom.
   - List view preserved alongside any map view.
 
+### Auth screens (`/login`, `/register`, and `/choose-role`, part of `TSK-17.4`)
+
+- **Layout:** Shared split white-and-photo `AuthShell` (`max-w-4xl`, `rounded-3xl`) inside `app/(auth)/layout.tsx` on a soft `bg-muted/40` canvas, with the desk-lamp brand mark and an outline pill `Find a Space` link (`/spaces`) in the header. Two columns (`5fr / 6fr`) from `md` up — form panel on the left and a framed study-space photo (`/images/public-landing/library.webp`, D-033) with decorative `aria-hidden` frosted-glass callout pins on the right (all entrance and pin animations disabled under `prefers-reduced-motion: reduce` in `app/(auth)/auth.css`). Stacks to a single column (`grid-cols-[minmax(0,1fr)]`) below `md`.
+- **Type:** Georgia (`font-heading`) `Worq` link and `h1` (`text-3xl`) for the form title; Geist body and helper text.
+- **Spacing:** Responsive mobile padding (`px-[min(1rem,3vw)]` on `<main>`, `px-4 py-6 sm:px-8 sm:py-8` inside the form panel) so 360 px at 200% text never clips.
+- **Components:** Pill inputs (`rounded-full border-input bg-muted/85` for ≥ 3:1 WCAG 2.1 AA boundary contrast) with a 48 × 48 px (`size-12`) password visibility toggle in `FormField`, pill primary submit buttons (`h-auto min-h-12 py-3 whitespace-normal`), `Alert`, `GoogleAuthButton`, `LoginForm`, `RegisterForm`, and `ChooseRoleForm` with all Server Action contracts, `returnUrl`, `defaultRole`, and Google OAuth onboarding unchanged (D-042, D-095).
+- **Wording:** Form headings (`"Welcome back"` on `/login`, `"Start your focus"` on `/register`, `"Finish setting up your account"` on `/choose-role`) and decorative callouts highlighting quiet study desks, the snap-grid seat map, and verified Spaces.
+
 ## 4. Security and test matrix
 
 No database tables, policies, or functions are added or changed in STORY-17, so pgTAP negative RLS tests are not applicable (D-042).
