@@ -12,6 +12,7 @@
 -- Made here:
 --   juan    13d00000-0000-4000-8000-000000000001  Juan dela Cruz ("Juan C."), Seeker
 --   ada     13d00000-0000-4000-8000-000000000002  Ada Moderator, Administrator
+--   oauth   13d00000-0000-4000-8000-000000000003  Gina Unconfirmed, unconfirmed OAuth (D-095)
 --
 -- The tests count reviews on Spaces of their own (design §2, "Seed data"):
 --   SV 13e...01 host@  verified  the Space most moves happen on
@@ -26,7 +27,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(100);
+select plan(101);
 
 -- Returns '<SQLSTATE> <hint>', to tell a function's refusals apart (testing guide).
 create function pg_temp.refusal(p_sql text)
@@ -96,12 +97,17 @@ $$;
 -- ---------------------------------------------------------------------------
 -- 0. Fixtures, as postgres
 -- ---------------------------------------------------------------------------
-insert into auth.users (instance_id, id, email, raw_user_meta_data)
+insert into auth.users (instance_id, id, email, raw_app_meta_data, raw_user_meta_data)
 values
   ('00000000-0000-0000-0000-000000000000', '13d00000-0000-4000-8000-000000000001',
-   'juan.reviews@example.test', '{"role": "seeker", "full_name": "Juan dela Cruz"}'),
+   'juan.reviews@example.test', '{"provider": "email", "providers": ["email"]}',
+   '{"role": "seeker", "full_name": "Juan dela Cruz"}'),
   ('00000000-0000-0000-0000-000000000000', '13d00000-0000-4000-8000-000000000002',
-   'ada.reviews@example.test', '{"role": "seeker", "full_name": "Ada Moderator"}');
+   'ada.reviews@example.test', '{"provider": "email", "providers": ["email"]}',
+   '{"role": "seeker", "full_name": "Ada Moderator"}'),
+  ('00000000-0000-0000-0000-000000000000', '13d00000-0000-4000-8000-000000000003',
+   'oauth.reviews@example.test', '{"provider": "google", "providers": ["google"]}',
+   '{"full_name": "Gina Unconfirmed"}');
 
 update public.profiles
 set role = 'admin'
@@ -794,6 +800,16 @@ select throws_ok(
   $$update public.review_reports set outcome = 'dismissed', closed_by = 'a0000000-0000-4000-8000-000000000001', closed_at = now()$$,
   '42501', null,
   'N13: an Administrator cannot close a report directly: only moderate_review will (STORY-14)'
+);
+
+set local request.jwt.claims =
+  '{"sub": "13d00000-0000-4000-8000-000000000003", "role": "authenticated"}';
+
+select throws_ok(
+  $$insert into public.review_reports (review_id, reason)
+    values ('13b00000-0000-4000-8000-000000000012', 'spam')$$,
+  '42501', null,
+  'N11, D-095: an unconfirmed OAuth user cannot report a review'
 );
 
 set local role anon;

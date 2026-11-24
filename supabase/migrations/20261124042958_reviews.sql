@@ -299,15 +299,21 @@ create policy "review_reports: read own, or any as an administrator"
     or (select private.has_role('admin'))
   );
 
--- RP1, N11: a signed-in user who isn't its author reports a visible review of a
--- Verified Space, at the version the trigger recorded. The subquery reads reviews and
--- spaces as the caller. The unique key refuses the same version twice.
+-- RP1, N11: a signed-in user with a confirmed role (D-095) who isn't its author reports
+-- a visible review of a Verified Space, at the version the trigger recorded. The
+-- subquery reads reviews and spaces as the caller. The unique key refuses the same
+-- version twice.
 create policy "review_reports: report a visible review that isn't your own"
   on public.review_reports
   for insert
   to authenticated
   with check (
-    reporter_id = (select auth.uid())
+    (
+      (select private.has_role('seeker'))
+      or (select private.has_role('host'))
+      or (select private.has_role('admin'))
+    )
+    and reporter_id = (select auth.uid())
     and exists (
       select 1
       from public.reviews r

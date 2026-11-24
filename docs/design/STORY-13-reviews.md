@@ -178,14 +178,14 @@ a check that required it would make `on delete set null` fail, and the account w
 
 ### Policies and grants
 
-| Table            | Role                    | Verb   | Rule                                                                                                                                                                   |
-| ---------------- | ----------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reviews`        | `authenticated`         | insert | RV1. The caller has the Seeker role, `author_id` is the caller, and `private.is_reviewable_visit(reservation_id, space_id)`. The Space's status doesn't matter (D-081) |
-| `reviews`        | `authenticated`         | update | RV2. The author's own rows while `status = 'visible'`, before and after                                                                                                |
-| `reviews`        | `authenticated`         | delete | RV3. The author's own rows while `status = 'visible'`                                                                                                                  |
-| `reviews`        | `anon`, `authenticated` | select | Visible reviews of a Verified Space for everyone; the author's own in any status; every review for Administrators (N10)                                                |
-| `review_reports` | `authenticated`         | insert | RP1. `reporter_id` is the caller, and the review is visible, on a Verified Space, not the caller's own, and at the `review_version` the trigger recorded (N11)         |
-| `review_reports` | `authenticated`         | select | The reporter's own reports, and every report for Administrators (N12)                                                                                                  |
+| Table            | Role                    | Verb   | Rule                                                                                                                                                                                                    |
+| ---------------- | ----------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reviews`        | `authenticated`         | insert | RV1. The caller has the Seeker role, `author_id` is the caller, and `private.is_reviewable_visit(reservation_id, space_id)`. The Space's status doesn't matter (D-081)                                  |
+| `reviews`        | `authenticated`         | update | RV2. The author's own rows while `status = 'visible'`, before and after                                                                                                                                 |
+| `reviews`        | `authenticated`         | delete | RV3. The author's own rows while `status = 'visible'`                                                                                                                                                   |
+| `reviews`        | `anon`, `authenticated` | select | Visible reviews of a Verified Space for everyone; the author's own in any status; every review for Administrators (N10)                                                                                 |
+| `review_reports` | `authenticated`         | insert | RP1. The caller has a confirmed role (D-095), `reporter_id` is the caller, and the review is visible, on a Verified Space, not the caller's own, and at the `review_version` the trigger recorded (N11) |
+| `review_reports` | `authenticated`         | select | The reporter's own reports, and every report for Administrators (N12)                                                                                                                                   |
 
 Grants, besides the policies:
 
