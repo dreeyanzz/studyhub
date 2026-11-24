@@ -147,7 +147,7 @@ async function openContext(browser: Browser, email?: string, returnUrl = '/') {
 /** Clicks the 48 x 48 px wrapping label for a 1-5 category rating radio. */
 async function chooseRating(scope: Locator, category: string, score: number) {
   const radio = scope.getByRole('radio', { name: `${category} ${score} out of 5` })
-  await scope.locator('label', { has: radio }).click()
+  await radio.locator('..').click()
   await expect(radio).toBeChecked()
 }
 
@@ -257,7 +257,7 @@ test.describe('Community reviews and ratings journey (STORY-13, TSK-13.5)', () =
       )
       await expect(authorGroup).toContainText('Great outlets and cool AC.')
     } finally {
-      await context.close()
+      await context.close().catch(() => undefined)
     }
   })
 
@@ -298,7 +298,7 @@ test.describe('Community reviews and ratings journey (STORY-13, TSK-13.5)', () =
         spaceCard.getByRole('img', { name: 'Overall 4.3 out of 5, from 1 review' }),
       ).toBeVisible()
     } finally {
-      await context.close()
+      await context.close().catch(() => undefined)
     }
   })
 
@@ -344,7 +344,7 @@ test.describe('Community reviews and ratings journey (STORY-13, TSK-13.5)', () =
       await expect(reloadedCard).toContainText('You reported this')
       await expect(reloadedCard.getByRole('button', { name: 'Report' })).toHaveCount(0)
     } finally {
-      await context.close()
+      await context.close().catch(() => undefined)
     }
   })
 })
