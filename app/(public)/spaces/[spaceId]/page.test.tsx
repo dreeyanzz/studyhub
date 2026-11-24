@@ -131,6 +131,7 @@ vi.mock('./actions', () => ({
   postReviewAction: vi.fn(),
   editReviewAction: vi.fn(),
   deleteReviewAction: vi.fn(),
+  reportReviewAction: vi.fn(),
 }))
 
 describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {

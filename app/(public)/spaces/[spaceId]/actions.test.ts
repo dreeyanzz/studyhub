@@ -31,6 +31,8 @@ import {
   editReviewAction,
   holdUnit,
   postReviewAction,
+  reportReviewAction,
+  type ReportReviewActionState,
   type ReviewActionState,
 } from './actions'
 
@@ -294,6 +296,88 @@ describe('deleteReviewAction (STORY-13, RV3, §1 & §4)', () => {
     expect(await deleteReviewAction({ spaceId, reviewId })).toEqual({
       status: 'error',
       message: "This review can't be changed now",
+    })
+    expect(revalidatePath).not.toHaveBeenCalled()
+  })
+})
+
+describe('reportReviewAction (STORY-13, TSK-13.5, RP1, N11, §1 & §4)', () => {
+  const idleReport: ReportReviewActionState = { status: 'idle', message: null }
+
+  function reportForm(overrides: Record<string, string> = {}) {
+    const fd = new FormData()
+    const values: Record<string, string> = {
+      spaceId,
+      reviewId,
+      reason: 'spam',
+      note: 'Promotional link in comment.',
+      ...overrides,
+    }
+    for (const [key, val] of Object.entries(values)) {
+      fd.set(key, val)
+    }
+    return fd
+  }
+
+  it('rejects invalid reason or overly long note before touching Supabase', async () => {
+    const badReason = await reportReviewAction(idleReport, reportForm({ reason: '' }))
+    expect(badReason.status).toBe('error')
+    expect(badReason.fieldErrors?.reason).toBe(
+      'Choose a reason for reporting this review.',
+    )
+
+    const longNote = await reportReviewAction(
+      idleReport,
+      reportForm({ note: 'a'.repeat(301) }),
+    )
+    expect(longNote.status).toBe('error')
+    expect(longNote.fieldErrors?.note).toContain('300')
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('refuses signed-out callers with §1 message', async () => {
+    supabase.auth.getUser.mockResolvedValue({ data: { user: null } })
+
+    const result = await reportReviewAction(idleReport, reportForm())
+    expect(result).toEqual({
+      status: 'error',
+      message: "You can't report this review",
+    })
+    expect(supabase.from).not.toHaveBeenCalled()
+  })
+
+  it('inserts only granted columns and revalidates the profile on success', async () => {
+    const insert = vi.fn(async () => ({ error: null }))
+    supabase.from.mockReturnValue({ insert })
+
+    const result = await reportReviewAction(idleReport, reportForm({ note: '   ' }))
+
+    expect(result).toEqual({ status: 'success', message: 'Report submitted.' })
+    expect(supabase.from).toHaveBeenCalledWith('review_reports')
+    expect(insert).toHaveBeenCalledWith({
+      review_id: reviewId,
+      reason: 'spam',
+      note: null,
+    })
+    expect(revalidatePath).toHaveBeenCalledWith(profile)
+    expect(revalidatePath).not.toHaveBeenCalledWith('/spaces')
+  })
+
+  it('turns 42501 and 23505 into §1 refusal messages (N11)', async () => {
+    supabase.from.mockReturnValue({
+      insert: vi.fn(async () => ({ error: { code: '42501' } })),
+    })
+    expect(await reportReviewAction(idleReport, reportForm())).toEqual({
+      status: 'error',
+      message: "You can't report this review",
+    })
+
+    supabase.from.mockReturnValue({
+      insert: vi.fn(async () => ({ error: { code: '23505' } })),
+    })
+    expect(await reportReviewAction(idleReport, reportForm())).toEqual({
+      status: 'error',
+      message: 'You have already reported this review',
     })
     expect(revalidatePath).not.toHaveBeenCalled()
   })

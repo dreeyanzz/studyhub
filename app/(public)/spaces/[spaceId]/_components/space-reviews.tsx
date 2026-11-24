@@ -20,6 +20,7 @@ import {
   type ReviewSort,
 } from '@/lib/validation/review'
 import { AuthorReviewsSection } from './author-review-card'
+import { ReportReviewDialog } from './report-review-dialog'
 
 const MAX_REVIEWS_SHOWN = 50
 const REVIEWS_PAGE_STEP = 10
@@ -54,6 +55,8 @@ export interface SpaceReviewsProps {
   myReviews: AuthorReview[] | null
   reviewableVisit: ReviewableVisit | null
   viewerShortName: string
+  /** True when the viewer is signed in with a confirmed role and may report others' reviews (RP1, D-095). */
+  canReport?: boolean
   sort: ReviewSort
   shown: ReviewShowCount
   view?: string
@@ -71,6 +74,7 @@ export function SpaceReviews({
   myReviews,
   reviewableVisit,
   viewerShortName,
+  canReport = false,
   sort,
   shown,
   view,
@@ -251,6 +255,16 @@ export function SpaceReviews({
                             <p className="text-sm break-words whitespace-pre-wrap text-foreground">
                               {review.comment}
                             </p>
+                          )}
+
+                          {canReport && (
+                            <div className="pt-1">
+                              <ReportReviewDialog
+                                spaceId={spaceId}
+                                reviewId={review.id}
+                                reportedByCaller={review.reportedByCaller}
+                              />
+                            </div>
                           )}
                         </article>
                       </li>
