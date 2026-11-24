@@ -288,7 +288,7 @@ describe('SeatMapListView (STORY-07 TSK-07.7)', () => {
 
   describe('buildViewHref and findRemovalTarget (TSK-07.7)', () => {
     it('switches between grid and list while preserving existing query params', async () => {
-      const { buildViewHref } = await import('../page')
+      const { buildViewHref } = await import('./seat-map-helpers')
 
       expect(buildViewHref(baseHref, {}, 'grid')).toBe(baseHref)
       expect(buildViewHref(baseHref, {}, 'list')).toBe(`${baseHref}?view=list`)
@@ -307,7 +307,7 @@ describe('SeatMapListView (STORY-07 TSK-07.7)', () => {
     })
 
     it('identifies removal target for units and zones and ignores unknown ids', async () => {
-      const { findRemovalTarget } = await import('../page')
+      const { findRemovalTarget } = await import('./seat-map-helpers')
 
       // Unit target
       const unitTarget = findRemovalTarget(zones, { remove: 'u1' })
