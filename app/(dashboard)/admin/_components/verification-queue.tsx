@@ -3,16 +3,12 @@
 import { useState } from 'react'
 import { CheckCircle2, Clock, ShieldCheck, Sparkles, X } from 'lucide-react'
 
+import { setSpaceStatusAction } from '@/app/(dashboard)/admin/actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import {
-  setSpaceStatusAction,
-  type SetSpaceStatusResult,
-} from '@/app/(dashboard)/admin/actions'
 import { cn } from '@/lib/utils'
-import { RejectionDialog } from './rejection-dialog'
 import { SpaceInspectionDialog } from './space-inspection-dialog'
 import { VerificationCard, type VerificationCardItem } from './verification-card'
 
@@ -30,21 +26,18 @@ type Notice = {
 }
 
 /**
- * Verification queue component for Administrators (STORY-15 design §3).
- * Renders the list of pending Spaces, active count badge, empty state,
- * inspection dossier dialog, and actionable rejection dialog.
+ * Interactive Space Verification Queue (STORY-15, FR-5.1, STORY-17).
+ * Renders pending Space cards with optimistic list removals,
+ * clear confirmation notices, and an inspection modal dossier.
  */
 export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
   const [spaces, setSpaces] = useState<PendingSpace[]>(initialSpaces)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
-
-  // Inspection and Rejection Dialog states
   const [inspectingSpace, setInspectingSpace] = useState<PendingSpace | null>(null)
-  const [rejectingSpace, setRejectingSpace] = useState<PendingSpace | null>(null)
 
   async function handleDecision(space: PendingSpace, status: 'verified' | 'rejected') {
-    const result: SetSpaceStatusResult = await setSpaceStatusAction({
+    const result = await setSpaceStatusAction({
       spaceId: space.id,
       status,
       updatedAt: space.updated_at,
@@ -56,7 +49,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
       setNotice({
         id: `${space.id}-${Date.now()}`,
         type: 'success',
-        title: status === 'verified' ? 'Space approved' : 'Space rejected',
+        title: status === 'verified' ? 'Space Approved' : 'Space Rejected',
         message: `${space.name} has been ${decisionVerb}.`,
       })
       setTimeout(() => {
@@ -73,22 +66,15 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
     }
   }
 
-  async function handleConfirmRejectWithReason(space: PendingSpace, _reason: string) {
-    await handleDecision(space, 'rejected')
-  }
-
   return (
     <div className="space-y-6">
       {/* Title Bar */}
-      <div
-        className="animate-fade-in-up -m-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-2"
-        data-tour="verification-queue"
-      >
+      <div className="-m-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-2">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Space Verification
           </h1>
-          <p className="mt-1 text-sm font-medium text-foreground/85">
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
             Review pending Spaces. Approved Spaces become immediately visible in public
             search.
           </p>
@@ -102,28 +88,21 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
       </div>
 
       {/* Professional Guidance Banner */}
-      <div
-        className="animate-fade-in-up flex items-start gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs"
-        style={{ animationDelay: '40ms' }}
-      >
+      <div className="flex items-start gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
         <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-2xs">
           <ShieldCheck className="size-4" aria-hidden="true" />
         </div>
         <div className="text-sm leading-relaxed text-foreground">
           <strong className="font-bold text-foreground">Administrator Guide:</strong>{' '}
-          Inspect the venue&apos;s operating hours and campus vicinity. Approving
-          immediately pushes coordinates to the public map engine. Rejections provide
-          actionable feedback to help the host resubmit.
+          Inspect the Space&apos;s operating hours and campus vicinity. Approving
+          immediately publishes coordinates to the public map.
         </div>
       </div>
 
       {/* Overview metric cards */}
-      <div
-        className="animate-fade-in-up grid grid-cols-1 gap-3 sm:grid-cols-3"
-        style={{ animationDelay: '80ms' }}
-      >
-        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-primary/40 bg-card p-4.5 shadow-xs ring-1 ring-primary/20 transition-all duration-300 hover:-translate-y-1 hover:border-primary hover:shadow-lg hover:shadow-primary/10">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-transform duration-300 group-hover:scale-105">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-primary/40 bg-card p-4.5 shadow-xs ring-1 ring-primary/20 transition-all duration-300 hover:border-primary">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
             <Clock className="size-5" aria-hidden="true" />
           </div>
           <div className="min-w-0">
@@ -136,24 +115,24 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
           </div>
         </div>
 
-        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-sky-400 hover:shadow-lg hover:shadow-sky-500/10">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-sky-100/90 text-sky-800 shadow-2xs ring-1 ring-sky-300/50 transition-transform duration-300 group-hover:scale-105 dark:bg-sky-950/70 dark:text-sky-300">
-            <ShieldCheck className="size-5" aria-hidden="true" />
+        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-2xs">
+            <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold tracking-wider text-foreground/80 uppercase">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
               Quality Standard
             </p>
             <p className="text-sm font-bold text-foreground">Verified Standards</p>
           </div>
         </div>
 
-        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-amber-400 hover:shadow-lg hover:shadow-amber-500/10">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-100/80 text-amber-800 shadow-2xs ring-1 ring-amber-300/50 transition-transform duration-300 group-hover:scale-105 dark:bg-amber-950/60 dark:text-amber-300">
-            <Sparkles className="size-5" aria-hidden="true" />
+        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-2xs">
+            <Sparkles className="size-5 text-primary" aria-hidden="true" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold tracking-wider text-foreground/80 uppercase">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
               Search Sync
             </p>
             <p className="text-sm font-bold text-foreground">Instant Map Publishing</p>
@@ -166,7 +145,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
           role="status"
           aria-live="polite"
           variant={notice.type === 'error' ? 'destructive' : 'default'}
-          className="animate-fade-in relative rounded-2xl border-border/80 pr-12 shadow-xs"
+          className="relative rounded-2xl border-border/80 pr-12 shadow-xs"
         >
           <div className="flex flex-col gap-1">
             <AlertTitle className="font-semibold">{notice.title}</AlertTitle>
@@ -186,29 +165,26 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
       ) : null}
 
       {spaces.length === 0 ? (
-        <Card className="animate-fade-in flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/60 p-12 text-center shadow-xs">
+        <Card className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/60 p-12 text-center shadow-xs">
           <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-xs">
             <CheckCircle2 className="size-7 text-primary" aria-hidden="true" />
           </div>
           <h2 className="text-xl font-bold text-foreground">All caught up!</h2>
-          <p className="mt-1.5 max-w-md text-sm font-medium text-foreground/85">
-            There are currently no study spaces pending verification. Newly submitted
-            spaces from hosts will automatically appear here.
+          <p className="mt-1.5 max-w-md text-sm font-medium text-muted-foreground">
+            There are currently no Spaces pending verification. Newly submitted Spaces
+            from hosts will automatically appear here.
           </p>
         </Card>
       ) : (
         <div className="space-y-5">
-          {spaces.map((space, index) => (
+          {spaces.map((space) => (
             <div
               key={space.id}
-              data-tour={index === 0 ? 'inspection-card' : undefined}
               className={cn(
                 'transition-all duration-300 ease-out',
-                removingId === space.id
-                  ? 'pointer-events-none -translate-x-3 scale-95 opacity-0'
-                  : 'animate-fade-in-up',
+                removingId === space.id &&
+                  'pointer-events-none -translate-x-3 scale-95 opacity-0',
               )}
-              style={{ animationDelay: `${160 + index * 100}ms` }}
             >
               <VerificationCard
                 space={space}
@@ -220,7 +196,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
         </div>
       )}
 
-      {/* High-Value Modal 1: Full Venue Inspection Dossier */}
+      {/* Space Inspection Dossier Modal */}
       <SpaceInspectionDialog
         space={inspectingSpace}
         isOpen={!!inspectingSpace}
@@ -228,17 +204,9 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
         onApprove={async (s) => {
           await handleDecision(s, 'verified')
         }}
-        onOpenReject={(s) => {
-          setRejectingSpace(s)
+        onReject={async (s) => {
+          await handleDecision(s, 'rejected')
         }}
-      />
-
-      {/* High-Value Modal 2: Actionable Rejection Reason Picker */}
-      <RejectionDialog
-        space={rejectingSpace}
-        isOpen={!!rejectingSpace}
-        onClose={() => setRejectingSpace(null)}
-        onConfirmReject={handleConfirmRejectWithReason}
       />
     </div>
   )

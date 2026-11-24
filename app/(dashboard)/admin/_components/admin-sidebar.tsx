@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import {
-  AlertTriangle,
   ArrowUpRight,
   CreditCard,
   LogOut,
@@ -14,7 +13,6 @@ import {
   PanelLeftOpen,
   Shield,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react'
 
 import { signOut } from '@/app/(auth)/actions'
@@ -34,8 +32,11 @@ interface AdminSidebarProps {
  */
 export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false)
-  const searchParams = useSearchParams()
-  const activeTab = searchParams.get('tab') || 'verification'
+  const pathname = usePathname()
+
+  const isVerification = pathname === '/admin'
+  const isModeration = pathname.startsWith('/admin/moderation')
+  const isPayments = pathname.startsWith('/admin/payments')
 
   // Global power-user keyboard shortcut (Ctrl+B / Cmd+B) to toggle the sidebar
   useEffect(() => {
@@ -77,7 +78,6 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 variant="outline"
                 size="icon"
                 onClick={() => setIsCollapsed(false)}
-                data-tour="sidebar-toggle"
                 className="min-h-[48px] min-w-[48px] rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
                 title="Expand sidebar (Ctrl+B)"
                 aria-label="Expand sidebar (Ctrl+B)"
@@ -95,7 +95,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                   W
                 </div>
                 <div>
-                  <h1 className="flex items-center gap-1.5 text-base font-bold tracking-tight text-foreground">
+                  <div className="flex items-center gap-1.5 text-base font-bold tracking-tight text-foreground">
                     Worq
                     <Badge
                       variant="secondary"
@@ -103,9 +103,9 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                     >
                       Admin
                     </Badge>
-                  </h1>
-                  <p className="text-xs font-medium text-foreground/80">
-                    Operations & Trust Platform
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Administrator Console
                   </p>
                 </div>
               </div>
@@ -114,7 +114,6 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 variant="outline"
                 size="icon"
                 onClick={() => setIsCollapsed(true)}
-                data-tour="sidebar-toggle"
                 className="min-h-[48px] min-w-[48px] rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
                 title="Collapse sidebar (Ctrl+B)"
                 aria-label="Collapse sidebar (Ctrl+B)"
@@ -129,7 +128,8 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
         {isCollapsed ? (
           <div
             className="flex justify-center py-1"
-            title={`${displayName} (Platform Administrator)`}
+            title={`${displayName} (Administrator)`}
+            aria-label={`${displayName} (Administrator)`}
           >
             <div className="relative">
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-xs font-bold text-primary">
@@ -154,22 +154,20 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs font-bold text-foreground">{displayName}</p>
-              <p className="text-xs font-medium text-foreground/80">
-                Platform Administrator
-              </p>
+              <p className="text-xs font-medium text-muted-foreground">Administrator</p>
             </div>
           </div>
         )}
 
         {/* Navigation Sections */}
-        <nav aria-label="Administrator console" className="space-y-1.5">
+        <nav aria-label="Administrator navigation" className="space-y-1.5">
           {!isCollapsed && (
-            <p className="mb-2 px-2 text-xs font-bold tracking-wider text-foreground/75 uppercase">
+            <p className="mb-2 px-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
               Management Portals
             </p>
           )}
 
-          {/* Space Verification Tab */}
+          {/* Space Verification Link */}
           <Link
             href="/admin"
             className={cn(
@@ -177,14 +175,17 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               isCollapsed
                 ? 'size-12 justify-center'
                 : 'min-h-[48px] justify-between px-3 py-2.5 text-xs font-bold',
-              activeTab === 'verification'
+              isVerification
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-foreground/80 hover:bg-muted hover:text-foreground',
             )}
             title={
               isCollapsed ? `Space Verification (${pendingCount} pending)` : undefined
             }
-            aria-current={activeTab === 'verification' ? 'page' : undefined}
+            aria-label={
+              isCollapsed ? `Space Verification (${pendingCount} pending)` : undefined
+            }
+            aria-current={isVerification ? 'page' : undefined}
           >
             <div className="relative flex items-center gap-2.5">
               <ShieldCheck
@@ -193,7 +194,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               />
               {!isCollapsed && <span>Space Verification</span>}
               {isCollapsed && pendingCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex size-4.5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white shadow-2xs">
+                <span className="absolute -top-1.5 -right-2 flex size-4.5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-2xs">
                   {pendingCount}
                 </span>
               )}
@@ -202,9 +203,9 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               <span
                 className={cn(
                   'rounded-full px-2 py-0.5 text-xs font-bold',
-                  activeTab === 'verification'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-secondary text-foreground',
+                  isVerification
+                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground',
                 )}
               >
                 {pendingCount}
@@ -212,21 +213,21 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
             )}
           </Link>
 
-          {/* Review Moderation Tab */}
+          {/* Review Moderation Link */}
           <Link
-            href="/admin?tab=moderation"
-            data-tour="moderation-tab"
+            href="/admin/moderation"
             className={cn(
               'flex items-center rounded-xl transition-all duration-200',
               isCollapsed
                 ? 'size-12 justify-center'
                 : 'min-h-[48px] justify-between px-3 py-2.5 text-xs font-bold',
-              activeTab === 'moderation'
+              isModeration
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-foreground/80 hover:bg-muted hover:text-foreground',
             )}
-            title={isCollapsed ? 'Review Moderation (0 reported)' : undefined}
-            aria-current={activeTab === 'moderation' ? 'page' : undefined}
+            title={isCollapsed ? 'Review Moderation' : undefined}
+            aria-label={isCollapsed ? 'Review Moderation' : undefined}
+            aria-current={isModeration ? 'page' : undefined}
           >
             <div className="flex items-center gap-2.5">
               <MessageSquare
@@ -235,35 +236,23 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               />
               {!isCollapsed && <span>Review Moderation</span>}
             </div>
-            {!isCollapsed && (
-              <span
-                className={cn(
-                  'rounded-full px-2 py-0.5 text-xs font-bold',
-                  activeTab === 'moderation'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-muted text-foreground/80',
-                )}
-              >
-                0
-              </span>
-            )}
           </Link>
 
-          {/* Payments & Refunds Tab */}
+          {/* Payments & Refunds Link */}
           <Link
-            href="/admin?tab=payments"
-            data-tour="payments-tab"
+            href="/admin/payments"
             className={cn(
               'flex items-center rounded-xl transition-all duration-200',
               isCollapsed
                 ? 'size-12 justify-center'
                 : 'min-h-[48px] justify-between px-3 py-2.5 text-xs font-bold',
-              activeTab === 'payments'
+              isPayments
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-foreground/80 hover:bg-muted hover:text-foreground',
             )}
-            title={isCollapsed ? 'Payments & Refunds Ledger' : undefined}
-            aria-current={activeTab === 'payments' ? 'page' : undefined}
+            title={isCollapsed ? 'Payments & Refunds' : undefined}
+            aria-label={isCollapsed ? 'Payments & Refunds' : undefined}
+            aria-current={isPayments ? 'page' : undefined}
           >
             <div className="flex items-center gap-2.5">
               <CreditCard
@@ -272,269 +261,68 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               />
               {!isCollapsed && <span>Payments & Refunds</span>}
             </div>
-            {!isCollapsed && (
-              <span
-                className={cn(
-                  'rounded-full px-2 py-0.5 text-xs font-semibold',
-                  activeTab === 'payments'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-muted text-foreground/80',
-                )}
-              >
-                Ledger
-              </span>
-            )}
           </Link>
         </nav>
 
-        {/* Dynamic Contextual Playbook Widget (Shown when expanded) */}
-        {!isCollapsed && (
-          <>
-            {activeTab === 'verification' && (
-              <div
-                className="animate-fade-in space-y-3 rounded-2xl border border-border/80 bg-background p-4 shadow-2xs"
-                data-tour="verification-checklist"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                    <Shield className="size-4 text-primary" aria-hidden="true" />
-                    <span>Verification Checklist</span>
-                  </div>
-                  <span className="rounded bg-primary/10 px-2 py-0.5 text-[10px] font-bold tracking-wider text-primary uppercase">
-                    Standards
-                  </span>
-                </div>
-                <p className="text-xs font-medium text-foreground/80">
-                  Requirements before public map approval:
-                </p>
-
-                <ul className="space-y-2.5 text-xs text-foreground">
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
-                      1
-                    </span>
-                    <div>
-                      <strong className="font-bold text-foreground">
-                        Campus vicinity:
-                      </strong>
-                      <p className="text-xs font-normal text-foreground/80">
-                        Physical location near recognized Cebu university hubs.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
-                      2
-                    </span>
-                    <div>
-                      <strong className="font-bold text-foreground">
-                        Operating hours:
-                      </strong>
-                      <p className="text-xs font-normal text-foreground/80">
-                        Valid schedule & midnight-crossing format.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
-                      3
-                    </span>
-                    <div>
-                      <strong className="font-bold text-foreground">Seat layout:</strong>
-                      <p className="text-xs font-normal text-foreground/80">
-                        At least 1 active bookable zone or seat set up.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
-                      4
-                    </span>
-                    <div>
-                      <strong className="font-bold text-foreground">Host profile:</strong>
-                      <p className="text-xs font-normal text-foreground/80">
-                        Authentic profile details registered.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
+        {/* Verification Checklist (Shown when expanded on /admin) */}
+        {!isCollapsed && isVerification && (
+          <div className="space-y-3 rounded-2xl border border-border/80 bg-background p-4 shadow-2xs">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <Shield className="size-4 text-primary" aria-hidden="true" />
+                <span>Verification Standards</span>
               </div>
-            )}
-
-            {activeTab === 'moderation' && (
-              <div className="animate-fade-in space-y-3 rounded-2xl border border-amber-300/80 bg-amber-50/70 p-4 shadow-2xs dark:border-amber-700/60 dark:bg-amber-950/40">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-950 dark:text-amber-200">
-                    <AlertTriangle
-                      className="size-4 text-amber-700 dark:text-amber-400"
-                      aria-hidden="true"
-                    />
-                    <span>Community Standards</span>
-                  </div>
-                  <span className="rounded bg-amber-200/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-amber-950 uppercase dark:bg-amber-900/80 dark:text-amber-200">
-                    Policy
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-amber-950/90 dark:text-amber-200">
-                  Remove or hide reviews containing:
-                </p>
-
-                <ul className="space-y-2.5 text-xs text-amber-950 dark:text-amber-100">
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-amber-300 font-bold text-amber-950 dark:bg-amber-800 dark:text-amber-200">
-                      •
-                    </span>
-                    <div>
-                      <strong className="font-bold text-amber-950 dark:text-amber-100">
-                        Harassment & Hate Speech:
-                      </strong>
-                      <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">
-                        Targeted attacks or toxic remarks against hosts.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-amber-300 font-bold text-amber-950 dark:bg-amber-800 dark:text-amber-200">
-                      •
-                    </span>
-                    <div>
-                      <strong className="font-bold text-amber-950 dark:text-amber-100">
-                        Commercial Spam:
-                      </strong>
-                      <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">
-                        Advertisements or competitor sabotage.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-amber-300 font-bold text-amber-950 dark:bg-amber-800 dark:text-amber-200">
-                      •
-                    </span>
-                    <div>
-                      <strong className="font-bold text-amber-950 dark:text-amber-100">
-                        Off-Topic Content:
-                      </strong>
-                      <p className="text-xs font-medium text-amber-900/90 dark:text-amber-200/90">
-                        Complaints unrelated to the actual study experience.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            {activeTab === 'payments' && (
-              <div className="animate-fade-in space-y-3 rounded-2xl border border-sky-300/80 bg-sky-50/70 p-4 shadow-2xs dark:border-sky-700/60 dark:bg-sky-950/40">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-sky-950 dark:text-sky-200">
-                    <CreditCard
-                      className="size-4 text-sky-700 dark:text-sky-400"
-                      aria-hidden="true"
-                    />
-                    <span>Refund Eligibility</span>
-                  </div>
-                  <span className="rounded bg-sky-200/80 px-2 py-0.5 text-[10px] font-bold tracking-wider text-sky-950 uppercase dark:bg-sky-900/80 dark:text-sky-200">
-                    Disputes
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-sky-950/90 dark:text-sky-200">
-                  Valid grounds for issuing refunds:
-                </p>
-
-                <ul className="space-y-2.5 text-xs text-sky-950 dark:text-sky-100">
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-sky-300 font-bold text-sky-950 dark:bg-sky-800 dark:text-sky-200">
-                      •
-                    </span>
-                    <div>
-                      <strong className="font-bold text-sky-950 dark:text-sky-100">
-                        Facility Emergency:
-                      </strong>
-                      <p className="text-xs font-medium text-sky-900/90 dark:text-sky-200/90">
-                        Power outage, Wi-Fi failure, or emergency closure.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-sky-300 font-bold text-sky-950 dark:bg-sky-800 dark:text-sky-200">
-                      •
-                    </span>
-                    <div>
-                      <strong className="font-bold text-sky-950 dark:text-sky-100">
-                        Host Overbooking:
-                      </strong>
-                      <p className="text-xs font-medium text-sky-900/90 dark:text-sky-200/90">
-                        Seat could not be honoured upon seeker arrival.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-2.5">
-                    <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-sky-300 font-bold text-sky-950 dark:bg-sky-800 dark:text-sky-200">
-                      •
-                    </span>
-                    <div>
-                      <strong className="font-bold text-sky-950 dark:text-sky-100">
-                        System Desync:
-                      </strong>
-                      <p className="text-xs font-medium text-sky-900/90 dark:text-sky-200/90">
-                        Duplicate charge or gateway timeout confirmation.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            )}
-
-            {/* Platform Policy Note */}
-            <div className="animate-fade-in space-y-1.5 rounded-xl border border-border/80 bg-background p-3.5 shadow-2xs">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-foreground">
-                <ShieldCheck
-                  className="size-4 shrink-0 text-primary"
-                  aria-hidden="true"
-                />
-                <span>Platform Policy Note</span>
-              </div>
-              <p className="text-xs leading-relaxed text-foreground/80">
-                Unverified venues remain strictly private to the host. Seekers can only
-                discover venues once an administrator issues approval.
-              </p>
+              <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px]">
+                FR-5.1
+              </Badge>
             </div>
-          </>
+            <p className="text-xs font-medium text-muted-foreground">
+              Verification criteria before public map publish:
+            </p>
+
+            <ul className="space-y-2.5 text-xs text-foreground">
+              <li className="flex items-start gap-2.5">
+                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                  1
+                </span>
+                <div>
+                  <strong className="font-bold text-foreground">Campus vicinity:</strong>
+                  <p className="text-xs font-normal text-muted-foreground">
+                    Physical location accessible near recognized student hubs.
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                  2
+                </span>
+                <div>
+                  <strong className="font-bold text-foreground">Operating hours:</strong>
+                  <p className="text-xs font-normal text-muted-foreground">
+                    Valid daily schedule & operating times.
+                  </p>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                  3
+                </span>
+                <div>
+                  <strong className="font-bold text-foreground">Space profile:</strong>
+                  <p className="text-xs font-normal text-muted-foreground">
+                    Legitimate Space name, address, and host details.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </div>
         )}
 
-        {/* Quick Tour Launcher Button */}
-        <div>
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent('worq:open-admin-tour'))}
-            className={cn(
-              'flex cursor-pointer items-center rounded-xl border border-primary/25 bg-primary/5 text-xs font-semibold text-primary transition hover:bg-primary/10',
-              isCollapsed
-                ? 'size-12 justify-center p-0'
-                : 'min-h-[48px] w-full justify-between px-3 py-2.5 shadow-2xs',
-            )}
-            title="Interactive Onboarding Guide"
-          >
-            <span className="flex items-center gap-2">
-              <Sparkles
-                className={cn('shrink-0 text-primary', isCollapsed ? 'size-5' : 'size-4')}
-                aria-hidden="true"
-              />
-              {!isCollapsed && <span>Quick Admin Guide</span>}
-            </span>
-            {!isCollapsed && (
-              <span className="rounded bg-primary/20 px-1.5 py-0.5 text-[10px] font-bold text-primary uppercase">
-                Tour
-              </span>
-            )}
-          </button>
-        </div>
-
-        {/* Shortcuts & Live Tools */}
+        {/* Shortcuts */}
         <div className="space-y-1 pt-1">
           {!isCollapsed && (
-            <p className="mb-1 px-2 text-xs font-bold tracking-wider text-foreground/75 uppercase">
-              Live Shortcuts
+            <p className="mb-1 px-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              Shortcuts
             </p>
           )}
           <Link
@@ -547,6 +335,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 : 'min-h-[48px] justify-between px-3 py-2',
             )}
             title="View Discovery Map"
+            aria-label="View Discovery Map (opens in new tab)"
           >
             <span className="flex items-center gap-2">
               <MapPin
@@ -559,12 +348,6 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               <ArrowUpRight className="size-3 text-muted-foreground" aria-hidden="true" />
             )}
           </Link>
-          {!isCollapsed && (
-            <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-foreground/80">
-              <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
-              <span>Payment Gateway Ready</span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -581,6 +364,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 : 'min-h-[48px] w-full justify-center gap-2',
             )}
             title={isCollapsed ? 'Log out' : undefined}
+            aria-label={isCollapsed ? 'Log out' : undefined}
           >
             <LogOut
               className={cn('shrink-0', isCollapsed ? 'size-4.5' : 'size-3.5')}

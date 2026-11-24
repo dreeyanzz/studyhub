@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { CreditCard, LogOut, MessageSquare, ShieldCheck } from 'lucide-react'
 
 import { signOut } from '@/app/(auth)/actions'
@@ -16,11 +16,14 @@ interface AdminMobileHeaderProps {
 
 /**
  * Mobile-responsive top navigation header for Administrators on viewports < 1024px.
- * Preserves 48x48 px touch targets and accessible navigation across all 3 portals.
+ * Preserves 48x48 px touch targets and accessible navigation across Administrator routes.
  */
 export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHeaderProps) {
-  const searchParams = useSearchParams()
-  const activeTab = searchParams.get('tab') || 'verification'
+  const pathname = usePathname()
+
+  const isVerification = pathname === '/admin'
+  const isModeration = pathname.startsWith('/admin/moderation')
+  const isPayments = pathname.startsWith('/admin/payments')
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-card/95 px-4 py-3 shadow-2xs backdrop-blur-md lg:hidden">
@@ -45,7 +48,7 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
                 Admin
               </Badge>
             </div>
-            <p className="text-[10px] text-muted-foreground">Admin Console · Worq</p>
+            <p className="text-[10px] text-muted-foreground">Administrator Console</p>
           </div>
         </div>
 
@@ -63,46 +66,46 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
 
       {/* Mobile Tab Bar */}
       <nav
-        aria-label="Mobile admin navigation"
+        aria-label="Mobile administrator navigation"
         className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-0.5"
       >
         <Link
           href="/admin"
           className={cn(
             'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
-            activeTab === 'verification'
+            isVerification
               ? 'bg-primary text-primary-foreground shadow-2xs'
               : 'bg-muted/50 text-muted-foreground hover:bg-muted',
           )}
-          aria-current={activeTab === 'verification' ? 'page' : undefined}
+          aria-current={isVerification ? 'page' : undefined}
         >
           <ShieldCheck className="size-3.5 shrink-0" aria-hidden="true" />
           <span>Verification ({pendingCount})</span>
         </Link>
 
         <Link
-          href="/admin?tab=moderation"
+          href="/admin/moderation"
           className={cn(
             'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
-            activeTab === 'moderation'
+            isModeration
               ? 'bg-primary text-primary-foreground shadow-2xs'
               : 'bg-muted/50 text-muted-foreground hover:bg-muted',
           )}
-          aria-current={activeTab === 'moderation' ? 'page' : undefined}
+          aria-current={isModeration ? 'page' : undefined}
         >
           <MessageSquare className="size-3.5 shrink-0" aria-hidden="true" />
-          <span>Moderation (0)</span>
+          <span>Moderation</span>
         </Link>
 
         <Link
-          href="/admin?tab=payments"
+          href="/admin/payments"
           className={cn(
             'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
-            activeTab === 'payments'
+            isPayments
               ? 'bg-primary text-primary-foreground shadow-2xs'
               : 'bg-muted/50 text-muted-foreground hover:bg-muted',
           )}
-          aria-current={activeTab === 'payments' ? 'page' : undefined}
+          aria-current={isPayments ? 'page' : undefined}
         >
           <CreditCard className="size-3.5 shrink-0" aria-hidden="true" />
           <span>Payments</span>

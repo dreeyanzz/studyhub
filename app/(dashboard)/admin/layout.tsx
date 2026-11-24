@@ -6,7 +6,6 @@ import { dashboardFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
 import { AdminMobileHeader } from './_components/admin-mobile-header'
 import { AdminSidebar } from './_components/admin-sidebar'
-import { AdminTour } from './_components/admin-tour'
 
 export const metadata: Metadata = {
   title: 'Space Verification',
@@ -54,7 +53,6 @@ export default async function AdminLayout({ children }: { children: ReactNode })
           {children}
         </main>
       </div>
-      <AdminTour />
     </div>
   )
 }

@@ -4,28 +4,18 @@ import { redirect } from 'next/navigation'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { dashboardFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
-import { PaymentsView } from './_components/payments-view'
-import { ReviewModerationView } from './_components/review-moderation-view'
 import { VerificationQueue, type PendingSpace } from './_components/verification-queue'
 
 export const metadata: Metadata = {
   title: 'Space Verification',
 }
 
-interface AdminPageProps {
-  searchParams?: Promise<{ tab?: string }>
-}
-
 /**
  * The Administration portal dashboard page (STORY-15, STORY-17).
- * Supports switchable tabs for Space Verification (default), Review Moderation,
- * and Payments & Sandbox Refunds.
- * Enforces Administrator role check before rendering queues.
+ * Renders the Space Verification queue for pending spaces.
+ * Enforces Administrator role check before querying queue.
  */
-export default async function AdminPage({ searchParams }: AdminPageProps) {
-  const query = searchParams ? await searchParams : {}
-  const activeTab = typeof query.tab === 'string' ? query.tab : 'verification'
-
+export default async function AdminPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -41,14 +31,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
 
   if (!profile || profile.role !== 'admin') {
     redirect(profile ? dashboardFor(profile.role) : '/login')
-  }
-
-  if (activeTab === 'moderation') {
-    return <ReviewModerationView />
-  }
-
-  if (activeTab === 'payments') {
-    return <PaymentsView />
   }
 
   // Load Pending spaces oldest-first embedding profiles(full_name) (Task #224, FR-5.1)

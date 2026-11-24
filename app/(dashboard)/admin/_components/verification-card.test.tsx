@@ -16,10 +16,12 @@ const space: VerificationCardItem = {
   host_name: 'Hugo Santos',
 }
 
-const render = (item: VerificationCardItem) =>
-  renderToStaticMarkup(<VerificationCard space={item} onDecision={async () => {}} />)
+const render = (item: VerificationCardItem, onInspect?: () => void) =>
+  renderToStaticMarkup(
+    <VerificationCard space={item} onDecision={async () => {}} onInspect={onInspect} />,
+  )
 
-describe('VerificationCard host row (STORY-15 design §3)', () => {
+describe('VerificationCard (STORY-15 design §3, STORY-17)', () => {
   it('labels the Host once: the <dt> says "Host:" and the value is the name alone', () => {
     const html = render(space)
 
@@ -33,5 +35,12 @@ describe('VerificationCard host row (STORY-15 design §3)', () => {
 
       expect(html).toMatch(/>Host: <\/dt><dd[^>]*>Unnamed<\/dd>/)
     }
+  })
+
+  it('renders an accessible Inspect button when onInspect is provided', () => {
+    const html = render(space, () => {})
+
+    expect(html).toContain('Inspect')
+    expect(html).toContain('<span class="sr-only"> Kapihan Study Hub</span>')
   })
 })
