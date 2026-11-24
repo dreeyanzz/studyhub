@@ -57,7 +57,7 @@ export function FormField({
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? 'Hide characters' : 'Show characters'}
             aria-pressed={showPassword}
             className="absolute top-0 right-0 flex size-12 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none"
           >
