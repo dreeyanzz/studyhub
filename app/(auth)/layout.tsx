@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-// The shell around /login and /register: a way home or to discovery, then the form.
+// The shell around /login, /register and /choose-role: a way home or to discovery, then the form.
 export default function AuthLayout({ children }: LayoutProps<'/'>) {
   return (
     <>

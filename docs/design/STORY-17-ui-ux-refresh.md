@@ -85,13 +85,13 @@ Not applicable: STORY-17 adds or modifies no Postgres tables, columns, enums, Zo
   - Zero horizontal scrolling at 360, 768, and 1024 px and at 200% text zoom.
   - List view preserved alongside any map view.
 
-### Auth screens (`/login` and `/register`, part of `TSK-17.4`)
+### Auth screens (`/login`, `/register`, and `/choose-role`, part of `TSK-17.4`)
 
 - **Layout:** Shared split-panel `AuthShell` (`max-w-4xl`) inside `app/(auth)/layout.tsx` on a soft `bg-muted/40` canvas, with the desk-lamp brand mark and a `Find a Space` link in the header. Two columns (`5fr / 7fr`) from `md` up; stacked single column (`grid-cols-[minmax(0,1fr)]`) below `md` with the bullet list hidden on mobile.
 - **Type:** Georgia (`font-heading`) `h1` (`text-3xl`) for the form title and `h2` (`text-2xl sm:text-3xl`) for the editorial panel heading; uppercase eyebrow (`text-xs tracking-wider`); Geist body and helper text.
 - **Spacing:** Responsive mobile padding (`px-[min(1rem,3vw)]` on `<main>`, `p-[min(1.5rem,4vw)]` on panels) stepping up to `sm:px-4` / `sm:p-8` so 360 px at 200% text never clips inside the card.
-- **Components:** Reuses `Card`, `Button` (with `min-h-12 h-auto whitespace-normal` on the register submit control), `Alert`, `LoginForm`, and `RegisterForm` with all Server Action contracts, `returnUrl`, and `defaultRole` unchanged (D-042).
-- **Wording:** Editorial panel headlines (`"Your seat is waiting."` on `/login`, `"Find your focus."` on `/register`), three Worq highlights, and the D-005 sandbox disclaimer beneath each form.
+- **Components:** Reuses `Card`, `Button` (with `min-h-12 h-auto whitespace-normal` on auth submit controls), `Alert`, `GoogleAuthButton`, `LoginForm`, `RegisterForm`, and `ChooseRoleForm` with all Server Action contracts, `returnUrl`, `defaultRole`, and Google OAuth onboarding unchanged (D-042, D-095).
+- **Wording:** Editorial panel headlines (`"Your seat is waiting."` on `/login`, `"Find your focus."` on `/register`, `"One quick step."` on `/choose-role`), three Worq highlights, and the D-005 sandbox disclaimer beneath each form.
 
 ## 4. Security and test matrix
 

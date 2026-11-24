@@ -3,6 +3,18 @@ import { z } from 'zod'
 export const registrationRoles = ['seeker', 'host'] as const
 export type RegistrationRole = (typeof registrationRoles)[number]
 
+export type AuthSource = '/login' | '/register'
+
+const fullNameSchema = z
+  .string()
+  .trim()
+  .min(1, { error: 'Full name is required' })
+  .max(100, { error: 'Full name must not exceed 100 characters' })
+
+const registrationRoleSchema = z.enum(registrationRoles, {
+  error: 'Please select whether you are a Seeker or a Host',
+})
+
 // Trim and lowercase first, then check the format: z.email() checks before it trims.
 const emailSchema = z
   .string()
@@ -37,17 +49,11 @@ const passwordSchema = z
 
 export const registerSchema = z
   .object({
-    fullName: z
-      .string()
-      .trim()
-      .min(1, { error: 'Full name is required' })
-      .max(100, { error: 'Full name must not exceed 100 characters' }),
+    fullName: fullNameSchema,
     email: emailSchema,
     password: passwordSchema,
     confirmPassword: z.string().min(1, { error: 'Please confirm your password' }),
-    role: z.enum(registrationRoles, {
-      error: 'Please select whether you are a Seeker or a Host',
-    }),
+    role: registrationRoleSchema,
     // A hold prompt sends people here with its Space profile (D-058, STORY-09).
     returnUrl: returnUrlSchema,
   })
@@ -57,6 +63,27 @@ export const registerSchema = z
   })
 
 export type RegisterInput = z.infer<typeof registerSchema>
+
+// One-time role and full-name confirmation for brand-new Google OAuth accounts (STORY-21, D-095).
+export const chooseRoleSchema = z.object({
+  fullName: fullNameSchema,
+  role: registrationRoleSchema,
+  returnUrl: returnUrlSchema,
+})
+
+export type ChooseRoleInput = z.infer<typeof chooseRoleSchema>
+
+// Drops anything other than seeker or host, including admin (D-013, D-095).
+export function parseRegistrationRole(
+  value: string | null | undefined,
+): RegistrationRole | undefined {
+  return value === 'seeker' || value === 'host' ? value : undefined
+}
+
+// Strict allowlist for where an OAuth error returns the visitor (STORY-21, O-N8).
+export function sanitizeAuthSource(value: string | null | undefined): AuthSource {
+  return value === '/register' ? '/register' : '/login'
+}
 
 export function sanitizeReturnUrl(
   url: string | null | undefined,

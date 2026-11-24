@@ -9,7 +9,7 @@ const highlights = [
 ]
 
 /**
- * Shared split-panel shell for /login and /register (STORY-17).
+ * Shared split-panel shell for /login, /register and /choose-role (STORY-17, STORY-21).
  * Stacks cleanly at 360 px and uses a two-column editorial card on md+ screens.
  */
 export function AuthShell({
@@ -24,7 +24,7 @@ export function AuthShell({
   asideTitle: string
   asideBody: string
   title: string
-  subtitle: string
+  subtitle: ReactNode
   children: ReactNode
 }) {
   return (

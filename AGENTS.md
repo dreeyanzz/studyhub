@@ -87,7 +87,7 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/` (with STORY-08's discovery map in `spaces/`, and STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
+`(public)/` (with STORY-08's discovery map in `spaces/`, STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel, and STORY-21's `privacy/` policy page), STORY-03's `(auth)/` pages (with STORY-21's Google OAuth button and `choose-role/` onboarding page) and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
 `(dashboard)/seeker/` portal (with STORY-09's hold and return pages in `reservations/[id]/`), STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
 page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/`),
@@ -109,7 +109,7 @@ only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
 search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-19's route-wide accessibility sweep, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
+test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-19's route-wide accessibility sweep, STORY-21's Google OAuth onboarding test, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
 `app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
 
 ## Commands

@@ -6,7 +6,7 @@
  * visits it as its role (or signed out for public routes).
  */
 
-export type RouteRole = 'anon' | 'seeker' | 'host' | 'admin'
+export type RouteRole = 'anon' | 'seeker' | 'host' | 'admin' | 'oauth_pending'
 
 export interface SweepFixtures {
   /** Seeded Verified Space owned by `host@example.test` (Kapihan Study Hall). */
@@ -50,6 +50,12 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     path: (f) => `/spaces/${f.hostSpaceId}`,
   },
   {
+    id: 'public-privacy',
+    label: 'Privacy policy',
+    role: 'anon',
+    path: '/privacy',
+  },
+  {
     id: 'auth-login',
     label: 'Log in',
     role: 'anon',
@@ -60,6 +66,12 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     label: 'Create account',
     role: 'anon',
     path: '/register',
+  },
+  {
+    id: 'auth-choose-role',
+    label: 'Choose role (OAuth onboarding)',
+    role: 'oauth_pending',
+    path: '/choose-role',
   },
 
   // Seeker routes (seeker@example.test)
