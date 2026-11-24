@@ -7,8 +7,8 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 /**
- * Split white-and-photo card shell for /login and /register (STORY-17).
- * Stacks cleanly on mobile and displays a framed study-space photo with
+ * Shared split white-and-photo card shell for /login, /register and /choose-role (STORY-17, STORY-21).
+ * Stacks cleanly at 360 px and displays a framed study-space photo with
  * floating frosted-glass map callouts on md+ screens.
  */
 export function AuthShell({
@@ -16,8 +16,11 @@ export function AuthShell({
   subtitle,
   children,
 }: {
+  asideEyebrow?: string
+  asideTitle?: string
+  asideBody?: string
   title: string
-  subtitle: string
+  subtitle: ReactNode
   children: ReactNode
 }) {
   return (
@@ -25,8 +28,8 @@ export function AuthShell({
       aria-labelledby="auth-title"
       className="auth-split-card w-full max-w-4xl self-center rounded-3xl bg-card/95 p-3 shadow-[0_24px_70px_-15px_rgba(16,43,32,0.48)] ring-1 ring-white/60 backdrop-blur-md sm:p-4"
     >
-      <div className="grid gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-        <div className="flex flex-col justify-center px-4 py-6 sm:px-8 sm:py-8">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
+        <div className="flex min-w-0 flex-col justify-center px-4 py-6 sm:px-8 sm:py-8">
           <div className="mb-1 flex justify-center">
             <Link
               href="/"

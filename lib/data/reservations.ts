@@ -144,10 +144,11 @@ export async function getHoldViewer(
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, role_confirmed')
     .eq('id', user.id)
     .maybeSingle()
-  const role = profile?.role ?? null
+  // An unconfirmed OAuth account cannot hold a seat until /choose-role completes (G12, D-095).
+  const role = profile?.role_confirmed ? profile.role : null
   const currentHold = role === 'seeker' ? await getMyReservation(supabase) : null
   return { role, currentHold }
 }

@@ -212,6 +212,34 @@ describe('handleStripeWebhook: confirm_payment', () => {
     expect(await result).toEqual({ status: 500, body: { error: 'confirm_failed' } })
   })
 
+  it('calls onConfirmed only when outcome is confirmed', async () => {
+    const outcomes = [
+      { outcome: 'confirmed', expectedCalls: 1 },
+      { outcome: 'already_processed', expectedCalls: 0 },
+      { outcome: 'late_payment', expectedCalls: 0 },
+      { outcome: 'not_found', expectedCalls: 0 },
+    ] as const
+
+    for (const { outcome, expectedCalls } of outcomes) {
+      const onConfirmed = vi.fn()
+      const body = completedEvent()
+      const result = await handleStripeWebhook({
+        rawBody: body,
+        signatureHeader: sign(body),
+        secret,
+        nowSeconds: now + 5,
+        confirmPayment: async () => ({ outcome }),
+        log: vi.fn(),
+        onConfirmed,
+      })
+      expect(result.status).toBe(200)
+      expect(onConfirmed).toHaveBeenCalledTimes(expectedCalls)
+      if (expectedCalls === 1) {
+        expect(onConfirmed).toHaveBeenCalledWith(reservationId)
+      }
+    }
+  })
+
   it('never logs the secret or the whole body', async () => {
     const { result, log } = run(completedEvent(), {
       confirm: async () => {

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 import './auth.css'
 
-// The shell around /login and /register: a way home or to discovery, then the form.
+// The shell around /login, /register and /choose-role: a way home or to discovery, then the form.
 export default function AuthLayout({ children }: LayoutProps<'/'>) {
   return (
     <>
@@ -77,7 +77,7 @@ export default function AuthLayout({ children }: LayoutProps<'/'>) {
       </header>
       <main
         id="main-content"
-        className="flex flex-1 items-center justify-center bg-muted/40 px-4 py-8 sm:py-12"
+        className="flex flex-1 items-center justify-center bg-muted/40 px-[min(1rem,3vw)] py-8 sm:px-4 sm:py-12"
       >
         {children}
       </main>

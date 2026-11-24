@@ -1417,3 +1417,23 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** keeping D-075's split for STORY-13 and STORY-14 (a handoff on every page of the critical path); Adrian taking both with no swap (21 points against 6, with 12 days left); Luke also taking STORY-20 end to end, its design included (more change than the load needs, for the story first in the cut order).
 
 **Revisit if:** Adrian falls behind on STORY-13 or STORY-14, so that Luke takes back their pages, or STORY-16's history waits on STORY-13 and STORY-14's tables with nothing else for Luke to build.
+
+## D-095 · Sign-in and sign-up with Google OAuth only, with one-time role confirmation
+
+**Settles #379. Extends STORY-01 and STORY-03. Drawn in [`docs/flows/google-oauth.md`](flows/google-oauth.md).**
+
+**Decision:**
+
+- Worq adds **Continue with Google** on `/login` and `/register` alongside email and password. Apple Sign In is not added.
+- The OAuth flow starts from a Server Action (`signInWithGoogle`, `D-010`) using Supabase Auth's PKCE flow with `prompt: 'select_account'`, and completes in `app/api/auth/callback/route.ts` while preserving `returnUrl` (`D-058`) and an optional `seeker` or `host` preselection hint.
+- `public.profiles` gains `role_confirmed boolean not null default true` with no `UPDATE` grant. `private.handle_new_user()` detects OAuth sign-ups from server-owned `raw_app_meta_data ->> 'provider'`, sets `role = 'seeker'` and `role_confirmed = false`, and truncates `full_name` to 100 characters. Existing rows and email/password sign-ups stay `role_confirmed = true`.
+- `private.has_role()` requires `role_confirmed = true`, so Postgres Row-Level Security blocks unconfirmed OAuth accounts from every Seeker, Host and Administrator action (`D-007`).
+- Brand-new Google users land on `/choose-role` to confirm an editable **Full name** (pre-filled from Google, 1–100 characters) and pick **Seeker** or **Host** once (never **Administrator**, `D-013`) through `public.complete_oauth_role(p_role, p_full_name)`. Once `role_confirmed` is `true`, the function refuses any further role change. `/choose-role` also offers **Log out** (`scope: 'local'`) to switch accounts.
+- Supabase Auth's default automatic identity linking for verified emails stays on: an existing confirmed Seeker, Host or Administrator who signs in with Google keeps their existing `profiles` row (`role_confirmed = true`) and skips `/choose-role`.
+- `supabase/config.toml` keeps `[auth.external.google]` disabled by default so local Docker and CI run without Google credentials; Google OAuth is enabled in the Supabase Dashboard on `studyhub-dev` and `studyhub-prod`, and automated tests cover the flow via pgTAP, Vitest and Playwright against the local stack.
+
+**Why:** Adrian chose Option 3 on #379 on 24 November: Google OAuth lets Seekers and Hosts sign in without a new password at zero cost, whereas Apple Sign In requires a paid Apple Developer Program membership (USD 99/year). Using `profiles.role_confirmed` with a one-time `security definer` function and gating `private.has_role()` keeps `profiles.role` non-null and immutable by direct writes, prevents unconfirmed accounts from bypassing role choice, and avoids breaking any existing query or test.
+
+**Rejected:** Apple Sign In (paid Apple Developer account required); defaulting every Google sign-up silently to Seeker with no Host option (blocks Hosts who want Google sign-in); making `profiles.role` nullable (ripples across generated types and every existing query); letting `proxy.ts` alone enforce `/choose-role` without gating `private.has_role()` (violates `D-007`); skipping the editable Full name field on `/choose-role` (leaves empty or over-long Google names uneditable before Host Spaces reach `/admin`).
+
+**Revisit if:** Worq adds an iOS app or Apple Developer account later (re-evaluating Sign in with Apple), or adds a second OAuth provider that does not return verified emails.
