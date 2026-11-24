@@ -233,6 +233,45 @@ export type Database = {
           },
         ]
       }
+      review_moderation_events: {
+        Row: {
+          action: Database["public"]["Enums"]["review_moderation_action"]
+          actor_id: string | null
+          created_at: string
+          id: string
+          review_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["review_moderation_action"]
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          review_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["review_moderation_action"]
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          review_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_moderation_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_moderation_events_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       review_reports: {
         Row: {
           closed_at: string | null
@@ -631,6 +670,32 @@ export type Database = {
           unit_label: string
         }[]
       }
+      admin_review_queue: {
+        Args: { p_list: string; p_page_offset?: number; p_page_size?: number }
+        Returns: {
+          author_full_name: string
+          author_id: string
+          cleanliness: number
+          comfort: number
+          comment: string
+          created_at: string
+          edited_at: string
+          open_report_count: number
+          overall: number
+          quietness: number
+          reports: Json
+          review_id: string
+          space_id: string
+          space_name: string
+          space_status: Database["public"]["Enums"]["space_status"]
+          status: Database["public"]["Enums"]["review_status"]
+          status_changed_at: string
+          status_changed_by: string
+          status_changed_by_full_name: string
+          version: number
+          wifi_reliability: number
+        }[]
+      }
       attach_checkout_session: {
         Args: {
           p_checkout_session_id: string
@@ -682,6 +747,14 @@ export type Database = {
           reservation_id: string
           status: Database["public"]["Enums"]["reservation_status"]
         }[]
+      }
+      moderate_review: {
+        Args: {
+          p_action: Database["public"]["Enums"]["review_moderation_action"]
+          p_review_id: string
+          p_version: number
+        }
+        Returns: Json
       }
       my_reservation: {
         Args: { p_reservation_id?: string }
@@ -795,6 +868,7 @@ export type Database = {
         | "no_show"
         | "completed"
         | "cancelled"
+      review_moderation_action: "hide" | "remove" | "restore" | "dismiss"
       review_report_outcome: "dismissed" | "hidden" | "removed"
       review_report_reason: "spam" | "offensive" | "not_about_space" | "other"
       review_status: "visible" | "hidden" | "removed"
@@ -942,6 +1016,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      review_moderation_action: ["hide", "remove", "restore", "dismiss"],
       review_report_outcome: ["dismissed", "hidden", "removed"],
       review_report_reason: ["spam", "offensive", "not_about_space", "other"],
       review_status: ["visible", "hidden", "removed"],
