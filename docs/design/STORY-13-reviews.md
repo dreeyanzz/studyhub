@@ -159,8 +159,11 @@ stored (D-076).
 | `closed_at`      | `timestamptz`           | Null while open                                                                  |
 | `created_at`     | `timestamptz`           | Not null, default `now()`                                                        |
 
-It is unique on `(review_id, reporter_id, review_version)` (N11), and a check keeps
-`outcome`, `closed_by` and `closed_at` set together or not at all.
+It is unique on `(review_id, reporter_id, review_version)` (N11). A check keeps an open
+report with none of `outcome`, `closed_by` and `closed_at`, and a closed one with
+`outcome` and `closed_at`. `closed_by` is set on closing too, but can be null afterwards,
+if that Administrator's account is deleted, as `payments.refunded_by` can (STORY-14 §2):
+a check that required it would make `on delete set null` fail, and the account with it.
 
 ### Triggers
 
@@ -175,14 +178,14 @@ It is unique on `(review_id, reporter_id, review_version)` (N11), and a check ke
 
 ### Policies and grants
 
-| Table            | Role                    | Verb   | Rule                                                                                                                                                                   |
-| ---------------- | ----------------------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reviews`        | `authenticated`         | insert | RV1. The caller has the Seeker role, `author_id` is the caller, and `private.is_reviewable_visit(reservation_id, space_id)`. The Space's status doesn't matter (D-081) |
-| `reviews`        | `authenticated`         | update | RV2. The author's own rows while `status = 'visible'`, before and after                                                                                                |
-| `reviews`        | `authenticated`         | delete | RV3. The author's own rows while `status = 'visible'`                                                                                                                  |
-| `reviews`        | `anon`, `authenticated` | select | Visible reviews of a Verified Space for everyone; the author's own in any status; every review for Administrators (N10)                                                |
-| `review_reports` | `authenticated`         | insert | RP1. `reporter_id` is the caller, and the review is visible, on a Verified Space, not the caller's own, and at the `review_version` the trigger recorded (N11)         |
-| `review_reports` | `authenticated`         | select | The reporter's own reports, and every report for Administrators (N12)                                                                                                  |
+| Table            | Role                    | Verb   | Rule                                                                                                                                                                                                    |
+| ---------------- | ----------------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reviews`        | `authenticated`         | insert | RV1. The caller has the Seeker role, `author_id` is the caller, and `private.is_reviewable_visit(reservation_id, space_id)`. The Space's status doesn't matter (D-081)                                  |
+| `reviews`        | `authenticated`         | update | RV2. The author's own rows while `status = 'visible'`, before and after                                                                                                                                 |
+| `reviews`        | `authenticated`         | delete | RV3. The author's own rows while `status = 'visible'`                                                                                                                                                   |
+| `reviews`        | `anon`, `authenticated` | select | Visible reviews of a Verified Space for everyone; the author's own in any status; every review for Administrators (N10)                                                                                 |
+| `review_reports` | `authenticated`         | insert | RP1. The caller has a confirmed role (D-095), `reporter_id` is the caller, and the review is visible, on a Verified Space, not the caller's own, and at the `review_version` the trigger recorded (N11) |
+| `review_reports` | `authenticated`         | select | The reporter's own reports, and every report for Administrators (N12)                                                                                                                                   |
 
 Grants, besides the policies:
 
