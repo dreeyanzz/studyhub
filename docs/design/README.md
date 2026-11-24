@@ -78,7 +78,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md)         | approved 2026-11-22                                                 |
 | STORY-17 | [STORY-17-ui-ux-refresh.md](STORY-17-ui-ux-refresh.md)                     | approved 2026-11-23                                                 |
 | STORY-19 | [STORY-19-final-hardening.md](STORY-19-final-hardening.md)                 | approved 2026-11-22                                                 |
-| STORY-20 | [STORY-20-verification-follow-ups.md](STORY-20-verification-follow-ups.md) | draft                                                               |
+| STORY-20 | [STORY-20-verification-follow-ups.md](STORY-20-verification-follow-ups.md) | approved 2026-11-25                                                 |
 | STORY-21 | [STORY-21-google-oauth.md](STORY-21-google-oauth.md)                       | implemented 2026-11-24                                              |
 
 STORY-00 (repository foundation) is docs and tooling only, so it has no design doc.
