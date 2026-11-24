@@ -169,6 +169,11 @@ pages: the reviews and averages on the profile and the Space card, edit, delete 
 report; the moderation and payments pages on `/admin`, with the Stripe sandbox refund;
 and their Vitest and Playwright tests. Their tasks are #359 to #368.
 
+> **Update, Tue 24 Nov: STORY-13 is done** (#388, #403, #404, #405, #406). Seekers with a
+> checked-in visit can post, edit and delete reviews, everyone sees the averages on the
+> Space profile and card, and confirmed users can report reviews for moderation in STORY-14
+> (design §9).
+
 **Your backend.** Everything in `supabase/` for STORY-20: tables, policies, database
 functions, pgTAP tests and seed data. For STORY-19, the production project, #218 and the
 Definition of Done check. You also review Luke's STORY-16 migration (D-066); once merged,
