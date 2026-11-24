@@ -17,22 +17,6 @@ export interface KnownViolation {
 
 export const KNOWN_VIOLATIONS: readonly KnownViolation[] = [
   {
-    routeId: 'host-dashboard',
-    check: 'clipping',
-    rule: 'text-clipping-200',
-    issueNumber: 373,
-    summary:
-      'SpaceForm Card container clips content horizontally (324 > 296) at 360px / 200% text size',
-  },
-  {
-    routeId: 'host-space-edit',
-    check: 'clipping',
-    rule: 'text-clipping-200',
-    issueNumber: 373,
-    summary:
-      'SpaceForm Card container clips content horizontally (324 > 296) at 360px / 200% text size',
-  },
-  {
     routeId: 'host-space-seat-map',
     check: 'target-size',
     rule: 'min-target-size-48px',
