@@ -1,6 +1,6 @@
 # STORY-21: Google OAuth sign-in and sign-up
 
-**Status:** approved 2026-11-24 · **Owner:** @dreeyanzz · **Story:** #392 · **FR:** SRS §3.5.1 ·
+**Status:** implemented 2026-11-24 · **Owner:** @dreeyanzz · **Story:** #392 · **FR:** SRS §3.5.1 ·
 **Depends on:** STORY-01, STORY-03, STORY-09, STORY-17 (PR #371 for `AuthShell` on `/login`, `/register` and `/choose-role`) ·
 **Flows:** [Google OAuth](../flows/google-oauth.md) ·
 **Decisions:** D-007, D-010, D-013, D-016, D-031, D-032, D-042, D-044, D-058, D-073, D-074, D-090, D-091, D-093, D-095
@@ -298,4 +298,34 @@ Recorded in [D-095](../DECISIONS.md#d-095--sign-in-and-sign-up-with-google-oauth
 
 ## 9. After the build
 
-_(To be filled in once TSK-21.1 through TSK-21.4 are merged and manually verified.)_
+Built in four PRs in §6 order: #398 (`TSK-21.1`), #399 (`TSK-21.2`), #400 (`TSK-21.3`),
+and `TSK-21.4` (`feature/STORY-21-oauth-e2e`).
+
+- **What turned out different from this plan, and why:**
+  - Publishing the Google Auth Platform consent screen from **Testing** to **In production**
+    required a public **Application privacy policy link** in addition to the home page URL.
+    `TSK-21.3` (#400) added a static `/privacy` route (`app/(public)/privacy/page.tsx`,
+    linked from `SiteFooter`) disclosing Google OAuth basic scopes (`openid`, `email`,
+    `profile`), RLS data protection, sandbox payments (D-005), and `worq.team.ph@gmail.com`.
+    `TSK-21.4` added both `/privacy` and `/choose-role` to `e2e/support/routes.ts` for the
+    WCAG 2.1 AA sweep.
+  - `TSK-21.3` landed while PR #371 (`AuthShell` restyle) was still Draft, so `/login`,
+    `/register` and `/choose-role` kept `main`'s `Card` shell with `min-w-0` and wrappable
+    48 × 48 px buttons; PR #371 or STORY-17 can restyle them with `AuthShell` cleanly.
+  - `supabase/tests/13-google-oauth.sql` omitted `host_id` on `spaces` inserts to match
+    STORY-01's column grants (`grant insert (name, description, address, opens_at, closes_at)`).
+- **Status line:** updated to `implemented 2026-11-24` (here and in
+  `docs/flows/google-oauth.md` / `docs/flows/README.md`).
+- **Docs updated:** `docs/DEVELOPMENT.md`, `AGENTS.md`, `docs/flows/google-oauth.md`,
+  `docs/flows/README.md`, and this design doc.
+- **Verification:**
+  - `TSK-21.1` (#398): `npm run db:reset`, `npm run db:test` (10/10 files, 591 assertions
+    incl. 33 in `13-google-oauth.sql`), `npm run db:race`, `npm run db:types`, `npm run check`,
+    `npm run build`, plus pushed to `studyhub-dev` (`20261123194953_google_oauth`).
+  - `TSK-21.2` (#399): `npm run check` (94 files / 991 Vitest tests) and `npm run build`.
+  - `TSK-21.3` (#400): `npm run check` (96 files / 1,005 Vitest tests) and `npm run build`;
+    Google Cloud `Worq` OAuth client (`Worq Web`, **In production**) and `studyhub-dev`
+    Supabase Google provider + 4 callback Redirect URLs configured and verified saved.
+  - `TSK-21.4`: `npm run check`, `npm run build`, and Playwright against the local Supabase
+    stack (all 4 journeys in `e2e/google-oauth.spec.ts` plus 5/5 WCAG 2.1 AA sweep checks
+    on `/`, `/privacy`, `/login`, `/register`, and `/choose-role` in `e2e/accessibility.spec.ts`).

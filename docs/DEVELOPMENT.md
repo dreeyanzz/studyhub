@@ -12,6 +12,7 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | Supabase: production project            | The deployed app                                  | Adrian only, in its own organization (D-090)                       | Created before the Final phase |
 | Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app      |
 | Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
+| Google Cloud (`Worq`, OAuth 2.0, D-095) | Continue with Google sign-in and sign-up          | Team Gmail (`worq.team.ph@gmail.com`); Adrian manages credentials  | Active (In production)         |
 
 The Vercel project is `studyhub`, in Adrian's account. Until the production project
 exists, its production deployment (worqph.vercel.app) and its previews use the cloud dev
@@ -209,6 +210,25 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
   their Spaces in the app, or empty each Space's `space-photos/<space_id>` folder on the
   Storage page. Nothing else removes those photos, and the bucket is public (D-092). The
   same goes for the production project.
+- **Google OAuth (`studyhub-dev` and `studyhub-prod`, STORY-21, D-095).**
+  - Google Cloud project `Worq` (under the team Gmail account `worq.team.ph@gmail.com`) holds
+    the `Worq Web` OAuth 2.0 Web Client with basic scopes only (`openid`, `email`, `profile`),
+    published **In production** (Branding home page `https://worqph.vercel.app`, privacy
+    policy `https://worqph.vercel.app/privacy`).
+  - Authorized JavaScript origins: `https://worqph.vercel.app` and `http://localhost:3000`.
+  - Authorized redirect URIs: `https://<studyhub-dev-ref>.supabase.co/auth/v1/callback`, plus
+    `https://<studyhub-prod-ref>.supabase.co/auth/v1/callback` once `TSK-19.1` creates the
+    production project (D-090).
+  - In Supabase Dashboard (**Authentication → Providers → Google**), enable Google and store
+    the Client ID and Client Secret there only — never in `.env.local`, commits or chat.
+  - In Supabase Dashboard (**Authentication → URL Configuration → Redirect URLs**), keep
+    `http://localhost:3000/api/auth/callback`, `http://127.0.0.1:3000/api/auth/callback`,
+    `https://worqph.vercel.app/api/auth/callback`, and the project-scoped Vercel preview
+    pattern `https://studyhub-*-dreeyanzzs-projects.vercel.app/api/auth/callback` (never a
+    blanket `https://*.vercel.app/**`).
+  - Local `supabase/config.toml` keeps `[auth.external.google]` disabled by default so Docker
+    and CI never require Google secrets; automated tests cover OAuth onboarding via pgTAP
+    (`supabase/tests/13-google-oauth.sql`), Vitest and Playwright (`e2e/google-oauth.spec.ts`).
 
 ## Scheduled work
 

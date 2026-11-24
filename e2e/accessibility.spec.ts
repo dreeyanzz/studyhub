@@ -29,6 +29,7 @@ const DATABASE_URL =
 
 const HOST_ID = 'b0000000-0000-4000-8000-000000000001'
 const SEEKER_ID = 'c0000000-0000-4000-8000-000000000001'
+const OAUTH_SWEEP_ID = 'd2000000-0000-4000-8000-000000000001'
 const SEEDED_HOST_SPACE_ID = 'e0000000-0000-4000-8000-000000000001'
 const FIXTURE_SPACE_NAME = 'A11y Sweep Fixture Space'
 
@@ -40,6 +41,7 @@ const ROLE_EMAILS: Record<Exclude<RouteRole, 'anon'>, string> = {
   seeker: 'seeker@example.test',
   host: 'host@example.test',
   admin: 'admin@example.test',
+  oauth_pending: 'oauth-sweep@example.test',
 }
 
 interface ObservedFinding {
@@ -66,6 +68,7 @@ async function cleanupFixtureSpace() {
       delete from public.spaces
       where host_id = ${HOST_ID} and name = ${FIXTURE_SPACE_NAME}
     `
+    await sql`delete from auth.users where id = ${OAUTH_SWEEP_ID}::uuid`
   } finally {
     await sql.end()
   }
@@ -116,6 +119,47 @@ async function createSweepFixtures(): Promise<SweepFixtures> {
         )
       `
     })
+
+    // Unconfirmed Google OAuth fixture so the sweep can inspect /choose-role (STORY-21, D-093).
+    await sql`
+      insert into auth.users (
+        instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+        raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+        confirmation_token, recovery_token, email_change_token_new, email_change
+      ) values (
+        '00000000-0000-0000-0000-000000000000',
+        ${OAUTH_SWEEP_ID}::uuid,
+        'authenticated',
+        'authenticated',
+        ${ROLE_EMAILS.oauth_pending},
+        extensions.crypt(${SEED_PASSWORD}, extensions.gen_salt('bf')),
+        now(),
+        '{"provider": "google", "providers": ["google", "email"]}'::jsonb,
+        '{"full_name": "A11y OAuth"}'::jsonb,
+        now(),
+        now(),
+        '', '', '', ''
+      )
+    `
+    await sql`
+      insert into auth.identities (
+        id, user_id, provider_id, provider, identity_data,
+        last_sign_in_at, created_at, updated_at
+      ) values (
+        gen_random_uuid(),
+        ${OAUTH_SWEEP_ID}::uuid,
+        ${OAUTH_SWEEP_ID}::text,
+        'email',
+        jsonb_build_object(
+          'sub', ${OAUTH_SWEEP_ID}::text,
+          'email', ${ROLE_EMAILS.oauth_pending}::text,
+          'email_verified', true
+        ),
+        now(),
+        now(),
+        now()
+      )
+    `
 
     return {
       hostSpaceId: SEEDED_HOST_SPACE_ID,
@@ -437,7 +481,7 @@ test.describe('WCAG 2.1 AA accessibility sweep (STORY-19, TSK-19.3, D-093)', () 
     const anonContext = await browser.newContext()
     roleContexts.set('anon', anonContext)
 
-    for (const role of ['seeker', 'host', 'admin'] as const) {
+    for (const role of ['seeker', 'host', 'admin', 'oauth_pending'] as const) {
       const context = await browser.newContext()
       await signInContext(context, role)
       roleContexts.set(role, context)
