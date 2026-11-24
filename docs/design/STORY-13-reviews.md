@@ -506,8 +506,9 @@ Built in five PRs in §6 order:
   were added for the author/reporter policies and account-deletion cascades.
 - **Confirmed-role gate on reporting (`#388`, `#406`):** after STORY-21 (`D-095`) landed,
   `review_reports` insert requires `private.has_role('seeker')`, `private.has_role('host')`,
-  or `private.has_role('admin')`, and `SpaceReviews` enables reporting only when
-  `viewer.role !== null`, blocking unconfirmed Google OAuth users before `/choose-role`.
+  or `private.has_role('admin')`, and the Space profile page
+  (`app/(public)/spaces/[spaceId]/page.tsx`) passes `canReport={viewer.role !== null}` to
+  `SpaceReviews`, blocking unconfirmed Google OAuth users before `/choose-role`.
 - **Nullability in `lib/data/reviews.ts` (`#403`):** Supabase's generated RPC types mark
   `space_review_summary` averages and `comment` non-null; `lib/data/reviews.ts` treats them
   as nullable and rounds once in `ReviewRating` for display.
