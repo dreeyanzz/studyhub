@@ -132,6 +132,7 @@ npm run db:new <name>  # new migration file
 npm run db:check-order # verify migrations are append-only and newer than origin/main (D-066, D-096)
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
+npm run db:promote-admin -- <email>  # promote a confirmed production account to Administrator (Adrian only, D-091)
 npm run stripe:listen  # forward Stripe sandbox events to the local webhook (Stripe CLI, D-070)
 npm run webhook:simulate -- <reservation-id>  # send a signed test payment event to the local webhook
 npm run docs:docx      # regenerate the course .docx files (needs pandoc)
