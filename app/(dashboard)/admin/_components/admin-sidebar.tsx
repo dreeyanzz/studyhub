@@ -78,7 +78,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 size="icon"
                 onClick={() => setIsCollapsed(false)}
                 data-tour="sidebar-toggle"
-                className="size-9 rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
+                className="min-h-[48px] min-w-[48px] rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
                 title="Expand sidebar (Ctrl+B)"
                 aria-label="Expand sidebar (Ctrl+B)"
               >
@@ -115,7 +115,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 size="icon"
                 onClick={() => setIsCollapsed(true)}
                 data-tour="sidebar-toggle"
-                className="size-8.5 rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
+                className="min-h-[48px] min-w-[48px] rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
                 title="Collapse sidebar (Ctrl+B)"
                 aria-label="Collapse sidebar (Ctrl+B)"
               >

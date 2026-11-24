@@ -476,7 +476,7 @@ export function AdminTour() {
               variant="ghost"
               size="icon"
               onClick={handleDismiss}
-              className="size-6 rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="min-h-[48px] min-w-[48px] rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
               aria-label="Skip onboarding tour"
               title="Skip tour (Esc)"
             >
@@ -524,7 +524,7 @@ export function AdminTour() {
               variant="ghost"
               size="default"
               onClick={handleDismiss}
-              className="h-8 px-2.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="min-h-[48px] min-w-[48px] px-2.5 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               Skip tour
             </Button>
@@ -536,7 +536,7 @@ export function AdminTour() {
                   variant="outline"
                   size="default"
                   onClick={handlePrev}
-                  className="h-8 gap-1 rounded-lg border-border/80 px-2.5 text-xs font-semibold"
+                  className="min-h-[48px] min-w-[48px] gap-1 rounded-lg border-border/80 px-2.5 text-xs font-semibold"
                 >
                   <ChevronLeft className="size-3.5" />
                   <span>Back</span>
@@ -547,7 +547,7 @@ export function AdminTour() {
                 type="button"
                 size="default"
                 onClick={handleNext}
-                className="h-8 gap-1 rounded-lg bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90"
+                className="min-h-[48px] min-w-[48px] gap-1 rounded-lg bg-primary px-3.5 text-xs font-semibold text-primary-foreground shadow-xs hover:bg-primary/90"
               >
                 <span>{isLastStep ? 'Finish Tour 🎉' : 'Next Step'}</span>
                 {!isLastStep && <ChevronRight className="size-3.5" />}

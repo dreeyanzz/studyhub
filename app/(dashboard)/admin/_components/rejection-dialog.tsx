@@ -93,7 +93,7 @@ export function RejectionDialog({
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="size-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+            className="min-h-[48px] min-w-[48px] rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
             aria-label="Close rejection dialog"
           >
             <X className="size-4" aria-hidden="true" />
@@ -159,14 +159,14 @@ export function RejectionDialog({
               type="button"
               variant="outline"
               onClick={onClose}
-              className="rounded-xl text-xs font-semibold"
+              className="min-h-[48px] min-w-[48px] rounded-xl text-xs font-semibold"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="text-destructive-foreground rounded-xl bg-destructive px-4 text-xs font-semibold hover:bg-destructive/90"
+              className="text-destructive-foreground min-h-[48px] min-w-[48px] rounded-xl bg-destructive px-4 text-xs font-semibold hover:bg-destructive/90"
             >
               {isSubmitting ? 'Recording...' : 'Confirm Rejection'}
             </Button>

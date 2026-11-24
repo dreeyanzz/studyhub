@@ -210,7 +210,7 @@ export function SpaceInspectionDialog({
               <button
                 type="button"
                 onClick={onClose}
-                className="absolute top-4 right-4 z-20 flex size-9 items-center justify-center rounded-full bg-muted text-foreground transition hover:bg-muted/80 lg:hidden"
+                className="absolute top-4 right-4 z-20 flex min-h-[48px] min-w-[48px] items-center justify-center rounded-full bg-muted text-foreground transition hover:bg-muted/80 lg:hidden"
                 aria-label="Close dialog"
               >
                 <X className="size-5" />
@@ -265,7 +265,7 @@ export function SpaceInspectionDialog({
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="hidden size-8 rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground lg:flex"
+              className="hidden min-h-[48px] min-w-[48px] rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground lg:flex"
               aria-label="Close inspection dialog"
             >
               <X className="size-4" aria-hidden="true" />
@@ -403,7 +403,7 @@ export function SpaceInspectionDialog({
             <Button
               type="button"
               variant="outline"
-              className="min-h-[44px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-4 text-xs font-semibold text-destructive hover:bg-destructive/15"
+              className="min-h-[48px] min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-4 text-xs font-semibold text-destructive hover:bg-destructive/15"
               onClick={() => {
                 onClose()
                 onOpenReject(space)
@@ -415,7 +415,7 @@ export function SpaceInspectionDialog({
 
             <Button
               type="button"
-              className="min-h-[44px] gap-2 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
+              className="min-h-[48px] min-w-[48px] gap-2 rounded-xl bg-primary px-5 text-xs font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
               onClick={handleApprove}
               disabled={isApproving}
             >
