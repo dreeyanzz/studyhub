@@ -97,8 +97,8 @@ page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Adminis
 booking QR code), `components/seat-map/` (STORY-07's shared
 renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/check-in/` (STORY-10's booking token normalization and
-wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search
-and STORY-09's reservation queries), `lib/geo/` (STORY-08's Haversine distance and
+wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search,
+STORY-09's reservation queries and STORY-13's review queries), `lib/geo/` (STORY-08's Haversine distance and
 campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
 (STORY-09's Stripe checkout, webhook and hold refusals, and STORY-14's Stripe refund), `lib/reservations/` (STORY-09's
 fee, time and countdown formatters), `lib/seat-map/`
@@ -107,7 +107,7 @@ STORY-11's opening status, freshness and availability),
 `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts`, STORY-09's `admin.ts` for `app/api`
 only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
-search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
+search, tags, reservation, check-in, Stripe webhook, Space photo and review rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
 test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-19's route-wide accessibility sweep, STORY-21's Google OAuth onboarding test, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
 `app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
