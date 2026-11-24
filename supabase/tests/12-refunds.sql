@@ -48,6 +48,11 @@ $$;
 -- ---------------------------------------------------------------------------
 set local role postgres;
 
+-- Clear seeded reservations/payments inside this rolled-back transaction so the
+-- global admin_payment_records counts and paging checks below cover only this
+-- file's fixtures (TSK-13.2 seeds two completed visits on Kapihan Study Hall).
+delete from public.reservations;
+
 insert into public.reservations (
   id, seeker_id, space_id, unit_id, unit_label, status, wait_window,
   payment_window_ends_at, wait_window_ends_at, booking_token, checked_in_at, checked_out_at, ended_at

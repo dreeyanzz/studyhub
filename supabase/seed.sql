@@ -123,3 +123,90 @@ values
   ('f0000000-0000-4000-8000-000000000018', 'e0000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000005', 'seat', 'U2', null, 0, 1, 1),
   ('f0000000-0000-4000-8000-000000000019', 'e0000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000005', 'seat', 'U3', null, 0, 2, 1);
 
+-- Demo visits, reviews and an open report (STORY-13, TSK-13.2, design §2 "Seed data").
+-- Placed on seeker2@example.test (Rina Bautista) and Kapihan Study Hall standing desks
+-- D1 and D2 so tests that delete seeker@example.test's reservations or U1–U3 / S1–S3
+-- never cascade-delete these rows (D-081).
+--   Reservations:  a1000000-...01 (D1), a1000000-...02 (D2)
+--   Payments:      a2000000-...01,      a2000000-...02
+--   Reviews:       a3000000-...01 (with comment), a3000000-...02 (no comment)
+--   Open report:   a4000000-...01 (by seeker@example.test on a3000000-...01)
+insert into public.reservations (
+  id, seeker_id, space_id, unit_id, unit_label, status, wait_window,
+  payment_window_ends_at, wait_window_ends_at, booking_token,
+  checked_in_at, checked_out_at, ended_at, created_at
+)
+values
+  ('a1000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000002',
+   'e0000000-0000-4000-8000-000000000001', 'f0000000-0000-4000-8000-000000000009',
+   'D1', 'completed', interval '60 minutes',
+   now() - interval '4 days' - interval '2 hours 50 minutes',
+   now() - interval '4 days' - interval '1 hour 55 minutes',
+   'SEED00000001',
+   now() - interval '4 days' - interval '2 hours',
+   now() - interval '4 days',
+   now() - interval '4 days',
+   now() - interval '4 days' - interval '3 hours'),
+  ('a1000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000002',
+   'e0000000-0000-4000-8000-000000000001', 'f0000000-0000-4000-8000-000000000010',
+   'D2', 'completed', interval '60 minutes',
+   now() - interval '2 days' - interval '2 hours 50 minutes',
+   now() - interval '2 days' - interval '1 hour 55 minutes',
+   'SEED00000002',
+   now() - interval '2 days' - interval '2 hours',
+   now() - interval '2 days',
+   now() - interval '2 days',
+   now() - interval '2 days' - interval '3 hours');
+
+insert into public.payments (
+  id, reservation_id, status, fee_amount,
+  checkout_session_id, external_payment_id, paid_at, created_at
+)
+select
+  p.id,
+  p.reservation_id,
+  'paid'::public.payment_status,
+  s.fee_amount,
+  p.checkout_session_id,
+  p.external_payment_id,
+  p.paid_at,
+  p.created_at
+from (
+  values
+    ('a2000000-0000-4000-8000-000000000001'::uuid, 'a1000000-0000-4000-8000-000000000001'::uuid,
+     'cs_seed_visit_01', 'pi_seed_visit_01',
+     now() - interval '4 days' - interval '2 hours 55 minutes',
+     now() - interval '4 days' - interval '3 hours'),
+    ('a2000000-0000-4000-8000-000000000002'::uuid, 'a1000000-0000-4000-8000-000000000002'::uuid,
+     'cs_seed_visit_02', 'pi_seed_visit_02',
+     now() - interval '2 days' - interval '2 hours 55 minutes',
+     now() - interval '2 days' - interval '3 hours')
+) as p (id, reservation_id, checkout_session_id, external_payment_id, paid_at, created_at)
+cross join private.reservation_settings as s
+where s.id = true;
+
+insert into public.reviews (
+  id, reservation_id, space_id, author_id,
+  quietness, wifi_reliability, cleanliness, comfort, comment, created_at
+)
+values
+  ('a3000000-0000-4000-8000-000000000001', 'a1000000-0000-4000-8000-000000000001',
+   'e0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000002',
+   5, 4, 5, 4,
+   'Quiet corner with steady Wi-Fi and plenty of outlets for an afternoon study session.',
+   now() - interval '3 days'),
+  ('a3000000-0000-4000-8000-000000000002', 'a1000000-0000-4000-8000-000000000002',
+   'e0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000002',
+   4, 4, 4, 4,
+   null,
+   now() - interval '1 day');
+
+insert into public.review_reports (
+  id, review_id, reporter_id, reason, note, created_at
+)
+values
+  ('a4000000-0000-4000-8000-000000000001', 'a3000000-0000-4000-8000-000000000001',
+   'c0000000-0000-4000-8000-000000000001', 'other',
+   'Mentions amenities from an older layout.',
+   now() - interval '12 hours');
+
