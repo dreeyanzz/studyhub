@@ -17,13 +17,6 @@ export interface KnownViolation {
 
 export const KNOWN_VIOLATIONS: readonly KnownViolation[] = [
   {
-    routeId: 'host-space-check-in',
-    check: 'target-size',
-    rule: 'min-target-size-48px',
-    issueNumber: 377,
-    summary: 'Your Spaces breadcrumb link (79x18) is under 48x48 px at 360px',
-  },
-  {
     routeId: 'admin-verification',
     check: 'clipping',
     rule: 'text-clipping-200',
