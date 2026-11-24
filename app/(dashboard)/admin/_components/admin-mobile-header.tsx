@@ -53,7 +53,7 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
           <Button
             variant="outline"
             type="submit"
-            className="min-h-[44px] min-w-[44px] gap-1.5 rounded-xl border-border/80 text-xs font-semibold hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
+            className="min-h-[48px] min-w-[48px] gap-1.5 rounded-xl border-border/80 text-xs font-semibold hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
           >
             <LogOut className="size-3.5" aria-hidden="true" />
             <span>Log out</span>
@@ -69,7 +69,7 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
         <Link
           href="/admin"
           className={cn(
-            'flex min-h-[44px] items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition',
+            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
             activeTab === 'verification'
               ? 'bg-primary text-primary-foreground shadow-2xs'
               : 'bg-muted/50 text-muted-foreground hover:bg-muted',
@@ -83,7 +83,7 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
         <Link
           href="/admin?tab=moderation"
           className={cn(
-            'flex min-h-[44px] items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition',
+            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
             activeTab === 'moderation'
               ? 'bg-primary text-primary-foreground shadow-2xs'
               : 'bg-muted/50 text-muted-foreground hover:bg-muted',
@@ -97,7 +97,7 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
         <Link
           href="/admin?tab=payments"
           className={cn(
-            'flex min-h-[44px] items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition',
+            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
             activeTab === 'payments'
               ? 'bg-primary text-primary-foreground shadow-2xs'
               : 'bg-muted/50 text-muted-foreground hover:bg-muted',

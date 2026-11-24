@@ -1,18 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import {
-  Calendar,
-  Check,
-  CheckCircle2,
-  Clock,
-  Copy,
-  Eye,
-  MapPin,
-  ShieldCheck,
-  User,
-  XCircle,
-} from 'lucide-react'
+import { Calendar, CheckCircle2, Clock, MapPin, User, XCircle } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -62,21 +51,8 @@ export function VerificationCard({
   const [activeDecision, setActiveDecision] = useState<'verified' | 'rejected' | null>(
     null,
   )
-  const [copied, setCopied] = useState(false)
-
   // The "Host:" label is the <dt> below, so the value is the name alone (design §3).
   const hostDisplay = space.host_name?.trim() || 'Unnamed'
-
-  async function handleCopyAddress(e: React.MouseEvent) {
-    e.stopPropagation()
-    try {
-      await navigator.clipboard.writeText(space.address)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Fallback if clipboard API is not available
-    }
-  }
 
   async function handleAction(e: React.MouseEvent, status: 'verified' | 'rejected') {
     e.stopPropagation()
@@ -120,29 +96,9 @@ export function VerificationCard({
                   {space.name}
                 </h2>
               </CardTitle>
-              <CardDescription className="mt-1 flex flex-wrap items-center gap-1.5 text-sm font-medium wrap-anywhere text-foreground/85">
+              <CardDescription className="mt-1 flex items-center gap-1.5 text-sm font-medium wrap-anywhere text-foreground/85">
                 <MapPin className="size-4 shrink-0 text-primary" aria-hidden="true" />
                 <span>{space.address}</span>
-                <button
-                  type="button"
-                  onClick={handleCopyAddress}
-                  className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground active:scale-95"
-                  title={copied ? 'Copied address!' : 'Copy address to clipboard'}
-                  aria-label={
-                    copied ? 'Copied address' : `Copy address for ${space.name}`
-                  }
-                >
-                  {copied ? (
-                    <Check className="size-3.5 text-emerald-600" aria-hidden="true" />
-                  ) : (
-                    <Copy className="size-3.5" aria-hidden="true" />
-                  )}
-                </button>
-                {copied && (
-                  <span className="text-[11px] font-semibold text-emerald-600">
-                    Copied!
-                  </span>
-                )}
               </CardDescription>
             </div>
           </div>
@@ -211,57 +167,35 @@ export function VerificationCard({
       </CardContent>
 
       {/* flex-wrap: at 360 px with 200% text both buttons don't fit on one line (D-031). */}
-      <CardFooter className="flex flex-wrap items-center justify-between gap-4 border-t border-border/70 bg-muted/25 px-6 py-4">
-        <div className="flex items-center gap-2 text-xs font-semibold text-foreground/80">
-          <ShieldCheck className="size-4 shrink-0 text-primary" aria-hidden="true" />
-          <span>Approving immediately publishes listing to public search</span>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {onInspect ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="min-h-[48px] min-w-[48px] gap-2 rounded-xl border-border/80 bg-background px-4 font-semibold text-foreground shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-muted hover:text-primary active:scale-[0.98]"
-              onClick={(e) => {
-                e.stopPropagation()
-                onInspect(space)
-              }}
-              aria-label={`Inspect details for ${space.name}`}
-            >
-              <Eye className="size-4 shrink-0 text-primary" aria-hidden="true" />
-              <span>Inspect Details</span>
-            </Button>
-          ) : null}
+      <CardFooter className="flex flex-wrap justify-end gap-3 border-t border-border/70 bg-muted/25 px-6 py-4">
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-[48px] min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98]"
+          onClick={(e) => handleAction(e, 'rejected')}
+          disabled={isPending}
+          aria-busy={isPending && activeDecision === 'rejected'}
+        >
+          <XCircle className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            {isPending && activeDecision === 'rejected' ? 'Rejecting...' : 'Reject'}
+          </span>
+          <span className="sr-only"> {space.name}</span>
+        </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-[48px] min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98]"
-            onClick={(e) => handleAction(e, 'rejected')}
-            disabled={isPending}
-            aria-busy={isPending && activeDecision === 'rejected'}
-          >
-            <XCircle className="size-4 shrink-0" aria-hidden="true" />
-            <span>
-              {isPending && activeDecision === 'rejected' ? 'Rejecting...' : 'Reject'}
-            </span>
-            <span className="sr-only"> {space.name}</span>
-          </Button>
-
-          <Button
-            type="button"
-            className="min-h-[48px] min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 hover:shadow-md active:scale-[0.98]"
-            onClick={(e) => handleAction(e, 'verified')}
-            disabled={isPending}
-            aria-busy={isPending && activeDecision === 'verified'}
-          >
-            <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-            <span>
-              {isPending && activeDecision === 'verified' ? 'Approving...' : 'Approve'}
-            </span>
-            <span className="sr-only"> {space.name}</span>
-          </Button>
-        </div>
+        <Button
+          type="button"
+          className="min-h-[48px] min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:scale-[1.02] hover:bg-primary/90 hover:shadow-md active:scale-[0.98]"
+          onClick={(e) => handleAction(e, 'verified')}
+          disabled={isPending}
+          aria-busy={isPending && activeDecision === 'verified'}
+        >
+          <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            {isPending && activeDecision === 'verified' ? 'Approving...' : 'Approve'}
+          </span>
+          <span className="sr-only"> {space.name}</span>
+        </Button>
       </CardFooter>
     </Card>
   )

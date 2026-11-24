@@ -176,7 +176,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               'flex items-center rounded-xl transition-all duration-200',
               isCollapsed
                 ? 'size-12 justify-center'
-                : 'justify-between px-3 py-2.5 text-xs font-bold',
+                : 'min-h-[48px] justify-between px-3 py-2.5 text-xs font-bold',
               activeTab === 'verification'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-foreground/80 hover:bg-muted hover:text-foreground',
@@ -220,7 +220,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               'flex items-center rounded-xl transition-all duration-200',
               isCollapsed
                 ? 'size-12 justify-center'
-                : 'justify-between px-3 py-2.5 text-xs font-bold',
+                : 'min-h-[48px] justify-between px-3 py-2.5 text-xs font-bold',
               activeTab === 'moderation'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-foreground/80 hover:bg-muted hover:text-foreground',
@@ -257,7 +257,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               'flex items-center rounded-xl transition-all duration-200',
               isCollapsed
                 ? 'size-12 justify-center'
-                : 'justify-between px-3 py-2.5 text-xs font-bold',
+                : 'min-h-[48px] justify-between px-3 py-2.5 text-xs font-bold',
               activeTab === 'payments'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-foreground/80 hover:bg-muted hover:text-foreground',
@@ -511,7 +511,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               'flex cursor-pointer items-center rounded-xl border border-primary/25 bg-primary/5 text-xs font-semibold text-primary transition hover:bg-primary/10',
               isCollapsed
                 ? 'size-12 justify-center p-0'
-                : 'w-full justify-between px-3 py-2.5 shadow-2xs',
+                : 'min-h-[48px] w-full justify-between px-3 py-2.5 shadow-2xs',
             )}
             title="Interactive Onboarding Guide"
           >
@@ -542,7 +542,9 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
             target="_blank"
             className={cn(
               'flex items-center rounded-xl text-xs font-semibold text-foreground transition hover:bg-muted',
-              isCollapsed ? 'size-12 justify-center' : 'justify-between px-3 py-2',
+              isCollapsed
+                ? 'size-12 justify-center'
+                : 'min-h-[48px] justify-between px-3 py-2',
             )}
             title="View Discovery Map"
           >
@@ -576,7 +578,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               'rounded-xl border-border/80 text-xs font-semibold text-destructive hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]',
               isCollapsed
                 ? 'size-12 justify-center p-0'
-                : 'min-h-[44px] w-full justify-center gap-2',
+                : 'min-h-[48px] w-full justify-center gap-2',
             )}
             title={isCollapsed ? 'Log out' : undefined}
           >
