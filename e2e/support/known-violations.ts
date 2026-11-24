@@ -15,13 +15,4 @@ export interface KnownViolation {
   summary: string
 }
 
-export const KNOWN_VIOLATIONS: readonly KnownViolation[] = [
-  {
-    routeId: 'admin-verification',
-    check: 'clipping',
-    rule: 'text-clipping-200',
-    issueNumber: 378,
-    summary:
-      'Badge fixed h-5 + overflow-hidden clips vertically (21 > 18) at 200% text size',
-  },
-]
+export const KNOWN_VIOLATIONS: readonly KnownViolation[] = []
