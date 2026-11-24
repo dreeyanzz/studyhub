@@ -3,7 +3,7 @@
 > **Adrian builds this story end to end (D-094).** On 23 November its owners changed:
 > every task below is Adrian's, so where this doc says Luke builds a part, read Adrian.
 
-**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz, end to end (D-094) ·
+**Status:** implemented 2026-11-24 · **Owner:** @dreeyanzz, end to end (D-094) ·
 **Story:** #78 · **FR:** FR-4.1, FR-4.2, SRS §3.5.2 · **Depends on:** STORY-08, STORY-09,
 STORY-10, STORY-11 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md) · **Decisions:** D-009, D-047,
@@ -482,4 +482,52 @@ on this branch.
 
 ## 9. After the build
 
-Filled in when the story is done.
+Built in five PRs in §6 order:
+
+1. **#388 (`TSK-13.1`, #359):** `supabase/migrations/20261124042958_reviews.sql`,
+   `supabase/tests/11-reviews.sql` (101 pgTAP cases), and `lib/supabase/database.types.ts`.
+2. **#403 (`TSK-13.3`, #361):** `lib/validation/review.ts`, `lib/data/reviews.ts`, and
+   their 24 Vitest tests.
+3. **#404 (`TSK-13.2`, #360):** demo finished visits, two reviews, and one open report in
+   `supabase/seed.sql` (plus isolating `supabase/tests/12-refunds.sql` from seeded payments).
+4. **#405 (`TSK-13.4`, #362):** Space profile reviews section, shared `ReviewForm` and
+   `ReviewRating` components, post/edit/delete Server Actions, and discovery Space card /
+   map popup ratings with Vitest tests.
+5. **#406 (`TSK-13.5`, #363):** shared `components/ui/dialog.tsx`, `reportReviewAction`,
+   `ReportReviewDialog`, `"You reported this"` wiring, and `e2e/reviews.spec.ts`.
+
+### What differed from the original plan, and why
+
+- **Closed-report check (`#388`):** `review_reports.closed_by` uses `on delete set null`, so
+  the constraint requires `outcome` and `closed_at` together while allowing `closed_by` to
+  become null later if an Administrator account is deleted (matching `payments.refunded_by`
+  in STORY-14 §2). Recorded in §2 during `#388`.
+- **Two extra indexes (`#388`):** `reviews (author_id)` and `review_reports (reporter_id)`
+  were added for the author/reporter policies and account-deletion cascades.
+- **Confirmed-role gate on reporting (`#388`, `#406`):** after STORY-21 (`D-095`) landed,
+  `review_reports` insert requires `private.has_role('seeker')`, `private.has_role('host')`,
+  or `private.has_role('admin')`, and `SpaceReviews` enables reporting only when
+  `viewer.role !== null`, blocking unconfirmed Google OAuth users before `/choose-role`.
+- **Nullability in `lib/data/reviews.ts` (`#403`):** Supabase's generated RPC types mark
+  `space_review_summary` averages and `comment` non-null; `lib/data/reviews.ts` treats them
+  as nullable and rounds once in `ReviewRating` for display.
+- **Seed isolation in `12-refunds.sql` (`#404`):** `supabase/tests/12-refunds.sql` clears
+  seeded reservations at the start of its rolled-back transaction so its global payment
+  counts remain independent of `seed.sql`.
+
+### Acceptance criteria coverage (#78)
+
+| Criterion                                                                  | Proven by                                                                                                            |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| No review without a checked-in visit at that Space (RLS, D-009)            | `supabase/tests/11-reviews.sql` (`N1`, `N3`, `RV1`); `app/(public)/spaces/[spaceId]/actions.test.ts`                 |
+| At most one review per visit; four 1–5 ratings + ≤ 500 char comment        | `11-reviews.sql` (`N2`, `N15`); `lib/validation/review.test.ts`; `components/review/review-form.test.tsx`            |
+| Author edits (`Edited`) or deletes; hidden/removed cannot be edited back   | `11-reviews.sql` (`RV2`, `RV3`, `N4`, `N5`, `N6`); `e2e/reviews.spec.ts`                                             |
+| Aggregate ratings match visible reviews on profile and Space card (public) | `11-reviews.sql` (`N10`, `N16`, `N17`); `lib/data/reviews.test.ts`; `space-card.test.tsx`; `e2e/reviews.spec.ts`     |
+| Reported review flagged for Administrator moderation (STORY-14)            | `11-reviews.sql` (`RP1`, `N11`, `N12`); `report-review-dialog.test.tsx`; `e2e/reviews.spec.ts` (`You reported this`) |
+
+### Still open / follow-up
+
+- `docs/flows/review-lifecycle.md` stays `approved` until STORY-14 (#79) finishes the
+  moderation half of the flow (`RV4`–`RV8`, `RP2`).
+- Maria and James review the new screens under STORY-17 (`D-073`).
+- The acceptance-criteria checkboxes on `#78` are left for Adrian to tick when closing `#78`.
