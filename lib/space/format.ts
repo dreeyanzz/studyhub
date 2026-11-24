@@ -16,6 +16,35 @@ export function formatOpeningHours(opensAt: string, closesAt: string): string {
   return `${opens} to ${closes}`
 }
 
+/** How many characters of a Space's description a Space card shows (#372). */
+export const DESCRIPTION_SNIPPET_LENGTH = 120
+
+/**
+ * Shortens a Space description for a Space card (STORY-08, FR-1.1, #372): at most
+ * `maxLength` characters, cut after the last whole word, with an ellipsis. A CSS line
+ * clamp hides more words as the text grows, so text at 200% lost content (SRS §3.2.2,
+ * WCAG 1.4.4). This shows the same words at every text size. The full description is
+ * on the Space profile.
+ */
+export function formatDescriptionSnippet(
+  description: string,
+  maxLength: number = DESCRIPTION_SNIPPET_LENGTH,
+): string {
+  // Characters, not UTF-16 units, so a cut never splits an emoji.
+  const chars = Array.from(description.trim().replace(/\s+/g, ' '))
+  if (chars.length <= maxLength) return chars.join('')
+
+  // A space at index maxLength means the first maxLength characters end on a whole
+  // word. One very long word keeps a hard cut instead of a near-empty snippet.
+  const lastSpace = chars.lastIndexOf(' ', maxLength)
+  const end = lastSpace >= maxLength / 2 ? lastSpace : maxLength
+  const cut = chars
+    .slice(0, end)
+    .join('')
+    .replace(/[\s.,;:!?-]+$/u, '')
+  return `${cut}…`
+}
+
 // Assumption: Worq's Spaces are in the Philippines (the seeded ones are in Cebu
 // City), and the server may run in UTC, so times are shown in Philippine time.
 const manilaDateTimeFormat = new Intl.DateTimeFormat('en-PH', {

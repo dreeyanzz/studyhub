@@ -57,6 +57,18 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     expect(html).toContain('border-primary')
   })
 
+  it('shortens a long description by characters and clamps no lines (#372)', () => {
+    const description = `${'Quiet tables with strong wifi. '.repeat(10)}Last words.`
+    const html = renderToStaticMarkup(<SpaceCard space={{ ...mockSpace, description }} />)
+
+    expect(html).toContain('Quiet tables with strong wifi. Quiet tables')
+    expect(html).toContain('…</p>')
+    expect(html).not.toContain('Last words.')
+    // A line clamp hides more of the text as it grows, which the 200% text check
+    // in e2e/accessibility.spec.ts reports as clipping.
+    expect(html).not.toContain('line-clamp')
+  })
+
   it('handles 24 hours format properly', () => {
     const space24h: VerifiedSpaceSearchResult = {
       ...mockSpace,

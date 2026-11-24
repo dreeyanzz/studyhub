@@ -17,14 +17,6 @@ export interface KnownViolation {
 
 export const KNOWN_VIOLATIONS: readonly KnownViolation[] = [
   {
-    routeId: 'public-spaces',
-    check: 'clipping',
-    rule: 'text-clipping-200',
-    issueNumber: 372,
-    summary:
-      'SpaceCard line-clamp clips address and description at 360px / 200% text size',
-  },
-  {
     routeId: 'host-dashboard',
     check: 'clipping',
     rule: 'text-clipping-200',
