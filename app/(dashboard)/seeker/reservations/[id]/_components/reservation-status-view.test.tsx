@@ -88,6 +88,11 @@ describe('Labels that wrap on a phone (design §3, Accessibility)', () => {
     'a late payment': (
       <EndedView reservation={{ ...base, status: 'expired', paymentStatus: 'paid' }} />
     ),
+    'a refunded late payment': (
+      <EndedView
+        reservation={{ ...base, status: 'expired', paymentStatus: 'refunded' }}
+      />
+    ),
     'a cancelled hold': <EndedView reservation={{ ...base, status: 'cancelled' }} />,
   }
 
@@ -198,6 +203,14 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
     expect(html).toContain('Find another Space')
   })
 
+  it('a refunded late payment (P2 + P1): says the fee was refunded (STORY-14 §0, §3 Screen 4)', () => {
+    const html = ended({ status: 'expired', paymentStatus: 'refunded' })
+    expect(html).toContain('Your payment window ran out')
+    expect(html).toContain('Your ₱50.00 payment was refunded.')
+    expect(html).not.toContain('nothing was charged')
+    expect(html).toContain('Back to Kapihan Study Hall')
+  })
+
   it('a lapse with no payment: nothing was charged', () => {
     const html = ended({ status: 'expired', paymentStatus: 'pending' })
     expect(html).toContain(
@@ -215,6 +228,9 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
     )
     expect(ended({ status: 'cancelled', paymentStatus: 'paid' })).toContain(
       'Your ₱50.00 payment was recorded, and an Administrator can refund it.',
+    )
+    expect(ended({ status: 'cancelled', paymentStatus: 'refunded' })).toContain(
+      'Your ₱50.00 payment was refunded.',
     )
     expect(ended({ status: 'cancelled' })).toContain('Your hold on S4 has ended.')
   })

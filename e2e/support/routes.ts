@@ -151,4 +151,10 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     role: 'admin',
     path: '/admin',
   },
+  {
+    id: 'admin-payments',
+    label: 'Admin payment records',
+    role: 'admin',
+    path: '/admin/payments',
+  },
 ]
