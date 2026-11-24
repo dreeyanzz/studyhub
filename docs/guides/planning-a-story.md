@@ -39,9 +39,10 @@ What goes in it:
 - **Add a [DECISIONS](../DECISIONS.md) entry in the same PR** for a choice that another story builds on, that is costly to reverse once data exists, or that a reasonable teammate would have chosen differently (D-044).
 - **If something unclear blocks you**, open a Decision issue instead of guessing.
 
-Adrian merging the design PR is the approval. If the story has screens, ask Maria to
-review it too: Maria decides what users see, do and are told, and Adrian merges once Maria
-approves (D-042). After that, remove the `needs-design` label from the story.
+If the story has screens, ask Maria to review it too (except Sprint 3 feature stories,
+which Luke approves, D-073): Maria decides what users see, do and are told (D-042). Once
+the named approvers approve and CI is green, any teammate may squash-merge the design PR
+(D-016, D-096). After that, remove the `needs-design` label from the story.
 
 ## 3. Tasks
 

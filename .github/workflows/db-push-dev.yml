@@ -1,0 +1,60 @@
+# Pushes merged migrations to the shared cloud dev project (studyhub-dev) on
+# every push to main that changes supabase/migrations/ (D-096). Production
+# (studyhub-prod) stays manual from Adrian's machine (D-090).
+#
+# Uses SUPABASE_DEV_DB_URL — the Session Pooler Postgres URI for studyhub-dev
+# (port 5432, IPv4-compatible on GitHub-hosted runners). Never passes
+# --include-seed (seed.sql has public passwords, D-013) or --include-all.
+name: Deploy dev migrations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview pending migrations without applying them'
+        type: boolean
+        default: false
+
+concurrency:
+  group: db-push-dev
+  # Never abort a database migration mid-flight; queue later pushes instead.
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  push-dev:
+    name: push-dev
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Check SUPABASE_DEV_DB_URL secret
+        env:
+          SUPABASE_DEV_DB_URL: ${{ secrets.SUPABASE_DEV_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DEV_DB_URL" ]; then
+            echo "::error::Missing repository secret SUPABASE_DEV_DB_URL. Add studyhub-dev's Session Pooler URI (port 5432) in GitHub Settings → Secrets and variables → Actions. See docs/DEVELOPMENT.md."
+            exit 1
+          fi
+      - run: npm ci
+      - name: Push migrations to studyhub-dev
+        env:
+          SUPABASE_DEV_DB_URL: ${{ secrets.SUPABASE_DEV_DB_URL }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          if [ "$DRY_RUN" = "true" ]; then
+            npx supabase db push --db-url "$SUPABASE_DEV_DB_URL" --dry-run --yes
+          else
+            npx supabase db push --db-url "$SUPABASE_DEV_DB_URL" --yes
+          fi

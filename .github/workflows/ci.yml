@@ -44,10 +44,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history so three-dot diffs against origin/<base> resolve merge-base.
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: npm
+      # Fails fast before starting Docker if a PR edits an applied migration
+      # (AGENTS.md rule 9) or adds a timestamp older than main's latest (D-066, D-096).
+      - name: Migrations are append-only and newer than main
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags origin "+refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+          node scripts/check-migration-order.mjs "origin/${{ github.base_ref }}"
       - run: npm ci
       # Only Postgres and Auth are needed: the seed writes auth.users, and the
       # tests talk to Postgres directly. Excluding the rest keeps the job fast.

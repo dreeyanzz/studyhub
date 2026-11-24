@@ -15,7 +15,6 @@
   "enforcement": "active",
   "name": "main: PR, CI, reviews, and merge control",
   "rules": [
-    { "type": "update" },
     {
       "parameters": {
         "allowed_merge_methods": ["squash"],
