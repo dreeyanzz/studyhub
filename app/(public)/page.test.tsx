@@ -18,6 +18,13 @@ describe('public landing page (STORY-02)', () => {
     )
   })
 
+  it('provides a plain GET hero search form to /spaces (SRS §3.7.1, STORY-17)', () => {
+    const html = renderToStaticMarkup(<Home />)
+
+    expect(html).toMatch(/<form[^>]*action="\/spaces"[^>]*method="get"/)
+    expect(html).toMatch(/<input[^>]*name="q"/)
+  })
+
   it('no longer promises shipped features for a future sprint', () => {
     const html = renderToStaticMarkup(<Home />)
 

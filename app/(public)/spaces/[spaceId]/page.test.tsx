@@ -108,7 +108,31 @@ vi.mock('@/lib/data/reservations', () => ({
   getHoldTerms: vi.fn(async () => mockHoldTerms),
   getHoldViewer: vi.fn(async () => mockViewer),
 }))
-vi.mock('./actions', () => ({ holdUnit: vi.fn() }))
+
+// STORY-13's community reviews (TSK-13.4): mocked data helpers so space table mocks stay isolated.
+let mockReviewSummaries: Map<string, unknown> | null = new Map()
+let mockReviewsPage: unknown = { reviews: [], hasMore: false }
+let mockMyReviews: unknown = []
+let mockReviewableVisit: unknown = null
+let mockViewerShortName = 'Worq Seeker'
+const mockGetSpaceReviews = vi.fn(async () => mockReviewsPage)
+
+vi.mock('@/lib/data/reviews', () => ({
+  getReviewSummaries: vi.fn(async () => mockReviewSummaries),
+  getSpaceReviews: (...args: unknown[]) =>
+    mockGetSpaceReviews(...(args as Parameters<typeof mockGetSpaceReviews>)),
+  getMyReviews: vi.fn(async () => mockMyReviews),
+  getMyReviewableVisit: vi.fn(async () => mockReviewableVisit),
+  getMyShortName: vi.fn(async () => mockViewerShortName),
+}))
+
+vi.mock('./actions', () => ({
+  holdUnit: vi.fn(),
+  postReviewAction: vi.fn(),
+  editReviewAction: vi.fn(),
+  deleteReviewAction: vi.fn(),
+  reportReviewAction: vi.fn(),
+}))
 
 describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
   beforeEach(() => {
@@ -117,8 +141,27 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date('2026-11-11T12:00:00+08:00'))
     mockNotFound.mockClear()
+    mockGetSpaceReviews.mockClear()
     mockHoldTerms = null
     mockViewer = { role: null, currentHold: null }
+    mockReviewSummaries = new Map([
+      [
+        VALID_SPACE_ID,
+        {
+          spaceId: VALID_SPACE_ID,
+          reviewCount: 0,
+          avgQuietness: null,
+          avgWifiReliability: null,
+          avgCleanliness: null,
+          avgComfort: null,
+          avgOverall: null,
+        },
+      ],
+    ])
+    mockReviewsPage = { reviews: [], hasMore: false }
+    mockMyReviews = []
+    mockReviewableVisit = null
+    mockViewerShortName = 'Worq Seeker'
     mockStorageFiles = []
     mockCuratedTags = []
     mockCustomTags = []
@@ -483,6 +526,72 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     const closedMatches = [...html.matchAll(/data-testid="seeker-space-closed"/g)]
     expect(closedMatches).toHaveLength(1)
     expect(html).toContain('data-testid="selected-unit-space-closed"')
+  })
+
+  it('renders the Reviews section below the seat map and passes validated sort/reviews params (STORY-13, TSK-13.4)', async () => {
+    mockReviewSummaries = new Map([
+      [
+        VALID_SPACE_ID,
+        {
+          spaceId: VALID_SPACE_ID,
+          reviewCount: 2,
+          avgQuietness: 4.5,
+          avgWifiReliability: 4.0,
+          avgCleanliness: 4.5,
+          avgComfort: 4.0,
+          avgOverall: 4.25,
+        },
+      ],
+    ])
+    mockReviewsPage = {
+      reviews: [
+        {
+          id: 'rev-1',
+          reviewerName: 'Rina B.',
+          quietness: 5,
+          wifiReliability: 4,
+          cleanliness: 5,
+          comfort: 4,
+          overall: 4.5,
+          comment: 'Very quiet in the morning.',
+          createdAt: '2026-11-10T06:00:00Z',
+          edited: false,
+          version: 1,
+          reportedByCaller: false,
+        },
+      ],
+      hasMore: false,
+    }
+
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ sort: 'highest', reviews: '20', view: 'list' }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(mockGetSpaceReviews).toHaveBeenCalledWith(expect.anything(), VALID_SPACE_ID, {
+      sort: 'highest',
+      shown: 20,
+    })
+    expect(html).toContain('data-testid="space-reviews-section"')
+    expect(html).toContain('4.3 · 2 reviews')
+    expect(html).toContain('Rina B.')
+    expect(html).toContain('Very quiet in the morning.')
+    expect(html.indexOf('data-testid="space-reviews-section"')).toBeGreaterThan(
+      html.indexOf('Main Hall'),
+    )
+  })
+
+  it('falls back to default sort and review count for invalid review search params (STORY-13)', async () => {
+    await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+      searchParams: Promise.resolve({ sort: 'bogus', reviews: '999' }),
+    })
+
+    expect(mockGetSpaceReviews).toHaveBeenCalledWith(expect.anything(), VALID_SPACE_ID, {
+      sort: 'newest',
+      shown: 10,
+    })
   })
 
   describe('generateMetadata', () => {

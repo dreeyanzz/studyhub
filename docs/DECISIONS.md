@@ -146,11 +146,15 @@ Their lengths are decided in STORY-09's design.
 
 **Amended by D-061** for the cloud dev project's one Administrator.
 
+**Amended by D-091** for the production project, whose accounts use real addresses on the team Gmail account.
+
 **Decision:** Seed and demo data are invented, and emails use `@example.test`. The admin account is seeded locally only, never in a cloud project.
 
 **Why:** Seed passwords are public in this repository, and no real person's data belongs in a class demo.
 
 ## D-014 · Governance of `main`
+
+**Amended by D-093** (`e2e` becomes a required check) **and D-096** (`update` removed so any teammate can squash-merge after 1 peer approval and green CI).
 
 **Decision:** Two rulesets protect `main`. Their exported JSON is kept in `.github/rulesets/`.
 
@@ -192,6 +196,8 @@ Their lengths are decided in STORY-09's design.
 
 ## D-016 · Plan gate: design before code
 
+**Amended by D-096:** any teammate may merge a design PR once its named approvers (D-042, D-073) have approved it and CI is green.
+
 **Decision:** Every story has a design doc (`docs/design/STORY-xx-*.md`) merged before its code starts. Adrian's merge is the approval. Fixes, chores and docs-only changes are exempt.
 
 **Why:** Mistakes are cheapest to fix in a design, and the course already requires reviews.
@@ -201,6 +207,10 @@ Their lengths are decided in STORY-09's design.
 ## D-017 · Supabase environments
 
 **Amended by D-066:** Luke writes the migrations for STORY-08 and STORY-10 too.
+
+**Amended by D-090:** the production project is made ready for any day, in its own organization, and Adrian chooses when the app moves onto it.
+
+**Amended by D-096:** merged migrations auto-push to `studyhub-dev` via GitHub Actions; `studyhub-prod` stays manual from Adrian's machine.
 
 **Decision:**
 
@@ -321,6 +331,8 @@ one PR rather than leaving a submission half-restyled.
 
 **Amended by D-061:** the cloud dev project has one Administrator account.
 
+**Amended by D-091** for the production project: real addresses, signed up through `/register`.
+
 **Decision:**
 
 - The cloud dev project has the seed's invented Seeker and Host accounts: `host@`, `host2@` and `seeker@example.test`. It never has the Administrator (D-013).
@@ -339,6 +351,8 @@ one PR rather than leaving a submission half-restyled.
 **Amended by D-061:** `npm run db:accounts` is the first thing to use the secret key.
 
 **Amended by D-065:** every teammate's `.env.local` holds the cloud dev project's secret key too.
+
+**Amended by D-090:** only Adrian holds the production project's database password, keys and secret key, in a Supabase organization of its own.
 
 **Decision:**
 
@@ -854,6 +868,8 @@ Amends D-013 and D-028 for the cloud dev project only, and ends D-029's "Nothing
 
 **Amended by D-065:** every teammate holds this account's password and the secret key.
 
+**Amended by D-091:** the production project's Administrator is planned, a real address promoted with `npm run db:promote-admin`.
+
 **Decision:**
 
 - The cloud dev project has one Administrator account: `admin@example.test`, registered and promoted by `npm run db:accounts`. The production project still has no Administrator until planned (D-028).
@@ -886,6 +902,8 @@ Proposes D-039 again, which D-043 withdrew, now that the flows STORY-07 uses are
 ## D-063 · Venue photos are public
 
 Proposes D-040 again, which D-043 withdrew, now that the flows STORY-07 uses are merged (D-044).
+
+**Amended by D-092:** whatever deletes a Space, or its owner's account, empties its photo folder first.
 
 **Decision:**
 
@@ -920,6 +938,8 @@ Proposes D-040 again, which D-043 withdrew, now that the flows STORY-07 uses are
 
 Amends D-029 and D-061, for the cloud dev project only.
 
+**Amended by D-096:** any teammate may squash-merge pull requests after 1 peer approval and CI, and `studyhub-dev` migrations auto-push on merge to `main`.
+
 **Decision:**
 
 - Every teammate's `.env.local` holds what Adrian's does: the cloud dev project's URL and publishable key, `CLOUD_DEV_ACCOUNT_PASSWORD`, `CLOUD_DEV_ADMIN_PASSWORD` and `SUPABASE_SECRET_KEY`. Adrian sends it privately, never in the group chat, an issue or a PR.
@@ -939,6 +959,10 @@ Amends D-029 and D-061, for the cloud dev project only.
 ## D-066 · Luke writes the database half of STORY-08 and STORY-10
 
 Amends D-017 and D-036, which rejected this.
+
+**Extended by D-094:** Luke writes STORY-16's database half too.
+
+**Amended by D-096:** CI checks migration timestamp order and immutability automatically, and `studyhub-dev` migrations auto-push on merge to `main`.
 
 **Decision:**
 
@@ -1078,6 +1102,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 
 **Cut order amended by D-083:** the confirmation email is never cut.
 
+**Owners amended by D-094:** Adrian builds STORY-13 and STORY-14 end to end, and Luke builds STORY-16 end to end.
+
 **Decision:**
 
 - Sprint 3 runs from Tuesday 17 November to Sunday 6 December 2026. The last merge is Saturday 5 December, and the Final is Monday 7 December. There are no other date targets.
@@ -1093,6 +1119,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Revisit if:** The Final moves, or the cut order is reached.
 
 ## D-076 · Reviews: what they hold, who can post one, and who sees them
+
+**Amended by D-087:** the noise rating is labelled and stored as Quietness, where 5 is very quiet.
 
 **Decision:**
 
@@ -1119,6 +1147,8 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Revisit if:** Seekers mostly want a different unit at the same Space.
 
 ## D-078 · The hold confirmation email goes through Resend's free tier
+
+**Superseded by D-089:** the email goes through a team Gmail account over SMTP.
 
 **Decision:**
 
@@ -1269,3 +1299,169 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** showing only the latest change; comparing with the version just before the latest edit (two edits would hide the first); listing edits to the description, hours and price tier too (noise); checking for changes every 15 to 30 seconds (a delay, though no new tool); no notice, only D-053's refusal on click.
 
 **Revisit if:** Realtime proves unreliable on Supabase's free plan, or Administrators need photos, tags and the seat map watched too.
+
+## D-087 · FR-4.1's noise rating is shown and stored as Quietness
+
+**Amends D-076.**
+
+**Decision:** The rating FR-4.1 calls "noise" is labelled "Quietness" and stored as `reviews.quietness`, from 1 to 5, where 5 is very quiet. Wi-Fi reliability, cleanliness and comfort keep their names. So a higher number is better for all four, and the overall rating stays their average (D-076).
+
+**Why:** Adrian decided on 22 November, while planning STORY-13's design. "Noise" from 1 to 5 reads both ways, and if 5 meant noisy, a noisy Space would score higher overall.
+
+**Rejected:** keeping "Noise" with a hint that 5 means quiet (the label still invites the wrong reading); 5 meaning very noisy (it breaks the overall average).
+
+**Revisit if:** The SRS is revised, or Seekers misread the label in testing.
+
+## D-088 · Sandbox refunds: which fees, what records them, and why
+
+**Decision:**
+
+- An Administrator can refund a fee only when it is `paid` and its hold ended without a check-in: a Host's override (R9), a take-down (R14, D-085), or a payment that arrived after its hold ended (P2). A forfeited fee, a visit that happened and an active hold's fee can't be refunded. A refund is always the whole fee, once.
+- The refund call records it. The Server Action asks Stripe, with one idempotency key per payment, so a double click or a retry refunds once. Stripe keeps a key for at least 24 hours and may drop it after that, so when Stripe refuses a refund, or the call fails or times out, the action looks for an earlier refund on that payment intent and, if there is one, records it. If that search fails too, nothing is recorded, and the Administrator tries again. When Stripe accepts the refund (succeeded or pending), the action records it through `public.record_refund`, which only Administrators may run and which checks the rule above again.
+- Each refund keeps Stripe's refund id, who made it, when, and a typed reason of up to 300 characters, which only Administrators read. The Seeker sees that the payment was refunded.
+
+**Why:** Adrian chose these on 22 November, for STORY-14's design. The rule is FR-5.3's case, a Host who can't honour a paid hold, and D-005 already forfeits a fee for the Seeker's own no-show. Recording from the call needs no change to the Stripe endpoint, and STORY-20's take-down (D-085) reuses it.
+
+**Rejected:** recording from Stripe's refund webhook (one more event on the deployed endpoint and in `stripe listen`, and a delay before the Seeker sees it); refunding forfeited fees at the Administrator's judgment; refunding any paid or forfeited fee; partial refunds; refunds without a reason.
+
+**Revisit if:** A refund Stripe accepted as pending later fails, or Seekers dispute forfeited fees.
+
+## D-089 · The hold confirmation email goes through a team Gmail account
+
+**Supersedes D-078.**
+
+**Decision:**
+
+- When a payment confirms a hold (R2, `confirm_payment` answers `confirmed`), Worq emails the Seeker once, to the address they signed up with. The Stripe webhook route sends it with Next's `after()`, once Stripe has its answer, through Gmail's SMTP with an app password.
+- The email is plain text: the Space, the unit, when the wait window ends in Asia/Manila time, and a link to the hold page. It never contains the booking token.
+- Adrian creates the account for the team, with 2-Step Verification. `GMAIL_USER` and `GMAIL_APP_PASSWORD` live only in Vercel's Production environment and in Adrian's `.env.local`, never in Preview, CI, code or chat. Without them, nothing is sent. The team knows the address, not the password.
+- Addresses ending in `@example.test` are skipped (D-013), so seeded accounts and tests never send. A failed send is logged and never retried.
+
+**Why:** Adrian chose a team Gmail account on 18 November, while planning the review lifecycle, so the email reaches real addresses without paying for a domain. Resend without a domain delivers only to its owner's inbox. D-078 had rejected Gmail because it would put a personal account's secret in Vercel, and a team account answers that. The rest was settled on 22 November, in STORY-16's design.
+
+**Rejected:** Resend's free tier without a domain (one inbox, D-078); buying a domain (a cost); a teammate's personal Gmail; sending from Preview deployments, which would email whoever signs up on cloud dev from every pull request; the booking token in the email (whoever has it gets the seat); retrying a failed send (Vercel's free plan runs scheduled jobs at most once a day, D-011).
+
+**Revisit if:** Gmail limits or blocks the account, or the team buys a domain.
+
+## D-090 · A production project ready for any day, at production level
+
+**Amends D-017 and D-029.**
+
+**Decision:**
+
+- Worq is built to be presented and pitched as a product, not only for the course. So `studyhub-prod` is made ready to run the app on any day, and Adrian chooses the day Vercel's Production environment moves onto it. Until then, worqph and every preview use cloud dev.
+- It lives in a Supabase organization of its own, with Adrian as its only member: on the Free plan, a role in an organization covers every project in it, and `lamph-org` gives the team roles for cloud dev (D-065). Only Adrian holds its database password, keys and secret key (D-029).
+- Migrations reach it from merged `main` only, after cloud dev, with `supabase db push --db-url` and a connection string in Adrian's `.env.local`, never by re-linking the CLI.
+- Supabase Auth runs at production level: email confirmation on, STORY-03's password rules, the site and redirect addresses on worqph, and the team Gmail account as its SMTP sender (D-089).
+- Payments stay in Stripe's sandbox (D-005, SRS §1.2), with its one webhook endpoint on worqph. So after the switch a sandbox payment on a preview, which still uses cloud dev, is never confirmed, and payments are tried locally with the Stripe CLI or `npm run webhook:simulate`.
+
+**Why:** Adrian decided it on 22 November, in STORY-19's design: the team wants to pitch Worq as close to the real product as it can be, without having to choose the switch date yet.
+
+**Rejected:** a fixed switch date, either now or on 5 December; production in `lamph-org`, where every teammate would hold a role on it; the team reaching production, as on cloud dev; Supabase's built-in email sender, which sends a few emails an hour and isn't meant for production; live payments.
+
+**Revisit if:** The team pays for Supabase, or adds members who need production.
+
+## D-091 · Production accounts use real addresses
+
+**Amends D-013, D-028 and D-061 for the production project.**
+
+**Decision:**
+
+- Production's accounts for each role use real addresses on the team Gmail account, with a `+` tag: `+host`, `+seeker` and `+admin`. Gmail delivers them all to the one team inbox, and Supabase treats each as its own account.
+- Each signs up on worqph's `/register` on the switch day, once worqph runs on production, and confirms by email, like any user. The Administrator signs up as a Seeker and is then promoted with the production secret key (`npm run db:promote-admin`), on Adrian's machine only.
+- Adrian chooses their passwords and gives them privately to teammates for rehearsals. `seed.sql` never runs on production, and demo Spaces are built through the app.
+- D-013's invented people and `@example.test` addresses still hold for the repository, the seed, the tests and cloud dev.
+
+**Why:** Adrian chose it on 22 November: real addresses are what production has, so sign-up confirmation, password resets and STORY-16's email all really happen. The `+` tags keep anyone's personal address out of it.
+
+**Rejected:** `@example.test` addresses on production (no email could reach them); teammates' personal addresses; a separate Gmail account for each role; a production seed script.
+
+**Revisit if:** Gmail stops treating `+` addresses as one inbox, or the team buys a domain.
+
+## D-092 · Whatever deletes a Space empties its photos first
+
+**Amends D-063. Settles #218.**
+
+**Decision:**
+
+- Whatever deletes a Space, or the account that owns it, empties `space-photos/<space_id>` first, as `deleteSpace` does (D-063).
+- In Sprint 3, nothing in the app deletes an account or a listing, so the only other way is deleting an account in the Supabase dashboard. Before that, the Space's Host deletes their Spaces in the app, or the folders are emptied on the dashboard's Storage page (`DEVELOPMENT.md`).
+- A later story that adds deleting accounts or listings empties the folders first.
+
+**Why:** Adrian chose #218's first option on 22 November, in STORY-19's design. The bucket is public, so a photo left behind stays readable by anyone with its address, but only a dashboard deletion leaves one behind today.
+
+**Rejected:** a daily sweep of folders whose Space is gone (a route handler with the secret key and a cron job, for a gap only the dashboard opens); a trigger on `spaces` (Supabase refuses deletes in `storage.objects`, and the files would stay).
+
+**Revisit if:** A story adds deleting accounts or listings, or a photo is found left behind.
+
+## D-093 · The accessibility sweep runs on every pull request, and e2e becomes required
+
+**Amends D-014's required checks once it lands.**
+
+**Decision:**
+
+- `e2e/accessibility.spec.ts` visits every route, signed out and as each role, against axe's WCAG 2.1 A and AA rules (`@axe-core/playwright`), and checks what axe can't: 48 × 48 px controls, no horizontal scrolling at 360, 768 and 1024 px, nothing clipped at 200% text, and a keyboard path with visible focus.
+- It finds elements by role and label, never by styling, so it follows Maria and James's restyle. A failure on a restyled screen is fixed by whoever restyled it, as a STORY-17 fix (D-074, SRS §3.2.2).
+- A manual keyboard and screen-reader pass runs after the last restyle, before the last merge.
+- Once the sweep lands, `e2e` joins `checks`, `pr-title` and `db` as a required check, and `AGENTS.md` lists four. The sweep's pull request updates `AGENTS.md` and the ruleset file, and Adrian applies the rule when it merges.
+
+**Why:** Adrian chose it on 22 November. A sweep run once at the end would find problems far from the pull request that caused them, and the restyle changes every screen in the last two weeks.
+
+**Rejected:** a sweep only at the end, or only by hand; selectors tied to class names or layout, which the restyle would break; leaving `e2e` optional.
+
+**Revisit if:** The sweep is too slow for every pull request, or axe's rules disagree with the SRS.
+
+## D-094 · Adrian builds STORY-13 and STORY-14 end to end, and Luke builds STORY-16
+
+**Amends D-075's owners, and extends D-066.**
+
+**Decision:**
+
+- Adrian builds STORY-13 (reviews) and STORY-14 (the administration console) end to end: the database, the Stripe refund, and the pages, actions and their tests. Their ten tasks are #359 to #368.
+- Luke builds STORY-16 (reservation history, Hold again and the confirmation email) end to end: `my_reservation_history` with its pgTAP tests, the email through the team Gmail account (D-089), and the pages. As with D-066, Adrian reviews and merges his migration, and runs `supabase db push` right after.
+- STORY-19 and STORY-20 keep D-075's split: Adrian the backend, Luke the app side. Luke still approves Adrian's pull requests (D-014), and Maria and James still review the new screens once they're built (D-073).
+- The three designs aren't rewritten. Their owner lines and task owners change, and a note at the top of each points here.
+
+**Why:** Adrian chose to build STORY-13 and STORY-14 himself on 23 November, while creating their tasks. With one owner, the critical path (STORY-13's tables, then its screens and STORY-14's) has no handoff between two people. Luke taking STORY-16 in exchange evens the load: by the designs' points, STORY-20 aside, about 18 for Adrian and 9 for Luke, against 21 and 6 without the swap. The Sprint 3 Plan's totals, STORY-20 included, become 22 and 10.
+
+**Rejected:** keeping D-075's split for STORY-13 and STORY-14 (a handoff on every page of the critical path); Adrian taking both with no swap (21 points against 6, with 12 days left); Luke also taking STORY-20 end to end, its design included (more change than the load needs, for the story first in the cut order).
+
+**Revisit if:** Adrian falls behind on STORY-13 or STORY-14, so that Luke takes back their pages, or STORY-16's history waits on STORY-13 and STORY-14's tables with nothing else for Luke to build.
+
+## D-095 · Sign-in and sign-up with Google OAuth only, with one-time role confirmation
+
+**Settles #379. Extends STORY-01 and STORY-03. Drawn in [`docs/flows/google-oauth.md`](flows/google-oauth.md).**
+
+**Decision:**
+
+- Worq adds **Continue with Google** on `/login` and `/register` alongside email and password. Apple Sign In is not added.
+- The OAuth flow starts from a Server Action (`signInWithGoogle`, `D-010`) using Supabase Auth's PKCE flow with `prompt: 'select_account'`, and completes in `app/api/auth/callback/route.ts` while preserving `returnUrl` (`D-058`) and an optional `seeker` or `host` preselection hint.
+- `public.profiles` gains `role_confirmed boolean not null default true` with no `UPDATE` grant. `private.handle_new_user()` detects OAuth sign-ups from server-owned `raw_app_meta_data ->> 'provider'`, sets `role = 'seeker'` and `role_confirmed = false`, and truncates `full_name` to 100 characters. Existing rows and email/password sign-ups stay `role_confirmed = true`.
+- `private.has_role()` requires `role_confirmed = true`, so Postgres Row-Level Security blocks unconfirmed OAuth accounts from every Seeker, Host and Administrator action (`D-007`).
+- Brand-new Google users land on `/choose-role` to confirm an editable **Full name** (pre-filled from Google, 1–100 characters) and pick **Seeker** or **Host** once (never **Administrator**, `D-013`) through `public.complete_oauth_role(p_role, p_full_name)`. Once `role_confirmed` is `true`, the function refuses any further role change. `/choose-role` also offers **Log out** (`scope: 'local'`) to switch accounts.
+- Supabase Auth's default automatic identity linking for verified emails stays on: an existing confirmed Seeker, Host or Administrator who signs in with Google keeps their existing `profiles` row (`role_confirmed = true`) and skips `/choose-role`.
+- `supabase/config.toml` keeps `[auth.external.google]` disabled by default so local Docker and CI run without Google credentials; Google OAuth is enabled in the Supabase Dashboard on `studyhub-dev` and `studyhub-prod`, and automated tests cover the flow via pgTAP, Vitest and Playwright against the local stack.
+
+**Why:** Adrian chose Option 3 on #379 on 24 November: Google OAuth lets Seekers and Hosts sign in without a new password at zero cost, whereas Apple Sign In requires a paid Apple Developer Program membership (USD 99/year). Using `profiles.role_confirmed` with a one-time `security definer` function and gating `private.has_role()` keeps `profiles.role` non-null and immutable by direct writes, prevents unconfirmed accounts from bypassing role choice, and avoids breaking any existing query or test.
+
+**Rejected:** Apple Sign In (paid Apple Developer account required); defaulting every Google sign-up silently to Seeker with no Host option (blocks Hosts who want Google sign-in); making `profiles.role` nullable (ripples across generated types and every existing query); letting `proxy.ts` alone enforce `/choose-role` without gating `private.has_role()` (violates `D-007`); skipping the editable Full name field on `/choose-role` (leaves empty or over-long Google names uneditable before Host Spaces reach `/admin`).
+
+**Revisit if:** Worq adds an iOS app or Apple Developer account later (re-evaluating Sign in with Apple), or adds a second OAuth provider that does not return verified emails.
+
+## D-096 · Any teammate can merge after 1 peer approval and CI, and dev migrations auto-push
+
+**Amends D-014, D-016, D-017, D-065 and D-066.**
+
+**Decision:**
+
+- Ruleset A (`.github/rulesets/main-pr-ci-reviews.json`) removes `{ "type": "update" }` ("Restrict updates"). Any teammate with write access may squash-merge a pull request once it has 1 peer approval, all review threads resolved, and all four required CI checks (`checks`, `pr-title`, `db` and `e2e`) green. Direct pushes to `main` remain blocked by the `pull_request` rule, Ruleset B (no force-push or branch deletion) stays unchanged, and Adrian keeps Repository Admin bypass for emergencies.
+- Repository auto-merge (`allow_auto_merge`) is enabled so a pull request squash-merges automatically once approved and CI finishes.
+- `.github/CODEOWNERS` narrows from `* @dreeyanzz` to `/supabase/` and `/.github/` (`@dreeyanzz`) so Adrian is only auto-requested on database and CI/CD changes. Domain-approval rules still apply by hand: design docs (D-016, D-042, D-073), shared flows (D-044) and look changes to restyled screens (D-074). AI agents still never merge, approve without instruction, push to `main`, change rulesets or run `supabase db push` (D-034).
+- The `db` CI job runs `scripts/check-migration-order.mjs` (`npm run db:check-order`) on every pull request before starting Docker: it blocks edits, renames or deletes of applied migrations (AGENTS.md rule 9) and rejects any new migration whose timestamp is not strictly newer than `main`'s latest (D-066).
+- `.github/workflows/db-push-dev.yml` automatically runs `npx supabase db push --db-url "$SUPABASE_DEV_DB_URL" --yes` on every push to `main` that changes `supabase/migrations/`, with `cancel-in-progress: false` and never `--include-seed` (D-013) or `--include-all`. `SUPABASE_DEV_DB_URL` is a GitHub Actions secret holding `studyhub-dev`'s Session Pooler URI (port 5432, IPv4-compatible). `studyhub-prod` stays completely isolated and manual from Adrian's machine (D-090).
+
+**Why:** Adrian decided it on 24 November: routing every merge and dev `db push` through one person bottlenecked Sprint 3 while four CI checks (including `db:race` and the WCAG 2.1 AA `e2e` sweep, D-093) already guard `main`. Keeping 1 peer approval preserves CPEPE361's peer-review requirement without waiting specifically on Adrian, and a scoped `SUPABASE_DEV_DB_URL` secret automates cloud dev migrations without exposing a Supabase account token that could reach `studyhub-prod`.
+
+**Rejected:** Dropping required peer approvals to `0` (removes GitHub-enforced peer review required by CPEPE361 and the Sprint DoD); keeping Adrian as the sole merger with Luke as backup (still bottlenecks on one or two people); using `SUPABASE_ACCESS_TOKEN` in GitHub Actions (account-wide scope reaches `studyhub-prod`'s separate organization, violating D-090); leaving `studyhub-dev` migrations manual after teammates can merge (Vercel deploys `main` immediately, leaving the live app ahead of the schema).
+
+**Revisit if:** Peer-merged pull requests break `main` or miss domain approvals, or `studyhub-dev` auto-pushes hit migration collisions.

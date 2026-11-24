@@ -21,7 +21,7 @@ Worq (technical codename: StudyHub, D-026) is a web app for finding a study or c
 
 **Team:**
 
-- Adrian Seth Tabotabo: Project Manager, the only merger, backend and database.
+- Adrian Seth Tabotabo: Project Manager, backend and database.
 - Maria Faith Antigua: design system and user experience (D-042); maintains the board.
 - Luke Miguel Dongque: auth and security.
 - James Niño Mandawe: portal shells and QA.
@@ -87,29 +87,29 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/` (with STORY-08's discovery map in `spaces/`, and STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel), STORY-03's `(auth)/` pages and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
+`(public)/` (with STORY-08's discovery map in `spaces/`, STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel and STORY-13's community reviews, and STORY-21's `privacy/` policy page), STORY-03's `(auth)/` pages (with STORY-21's Google OAuth button and `choose-role/` onboarding page) and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
 `(dashboard)/seeker/` portal (with STORY-09's hold and return pages in `reservations/[id]/`), STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
 page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
-(STORY-02's six primitives and STORY-12's `alert-dialog`), `components/discovery/`
+(STORY-02's six primitives, STORY-12's `alert-dialog`, and STORY-13's `dialog`), `components/discovery/`
 (STORY-08's Space card and price tier badge), `components/reservation/` (STORY-10's
-booking QR code), `components/seat-map/` (STORY-07's shared
+booking QR code), `components/review/` (STORY-13's shared review form and rating summary), `components/seat-map/` (STORY-07's shared
 renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/check-in/` (STORY-10's booking token normalization and
-wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search
-and STORY-09's reservation queries), `lib/geo/` (STORY-08's Haversine distance and
+wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search,
+STORY-09's reservation queries and STORY-13's review queries), `lib/geo/` (STORY-08's Haversine distance and
 campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
-(STORY-09's Stripe checkout, webhook and hold refusals), `lib/reservations/` (STORY-09's
+(STORY-09's Stripe checkout, webhook and hold refusals, and STORY-14's Stripe refund), `lib/reservations/` (STORY-09's
 fee, time and countdown formatters), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
 `lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts`, STORY-09's `admin.ts` for `app/api`
 only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
-search, tags, reservation, check-in, Stripe webhook and Space photo rules), `scripts/`,
+search, tags, reservation, check-in, Stripe webhook, Space photo and review rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, and the Host setup and Seeker journey tests, with the Seeker journey's Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
+test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-13's reviews journey test, STORY-19's route-wide accessibility sweep, STORY-21's Google OAuth onboarding test, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
 `app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
 
 ## Commands
@@ -129,6 +129,7 @@ npm run db:reset       # re-apply every migration, then seed.sql
 npm run db:test        # pgTAP policy tests
 npm run db:race        # concurrent hold, payment and check-in race tests
 npm run db:new <name>  # new migration file
+npm run db:check-order # verify migrations are append-only and newer than origin/main (D-066, D-096)
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
 npm run stripe:listen  # forward Stripe sandbox events to the local webhook (Stripe CLI, D-070)
@@ -142,6 +143,7 @@ Required CI checks on `main`:
 - `checks`
 - `pr-title`
 - `db`
+- `e2e`
 
 These job names are a contract, because renaming one blocks every PR.
 
@@ -174,8 +176,8 @@ These job names are a contract, because renaming one blocks every PR.
 
 ## Git and pull requests
 
-- **`main` is protected** (D-014). Every change is a pull request, squash-merged, and only Adrian lands it.
-  - **Reviews:** 1 approving review required (D-014). Adrian approves teammates' PRs; a teammate approves Adrian's.
+- **`main` is protected** (D-014, D-096). Every change is a pull request, squash-merged, and direct pushes to `main` are blocked. Any teammate can squash-merge once CI is green and the PR is approved (or enable auto-merge).
+  - **Reviews:** 1 approving review from a teammate is required (D-014, D-096); nobody can approve their own PR. Domain-approval rules still apply where `DECISIONS.md` says so (designs D-016/D-073, flows D-044, restyled UI D-074).
 - **Branch:** `feature/STORY-xx-short-desc`. The course requires it.
   - Several small branches per story are fine.
   - A fix uses the story it fixes; repo chores and shared flows use STORY-00 (D-044).
@@ -238,7 +240,7 @@ Stop only at the 🛑 points.
      `dreeyanzz`, plus `fayeye-09` if the story has screens, D-042). In Sprint 3,
      Adrian writes the feature stories' designs, Luke adds their screens section and
      approves, and Maria's approval isn't needed (D-073, D-075). 🛑 Stop: no code until
-     Adrian merges it.
+     it merges.
    - **Design PR open:** answer its review comments, then 🛑 wait for the merge.
    - **Merged:** go on.
 4. **Tasks.** If the story has no TSK sub-issues yet, create one per row of the design's
@@ -257,15 +259,16 @@ Stop only at the 🛑 points.
    does, and why. They must be able to defend every line in the Final phase.
    🛑 Wait for their go-ahead.
 9. **Open the PR.** Fill in the template: first line `Closes #<task>`, then
-   `Refs #<story>`, and the AI assistance section. Request review from `dreeyanzz` (on
-   Adrian's own PRs, from a teammate), and move the task's card to Code Review.
+   `Refs #<story>`, and the AI assistance section. Request review from a teammate (plus
+   Adrian for `supabase/` or `.github/` changes, or the named owner for designs, flows
+   and restyled UI, D-096), and move the task's card to Code Review.
    🛑 Stop until the PR merges or your human asks for the next task.
 
 **Stop and ask** (your human asks Adrian, or Maria about what users see, D-042) when:
 
 - the story or its design is unclear;
 - the work needs another story's files, a table or policy that doesn't exist yet
-  (Adrian writes those, except that Luke writes STORY-08's and STORY-10's, D-066), or a
+  (Adrian writes those, except that Luke writes STORY-08's, STORY-10's and STORY-16's, D-066, D-094), or a
   change to a decision;
 - the story needs a shared flow that has no doc in `docs/flows/` yet (D-044);
 - the approved design, or a merged flow, turns out to be wrong;

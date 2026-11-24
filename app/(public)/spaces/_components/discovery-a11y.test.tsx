@@ -55,6 +55,8 @@ describe('Discovery accessibility markup (TSK-08.6, D-003, D-031)', () => {
         { id: 'outlets_all', label: 'Outlets: Every Seat', category: 'power' },
       ],
       custom_tags: ['quiet-zone'],
+      review_count: 2,
+      avg_overall: 4.5,
     },
     {
       id: 'space-test-2',
@@ -76,6 +78,8 @@ describe('Discovery accessibility markup (TSK-08.6, D-003, D-031)', () => {
         { id: 'ac_full', label: 'Air Conditioning', category: 'ac' },
       ],
       custom_tags: ['coffee-bar'],
+      review_count: 0,
+      avg_overall: null,
     },
   ]
 

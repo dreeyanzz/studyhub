@@ -6,16 +6,26 @@ import { AlertCircle, ArrowLeft, Clock } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getHoldTerms, getHoldViewer } from '@/lib/data/reservations'
+import {
+  getMyReviewableVisit,
+  getMyReviews,
+  getMyShortName,
+  getReviewSummaries,
+  getSpaceReviews,
+  type SpaceReviewSummary,
+} from '@/lib/data/reviews'
 import { getSeatMap } from '@/lib/data/seat-map'
 import { holdRefusalMessage, parseHoldRefusalReason } from '@/lib/payments/refusals'
 import { computeSpaceAvailability } from '@/lib/space/availability'
 import { computeOperatingStatus } from '@/lib/space/format'
 import { createClient } from '@/lib/supabase/server'
+import { reviewListSchema } from '@/lib/validation/review'
 import { spaceIdSchema } from '@/lib/validation/space'
 import { AvailabilitySummary } from './_components/availability-summary'
 import { HoldUnitPanel } from './_components/hold-unit-panel'
 import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
+import { SpaceReviews } from './_components/space-reviews'
 import { SpaceTags, type CuratedTagData } from './_components/space-tags'
 import { SpaceSeatMapView } from './_components/space-seat-map-view'
 
@@ -90,6 +100,8 @@ export default async function SpaceProfilePage({
   const unitParam =
     typeof resolvedSearchParams.unit === 'string' ? resolvedSearchParams.unit : undefined
   const initialView = viewParam === 'list' ? 'list' : 'grid'
+  const { sort: reviewSort, reviews: reviewShown } =
+    reviewListSchema.parse(resolvedSearchParams)
 
   const space = await getVerifiedSpace(spaceId)
   if (!space) {
@@ -104,6 +116,11 @@ export default async function SpaceProfilePage({
     { data: customTagRows },
     holdTerms,
     viewer,
+    reviewSummaries,
+    reviewsPage,
+    myReviews,
+    reviewableVisit,
+    viewerShortName,
   ] = await Promise.all([
     getSeatMap(supabase, space.id),
     supabase.storage.from('space-photos').list(space.id, {
@@ -121,7 +138,25 @@ export default async function SpaceProfilePage({
     // STORY-09's hold panel (design §3): what a hold costs here, and who is looking.
     getHoldTerms(supabase, space.id),
     getHoldViewer(supabase),
+    // STORY-13's community reviews (design §1 & §3, TSK-13.4).
+    getReviewSummaries(supabase, [space.id]),
+    getSpaceReviews(supabase, space.id, { sort: reviewSort, shown: reviewShown }),
+    getMyReviews(supabase, space.id),
+    getMyReviewableVisit(supabase, space.id),
+    getMyShortName(supabase),
   ])
+  const reviewSummary: SpaceReviewSummary | null =
+    reviewSummaries === null
+      ? null
+      : (reviewSummaries.get(space.id) ?? {
+          spaceId: space.id,
+          reviewCount: 0,
+          avgQuietness: null,
+          avgWifiReliability: null,
+          avgCleanliness: null,
+          avgComfort: null,
+          avgOverall: null,
+        })
   const availability = computeSpaceAvailability(zones)
   const operatingStatus = computeOperatingStatus(space.opens_at, space.closes_at)
 
@@ -242,6 +277,21 @@ export default async function SpaceProfilePage({
         initialView={initialView}
         initialSelectedUnitId={unitParam}
         selectedUnitActionSlot={holdPanel}
+      />
+
+      {/* Community reviews and ratings (STORY-13, TSK-13.4, TSK-13.5, FR-4.1, FR-4.2) */}
+      <SpaceReviews
+        spaceId={space.id}
+        summary={reviewSummary}
+        reviewsPage={reviewsPage}
+        myReviews={myReviews}
+        reviewableVisit={reviewableVisit}
+        viewerShortName={viewerShortName}
+        canReport={viewer.role !== null}
+        sort={reviewSort}
+        shown={reviewShown}
+        view={viewParam === 'list' ? 'list' : undefined}
+        unit={unitParam}
       />
     </div>
   )

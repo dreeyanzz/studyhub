@@ -18,6 +18,8 @@ describe('SpaceCardList component (STORY-08, FR-1.1, D-003)', () => {
       distance_km: 0.5,
       curated_tags: [{ id: 'wifi_fast', label: 'Wi-Fi: Fast', category: 'wifi' }],
       custom_tags: [],
+      review_count: 3,
+      avg_overall: 4.4,
     },
     {
       id: 'space-2',
@@ -32,6 +34,8 @@ describe('SpaceCardList component (STORY-08, FR-1.1, D-003)', () => {
       distance_km: 5.2,
       curated_tags: [],
       custom_tags: [],
+      review_count: 0,
+      avg_overall: null,
     },
   ]
 

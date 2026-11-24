@@ -45,11 +45,17 @@ function request(path = '/seeker') {
   })
 }
 
-function signedInAs(role: string | null, userMetadata: object = {}) {
+function signedInAs(
+  role: string | null,
+  userMetadata: object = {},
+  roleConfirmed = true,
+) {
   mocks.getUser.mockResolvedValue({
     data: { user: { id: 'user-1', user_metadata: userMetadata } },
   })
-  mocks.maybeSingle.mockResolvedValue({ data: role ? { role } : null })
+  mocks.maybeSingle.mockResolvedValue({
+    data: role ? { role, role_confirmed: roleConfirmed } : null,
+  })
 }
 
 describe('updateSession', () => {
@@ -77,30 +83,45 @@ describe('updateSession', () => {
     const session = await updateSession(request())
 
     expect(session.role).toBeNull()
+    expect(session.roleConfirmed).toBe(false)
     expect(mocks.from).not.toHaveBeenCalled()
   })
 
-  it("reads the role from the user's own profiles row", async () => {
+  it("reads role and role_confirmed from the user's own profiles row", async () => {
     signedInAs('host')
 
     const session = await updateSession(request())
 
     expect(session.role).toBe('host')
+    expect(session.roleConfirmed).toBe(true)
     expect(mocks.from).toHaveBeenCalledWith('profiles')
-    expect(mocks.select).toHaveBeenCalledWith('role')
+    expect(mocks.select).toHaveBeenCalledWith('role, role_confirmed')
     expect(mocks.eq).toHaveBeenCalledWith('id', 'user-1')
   })
 
-  it('ignores a role written into user_metadata', async () => {
-    signedInAs('seeker', { role: 'admin' })
+  it('reports roleConfirmed false for an unconfirmed Google OAuth profile (G11)', async () => {
+    signedInAs('seeker', {}, false)
 
-    expect((await updateSession(request())).role).toBe('seeker')
+    const session = await updateSession(request())
+
+    expect(session.role).toBe('seeker')
+    expect(session.roleConfirmed).toBe(false)
+  })
+
+  it('ignores role and role_confirmed written into user_metadata (O-N7)', async () => {
+    signedInAs('seeker', { role: 'admin', role_confirmed: true }, false)
+
+    const session = await updateSession(request())
+    expect(session.role).toBe('seeker')
+    expect(session.roleConfirmed).toBe(false)
   })
 
   it('has no role when the profile cannot be read', async () => {
     signedInAs(null)
 
-    expect((await updateSession(request())).role).toBeNull()
+    const session = await updateSession(request())
+    expect(session.role).toBeNull()
+    expect(session.roleConfirmed).toBe(false)
   })
 
   it('passes no cookies on when the session did not change', async () => {

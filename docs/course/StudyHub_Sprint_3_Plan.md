@@ -26,7 +26,7 @@ the Final on Monday 7 December:
 3. **Administration**: moderating reported reviews, reading sandbox payment records, and
    issuing sandbox refunds (FR-5.2, FR-5.3).
 4. **Reservation history**: a Seeker's past visits, a "Hold again" button, and an email
-   when a hold is confirmed (D-077, D-078).
+   when a hold is confirmed (D-077, D-089).
 5. **What STORY-15 left out**: rejection reasons, resubmitting a Rejected Space, and a
    second review after a Verified Space's name or location changes (D-079).
 6. **Ready for the Final**: a production database, the concurrency test in CI, journeys
@@ -55,26 +55,28 @@ cards in Done, so nothing carries over.
 
 ## 3. Team Workload & Domain Distribution
 
-Sprint 3 splits the work by layer, not by story (D-075):
+Sprint 3 splits the work by layer, not by story (D-075), except for three stories, which
+one person builds end to end (D-094):
 
 - **Maria and James own the UI/UX.** They decide the visual direction (D-042), restyle
   the existing screens, and review the new ones once they're built (D-073).
 - **Adrian builds the backend**: everything in `supabase/` (tables, policies, database
-  functions, pgTAP tests, seed data), `app/api/`, the Stripe refund, the confirmation
-  email, the production project and CI. He also draws both shared flows and writes the
-  design docs of the feature stories.
+  functions, pgTAP tests, seed data), `app/api/`, the Stripe refund, the production
+  project and CI. He builds STORY-13 and STORY-14 end to end, pages included (D-094). He
+  also draws both shared flows and writes the design docs of the feature stories.
 - **Luke builds the app**: `lib/data/`, `lib/validation/`, Server Actions, pages and
-  components, and their Vitest and Playwright tests. He writes the screens section of
-  each feature design, and approves Adrian's pull requests (D-014).
+  components, and their Vitest and Playwright tests. He builds STORY-16 end to end, its
+  database function and the confirmation email included (D-094). He writes the screens
+  section of each feature design, and approves Adrian's pull requests (D-014).
 
-| Developer                | Role & Primary Domain             | Sprint 3 work                                                                                                 | Points |
-| ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
-| **Adrian Seth Tabotabo** | Backend Lead & Database Architect | The database half of **STORY-13**, **STORY-14**, **STORY-16** and **STORY-20**; **STORY-19**'s production project, CI and #218 | 17     |
-| **Luke Miguel Dongque**  | Auth & Security Specialist        | The app half of the same four stories; **STORY-19**'s accessibility, performance and end-to-end tests          | 14     |
+| Developer | Role & Primary Domain | Sprint 3 work | Points |
+| --- | --- | --- | --- |
+| **Adrian Seth Tabotabo** | Backend Lead & Database Architect | **STORY-13** and **STORY-14** end to end (D-094); the database half of **STORY-20**; **STORY-19**'s production project, #218 and the Definition of Done check | 22 |
+| **Luke Miguel Dongque** | Auth & Security Specialist | **STORY-16** end to end, the email included (D-094); the app half of **STORY-20**; **STORY-19**'s accessibility, performance and end-to-end tests | 10 |
 | **Maria Faith Antigua**  | Frontend Design System Lead       | **STORY-17**: the audit, the visual direction and the restyle, with James                                      | 4      |
 | **James Niño Mandawe**   | Portal Shells & QA Engineer       | **STORY-17**, with Maria                                                                                       | 4      |
 
-**Sprint total: 39 points across 6 stories**, against 55 in Sprint 2 and 44 in Sprint 1.
+**Sprint total: 40 points across 6 stories**, against 55 in Sprint 2 and 44 in Sprint 1.
 STORY-17's 8 points are a placeholder: the audit re-estimates it, and if it finds more
 than 10 points of work the story splits, and the second half is STORY-18. The split
 points for shared stories are estimates of each half.
@@ -92,7 +94,7 @@ it doesn't hold.
 | **Must Have (M)**   | UI/UX fixes and redesign, audited screen by screen           | SRS §3.2, §3.7.1  | STORY-17           |
 | **Must Have (M)**   | A production database for the Final                          | D-017             | STORY-19           |
 | **Must Have (M)**   | Concurrency test in CI, journeys for every role, a11y sweep  | FR-2.5, SRS §3.2.2 | STORY-19          |
-| **Must Have (M)**   | Email on hold confirmation                                   | D-078, D-083      | STORY-16           |
+| **Must Have (M)**   | Email on hold confirmation                                   | D-083, D-089      | STORY-16           |
 | **Should Have (S)** | Reviews restricted to checked-in Seekers                     | FR-4.1, D-009     | STORY-13           |
 | **Should Have (S)** | Aggregate ratings, editing and reporting a review            | FR-4.2, D-076     | STORY-13           |
 | **Should Have (S)** | Review moderation                                            | FR-5.2            | STORY-14           |
@@ -158,7 +160,7 @@ it.
 - **Story**: _As a Seeker who actually visited, I want to review the amenities, so that other Seekers can trust what a space claims._
 - **Story Points**: `8 / 10`
 - **Time Estimate**: `4 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (the database), `Luke Miguel Dongque` (the app)
+- **Assignee**: `Adrian Seth Tabotabo` (end to end, D-094)
 - **Git Branch**: `feature/STORY-13-reviews`
 - **MoSCoW**: `Should Have`
 - **Requirements**: FR-4.1, FR-4.2, SRS §3.5.2 · **Decisions**: D-009, D-076
@@ -177,11 +179,11 @@ it.
 4. pgTAP negatives (Adrian): a Seeker with no check-in **cannot** insert a review; a
    second review of one reservation is refused; another user gets **0 rows** when
    editing someone's review; the author **cannot** edit a hidden one.
-5. The review form (Luke): a Server Action with its Zod schema, on the Space profile and
+5. The review form (Adrian): a Server Action with its Zod schema, on the Space profile and
    from STORY-16's history, shown only to an eligible Seeker.
 6. The reviews and averages on the Space profile, and the overall average on STORY-08's
-   Space card (Luke).
-7. Editing, deleting and "Report this review" (Luke). Review text renders as text, never
+   Space card (Adrian).
+7. Editing, deleting and "Report this review" (Adrian). Review text renders as text, never
    as HTML (SRS §3.5.2), with a test.
 8. Regenerate `lib/supabase/database.types.ts` (Adrian).
 
@@ -202,7 +204,7 @@ it.
 - **Story**: _As an Administrator, I want to moderate reported reviews and oversee sandbox payments, so that the platform stays trustworthy._
 - **Story Points**: `7 / 10`
 - **Time Estimate**: `3.5 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (the database and the refund), `Luke Miguel Dongque` (the pages)
+- **Assignee**: `Adrian Seth Tabotabo` (end to end, D-094)
 - **Git Branch**: `feature/STORY-14-admin-console`
 - **MoSCoW**: `Should Have`
 - **Requirements**: FR-5.2, FR-5.3 · **Decisions**: D-005, D-013, D-076
@@ -222,10 +224,10 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
    recorded on the payment as refunded (D-005, D-070).
 4. pgTAP negatives (Adrian): a Seeker or Host gets **0 rows** from the admin queues and
    **cannot** hide or remove a review or issue a refund.
-5. The moderation page on `/admin` (Luke): reported reviews, with hide and remove.
-6. The payments page on `/admin` (Luke), with its Refund action; the Seeker's reservation
+5. The moderation page on `/admin` (Adrian): reported reviews, with hide and remove.
+6. The payments page on `/admin` (Adrian), with its Refund action; the Seeker's reservation
    page shows the refund.
-7. A Playwright test (Luke): an Administrator removes a reported review, and the average
+7. A Playwright test (Adrian): an Administrator removes a reported review, and the average
    changes.
 
 #### Acceptance criteria
@@ -242,20 +244,20 @@ STORY-20 now, so that this story stays within 10 points. It adds its queues to t
 - **Story**: _As a Seeker, I want to see my past visits and hold the same seat again, so that going back to a Space I liked takes one tap._
 - **Story Points**: `6 / 10`
 - **Time Estimate**: `3 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (the database and the email), `Luke Miguel Dongque` (the pages)
+- **Assignee**: `Luke Miguel Dongque` (end to end, the email included, D-094)
 - **Git Branch**: `feature/STORY-16-reservation-history`
 - **MoSCoW**: `Should Have` (the email: `Must Have`, D-083)
-- **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-078, D-083
+- **Requirements**: none in the SRS (a Sprint 3 addition, D-075) · **Decisions**: D-001, D-013, D-077, D-083, D-089
 
 #### Tasks
 
-1. A database function (Adrian) returning the Seeker's past reservations: Space, unit,
+1. A database function (Luke) returning the Seeker's past reservations: Space, unit,
    dates, how it ended, its payment status, and whether it has a review. Reservations are
    read only through functions, so this is new.
-2. pgTAP negatives (Adrian): another Seeker gets **0 rows**, and so does a Host.
-3. The confirmation email (Adrian): when the payment webhook confirms a hold, Resend
-   sends the Seeker one email, never two for a repeated event. Local tests and CI never
-   call Resend (D-078).
+2. pgTAP negatives (Luke): another Seeker gets **0 rows**, and so does a Host.
+3. The confirmation email (Luke): when the payment webhook confirms a hold, a team
+   Gmail account sends the Seeker one email over SMTP, never two for a repeated event.
+   Local tests and CI never send one (D-089).
 4. The history page on the Seeker's dashboard (Luke): newest first, with an empty state.
 5. Hold again (Luke): opens the Space profile with the same unit picked in STORY-09's
    hold panel if it is Available now, and otherwise shows the seat map and says why
@@ -314,20 +316,21 @@ Split out of STORY-14. Its design waits for the Space verification flow's Sprint
 ### [STORY-19] Final Hardening — issue #337
 
 - **Story**: _As the team, we want the Final build on a production database, tested end to end for every role, and checked for accessibility and speed, so that the Final demo runs on something we trust._
-- **Story Points**: `5 / 10`
+- **Story Points**: `6 / 10` (was 5; re-estimated in STORY-19's design)
 - **Time Estimate**: `3 Days`
-- **Assignee**: `Adrian Seth Tabotabo` (production, CI and #218), `Luke Miguel Dongque` (accessibility, performance and the end-to-end tests)
+- **Assignee**: `Adrian Seth Tabotabo` (production, #218 and the Definition of Done check), `Luke Miguel Dongque` (accessibility, performance and the end-to-end tests)
 - **Git Branch**: `feature/STORY-19-final-hardening`
 - **MoSCoW**: `Must Have`
-- **Requirements**: FR-2.5, SRS §3.2.2, §3.4 · **Decisions**: D-008, D-013, D-017, D-061
+- **Requirements**: FR-2.5, SRS §3.2.2, §3.4 · **Decisions**: D-008, D-013, D-017, D-061, D-090 to D-093
 
 #### Tasks
 
-1. The production Supabase project (Adrian, D-017): every migration applied, the Final
-   deployment pointed at it, and its demo accounts following D-013 and D-061. Created
-   early, not on the last day.
-2. The concurrency tests (`npm run db:race`) in CI (Adrian, FR-2.5).
-3. #218 decided and recorded (Adrian).
+1. The production Supabase project (Adrian, D-017, D-090): every migration applied, ready
+   for the Final deployment on the day Adrian chooses, with real accounts (D-091).
+   Created early, not on the last day.
+2. The concurrency tests (`npm run db:race`) in CI (FR-2.5). Already done: the `db` job
+   has run them since #262.
+3. #218 decided and recorded (Adrian). Settled in STORY-19's design (D-092).
 4. Playwright journeys for every role, the Administrator's included (Luke).
 5. An accessibility sweep of every route against WCAG 2.1 AA (Luke, SRS §3.2.2).
 6. Search time, First Contentful Paint and Largest Contentful Paint measured on the
@@ -355,7 +358,7 @@ leaves a day to check the deployed build before the Final.
 | STORY-17   | Nothing; its review of the new screens waits for each of them                          | The audit and the direction start on day one                 |
 | STORY-13   | The review lifecycle flow (#339)                                                       | Reviews change state from three stories (D-044)              |
 | STORY-14   | The review lifecycle flow, and STORY-13 tasks 1–2                                      | It moderates the reviews STORY-13 stores                     |
-| STORY-16   | Nothing; its "Leave a review" link waits for STORY-13's form                           | The reservation lifecycle it reads is merged                 |
+| STORY-16   | Email: nothing. History: STORY-13's and STORY-14's tables (TSK-13.1, TSK-14.2)         | The reservation lifecycle it reads is merged                 |
 | STORY-20   | The Space verification flow's Sprint 3 change (#340)                                   | It adds moves to a merged flow                               |
 | STORY-19   | Nothing for the production project; the final checks wait for the other stories        | The Final needs the database early                           |
 
@@ -380,15 +383,16 @@ which Adrian decided the Final needs (D-083).
 
 **Risks.**
 
-- **The pace.** 39 points in 20 days is faster than Sprint 2. The cut order is the
+- **The pace.** 40 points in 20 days is faster than Sprint 2. The cut order is the
   answer, decided now rather than on 5 December.
 - **One merger, one database writer.** Adrian holds the backend of five stories and
   merges every pull request. Database work goes first, so nobody waits on it at the end.
 - **Two people changing the same screens.** The restyle and the feature stories touch
   the same pages. Small pull requests merged often keep conflicts small, and after a
   restyle, a change to that screen's look needs Maria's or James's approval (D-074).
-- **Email reaches one inbox.** Without a domain, Resend delivers only to its account
-  owner (D-078), so the demo uses that address.
+- **The email depends on a Gmail account.** A team account sends it over SMTP with an
+  app password (D-089). If Gmail blocks or limits the account, the email stops, and the
+  hold page still shows everything it would have said.
 
 ---
 
@@ -405,7 +409,7 @@ column is renamed **Sprint 3 Backlog** (D-038). WIP limits stay at 4 for In Prog
 | `STORY-14` | Administration Console              | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 7 / 10 | 3.5 Days  | Should Have |
 | `STORY-16` | Reservation History & Hold Again    | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 6 / 10 | 3 Days    | Should Have |
 | `STORY-20` | Space Verification Follow-ups       | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 5 / 10 | 2.5 Days  | Could Have  |
-| `STORY-19` | Final Hardening                     | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 5 / 10 | 3 Days    | Must Have   |
+| `STORY-19` | Final Hardening                     | Sprint 3 Backlog       | Adrian, Luke Miguel Dongque | 6 / 10 | 3 Days    | Must Have   |
 
 **Issue mapping.** `STORY-13` #78 · `STORY-14` #79 · `STORY-16` #335 · `STORY-17` #336 ·
 `STORY-19` #337 · `STORY-20` #338. The shared flows are #339 (review lifecycle) and #340
@@ -439,13 +443,14 @@ Sprint 3 planning also settled these:
 - **Hold again** opens the Space profile with the same unit picked, and never holds
   anything by itself (D-077).
 - **The confirmation email** goes through Resend's free tier, with no domain (D-078).
+  STORY-16's design later moved it to a team Gmail account over SMTP (D-089).
 
 The designs settle the rest:
 
 - STORY-13: the tables' names, and how reports are stored.
 - STORY-14: whether a refund is recorded by the refund call or by Stripe's webhook.
-- STORY-16: how tests check the email without calling Resend.
-- STORY-19: how `db:race` runs in CI.
+- STORY-16: how tests check the email without sending one.
+- STORY-19: how `db:race` runs in CI. Settled before its design: the `db` job runs it (#262).
 - STORY-20, through the flow change: what status a taken-down Space has, and what
   happens to its holds.
 

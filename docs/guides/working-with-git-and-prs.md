@@ -70,7 +70,7 @@ You can also open the link that `git push` prints.
   - First line: `Closes #<task>`. Add `Refs #<story>`.
   - Delete lines that do not apply rather than leaving them empty. An empty `Closes #` or `Co-Authored-By:` line fails the check, and so does an HTML comment.
 - **AI help:** if AI helped, say so under "AI assistance" and keep the last line as `Co-Authored-By: <tool> <email>`. Otherwise, delete that line.
-- **Reviewer:** ask Adrian for your PRs, and any teammate for Adrian's.
+- **Reviewer:** ask any teammate (GitHub automatically asks Adrian on `supabase/` and `.github/` changes; ask the named owner by hand for designs, flows and restyled UI, D-096).
 - **Board:** move your task card to Code Review.
 
 ## Keeping your branch up to date
@@ -100,14 +100,14 @@ A person runs these commands, not an AI agent.
 
 ## Checks on every pull request
 
-| Check      | What it verifies                                                                   | Required? |
-| ---------- | ---------------------------------------------------------------------------------- | --------- |
-| `checks`   | Install, typecheck, lint, format, unit tests, build                                | Yes       |
-| `pr-title` | The PR title, the branch name, and the PR body                                     | Yes       |
-| `db`       | pgTAP database policy tests on a fresh local stack, and generated types up to date | Yes       |
-| `e2e`      | The Playwright tests in `e2e/` on a seeded local stack (STORY-06)                  | No        |
+| Check      | What it verifies                                                                                      | Required? |
+| ---------- | ----------------------------------------------------------------------------------------------------- | --------- |
+| `checks`   | Install, typecheck, lint, format, unit tests, build                                                   | Yes       |
+| `pr-title` | The PR title, the branch name, and the PR body                                                        | Yes       |
+| `db`       | Migration order/immutability check (D-096), pgTAP tests, race tests, and generated types up to date   | Yes       |
+| `e2e`      | The Playwright journeys and WCAG 2.1 AA accessibility sweep in `e2e/` on a seeded local stack (D-093) | Yes       |
 
-All required checks must be green (`e2e` is non-blocking). A PR also needs 1 approving review from a teammate (D-014).
+All four required checks must be green. A PR also needs 1 approving review from a teammate, after which any teammate can squash-merge it or let auto-merge land it (D-014, D-096).
 
 ## Fixing common mistakes
 

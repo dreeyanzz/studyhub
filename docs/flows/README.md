@@ -16,6 +16,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian                             | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
 | [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke                       | No other flow         | implemented 2026-11-15                                             |
 | [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James                              | Reservation lifecycle | approved 2026-11-19                                                |
+| [Google OAuth](google-oauth.md)                                 | #379  | Sequence | Adrian   | Adrian                             | No other flow         | implemented 2026-11-24                                             |
 
 **Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
 approve them:
@@ -86,22 +87,28 @@ merges it; `implemented YYYY-MM-DD`, once every test it names passes on `main`; 
   (STORY-08), the Space profile and picking a unit (STORY-11), the hold and the sandbox
   payment (STORY-09), and the booking token on their dashboard (STORY-10). It includes
   what a signed-out visitor gets when they try to hold a unit.
+- **Google OAuth** (D-095, #379). Signing in or signing up with Google from `/login` or
+  `/register`: PKCE initiation via Server Action, `/api/auth/callback` code exchange and
+  error paths, automatic linking for existing verified emails, one-time Seeker/Host role
+  and name confirmation on `/choose-role`, and Postgres RLS gating on
+  `profiles.role_confirmed`.
 
 ### Which story designs wait for which flows
 
-| Story                                           | Its design waits for                                                          |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| STORY-07 Seat map builder (#56)                 | Reservation lifecycle, Host setup journey                                     |
-| STORY-08 Map and filters (#57)                  | Space verification, Host setup journey, Seeker journey                        |
-| STORY-09 Holds and sandbox payment (#58)        | Reservation lifecycle, sandbox payment confirmation, check-in, Seeker journey |
-| STORY-10 QR check-in and release (#59)          | Reservation lifecycle, check-in, Seeker journey                               |
-| STORY-11 Space profile (#76)                    | Reservation lifecycle, Space verification, Host setup journey, Seeker journey |
-| STORY-12 Host occupancy (#77)                   | Reservation lifecycle                                                         |
-| STORY-15 Space verification (#166)              | Space verification, Host setup journey                                        |
-| STORY-13 Reviews (#78), Sprint 3                | Reservation lifecycle, review lifecycle                                       |
-| STORY-14 Administration console (#79), Sprint 3 | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
-| STORY-16 History and Hold again (#335)          | Reservation lifecycle, sandbox payment confirmation                           |
-| STORY-20 Verification follow-ups (#338)         | Space verification, with its Sprint 3 change (#340)                           |
+| Story                                            | Its design waits for                                                          |
+| ------------------------------------------------ | ----------------------------------------------------------------------------- |
+| STORY-07 Seat map builder (#56)                  | Reservation lifecycle, Host setup journey                                     |
+| STORY-08 Map and filters (#57)                   | Space verification, Host setup journey, Seeker journey                        |
+| STORY-09 Holds and sandbox payment (#58)         | Reservation lifecycle, sandbox payment confirmation, check-in, Seeker journey |
+| STORY-10 QR check-in and release (#59)           | Reservation lifecycle, check-in, Seeker journey                               |
+| STORY-11 Space profile (#76)                     | Reservation lifecycle, Space verification, Host setup journey, Seeker journey |
+| STORY-12 Host occupancy (#77)                    | Reservation lifecycle                                                         |
+| STORY-15 Space verification (#166)               | Space verification, Host setup journey                                        |
+| STORY-13 Reviews (#78), Sprint 3                 | Reservation lifecycle, review lifecycle                                       |
+| STORY-14 Administration console (#79), Sprint 3  | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-16 History and Hold again (#335)           | Reservation lifecycle, review lifecycle, sandbox payment confirmation         |
+| STORY-20 Verification follow-ups (#338)          | Space verification, with its Sprint 3 change (#340)                           |
+| STORY-21 Google OAuth sign-in and sign-up (#392) | Google OAuth                                                                  |
 
 If your story needs a shared flow that isn't listed here, ask Adrian before you write its
 design. Adrian decides whether it gets a doc, and the next section says who draws it.
@@ -120,7 +127,8 @@ about:
 The owners of the other areas a flow touches approve it, so a flow can need more than one
 approval: Maria approves what it says users see, do and are told, Luke what it says about
 security, and Adrian what it says about data and money. If they disagree, Adrian decides
-as Project Manager, and Adrian merges every flow. That is how the table at the top was
+as Project Manager. Once the named approvers approve and CI is green, any teammate may
+squash-merge the flow (D-096). That is how the table at the top was
 filled in: the reservation lifecycle is about states, so Adrian draws it, and Maria
 approves what it shows Seekers and Hosts. The sandbox payment confirmation is about money,
 so Adrian draws it; Luke approves its signature check, and Maria what the Seeker sees when

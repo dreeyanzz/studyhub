@@ -45,22 +45,24 @@ the SRS still asks for:
 6. **Ready for the Final.** A production database, the concurrency test in CI, tests for
    every role, and accessibility and speed checks.
 
-That's 39 points in 20 days, faster than Sprint 2. If we fall behind, the plan's cut
+That's 40 points in 20 days, faster than Sprint 2. If we fall behind, the plan's cut
 order (§6) says what goes first, from taking a Space down up to the UI fixes, which go
 last. The email and the production project are never cut (D-017, D-083).
 
 ## 1. What's new this sprint
 
 The path is the same as in Sprint 2 ([section 1 of its brief](SPRINT-2.md)): the shared
-flows, then the design doc, Adrian merges it, tasks on the board, one small pull request
-per task with its tests, review, and Adrian merges. Tell your AI tool **"Start my Sprint
-3 story."** It follows [the story loop](../AGENTS.md#the-story-loop).
+flows, then the design doc, merge once approved, tasks on the board, one small pull request
+per task with its tests, 1 peer approval + green CI, and any teammate merges (D-096). Tell
+your AI tool **"Start my Sprint 3 story."** It follows
+[the story loop](../AGENTS.md#the-story-loop).
 
 Four things are new:
 
-- **The work splits by layer, not by story** (D-075). Maria and James own the UI/UX.
-  Adrian builds the backend of every feature story, and Luke builds its app side, so
-  each feature story has two people. Section 4 says where the line is.
+- **The work splits by layer, not by story** (D-075), with one change (D-094). Maria and
+  James own the UI/UX. Adrian builds STORY-13 and STORY-14 end to end, and Luke builds
+  STORY-16 end to end. STORY-19 and STORY-20 keep the split: Adrian builds the backend,
+  and Luke the app side. Section 4 says where the line is.
 - **The feature screens get their UI review after they're built** (D-073). Adrian and
   Luke build STORY-13, STORY-14, STORY-16 and STORY-20 end to end, screens included,
   and their design docs don't wait for Maria's approval. Maria and James then review
@@ -95,15 +97,16 @@ Questions about what users see, do or are told go to Maria or James (D-042, D-07
 The two new shared flows come first, because three designs wait for them. The review
 lifecycle (#339) is the start of the **critical path**: STORY-13's design and tables, then
 STORY-13's and STORY-14's screens, then Maria and James's review of them, then the last
-merge. Adrian's database pull requests are reviewed and merged first, because Luke's
-pages wait for them.
+merge. Database pull requests are reviewed and merged first, because the pages wait for
+them.
 
 ```mermaid
 flowchart LR
-    F1["Review lifecycle flow<br/>Adrian"] --> S13["STORY-13 Reviews<br/>Adrian and Luke"]
-    F1 --> S14["STORY-14 Admin console<br/>Adrian and Luke"]
+    F1["Review lifecycle flow<br/>Adrian"] --> S13["STORY-13 Reviews<br/>Adrian"]
+    F1 --> S14["STORY-14 Admin console<br/>Adrian"]
     S13 --> S14
-    S13 -. review form .-> S16["STORY-16 History<br/>Adrian and Luke"]
+    S13 -. review form .-> S16["STORY-16 History<br/>Luke"]
+    S14 -. refund column .-> S16
     F2["Space verification change<br/>Adrian"] --> S20["STORY-20 Verification<br/>Adrian and Luke"]
     S13 -. new screens .-> S17["STORY-17 UI/UX<br/>Maria and James"]
     S14 -.-> S17
@@ -112,14 +115,14 @@ flowchart LR
     S19["STORY-19 Hardening<br/>Adrian and Luke"]
 ```
 
-| Story                                   | Owners                                  | After its design, waits for                                     |
-| --------------------------------------- | --------------------------------------- | --------------------------------------------------------------- |
-| STORY-17 UI/UX refresh (#336)           | Maria and James                         | Nothing to start; each new feature screen, to review it         |
-| STORY-13 Reviews (#78)                  | Adrian (database), Luke (app)           | The review lifecycle flow, before its design                    |
-| STORY-14 Administration console (#79)   | Adrian (database, refund), Luke (pages) | The review lifecycle flow, and STORY-13's tables                |
-| STORY-16 History and Hold again (#335)  | Adrian (database, email), Luke (pages)  | Nothing; its "Leave a review" link waits for STORY-13's form    |
-| STORY-20 Verification follow-ups (#338) | Adrian (status rules), Luke (pages)     | The Space verification flow's change, before its design         |
-| STORY-19 Final hardening (#337)         | Adrian, Luke                            | Nothing for the production project; the rest, the other stories |
+| Story                                   | Owners                              | After its design, waits for                                     |
+| --------------------------------------- | ----------------------------------- | --------------------------------------------------------------- |
+| STORY-17 UI/UX refresh (#336)           | Maria and James                     | Nothing to start; each new feature screen, to review it         |
+| STORY-13 Reviews (#78)                  | Adrian, end to end (D-094)          | The review lifecycle flow, before its design                    |
+| STORY-14 Administration console (#79)   | Adrian, end to end (D-094)          | The review lifecycle flow, and STORY-13's tables                |
+| STORY-16 History and Hold again (#335)  | Luke, end to end (D-094)            | Email: nothing. History: STORY-13's and STORY-14's tables       |
+| STORY-20 Verification follow-ups (#338) | Adrian (status rules), Luke (pages) | The Space verification flow's change, before its design         |
+| STORY-19 Final hardening (#337)         | Adrian, Luke                        | Nothing for the production project; the rest, the other stories |
 
 **While you wait,** don't sit idle: review the flows and designs your work waits for,
 build what doesn't need the missing piece (page layouts, form rules, components with
@@ -129,14 +132,14 @@ sample data, tests), or review someone's pull request.
 
 Each step starts as soon as what it needs is merged.
 
-| Step                   | Adrian                                                                            | Luke                                                        | Maria and James                             |
-| ---------------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
-| **1. Flows and audit** | The review lifecycle, then the Space verification change                          | Review both flows                                           | The audit of every screen                   |
-| **2. Designs**         | STORY-13's, STORY-14's, STORY-16's, STORY-20's and STORY-19's designs             | The screens section of each; approve Adrian's pull requests | STORY-17's design: the visual direction     |
-| **3. Tables first**    | STORY-13's tables, then STORY-14's, STORY-16's and STORY-20's; production project | Pages and forms against sample data                         | The restyle, one group of screens at a time |
-| **4. Build**           | The refund, the email, `db:race` in CI, #218                                      | Wire the pages to Adrian's functions; tests                 | Fixes filed during the audit; the restyle   |
-| **5. Finish**          | The Definition of Done check; merge everything by Sat 5 Dec                       | The journeys for every role, accessibility and speed checks | Review and restyle the new feature screens  |
-| **Mon 7 Dec**          | The Final                                                                         | Same, together                                              | Same, together                              |
+| Step                   | Adrian                                                                           | Luke                                                        | Maria and James                             |
+| ---------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
+| **1. Flows and audit** | The review lifecycle, then the Space verification change                         | Review both flows                                           | The audit of every screen                   |
+| **2. Designs**         | STORY-13's, STORY-14's, STORY-16's, STORY-20's and STORY-19's designs            | The screens section of each; approve Adrian's pull requests | STORY-17's design: the visual direction     |
+| **3. Tables first**    | STORY-13's tables, then STORY-14's and STORY-20's; production project            | STORY-16's function; pages and forms against sample data    | The restyle, one group of screens at a time |
+| **4. Build**           | STORY-13's and STORY-14's pages, the refund, #218 (`db:race` already runs in CI) | The email; wire the pages to their functions; tests         | Fixes filed during the audit; the restyle   |
+| **5. Finish**          | The Definition of Done check; merge everything by Sat 5 Dec                      | The journeys for every role, accessibility and speed checks | Review and restyle the new feature screens  |
+| **Mon 7 Dec**          | The Final                                                                        | Same, together                                              | Same, together                              |
 
 ## 4. Your part
 
@@ -149,7 +152,7 @@ Words used below (the [glossary](GLOSSARY.md) has them all):
   unit picked (D-077). It never holds anything by itself, and never for later (D-001).
 - **Fix, design change:** see section 1.
 
-### Adrian: the backend, both flows, and hardening
+### Adrian: STORY-13 and STORY-14, the backend, both flows, and hardening
 
 **Your flows, first (D-044).** The review lifecycle (#339): a review from posted to
 reported, hidden or removed, and edited or deleted by its author. Then the change to the
@@ -161,44 +164,52 @@ approve both.
 the screens section of each as his own commits on your branch, and approves the pull
 request.
 
-**Your backend.** Everything in `supabase/` for STORY-13, STORY-14, STORY-16 and
-STORY-20: tables, policies, database functions, pgTAP tests and seed data. Also the
-Stripe sandbox refund (STORY-14), the confirmation email through Resend (STORY-16), and
-for STORY-19 the production project, `npm run db:race` in CI, #218, and the Definition
-of Done check.
+**Your stories, end to end (D-094).** STORY-13 and STORY-14, from the tables to the
+pages: the reviews and averages on the profile and the Space card, edit, delete and
+report; the moderation and payments pages on `/admin`, with the Stripe sandbox refund;
+and their Vitest and Playwright tests. Their tasks are #359 to #368.
 
-**Done when:** each story's database half passes its pgTAP negatives (the wrong user gets
-zero rows, the owner can't make a forbidden change); the Final deployment runs on the
-production project; the last merge is in by Saturday 5 December.
+**Your backend.** Everything in `supabase/` for STORY-20: tables, policies, database
+functions, pgTAP tests and seed data. For STORY-19, the production project, #218 and the
+Definition of Done check. You also review Luke's STORY-16 migration (D-066); once merged,
+GitHub Actions pushes it to `studyhub-dev` automatically (D-096). `npm run db:race`
+already runs in CI (#262).
 
-**How to test:** `npm run db:test` and `npm run db:race`; Stripe in test mode; the email
-without calling Resend from tests (D-078).
+**Done when:** STORY-13's and STORY-14's acceptance criteria pass; each database half
+passes its pgTAP negatives (the wrong user gets zero rows, the owner can't make a
+forbidden change); the Final deployment runs on the production project; the last merge
+is in by Saturday 5 December.
 
-### Luke: the app side of the feature stories, and the end-to-end checks
+**How to test:** `npm run db:test` and `npm run db:race`; `npm run check` and
+`npm run test:e2e`; Stripe in test mode.
+
+### Luke: STORY-16, the app side of STORY-20, and the end-to-end checks
 
 **Your part of each design.** The screens section of STORY-13's, STORY-14's, STORY-16's
 and STORY-20's designs, on Adrian's branch. You also approve Adrian's pull requests
 (D-014).
 
-**Your app.** For the same four stories: `lib/data/`, `lib/validation/`, Server Actions,
-pages and components, and their tests:
+**Your story, end to end (D-094).** STORY-16: `my_reservation_history` with its pgTAP
+tests and `db:types` (D-066; auto-pushed to `studyhub-dev` on merge, D-096); the confirmation
+email through the team Gmail account (D-089); and the history page, Hold again, and
+"Leave a review", with their tests.
 
-- STORY-13: the review form, the reviews and averages on the profile and the Space card,
-  edit, delete and report.
-- STORY-14: the moderation and payments pages on `/admin`, and the Refund action.
-- STORY-16: the history page, Hold again, and "Leave a review".
-- STORY-20: the reason on Reject, the "Edited" mark, Take down, and the Host's reason,
-  Resubmit and edit warning.
+**Your app.** For STORY-20: `lib/data/`, `lib/validation/`, Server Actions, pages and
+components, and their tests: the reason on Reject, the "Edited" mark, Take down, and the
+Host's reason, Resubmit and edit warning.
 
 For STORY-19: the Playwright journeys for every role, the accessibility sweep, and the
 performance measures against SRS §3.4.
 
-**Done when:** every feature story's acceptance criteria pass; every role's journey is a
-Playwright test; every route passes the accessibility sweep.
+**Done when:** STORY-16's and STORY-20's acceptance criteria pass; every role's journey
+is a Playwright test; every route passes the accessibility sweep.
 
-**Waits for:** Adrian's functions, for wiring. Build the pages against sample data first.
+**Waits for:** STORY-13's and STORY-14's tables for the history (TSK-13.1 and TSK-14.2),
+STORY-13's review form for "Leave a review" (TSK-13.4), and Adrian's STORY-20 functions.
+The email waits for nothing. Build the pages against sample data first.
 
-**How to test:** `npm run check` and `npm run test:e2e` against the local stack.
+**How to test:** `npm run db:test`, `npm run check` and `npm run test:e2e` against the
+local stack; the email without sending one from tests (D-089).
 
 ### Maria and James: STORY-17, the UI/UX
 
@@ -240,11 +251,12 @@ There are no other targets (D-075). The work runs in the order of the steps in s
 
 ## 6. Rules we never break
 
-- Never push to `main`, and never force-push. Only Adrian merges.
+- Never push to `main`, and never force-push. Every change goes through a PR with 1 peer
+  approval and all four required CI checks green; any teammate can squash-merge it (D-096).
 - Branches are named `feature/STORY-xx-short-desc`.
 - Invented test data only: invented names and `@example.test` emails (D-013).
 - Keys go only in your own `.env.local`: never in chat, commits or screenshots. That
-  includes the payment gateway's and Resend's keys.
+  includes the payment gateway's keys and the Gmail app password.
 - Payments stay in sandbox mode: test keys only, and no real card numbers (D-005).
 - If an AI helped, say so in the pull request's "AI assistance" section and add its
   `Co-Authored-By:` line. You own the work, and you must be able to explain every line.

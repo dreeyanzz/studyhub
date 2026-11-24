@@ -9,9 +9,10 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | --------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------ |
 | GitHub `dreeyanzz/studyhub`             | Code, pull requests, issues, the board            | Adrian (admin); teammates have write                               | Active                         |
 | Supabase: cloud dev project             | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)                                  | Active (`studyhub-dev`)        |
-| Supabase: production project            | The deployed app                                  | Adrian                                                             | Created before the Final phase |
+| Supabase: production project            | The deployed app                                  | Adrian only, in its own organization (D-090)                       | Created before the Final phase |
 | Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app      |
 | Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
+| Google Cloud (`Worq`, OAuth 2.0, D-095) | Continue with Google sign-in and sign-up          | Team Gmail (`worq.team.ph@gmail.com`); Adrian manages credentials  | Active (In production)         |
 
 The Vercel project is `studyhub`, in Adrian's account. Until the production project
 exists, its production deployment (worqph.vercel.app) and its previews use the cloud dev
@@ -43,7 +44,7 @@ project after about a week without activity, so wake it the day before any demo.
 | Local (migration work) | `npm run db:start` (Docker)                | `npm run dev`         | `supabase/seed.sql`, invented                         |
 | Local (other work)     | Shared cloud dev project                   | `npm run dev`         | The shared test accounts (D-028), and what you create |
 | Preview                | Shared cloud dev project                   | Vercel preview per PR | The shared test accounts (D-028), and what you create |
-| Production             | Production project                         | Vercel, from `main`   | Demo data, invented; no seeded admin                  |
+| Production             | Production project                         | Vercel, from `main`   | Real accounts (D-091), and demo data built in the app |
 | CI                     | A fresh local stack per run (the `db` job) | None                  | `supabase/seed.sql`, invented                         |
 
 ## Secrets
@@ -51,16 +52,19 @@ project after about a week without activity, so wake it the day before any demo.
 `.env.example` lists every variable and is committed. `.env.local` holds your values
 and is gitignored.
 
-| Variable                               | Where it may appear                                                                                                                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                                                      |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                                          |
-| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                                             |
-| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                                                     |
-| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers (the Stripe webhook) and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065)            |
-| `STRIPE_SECRET_KEY`                    | Server only, in `lib/payments/stripe.ts`. The Stripe sandbox's `sk_test_` or `rk_test_` key; a live key is refused (D-005, D-070)                                              |
-| `STRIPE_WEBHOOK_SECRET`                | Server only, in the Stripe webhook route and `npm run webhook:simulate`. Locally, the `whsec_` that `stripe listen --print-secret` prints; on Vercel, the Dashboard endpoint's |
-| `STRIPE_API_URL`                       | Optional, server only. Points the Stripe calls at a stub; unset, they go to `https://api.stripe.com`                                                                           |
+| Variable                               | Where it may appear                                                                                                                                                                                                                                                                                           |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                                                                                                                                                                                     |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                                                                                                                                                                         |
+| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                                                                                                                                                                            |
+| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                                                                                                                                                                                    |
+| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers (the Stripe webhook) and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065)                                                                                                                                           |
+| `STRIPE_SECRET_KEY`                    | Server only, in `lib/payments/stripe.ts`. The Stripe sandbox's `sk_test_` or `rk_test_` key; a live key is refused (D-005, D-070)                                                                                                                                                                             |
+| `STRIPE_WEBHOOK_SECRET`                | Server only, in the Stripe webhook route and `npm run webhook:simulate`. Locally, the `whsec_` that `stripe listen --print-secret` prints; on Vercel, the Dashboard endpoint's                                                                                                                                |
+| `STRIPE_API_URL`                       | Optional, server only. Points the Stripe calls at a stub; unset, they go to `https://api.stripe.com`                                                                                                                                                                                                          |
+| `GMAIL_USER`                           | Optional, server only, in `lib/email/transport.ts`. The team Gmail address that sends STORY-16's hold confirmation email. In Vercel Production and optional in `.env.local` (D-089)                                                                                                                           |
+| `GMAIL_APP_PASSWORD`                   | Optional, server only, in `lib/email/transport.ts`. The team Gmail account's app password. In Vercel Production and Adrian's `.env.local` only; never in Preview, CI, code or chat (D-089)                                                                                                                    |
+| `SUPABASE_DEV_DB_URL`                  | GitHub Actions repository secret only, used by `.github/workflows/db-push-dev.yml` (D-096). `studyhub-dev`'s **Session Pooler** URI (port `5432`, IPv4-compatible on GitHub-hosted runners — not the direct IPv6-only URI and not Transaction Pooler `6543`). Never holds `studyhub-prod` credentials (D-090) |
 
 `proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
 without them every page, the landing page included, fails with an error that names them.
@@ -129,10 +133,18 @@ database" names. With the cloud dev key left from `.env.local`, every delivery f
 dev server too. It names a reservation your database doesn't have, and the route logs it
 as an unknown reservation and answers 200.
 
+Until the switch to production, a payment on a Vercel preview is confirmed too: the
+sandbox's one endpoint is worqph, which uses cloud dev like the previews. Once worqph runs
+on production, a preview's payment reaches production instead, which logs it as an
+unknown reservation, and the preview's hold lapses unpaid. From then on, try payments
+locally with the steps above (STORY-19's design).
+
 ## Changing the database
 
-Adrian, the database owner, does this for every change, except that Luke does steps 1 to 5
-for STORY-08 and STORY-10 (D-066). Step 6 is always Adrian's.
+Adrian, the database owner, writes migrations for every change except STORY-08, STORY-10
+and STORY-16, which Luke writes (D-066, D-094). Merging a migration PR automatically
+pushes it to `studyhub-dev` via GitHub Actions (D-096); Adrian still pushes `studyhub-prod`
+manually (D-090).
 
 Work on the local stack. To try a change in the app, put the stack's URL and publishable
 key in a gitignored `.env.development.local` (`npx supabase status` prints them), because
@@ -152,20 +164,22 @@ your app doesn't use the cloud dev project.
 5. `npm run db:types`, and commit the regenerated types in the same PR. Two people write
    migrations (D-066), so before the PR merges, merge `origin/main` into your branch and
    check:
-   - **The order.** Your migration's timestamp must be later than every migration on
-     `main`. If it isn't, rename your file to a later one. That is safe, because it hasn't
-     reached a shared database yet. Otherwise `db push` refuses it without `--include-all`,
-     and CI doesn't notice.
+   - **The order.** Run `npm run db:check-order` (CI also runs it in the `db` job, D-096).
+     Your migration's timestamp must be strictly later than every migration on `main`, and
+     existing migrations on `main` must not be modified, renamed or deleted. If your
+     timestamp is stale, rename the file before pushing — that is safe because it hasn't
+     reached a shared database yet.
    - **The functions.** If you `create or replace` a function that another migration
      created, start from its latest definition on `main`. The later definition replaces
      the whole function, so any change you didn't carry over is lost with no error.
    - **The types.** If `lib/supabase/database.types.ts` conflicts, don't fix it by hand.
      Run steps 4 and 5 again.
-6. After the PR merges, Adrian runs `npx supabase db push` from `main` against the cloud
-   dev project, and against production once it exists. Migrations do not ride along with
-   Vercel deploys, so push them before the code that needs them reaches production.
-   `db push` sends migrations only. Never add `--include-seed`: `seed.sql` holds the
-   Administrator account and a public password (D-013).
+6. After the PR merges to `main`, `.github/workflows/db-push-dev.yml` automatically pushes
+   the migration to `studyhub-dev` using `SUPABASE_DEV_DB_URL` (D-096). Once `studyhub-prod`
+   exists, Adrian pushes merged migrations there manually from `main` with
+   `npx supabase db push --db-url "$PRODUCTION_DB_URL"`, never by re-linking the CLI
+   (D-090). Neither path ever passes `--include-seed`: `seed.sql` holds the Administrator
+   account and a public password (D-013).
 
 Never apply a migration that has not been merged, and never change the schema in the
 Supabase dashboard or through an AI tool. Otherwise the database no longer matches the
@@ -178,7 +192,8 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
 
 - **Linking.** Once per machine: `npx supabase link --project-ref <ref>`. The ref is in
   the project's URL.
-- **Migrations.** Step 6 above, after every merged migration.
+- **Migrations.** Automated on merge to `main` via `.github/workflows/db-push-dev.yml`
+  (D-096); manual dry-run or re-run is available from the Actions tab on `main`.
 - **Dashboard.** In the project's Supabase organization, Luke is an Administrator, and
   Maria and James are Developers (D-065). A Developer can read the keys and run SQL, but
   can't generate a new JWT secret, change Auth settings, reset the database password, or
@@ -193,7 +208,31 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
   `CLOUD_DEV_ACCOUNT_PASSWORD` and `CLOUD_DEV_ADMIN_PASSWORD` from `.env.local`, and the
   two passwords must differ from the seed password and each other. Run it again whenever
   the project is recreated; it skips accounts that exist and checks each one's role and
-  password. The production project has no Administrator until planned (D-028).
+  password. The production project's accounts are real addresses instead (D-091, STORY-19's
+  design).
+- **Deleting an account.** Before you delete a Host's account in the dashboard, delete
+  their Spaces in the app, or empty each Space's `space-photos/<space_id>` folder on the
+  Storage page. Nothing else removes those photos, and the bucket is public (D-092). The
+  same goes for the production project.
+- **Google OAuth (`studyhub-dev` and `studyhub-prod`, STORY-21, D-095).**
+  - Google Cloud project `Worq` (under the team Gmail account `worq.team.ph@gmail.com`) holds
+    the `Worq Web` OAuth 2.0 Web Client with basic scopes only (`openid`, `email`, `profile`),
+    published **In production** (Branding home page `https://worqph.vercel.app`, privacy
+    policy `https://worqph.vercel.app/privacy`).
+  - Authorized JavaScript origins: `https://worqph.vercel.app` and `http://localhost:3000`.
+  - Authorized redirect URIs: `https://<studyhub-dev-ref>.supabase.co/auth/v1/callback`, plus
+    `https://<studyhub-prod-ref>.supabase.co/auth/v1/callback` once `TSK-19.1` creates the
+    production project (D-090).
+  - In Supabase Dashboard (**Authentication → Providers → Google**), enable Google and store
+    the Client ID and Client Secret there only — never in `.env.local`, commits or chat.
+  - In Supabase Dashboard (**Authentication → URL Configuration → Redirect URLs**), keep
+    `http://localhost:3000/api/auth/callback`, `http://127.0.0.1:3000/api/auth/callback`,
+    `https://worqph.vercel.app/api/auth/callback`, and the project-scoped Vercel preview
+    pattern `https://studyhub-*-dreeyanzzs-projects.vercel.app/api/auth/callback` (never a
+    blanket `https://*.vercel.app/**`).
+  - Local `supabase/config.toml` keeps `[auth.external.google]` disabled by default so Docker
+    and CI never require Google secrets; automated tests cover OAuth onboarding via pgTAP
+    (`supabase/tests/13-google-oauth.sql`), Vitest and Playwright (`e2e/google-oauth.spec.ts`).
 
 ## Scheduled work
 
@@ -210,11 +249,13 @@ example, expiry checked in the query itself, with Supabase `pg_cron` for clean-u
 
 | Area                                      | Owner  |
 | ----------------------------------------- | ------ |
-| Database, migrations, RLS, CI, merging    | Adrian |
+| Database, migrations, RLS, CI/CD          | Adrian |
 | User experience, design system, the board | Maria  |
 | Authentication, sessions, the route guard | Luke   |
 | The automated test suite (STORY-06)       | Luke   |
 | Portal shells, QA                         | James  |
 
-Luke writes STORY-08's and STORY-10's migrations, which Adrian reviews and pushes (D-066).
+Luke writes STORY-08's, STORY-10's and STORY-16's migrations (D-066, D-094); any teammate
+can squash-merge approved PRs once CI is green, and `studyhub-dev` migrations auto-push on
+merge (D-096).
 Stories after Sprint 1 are assigned at sprint planning.

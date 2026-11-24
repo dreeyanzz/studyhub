@@ -1617,10 +1617,14 @@ select is(
   'confirm_payment answers already_processed for a forfeited fee'
 );
 
--- An Administrator's refund is STORY-14's (P1); here it is set by hand.
+-- An Administrator's refund is STORY-14's (P1, public.record_refund, which refuses a
+-- forfeited fee); here it is set by hand, with the refund fields payments_refund_fields needs.
 set local role postgres;
 update public.payments
-set status = 'refunded'
+set status = 'refunded',
+    refund_id = 're_test_c',
+    refunded_at = now(),
+    refund_reason = 'Set by hand for W19'
 where reservation_id = (select id from _pay where name = 'c');
 
 set local role service_role;
