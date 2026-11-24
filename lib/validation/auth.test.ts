@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { loginSchema, registerSchema, sanitizeReturnUrl } from './auth'
+import {
+  chooseRoleSchema,
+  loginSchema,
+  parseRegistrationRole,
+  registerSchema,
+  sanitizeAuthSource,
+  sanitizeReturnUrl,
+} from './auth'
 
 const BACKSLASH = '\\'
 
@@ -283,5 +290,79 @@ describe('sanitizeReturnUrl', () => {
   it('rejects control characters that the URL parser would strip', () => {
     expect(sanitizeReturnUrl('/\t/evil.com', '/seeker')).toBe('/seeker')
     expect(sanitizeReturnUrl('/\n/evil.com', '/seeker')).toBe('/seeker')
+  })
+})
+
+describe('chooseRoleSchema (STORY-21, D-095)', () => {
+  it('accepts seeker or host with a trimmed fullName and safe returnUrl', () => {
+    const result = chooseRoleSchema.safeParse({
+      fullName: '  Mika Tan  ',
+      role: 'host',
+      returnUrl: '/spaces/e0000000-0000-4000-8000-000000000001',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data).toEqual({
+        fullName: 'Mika Tan',
+        role: 'host',
+        returnUrl: '/spaces/e0000000-0000-4000-8000-000000000001',
+      })
+    }
+  })
+
+  it('rejects blank or over-100-character fullName (O-N11)', () => {
+    const blank = chooseRoleSchema.safeParse({ fullName: '   ', role: 'seeker' })
+    expect(blank.success).toBe(false)
+    if (!blank.success) {
+      expect(blank.error.issues[0]?.message).toBe('Full name is required')
+    }
+
+    const tooLong = chooseRoleSchema.safeParse({
+      fullName: 'A'.repeat(101),
+      role: 'seeker',
+    })
+    expect(tooLong.success).toBe(false)
+    if (!tooLong.success) {
+      expect(tooLong.error.issues[0]?.message).toBe(
+        'Full name must not exceed 100 characters',
+      )
+    }
+  })
+
+  it('rejects admin or unknown roles (O-N1, O-N9)', () => {
+    for (const role of ['admin', 'owner', '']) {
+      const result = chooseRoleSchema.safeParse({ fullName: 'Mika Tan', role })
+      expect(result.success).toBe(false)
+    }
+  })
+
+  it('drops an unsafe returnUrl without failing validation (O-N8)', () => {
+    const result = chooseRoleSchema.safeParse({
+      fullName: 'Mika Tan',
+      role: 'seeker',
+      returnUrl: '//evil.example',
+    })
+    expect(result.success).toBe(true)
+    if (result.success) expect(result.data.returnUrl).toBeUndefined()
+  })
+})
+
+describe('parseRegistrationRole and sanitizeAuthSource (STORY-21)', () => {
+  it('accepts only seeker and host, dropping admin and arbitrary values (O-N9)', () => {
+    expect(parseRegistrationRole('seeker')).toBe('seeker')
+    expect(parseRegistrationRole('host')).toBe('host')
+    expect(parseRegistrationRole('admin')).toBeUndefined()
+    expect(parseRegistrationRole('Seeker')).toBeUndefined()
+    expect(parseRegistrationRole('')).toBeUndefined()
+    expect(parseRegistrationRole(null)).toBeUndefined()
+  })
+
+  it('allows only /login and /register as OAuth error sources (O-N8)', () => {
+    expect(sanitizeAuthSource('/register')).toBe('/register')
+    expect(sanitizeAuthSource('/login')).toBe('/login')
+    expect(sanitizeAuthSource('/evil')).toBe('/login')
+    expect(sanitizeAuthSource('//evil.example')).toBe('/login')
+    expect(sanitizeAuthSource(null)).toBe('/login')
+    expect(sanitizeAuthSource(undefined)).toBe('/login')
   })
 })

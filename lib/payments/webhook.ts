@@ -42,6 +42,7 @@ export async function handleStripeWebhook(input: {
   nowSeconds: number
   confirmPayment: ConfirmPayment
   log: WebhookLog
+  onConfirmed?: (reservationId: string) => void
 }): Promise<WebhookResult> {
   // 1. The signature, before anything reads the body (flow §3.1). Bad or missing is
   //    401 (W3), signed too long ago is 400 (W4). Neither reaches the database.
@@ -128,6 +129,16 @@ export async function handleStripeWebhook(input: {
       eventId: event.data.id,
       reservationId,
     })
+  } else if (outcome.data.outcome === 'confirmed') {
+    try {
+      input.onConfirmed?.(reservationId)
+    } catch (error) {
+      input.log('onConfirmed callback failed', {
+        eventId: event.data.id,
+        reservationId,
+        error: error instanceof Error ? error.message : String(error),
+      })
+    }
   }
   return ok({ received: true, ...outcome.data })
 }

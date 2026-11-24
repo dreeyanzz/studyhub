@@ -12,6 +12,7 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 | Supabase: production project            | The deployed app                                  | Adrian only, in its own organization (D-090)                       | Created before the Final phase |
 | Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app      |
 | Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
+| Google Cloud (`Worq`, OAuth 2.0, D-095) | Continue with Google sign-in and sign-up          | Team Gmail (`worq.team.ph@gmail.com`); Adrian manages credentials  | Active (In production)         |
 
 The Vercel project is `studyhub`, in Adrian's account. Until the production project
 exists, its production deployment (worqph.vercel.app) and its previews use the cloud dev
@@ -51,16 +52,18 @@ project after about a week without activity, so wake it the day before any demo.
 `.env.example` lists every variable and is committed. `.env.local` holds your values
 and is gitignored.
 
-| Variable                               | Where it may appear                                                                                                                                                            |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                                                      |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                                          |
-| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                                             |
-| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                                                     |
-| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers (the Stripe webhook) and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065)            |
-| `STRIPE_SECRET_KEY`                    | Server only, in `lib/payments/stripe.ts`. The Stripe sandbox's `sk_test_` or `rk_test_` key; a live key is refused (D-005, D-070)                                              |
-| `STRIPE_WEBHOOK_SECRET`                | Server only, in the Stripe webhook route and `npm run webhook:simulate`. Locally, the `whsec_` that `stripe listen --print-secret` prints; on Vercel, the Dashboard endpoint's |
-| `STRIPE_API_URL`                       | Optional, server only. Points the Stripe calls at a stub; unset, they go to `https://api.stripe.com`                                                                           |
+| Variable                               | Where it may appear                                                                                                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Client and server. Public                                                                                                                                                                  |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Client and server. Public by design, because Row-Level Security limits what it can do                                                                                                      |
+| `CLOUD_DEV_ACCOUNT_PASSWORD`           | Not read by the app. The cloud dev project's test accounts sign in with it (D-028)                                                                                                         |
+| `CLOUD_DEV_ADMIN_PASSWORD`             | Not read by the app. The cloud dev project's Administrator signs in with it (D-061, D-065)                                                                                                 |
+| `SUPABASE_SECRET_KEY`                  | Server only, in `app/api` route handlers (the Stripe webhook) and `npm run db:accounts`. It bypasses RLS: never `NEXT_PUBLIC_`, never in client code (D-029, D-065)                        |
+| `STRIPE_SECRET_KEY`                    | Server only, in `lib/payments/stripe.ts`. The Stripe sandbox's `sk_test_` or `rk_test_` key; a live key is refused (D-005, D-070)                                                          |
+| `STRIPE_WEBHOOK_SECRET`                | Server only, in the Stripe webhook route and `npm run webhook:simulate`. Locally, the `whsec_` that `stripe listen --print-secret` prints; on Vercel, the Dashboard endpoint's             |
+| `STRIPE_API_URL`                       | Optional, server only. Points the Stripe calls at a stub; unset, they go to `https://api.stripe.com`                                                                                       |
+| `GMAIL_USER`                           | Optional, server only, in `lib/email/transport.ts`. The team Gmail address that sends STORY-16's hold confirmation email. In Vercel Production and optional in `.env.local` (D-089)        |
+| `GMAIL_APP_PASSWORD`                   | Optional, server only, in `lib/email/transport.ts`. The team Gmail account's app password. In Vercel Production and Adrian's `.env.local` only; never in Preview, CI, code or chat (D-089) |
 
 `proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
 without them every page, the landing page included, fails with an error that names them.
@@ -207,6 +210,25 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
   their Spaces in the app, or empty each Space's `space-photos/<space_id>` folder on the
   Storage page. Nothing else removes those photos, and the bucket is public (D-092). The
   same goes for the production project.
+- **Google OAuth (`studyhub-dev` and `studyhub-prod`, STORY-21, D-095).**
+  - Google Cloud project `Worq` (under the team Gmail account `worq.team.ph@gmail.com`) holds
+    the `Worq Web` OAuth 2.0 Web Client with basic scopes only (`openid`, `email`, `profile`),
+    published **In production** (Branding home page `https://worqph.vercel.app`, privacy
+    policy `https://worqph.vercel.app/privacy`).
+  - Authorized JavaScript origins: `https://worqph.vercel.app` and `http://localhost:3000`.
+  - Authorized redirect URIs: `https://<studyhub-dev-ref>.supabase.co/auth/v1/callback`, plus
+    `https://<studyhub-prod-ref>.supabase.co/auth/v1/callback` once `TSK-19.1` creates the
+    production project (D-090).
+  - In Supabase Dashboard (**Authentication → Providers → Google**), enable Google and store
+    the Client ID and Client Secret there only — never in `.env.local`, commits or chat.
+  - In Supabase Dashboard (**Authentication → URL Configuration → Redirect URLs**), keep
+    `http://localhost:3000/api/auth/callback`, `http://127.0.0.1:3000/api/auth/callback`,
+    `https://worqph.vercel.app/api/auth/callback`, and the project-scoped Vercel preview
+    pattern `https://studyhub-*-dreeyanzzs-projects.vercel.app/api/auth/callback` (never a
+    blanket `https://*.vercel.app/**`).
+  - Local `supabase/config.toml` keeps `[auth.external.google]` disabled by default so Docker
+    and CI never require Google secrets; automated tests cover OAuth onboarding via pgTAP
+    (`supabase/tests/13-google-oauth.sql`), Vitest and Playwright (`e2e/google-oauth.spec.ts`).
 
 ## Scheduled work
 

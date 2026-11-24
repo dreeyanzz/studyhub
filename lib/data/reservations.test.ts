@@ -129,9 +129,14 @@ describe('getHoldTerms', () => {
 })
 
 describe('getHoldViewer', () => {
-  function viewerClient(user: { id: string } | null, role: string | null, hold: unknown) {
+  function viewerClient(
+    user: { id: string } | null,
+    role: string | null,
+    hold: unknown,
+    roleConfirmed = true,
+  ) {
     const maybeSingleProfile = vi.fn(async () => ({
-      data: role ? { role } : null,
+      data: role ? { role, role_confirmed: roleConfirmed } : null,
       error: null,
     }))
     const from = vi.fn(() => ({
@@ -163,6 +168,12 @@ describe('getHoldViewer', () => {
   it('never looks up a hold for a Host or an Administrator', async () => {
     const { supabase, rpc } = viewerClient({ id: 'host' }, 'host', row)
     expect(await getHoldViewer(supabase)).toEqual({ role: 'host', currentHold: null })
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('treats an unconfirmed OAuth profile as role null and never looks up a hold (G12)', async () => {
+    const { supabase, rpc } = viewerClient({ id: 'oauth-user' }, 'seeker', row, false)
+    expect(await getHoldViewer(supabase)).toEqual({ role: null, currentHold: null })
     expect(rpc).not.toHaveBeenCalled()
   })
 })

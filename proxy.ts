@@ -11,7 +11,13 @@ import { updateSession } from '@/lib/supabase/proxy'
 export async function proxy(request: NextRequest) {
   const session = await updateSession(request)
   const { pathname, search } = request.nextUrl
-  const access = evaluateRouteAccess(pathname, session.role, search, request.method)
+  const access = evaluateRouteAccess(
+    pathname,
+    session.role,
+    search,
+    request.method,
+    session.roleConfirmed,
+  )
 
   return access.type === 'allow' ? session.next() : session.redirect(access.to)
 }

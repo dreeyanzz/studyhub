@@ -355,3 +355,23 @@ first, for STORY-16 too (D-089).
 Filled in when the story is done: the journeys table, the speed results against SRS
 §3.4, the final accessibility pass, and the Definition of Done check of every Sprint 3
 story.
+
+### Speed baseline (TSK-19.5, pre-restyle)
+
+Measured on **23 Nov 2026** against `https://worqph.vercel.app` (running on **cloud dev** prior to switch day and final restyle merges; will be re-run after the last restyle so this section holds the Final build's numbers, §3).
+
+#### Page load (`npx lighthouse <url> --preset=desktop`, 3 runs each)
+
+| Page                                                           | Target (SRS §3.4)      | Run 1 (initial)              | Run 2                        | Run 3                        | Median FCP / LCP    |
+| -------------------------------------------------------------- | ---------------------- | ---------------------------- | ---------------------------- | ---------------------------- | ------------------- |
+| Landing (`/`)                                                  | FCP < ~2 s, LCP < ~3 s | 324 ms / 776 ms (score 83)   | 348 ms / 683 ms (score 65)   | 552 ms / 958 ms (score 76)   | **0.35 s / 0.78 s** |
+| Search (`/spaces`)                                             | FCP < ~2 s, LCP < ~3 s | 414 ms / 1,436 ms (score 72) | 721 ms / 2,263 ms (score 60) | 361 ms / 1,400 ms (score 91) | **0.41 s / 1.44 s** |
+| Space profile (`/spaces/1cd4beb9-33fc-4992-9d58-5bd131df7a51`) | FCP < ~2 s, LCP < ~3 s | 376 ms / 376 ms (score 72)   | 400 ms / 400 ms (score 95)   | 438 ms / 438 ms (score 96)   | **0.40 s / 0.40 s** |
+
+#### Search & filter latency (`node scripts/measure-search.mjs https://worqph.vercel.app`)
+
+10 headless Chromium searches on `/spaces` measuring end-to-end duration from submit click until URL/RSC response and visible results render (SRS §3.4 target: about 1 second):
+
+- **Fastest:** 782 ms (`Mabolo`)
+- **Median:** 1,300 ms (`1.30 s`, includes Next.js RSC URL update roundtrip to Vercel + Supabase cloud dev)
+- **Slowest:** 1,468 ms (`USC TC`, Run 1)
