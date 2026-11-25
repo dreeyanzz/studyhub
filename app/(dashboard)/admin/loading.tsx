@@ -9,7 +9,7 @@ export default function AdminLoading() {
   return (
     <div className="space-y-6" aria-busy="true" aria-live="polite">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Space Verification
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -19,7 +19,7 @@ export default function AdminLoading() {
       </div>
 
       {/* Metric skeleton */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         {[1, 2, 3].map((id) => (
           <div
             key={id}

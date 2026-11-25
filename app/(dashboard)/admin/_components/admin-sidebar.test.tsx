@@ -31,13 +31,16 @@ describe('AdminSidebar (STORY-17)', () => {
     expect(html).not.toContain('<h1')
   })
 
-  it('renders shortcuts and accessible log out button', () => {
+  it('renders shortcuts, collapse toggle, and accessible log out button without internal SRS codes', () => {
     const html = renderToStaticMarkup(
       <AdminSidebar displayName="Admin John" pendingCount={0} />,
     )
 
     expect(html).toContain('href="/spaces"')
+    expect(html).toContain('rel="noopener noreferrer"')
     expect(html).toContain('View Discovery Map')
+    expect(html).toContain('aria-label="Collapse sidebar (Ctrl+B)"')
     expect(html).toContain('Log out')
+    expect(html).not.toContain('FR-5.1')
   })
 })

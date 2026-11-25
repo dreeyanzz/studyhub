@@ -41,10 +41,20 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
   // Global power-user keyboard shortcut (Ctrl+B / Cmd+B) to toggle the sidebar
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'b') {
-        event.preventDefault()
-        setIsCollapsed((prev) => !prev)
+      if (event.altKey || !(event.metaKey || event.ctrlKey)) return
+      if (event.key.toLowerCase() !== 'b') return
+      const target = event.target
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT')
+      ) {
+        return
       }
+      event.preventDefault()
+      setIsCollapsed((prev) => !prev)
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -53,75 +63,64 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 hidden h-screen shrink-0 flex-col justify-between overflow-y-auto border-r border-border/80 bg-card transition-[width,padding] duration-200 ease-in-out lg:flex',
+        'sticky top-0 hidden h-screen shrink-0 flex-col justify-between overflow-y-auto border-r border-border/80 bg-card transition-[width,padding] duration-200 ease-in-out motion-reduce:transition-none lg:flex',
         isCollapsed ? 'w-20 p-3' : 'w-72 p-5',
       )}
     >
       <div className="space-y-4">
-        {/* Brand & Identity + Collapse Toggle */}
+        {/* Brand & Identity + Persistent Collapse Toggle (keeps focus on toggle) */}
         <div
           className={cn(
             'flex items-center border-b border-border/60 pb-3.5',
             isCollapsed ? 'flex-col gap-2.5' : 'justify-between gap-2',
           )}
         >
-          {isCollapsed ? (
-            <div className="flex flex-col items-center gap-2">
-              <div
-                aria-hidden="true"
-                className="flex size-10 items-center justify-center rounded-xl bg-primary text-base font-bold text-primary-foreground shadow-2xs"
-              >
-                W
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => setIsCollapsed(false)}
-                className="min-h-[48px] min-w-[48px] rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
-                title="Expand sidebar (Ctrl+B)"
-                aria-label="Expand sidebar (Ctrl+B)"
-              >
-                <PanelLeftOpen className="size-4.5" aria-hidden="true" />
-              </Button>
+          <div
+            className={cn('flex items-center', isCollapsed ? 'justify-center' : 'gap-3')}
+          >
+            <div
+              aria-hidden="true"
+              className={cn(
+                'flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary font-bold text-primary-foreground shadow-2xs',
+                isCollapsed ? 'text-base' : 'text-lg',
+              )}
+            >
+              W
             </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-3">
-                <div
-                  aria-hidden="true"
-                  className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-2xs"
-                >
-                  W
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 text-base font-bold tracking-tight text-foreground">
+                  Worq
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[0.6875rem] font-semibold tracking-wider text-primary uppercase"
+                  >
+                    Administrator
+                  </Badge>
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5 text-base font-bold tracking-tight text-foreground">
-                    Worq
-                    <Badge
-                      variant="secondary"
-                      className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-primary uppercase"
-                    >
-                      Administrator
-                    </Badge>
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground">
-                    Administrator Console
-                  </p>
-                </div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Administrator Console
+                </p>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={() => setIsCollapsed(true)}
-                className="min-h-[48px] min-w-[48px] rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
-                title="Collapse sidebar (Ctrl+B)"
-                aria-label="Collapse sidebar (Ctrl+B)"
-              >
-                <PanelLeftClose className="size-4" aria-hidden="true" />
-              </Button>
-            </>
-          )}
+            )}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            className="min-h-[48px] min-w-[48px] shrink-0 rounded-xl border border-border/80 bg-background/90 text-foreground/80 shadow-2xs transition-all duration-200 hover:border-primary/50 hover:bg-primary/10 hover:text-primary active:scale-95"
+            title={isCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'}
+            aria-label={
+              isCollapsed ? 'Expand sidebar (Ctrl+B)' : 'Collapse sidebar (Ctrl+B)'
+            }
+          >
+            {isCollapsed ? (
+              <PanelLeftOpen className="size-4.5" aria-hidden="true" />
+            ) : (
+              <PanelLeftClose className="size-4" aria-hidden="true" />
+            )}
+          </Button>
         </div>
 
         {/* Administrator Profile */}
@@ -129,10 +128,12 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
           <div
             className="flex justify-center py-1"
             title={`${displayName} (Administrator)`}
-            aria-label={`${displayName} (Administrator)`}
           >
             <div className="relative">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-xs font-bold text-primary">
+              <div
+                aria-hidden="true"
+                className="flex size-10 items-center justify-center rounded-xl bg-primary/15 text-xs font-bold text-primary"
+              >
                 {displayName.charAt(0).toUpperCase()}
               </div>
               <span
@@ -140,6 +141,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 aria-hidden="true"
               />
             </div>
+            <span className="sr-only">{displayName} (Administrator)</span>
           </div>
         ) : (
           <div className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-background p-2.5 shadow-2xs">
@@ -196,7 +198,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               {isCollapsed && pendingCount > 0 && (
                 <span
                   className={cn(
-                    'absolute -top-1.5 -right-2 flex size-4.5 items-center justify-center rounded-full text-[10px] font-bold shadow-2xs',
+                    'absolute -top-1.5 -right-2 flex min-h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[0.6875rem] leading-none font-bold shadow-2xs',
                     isVerification
                       ? 'bg-card text-primary ring-2 ring-card'
                       : 'bg-primary text-primary-foreground',
@@ -274,14 +276,9 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
         {/* Verification Checklist (Shown when expanded on /admin) */}
         {!isCollapsed && isVerification && (
           <div className="space-y-3 rounded-2xl border border-border/80 bg-background p-4 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                <Shield className="size-4 text-primary" aria-hidden="true" />
-                <span>Verification Standards</span>
-              </div>
-              <Badge variant="secondary" className="px-1.5 py-0.5 text-[10px]">
-                FR-5.1
-              </Badge>
+            <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+              <Shield className="size-4 text-primary" aria-hidden="true" />
+              <span>Verification Standards</span>
             </div>
             <p className="text-xs font-medium text-muted-foreground">
               Verification criteria before public map publish:
@@ -289,7 +286,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
 
             <ul className="space-y-2.5 text-xs text-foreground">
               <li className="flex items-start gap-2.5">
-                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
                   1
                 </span>
                 <div>
@@ -300,7 +297,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 </div>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
                   2
                 </span>
                 <div>
@@ -311,7 +308,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 </div>
               </li>
               <li className="flex items-start gap-2.5">
-                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-[11px] font-bold text-primary">
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">
                   3
                 </span>
                 <div>
@@ -335,6 +332,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
           <Link
             href="/spaces"
             target="_blank"
+            rel="noopener noreferrer"
             className={cn(
               'flex items-center rounded-xl text-xs font-semibold text-foreground transition hover:bg-muted',
               isCollapsed

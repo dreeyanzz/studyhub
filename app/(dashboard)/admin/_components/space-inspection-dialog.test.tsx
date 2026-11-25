@@ -5,11 +5,27 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@/components/ui/dialog', () => ({
   Dialog: ({ children, open }: { children: ReactNode; open: boolean }) =>
     open ? <div data-slot="dialog">{children}</div> : null,
-  DialogContent: ({ children }: { children: ReactNode }) => (
-    <div data-slot="dialog-content">{children}</div>
+  DialogContent: ({
+    children,
+    className,
+  }: {
+    children: ReactNode
+    className?: string
+  }) => (
+    <div data-slot="dialog-content" className={className}>
+      {children}
+    </div>
   ),
-  DialogHeader: ({ children }: { children: ReactNode }) => (
-    <div data-slot="dialog-header">{children}</div>
+  DialogHeader: ({
+    children,
+    className,
+  }: {
+    children: ReactNode
+    className?: string
+  }) => (
+    <div data-slot="dialog-header" className={className}>
+      {children}
+    </div>
   ),
   DialogTitle: ({ children }: { children: ReactNode }) => (
     <h2 data-slot="dialog-title">{children}</h2>
@@ -96,8 +112,51 @@ describe('SpaceInspectionDialog (STORY-15, STORY-17)', () => {
     expect(html).toContain('Open in OpenStreetMap')
     expect(html).toContain('https://www.openstreetmap.org/search?query=')
 
+    // Header clearance for Close button and wrapping footer buttons at 200% zoom
+    expect(html).toContain('pr-16')
+    expect(html).toContain('whitespace-normal')
+
     // No fabricated data
     expect(html).not.toContain('12 Desks')
     expect(html).not.toContain('Wi-Fi (50+ Mbps)')
+  })
+
+  it('renders real uploaded photos with carousel navigation when photos exist', () => {
+    const html = renderToStaticMarkup(
+      <SpaceInspectionDialog
+        space={{
+          ...sampleSpace,
+          photos: [
+            'https://example.test/space-photos/photo-1.webp',
+            'https://example.test/space-photos/photo-2.webp',
+          ],
+        }}
+        isOpen={true}
+        onClose={() => {}}
+        onApprove={async () => {}}
+        onReject={async () => {}}
+      />,
+    )
+
+    expect(html).toContain('https://example.test/space-photos/photo-1.webp')
+    expect(html).toContain('Photo 1 of 2')
+    expect(html).toContain('aria-label="Previous photo"')
+    expect(html).toContain('aria-label="Next photo"')
+    expect(html).not.toContain('No photos attached')
+  })
+
+  it('renders an honest unavailable notice when photo lookup fails', () => {
+    const html = renderToStaticMarkup(
+      <SpaceInspectionDialog
+        space={{ ...sampleSpace, photos: null }}
+        isOpen={true}
+        onClose={() => {}}
+        onApprove={async () => {}}
+        onReject={async () => {}}
+      />,
+    )
+
+    expect(html).toContain('Photo preview unavailable')
+    expect(html).not.toContain('No photos attached')
   })
 })

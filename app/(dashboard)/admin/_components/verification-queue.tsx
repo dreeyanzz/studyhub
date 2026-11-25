@@ -71,7 +71,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
       {/* Title Bar */}
       <div className="-m-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-2">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Space Verification
           </h1>
           <p className="mt-1 text-sm font-medium text-muted-foreground">
@@ -149,7 +149,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
           role="status"
           aria-live="polite"
           variant={notice.type === 'error' ? 'destructive' : 'default'}
-          className="relative rounded-2xl border-border/80 pr-12 shadow-xs"
+          className="relative rounded-2xl border-border/80 pr-16 shadow-xs"
         >
           <div className="flex flex-col gap-1">
             <AlertTitle className="font-semibold">{notice.title}</AlertTitle>
@@ -173,7 +173,9 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
           <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-xs">
             <CheckCircle2 className="size-7 text-primary" aria-hidden="true" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">All caught up!</h2>
+          <h2 className="font-heading text-xl font-bold text-foreground">
+            All caught up!
+          </h2>
           <p className="mt-1.5 max-w-md text-sm font-medium text-muted-foreground">
             There are currently no Spaces pending verification. Newly submitted Spaces
             from hosts will automatically appear here.
@@ -185,9 +187,9 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
             <div
               key={space.id}
               className={cn(
-                'transition-all duration-300 ease-out',
+                'transition-all duration-300 ease-out motion-reduce:transition-none',
                 removingId === space.id &&
-                  'pointer-events-none -translate-x-3 scale-95 opacity-0',
+                  'pointer-events-none -translate-x-3 scale-95 opacity-0 motion-reduce:transform-none',
               )}
             >
               <VerificationCard

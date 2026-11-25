@@ -54,8 +54,7 @@ export function VerificationCard({
   )
   const hostDisplay = space.host_name?.trim() || 'Unnamed'
 
-  async function handleAction(e: React.MouseEvent, status: 'verified' | 'rejected') {
-    e.stopPropagation()
+  async function handleAction(status: 'verified' | 'rejected') {
     setIsPending(true)
     setActiveDecision(status)
     try {
@@ -143,7 +142,7 @@ export function VerificationCard({
         </dl>
       </CardContent>
 
-      <CardFooter className="flex flex-wrap justify-end gap-3 border-t border-border/70 bg-muted/25 px-4 py-4 sm:px-6">
+      <CardFooter className="flex flex-wrap justify-end gap-3 rounded-b-2xl border-t border-border/70 bg-muted/25 px-4 py-4 sm:px-6">
         {onInspect && (
           <Button
             type="button"
@@ -160,7 +159,7 @@ export function VerificationCard({
           type="button"
           variant="outline"
           className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98] sm:w-auto"
-          onClick={(e) => handleAction(e, 'rejected')}
+          onClick={() => handleAction('rejected')}
           disabled={isPending}
           aria-busy={isPending && activeDecision === 'rejected'}
         >
@@ -174,7 +173,7 @@ export function VerificationCard({
         <Button
           type="button"
           className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] sm:w-auto"
-          onClick={(e) => handleAction(e, 'verified')}
+          onClick={() => handleAction('verified')}
           disabled={isPending}
           aria-busy={isPending && activeDecision === 'verified'}
         >
