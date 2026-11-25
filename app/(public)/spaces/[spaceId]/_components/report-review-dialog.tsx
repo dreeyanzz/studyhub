@@ -80,7 +80,12 @@ export function ReportReviewForm({
       <input type="hidden" name="reviewId" value={reviewId} />
 
       {state.status === 'error' && state.message && (
-        <Alert variant="destructive" role="alert" data-testid="report-form-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="report-form-error"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <AlertDescription>{state.message}</AlertDescription>
         </Alert>
@@ -98,11 +103,11 @@ export function ReportReviewForm({
               <label
                 key={option}
                 className={cn(
-                  'flex min-h-12 w-full min-w-12 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-sm font-medium transition-colors select-none',
+                  'flex min-h-12 w-full min-w-12 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 text-sm font-medium transition-colors select-none',
                   'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background',
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground'
-                    : 'border-border bg-background text-foreground hover:bg-muted',
+                    ? 'border-primary bg-primary/10 text-foreground shadow-2xs'
+                    : 'border-border/80 bg-background text-foreground hover:border-primary/40 hover:bg-muted/60',
                   isPending && 'pointer-events-none opacity-50',
                 )}
               >
@@ -129,7 +134,10 @@ export function ReportReviewForm({
       </fieldset>
 
       <div className="space-y-2">
-        <label htmlFor={noteId} className="block text-sm font-medium text-foreground">
+        <label
+          htmlFor={noteId}
+          className="block px-1 text-sm font-medium text-foreground"
+        >
           Note (optional)
         </label>
         <textarea
@@ -143,9 +151,9 @@ export function ReportReviewForm({
           aria-describedby={noteCountId}
           aria-invalid={state.fieldErrors?.note ? 'true' : undefined}
           placeholder="Add any detail that helps an Administrator review this."
-          className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
+          className="min-h-24 w-full rounded-2xl border border-input bg-muted/60 px-4 py-3 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
         />
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
           <p id={noteCountId} className="text-xs text-muted-foreground">
             {remainingChars} / {REVIEW_REPORT_NOTE_MAX_LENGTH} characters remaining
           </p>
@@ -161,7 +169,7 @@ export function ReportReviewForm({
           variant="outline"
           onClick={onCancel}
           disabled={isPending}
-          className="h-auto min-h-12 py-2 whitespace-normal"
+          className="h-auto min-h-12 rounded-full px-5 py-2 whitespace-normal"
         >
           Cancel
         </Button>
@@ -169,7 +177,7 @@ export function ReportReviewForm({
           type="submit"
           disabled={isPending}
           aria-busy={isPending}
-          className="h-auto min-h-12 py-2 whitespace-normal"
+          className="h-auto min-h-12 rounded-full px-5 py-2 font-semibold whitespace-normal"
         >
           {isPending ? 'Submitting...' : 'Submit report'}
         </Button>
@@ -230,7 +238,7 @@ export function ReportReviewDialog({
           variant="outline"
           data-testid={`report-review-trigger-${reviewId}`}
           onClick={() => setOpen(true)}
-          className="h-auto min-h-12 py-2 whitespace-normal"
+          className="h-auto min-h-12 rounded-full px-4 py-2 whitespace-normal"
         >
           <Flag className="size-4 shrink-0" aria-hidden="true" />
           <span>Report</span>
@@ -238,7 +246,7 @@ export function ReportReviewDialog({
       )}
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-3xl border-border/80 bg-card shadow-2xl">
           <DialogHeader>
             <DialogTitle>Report review</DialogTitle>
             <DialogDescription>

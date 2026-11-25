@@ -15,9 +15,9 @@ const roleLabels = { seeker: 'Seeker', host: 'Host', admin: 'Administrator' } as
 
 /**
  * SeekerHeader component (STORY-04, STORY-17).
- * Server Component rendering the portal header: the Worq link home, the portal
- * navigation (Dashboard, Find a Space), the signed-in user's full name and role
- * badge, and a Log out button that calls STORY-03's signOut Server Action.
+ * Server Component rendering header shell with Worq branding, Seeker portal
+ * navigation (Dashboard, Find a Space), the signed-in user's full name, role
+ * badge, and a Log out button.
  */
 export async function SeekerHeader() {
   const supabase = await createClient()
@@ -39,16 +39,15 @@ export async function SeekerHeader() {
   const displayName = profile.full_name || user.email || 'Your account'
 
   return (
-    <header className="border-b border-border bg-card px-4 py-3 sm:px-6">
-      {/* Two groups that wrap onto their own rows on a narrow screen or at 200% text,
-          instead of a menu (STORY-02 design §4, SRS §3.2.2). */}
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
+    <header className="border-b border-border bg-card/95 backdrop-blur-sm">
+      <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
             href="/"
+            aria-label="Worq home"
             className={cn(
               buttonVariants({ variant: 'ghost' }),
-              'gap-2 px-2 font-heading text-xl font-semibold',
+              'h-auto min-h-12 max-w-full shrink gap-2 px-2 py-2 font-heading text-xl font-semibold whitespace-normal',
             )}
           >
             <WorqMark className="size-7" />
@@ -57,8 +56,8 @@ export async function SeekerHeader() {
           <SeekerNav />
         </div>
 
-        <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex max-w-full min-w-0 flex-wrap items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <div
               aria-hidden="true"
               className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
@@ -67,16 +66,21 @@ export async function SeekerHeader() {
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-base font-semibold break-words text-foreground">
+                <p className="text-base font-semibold wrap-anywhere text-foreground">
                   {displayName}
                 </p>
                 <Badge variant="secondary">{roleLabels[profile.role]}</Badge>
               </div>
-              <p className="text-xs text-muted-foreground">Seeker portal</p>
+              <p className="text-xs text-muted-foreground">Seeker Portal</p>
             </div>
           </div>
           <form action={signOut}>
-            <Button variant="outline" type="submit">
+            <Button
+              variant="ghost"
+              size="default"
+              type="submit"
+              className="h-auto min-h-12 max-w-full shrink rounded-full px-4 py-2 whitespace-normal"
+            >
               Log out
             </Button>
           </form>
