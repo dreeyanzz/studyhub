@@ -100,42 +100,46 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
       </div>
 
       {/* Overview metric cards */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-primary/40 bg-card p-4.5 shadow-xs ring-1 ring-primary/20 transition-all duration-300 hover:border-primary">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <div className="group relative flex items-center gap-3.5 rounded-2xl border border-primary/40 bg-card p-4.5 shadow-xs ring-1 ring-primary/20 transition-all duration-300 hover:border-primary">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
             <Clock className="size-5" aria-hidden="true" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold tracking-wider text-primary uppercase">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold tracking-wider wrap-anywhere text-primary uppercase">
               Pending Review
             </p>
-            <p className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+            <p className="text-xl font-bold tracking-tight wrap-anywhere text-foreground sm:text-2xl">
               {spaces.length} {spaces.length === 1 ? 'Space' : 'Spaces'}
             </p>
           </div>
         </div>
 
-        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
+        <div className="group relative flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-2xs">
             <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
               Quality Standard
             </p>
-            <p className="text-sm font-bold text-foreground">Verified Standards</p>
+            <p className="text-sm font-bold wrap-anywhere text-foreground">
+              Verified Standards
+            </p>
           </div>
         </div>
 
-        <div className="group relative flex items-center gap-3.5 overflow-hidden rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
+        <div className="group relative flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-2xs">
             <Sparkles className="size-5 text-primary" aria-hidden="true" />
           </div>
-          <div className="min-w-0">
-            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
               Search Sync
             </p>
-            <p className="text-sm font-bold text-foreground">Instant Map Publishing</p>
+            <p className="text-sm font-bold wrap-anywhere text-foreground">
+              Instant Map Publishing
+            </p>
           </div>
         </div>
       </div>
