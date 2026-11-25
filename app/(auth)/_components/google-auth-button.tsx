@@ -37,7 +37,7 @@ export function GoogleAuthButton({
           variant="outline"
           disabled={pending}
           focusableWhenDisabled
-          className="h-auto min-h-12 w-full justify-center gap-3 py-3 whitespace-normal"
+          className="h-auto min-h-12 w-full justify-center gap-3 rounded-full bg-background/90 py-3 font-medium whitespace-normal transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/60 hover:shadow-sm active:translate-y-0"
         >
           <svg
             width="18"

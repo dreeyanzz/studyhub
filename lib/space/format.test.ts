@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { computeOperatingStatus, formatDateTime, formatOpeningHours } from './format'
+import {
+  computeOperatingStatus,
+  DESCRIPTION_SNIPPET_LENGTH,
+  formatDateTime,
+  formatDescriptionSnippet,
+  formatOpeningHours,
+} from './format'
 
 describe('formatOpeningHours', () => {
   it('formats standard daytime hours (D-027)', () => {
@@ -120,5 +126,54 @@ describe('computeOperatingStatus', () => {
     const status = computeOperatingStatus('08:00', '22:00', date)
     expect(status.isOpen).toBe(true)
     expect(status.displayText).toBe('Open now · Closes at 22:00')
+  })
+})
+
+describe('formatDescriptionSnippet (#372)', () => {
+  it('keeps a short description whole, without an ellipsis', () => {
+    expect(formatDescriptionSnippet('Quiet tables and strong wifi.')).toBe(
+      'Quiet tables and strong wifi.',
+    )
+  })
+
+  it('collapses line breaks and repeated spaces, as the card would show them', () => {
+    expect(formatDescriptionSnippet('  Quiet  tables\n\nstrong wifi  ')).toBe(
+      'Quiet tables strong wifi',
+    )
+  })
+
+  it('cuts a long description after the last whole word and adds an ellipsis', () => {
+    expect(formatDescriptionSnippet('Quiet tables and strong wifi', 20)).toBe(
+      'Quiet tables and…',
+    )
+  })
+
+  it('keeps the last word when it ends exactly at the limit', () => {
+    expect(formatDescriptionSnippet('Quiet tables and more', 16)).toBe(
+      'Quiet tables and…',
+    )
+  })
+
+  it('drops punctuation left before the ellipsis', () => {
+    expect(formatDescriptionSnippet('Quiet tables, strong wifi', 15)).toBe(
+      'Quiet tables…',
+    )
+  })
+
+  it('cuts one very long word at the limit rather than showing almost nothing', () => {
+    expect(formatDescriptionSnippet('Hi Supercalifragilisticexpialidocious', 12)).toBe(
+      'Hi Supercali…',
+    )
+  })
+
+  it('never splits an emoji', () => {
+    expect(formatDescriptionSnippet('☕☕☕☕☕ coffee', 3)).toBe('☕☕☕…')
+    expect(formatDescriptionSnippet('😀😀😀😀😀 smile', 3)).toBe('😀😀😀…')
+  })
+
+  it('shows at most DESCRIPTION_SNIPPET_LENGTH characters plus the ellipsis by default', () => {
+    const snippet = formatDescriptionSnippet('word '.repeat(400))
+    expect(snippet.endsWith('…')).toBe(true)
+    expect(Array.from(snippet).length).toBeLessThanOrEqual(DESCRIPTION_SNIPPET_LENGTH + 1)
   })
 })

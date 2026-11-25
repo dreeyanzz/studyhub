@@ -42,7 +42,12 @@ export function ConfirmationPoller() {
         {message}
       </p>
       {exhausted && (
-        <Button type="button" variant="outline" onClick={() => router.refresh()}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.refresh()}
+          className="h-auto min-h-12 rounded-full px-5 py-2 font-semibold whitespace-normal"
+        >
           Refresh
         </Button>
       )}

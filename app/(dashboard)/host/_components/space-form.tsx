@@ -240,7 +240,11 @@ export function SpaceForm(props: SpaceFormProps) {
         >
           Price tier
         </legend>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {/* Columns are at least 8.5rem wide, so they grow with the text: with text at
+            200% on a 360 px screen the tiers stack one per row, where two fixed columns
+            pushed "Premium" past the Card's edge (#373). At 100% text there are two
+            columns at 360 px, three from 490 px and four from 650 px. */}
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-2">
           {priceTierOptions.map((option) => (
             <label
               key={option.value}

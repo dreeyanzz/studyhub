@@ -110,22 +110,22 @@ export function buildPopupHtml(
       ? `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">${space.curated_tags
           .map(
             (tag) =>
-              `<span style="font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--secondary); color: var(--secondary-foreground);">${escapeHtml(tag.label)}</span>`,
+              `<span style="font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--border); background: var(--secondary); color: var(--secondary-foreground);">${escapeHtml(tag.label)}</span>`,
           )
           .join('')}</div>`
       : ''
   return `
     <div style="font-family: inherit; min-width: 190px; padding: 2px;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h3>
-        <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
+        <h3 style="margin: 0; font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h3>
+        <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
       </div>
       <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
       ${ratingHtml}
       ${distance}
       ${tags}
       <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
-        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
       </div>
     </div>
   `
