@@ -1,6 +1,6 @@
 -- STORY-14, TSK-14.1: review moderation and the moderation log.
 -- Tests docs/design/STORY-14-admin-console.md §2 and §4's moderation rows, and
--- docs/flows/review-lifecycle.md (RV4 to RV8, RP2, N7 to N9, N13, N14, D-080, D-095).
+-- docs/flows/review-lifecycle.md (RV4 to RV8, RP2, N7 to N9, N13, N14, N18, D-080, D-095, #420).
 --
 -- Seed accounts:
 --   admin   a0000000-0000-4000-8000-000000000001  Alma Reyes
@@ -19,7 +19,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(81);
+select plan(89);
 
 -- Returns '<SQLSTATE> <hint>', to tell a function's refusals apart (testing guide).
 create function pg_temp.refusal(p_sql text)
@@ -36,6 +36,19 @@ exception when others then
   get stacked diagnostics v_code = returned_sqlstate, v_hint = pg_exception_hint;
   return v_code || ' ' || coalesce(nullif(v_hint, ''), '(no hint)');
 end;
+$$;
+
+-- The newest moderation log entry on a review, as the page reads it (lib/data/admin.ts),
+-- or null when it has none. moderate_review refuses any other value (N18, #420).
+create function pg_temp.last_event(p_review_id uuid)
+returns uuid
+language sql
+as $$
+  select e.id
+  from public.review_moderation_events e
+  where e.review_id = p_review_id
+  order by e.created_at desc, e.id desc
+  limit 1;
 $$;
 
 create function pg_temp.visit(
@@ -432,13 +445,13 @@ select results_eq(
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000001', 'hide', 1)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000001', 'hide', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000001'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot hide a review that is already hidden'
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000001', 'dismiss', 1)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000001', 'dismiss', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000001'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot dismiss a hidden review'
 );
@@ -489,25 +502,25 @@ select results_eq(
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'restore', 2)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'restore', 2, pg_temp.last_event('14b00000-0000-4000-8000-000000000002'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot restore a removed review'
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'hide', 2)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'hide', 2, pg_temp.last_event('14b00000-0000-4000-8000-000000000002'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot hide a removed review'
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'remove', 2)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'remove', 2, pg_temp.last_event('14b00000-0000-4000-8000-000000000002'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot remove a removed review again'
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'dismiss', 2)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000002', 'dismiss', 2, pg_temp.last_event('14b00000-0000-4000-8000-000000000002'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot dismiss a removed review'
 );
@@ -557,19 +570,19 @@ select results_eq(
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000003', 'dismiss', 1)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000003', 'dismiss', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000003'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot dismiss a review with no open reports'
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000003', 'restore', 1)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000003', 'restore', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000003'))$$),
   'P0001 not_allowed',
   'N8: an Administrator cannot restore a visible review'
 );
 
 select is(
-  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000003', null, 1)$$),
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000003', null, 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000003'))$$),
   'P0001 not_allowed',
   'N8: a null moderation action is refused'
 );
@@ -579,7 +592,7 @@ select is(
 -- ---------------------------------------------------------------------------
 select results_eq(
   $$select (res->>'status')::text, (res->>'action')::text, (res->>'closed_reports')::integer
-    from public.moderate_review('14b00000-0000-4000-8000-000000000001', 'restore', 1) as res$$,
+    from public.moderate_review('14b00000-0000-4000-8000-000000000001', 'restore', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000001')) as res$$,
   $$values ('visible', 'restore', 0)$$,
   'RV7: an Administrator restores a hidden review'
 );
@@ -615,7 +628,7 @@ select is_empty(
 -- 7. RV8: hide again, test Hidden ordering, remove from hidden, test Removed ordering & log
 -- ---------------------------------------------------------------------------
 select lives_ok(
-  $$select public.moderate_review('14b00000-0000-4000-8000-000000000001', 'hide', 1)$$,
+  $$select public.moderate_review('14b00000-0000-4000-8000-000000000001', 'hide', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000001'))$$,
   'an Administrator can hide R1 a second time (after restore)'
 );
 
@@ -645,7 +658,7 @@ set local request.jwt.claims =
 
 select results_eq(
   $$select (res->>'status')::text, (res->>'action')::text, (res->>'closed_reports')::integer
-    from public.moderate_review('14b00000-0000-4000-8000-000000000001', 'remove', 1) as res$$,
+    from public.moderate_review('14b00000-0000-4000-8000-000000000001', 'remove', 1, pg_temp.last_event('14b00000-0000-4000-8000-000000000001')) as res$$,
   $$values ('removed', 'remove', 0)$$,
   'RV8: an Administrator removes a hidden review'
 );
@@ -726,6 +739,90 @@ select is(
   pg_temp.refusal($$select public.moderate_review('14b99999-0000-4000-8000-000000000099', 'hide', 1)$$),
   'P0001 not_found',
   'an Administrator cannot moderate a review id that does not exist'
+);
+
+-- ---------------------------------------------------------------------------
+-- 8b. N18 (#420): another Administrator moderated the review since this one read it
+-- ---------------------------------------------------------------------------
+-- R5 gets one open report (from Sam). Alma reads it: version 1, an empty log.
+set local role postgres;
+
+insert into public.review_reports (id, review_id, reporter_id, reason, note, created_at)
+values
+  ('14c00000-0000-4000-8000-000000000018', '14b00000-0000-4000-8000-000000000005',
+   'c0000000-0000-4000-8000-000000000001', 'offensive', null, now() - interval '10 minutes');
+
+set local role authenticated;
+
+-- admin2 dismisses R5's reports from a fresh page.
+set local request.jwt.claims =
+  '{"sub": "14d00000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select lives_ok(
+  $$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'dismiss', 1, null)$$,
+  'a second Administrator dismisses R5''s reports'
+);
+
+-- Alma, still on the page she loaded before the dismissal, hides R5.
+set local request.jwt.claims =
+  '{"sub": "a0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is(
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'hide', 1, null)$$),
+  'P0001 stale_version',
+  'N18: an Administrator cannot hide a review whose reports another Administrator dismissed since they read it'
+);
+
+select is(
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'hide', 1)$$),
+  'P0001 stale_version',
+  'N18: leaving out the newest moderation log entry is refused once the review has one'
+);
+
+-- Alma reloads, so she now sees the dismissal. Then admin2 hides R5 and restores it.
+set local request.jwt.claims =
+  '{"sub": "14d00000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select lives_ok(
+  $$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'hide', 1,
+      pg_temp.last_event('14b00000-0000-4000-8000-000000000005'))$$,
+  'a second Administrator hides R5'
+);
+
+select lives_ok(
+  $$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'restore', 1,
+      pg_temp.last_event('14b00000-0000-4000-8000-000000000005'))$$,
+  'the second Administrator restores R5'
+);
+
+-- Alma, on the page that still shows only the dismissal, removes R5.
+set local request.jwt.claims =
+  '{"sub": "a0000000-0000-4000-8000-000000000001", "role": "authenticated"}';
+
+select is(
+  pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'remove', 1,
+      (select e.id from public.review_moderation_events e
+       where e.review_id = '14b00000-0000-4000-8000-000000000005' and e.action = 'dismiss'))$$),
+  'P0001 stale_version',
+  'N18: an Administrator cannot remove a review another Administrator restored since they read it'
+);
+
+select results_eq(
+  $$select r.status::text,
+      (select count(*)::integer from public.review_moderation_events e
+       where e.review_id = r.id)
+    from public.reviews r
+    where r.id = '14b00000-0000-4000-8000-000000000005'$$,
+  $$values ('visible', 3)$$,
+  'N18: a refused action leaves the review visible and its moderation log unchanged'
+);
+
+select results_eq(
+  $$select (res->>'status')::text
+    from public.moderate_review('14b00000-0000-4000-8000-000000000005', 'remove', 1,
+      pg_temp.last_event('14b00000-0000-4000-8000-000000000005')) as res$$,
+  $$values ('removed')$$,
+  'N18: an Administrator who sends the newest moderation log entry can moderate the review'
 );
 
 -- ---------------------------------------------------------------------------
