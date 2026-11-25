@@ -49,7 +49,14 @@ function linkClass(variant: 'default' | 'outline' = 'default'): string {
 function HoldButton() {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" disabled={pending} className={WRAPPING_BUTTON}>
+    <Button
+      type="submit"
+      disabled={pending}
+      className={cn(
+        WRAPPING_BUTTON,
+        'bg-[#f0c95c] px-6 text-foreground shadow-sm hover:bg-[#e5ba45]',
+      )}
+    >
       Hold this unit
     </Button>
   )
@@ -184,7 +191,9 @@ export function HoldUnitPanel({
           ))}
         </div>
       </fieldset>
-      <HoldButton />
+      <div className="flex justify-end pt-1">
+        <HoldButton />
+      </div>
     </form>
   )
 }

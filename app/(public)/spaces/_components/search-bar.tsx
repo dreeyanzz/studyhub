@@ -166,7 +166,7 @@ export function SearchBar({
           <button
             type="submit"
             data-testid="search-submit-button"
-            className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs transition-all duration-200 hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
+            className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-full bg-[#f0c95c] px-6 py-2.5 text-sm font-semibold text-foreground shadow-xs transition-all duration-200 hover:bg-[#e5ba45] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
           >
             Search
           </button>

@@ -63,22 +63,22 @@ export function SpaceProfileHeader({
         </div>
       )}
 
-      {/* Subtle top scrim so floating badges stay crisp over bright photos */}
+      {/* Subtle top scrim so floating badges stay crisp without dimming the room */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/30 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/15 to-transparent"
       />
 
-      {/* Progressive frosted-glass blur rising smoothly from the bottom */}
+      {/* Gentle progressive frosted-glass blur rising from bottom so the photo behind stays clearly visible */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[68%] [mask-image:linear-gradient(to_top,black_55%,transparent_100%)] backdrop-blur-xl"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[50%] [mask-image:linear-gradient(to_top,black_36%,transparent_100%)] backdrop-blur-md"
       />
 
-      {/* Deep Worq forest-green gradient scrim guaranteeing crisp contrast on white text */}
+      {/* Translucent Worq forest-green scrim preserving photo visibility and WCAG AA/AAA text contrast */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[76%] bg-gradient-to-t from-[#0e261c]/95 via-[#173c2d]/82 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0f2b20]/72 via-[#173c2d]/42 to-transparent"
       />
 
       {/* Top-left floating pills */}
@@ -108,17 +108,20 @@ export function SpaceProfileHeader({
       <div className="relative z-10 mt-auto space-y-4 p-5 pt-10 sm:p-6 sm:pt-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-2">
-            <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-white drop-shadow-xs sm:text-3xl">
+            <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-white drop-shadow-sm sm:text-3xl">
               {space.name}
             </h1>
 
-            <div className="flex min-w-0 items-start gap-1.5 text-sm wrap-anywhere text-white/90">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+            <div className="flex min-w-0 items-start gap-1.5 text-sm wrap-anywhere text-white/95 drop-shadow-xs">
+              <MapPin
+                className="mt-0.5 size-4 shrink-0 text-[#f0c95c]"
+                aria-hidden="true"
+              />
               <span>{space.address}</span>
             </div>
 
             {space.description && (
-              <p className="text-sm leading-relaxed break-words whitespace-pre-line text-white/85">
+              <p className="text-sm leading-relaxed break-words whitespace-pre-line text-white/90 drop-shadow-xs">
                 {space.description}
               </p>
             )}
@@ -127,37 +130,37 @@ export function SpaceProfileHeader({
           {availability && availability.totalUnits > 0 && (
             <div
               aria-hidden="true"
-              className="flex shrink-0 items-center divide-x divide-white/25 rounded-2xl border border-white/15 bg-black/20 px-1 py-2 backdrop-blur-md"
+              className="flex shrink-0 items-center divide-x divide-white/25 rounded-2xl border border-white/20 bg-black/25 px-1 py-2 backdrop-blur-md"
             >
               <div className="px-3 text-center">
                 <span className="flex items-center justify-center gap-1 text-sm font-semibold text-white">
-                  <Armchair className="size-3.5 text-accent" />
+                  <Armchair className="size-3.5 text-[#f0c95c]" />
                   <span>{availability.availableUnits}</span>
                 </span>
-                <span className="block text-xs text-white/75">Open</span>
+                <span className="block text-xs text-white/80">Open</span>
               </div>
               <div className="px-3 text-center">
                 <span className="flex items-center justify-center gap-1 text-sm font-semibold text-white">
-                  <Users className="size-3.5 text-accent" />
+                  <Users className="size-3.5 text-[#f0c95c]" />
                   <span>{availability.totalUnits}</span>
                 </span>
-                <span className="block text-xs text-white/75">Units</span>
+                <span className="block text-xs text-white/80">Units</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Hairline glass footer strip */}
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2.5 border-t border-white/20 pt-3.5 text-sm text-white/95">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2.5 border-t border-white/25 pt-3.5 text-sm text-white drop-shadow-xs">
           <div className="flex min-w-0 items-center gap-2 font-medium">
-            <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
+            <Clock className="size-4 shrink-0 text-[#f0c95c]" aria-hidden="true" />
             <span className="min-w-0 wrap-anywhere">Hours: {hoursText}</span>
           </div>
           <span
             aria-hidden="true"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-white/80"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-white/90"
           >
-            <ShieldCheck className="size-3.5 shrink-0 text-accent" />
+            <ShieldCheck className="size-3.5 shrink-0 text-[#f0c95c]" />
             <span>Verified Space</span>
           </span>
         </div>

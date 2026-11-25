@@ -100,7 +100,13 @@ export function BookingToken({ token }: { token: string }) {
 export function ContinueToPaymentForm({ reservation }: { reservation: MyReservation }) {
   return (
     <form action={startCheckout.bind(null, reservation.id)}>
-      <Button type="submit" className={WRAPPING_BUTTON}>
+      <Button
+        type="submit"
+        className={cn(
+          WRAPPING_BUTTON,
+          'bg-[#f0c95c] text-foreground shadow-sm hover:bg-[#e5ba45]',
+        )}
+      >
         Continue to payment
       </Button>
     </form>

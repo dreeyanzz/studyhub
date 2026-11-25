@@ -68,9 +68,9 @@ export function SpaceCard({
             alt=""
             fill
             sizes="(max-width: 1024px) 100vw, 45vw"
-            className="scale-110 object-cover opacity-35 blur-2xl"
+            className="scale-110 object-cover opacity-55 blur-xl"
           />
-          <div className="absolute inset-0 bg-white/55 backdrop-blur-xl" />
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-lg" />
         </div>
       )}
 
@@ -245,7 +245,7 @@ export function SpaceCard({
             onFocus={() => onHover?.(space.id)}
             onBlur={() => onHover?.(null)}
             onClick={() => onSelect?.(space.id)}
-            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full bg-white px-5 py-2 text-sm font-semibold text-foreground shadow-xs transition-all duration-200 outline-none hover:bg-secondary focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#153528] active:scale-[0.98]"
+            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full bg-[#f0c95c] px-5 py-2 text-sm font-semibold text-foreground shadow-xs transition-all duration-200 outline-none hover:bg-[#e5ba45] focus-visible:ring-2 focus-visible:ring-[#f0c95c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#153528] active:scale-[0.98]"
           >
             <span>View Space</span>
             <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
