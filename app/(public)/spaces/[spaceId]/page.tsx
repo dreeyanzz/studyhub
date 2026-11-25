@@ -23,6 +23,7 @@ import { reviewListSchema } from '@/lib/validation/review'
 import { spaceIdSchema } from '@/lib/validation/space'
 import { AvailabilitySummary } from './_components/availability-summary'
 import { HoldUnitPanel } from './_components/hold-unit-panel'
+import { SeatMapRefresh } from './_components/seat-map-refresh'
 import { SpacePhotoGallery, type SpacePhoto } from './_components/space-photo-gallery'
 import { SpaceProfileHeader } from './_components/space-profile-header'
 import { SpaceReviews } from './_components/space-reviews'
@@ -228,7 +229,11 @@ export default async function SpaceProfilePage({
         </Link>
       </nav>
 
-      <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
+      <SpaceProfileHeader
+        space={space}
+        operatingStatus={operatingStatus}
+        holdFeeAmount={holdTerms?.feeAmount ?? null}
+      />
 
       <SpacePhotoGallery spaceName={space.name} photos={photos} />
 
@@ -262,6 +267,8 @@ export default async function SpaceProfilePage({
 
       {/* Zone availability overview with oldest-available freshness rule (D-051) */}
       <AvailabilitySummary summary={availability} />
+
+      <SeatMapRefresh />
 
       {refusalMessage && (
         <Alert variant="destructive" role="alert" data-testid="hold-refusal">

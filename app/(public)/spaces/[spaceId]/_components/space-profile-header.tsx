@@ -2,6 +2,7 @@ import { Clock, MapPin } from 'lucide-react'
 
 import { PriceTierBadge } from '@/components/discovery/price-tier-badge'
 import { Badge } from '@/components/ui/badge'
+import { formatPeso } from '@/lib/reservations/format'
 import { formatOpeningHours, type SpaceOperatingStatus } from '@/lib/space/format'
 import { cn } from '@/lib/utils'
 import type { PriceTier } from '@/lib/validation/search'
@@ -17,14 +18,20 @@ export interface SpaceProfileHeaderProps {
     price_tier: PriceTier
   }
   operatingStatus: SpaceOperatingStatus
+  /** Reservation hold fee in centavos (D-049), shown up front before a unit is picked. */
+  holdFeeAmount?: number | null
 }
 
 /**
  * Public Space profile header section (STORY-11 design §0, §3 Screen 1, FR-1.3, D-027, D-048).
  * Renders Space name (h1), address with map pin icon, operating hours with open/closed status badge,
- * curated price tier badge (₱ / ₱₱ / ₱₱₱ / Free), and description.
+ * curated price tier badge (₱ / ₱₱ / ₱₱₱ / Free), upfront hold fee when open for holds, and description.
  */
-export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeaderProps) {
+export function SpaceProfileHeader({
+  space,
+  operatingStatus,
+  holdFeeAmount = null,
+}: SpaceProfileHeaderProps) {
   const hoursText = formatOpeningHours(space.opens_at, space.closes_at)
 
   return (
@@ -59,6 +66,14 @@ export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeade
           {operatingStatus.displayText}
         </Badge>
         <PriceTierBadge tier={space.price_tier} showSymbol />
+        {typeof holdFeeAmount === 'number' && (
+          <Badge
+            variant="secondary"
+            className="h-auto min-h-6 px-2 py-0.5 text-xs font-medium whitespace-normal"
+          >
+            Hold fee: {formatPeso(holdFeeAmount)}
+          </Badge>
+        )}
       </div>
 
       {space.description && (

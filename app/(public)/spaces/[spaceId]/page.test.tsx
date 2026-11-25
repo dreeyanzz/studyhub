@@ -11,6 +11,7 @@ const mockNotFound = vi.fn(() => {
 
 vi.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
+  useRouter: () => ({ refresh: vi.fn() }),
 }))
 
 const VALID_SPACE_ID = 'e0000000-0000-4000-8000-000000000001'
