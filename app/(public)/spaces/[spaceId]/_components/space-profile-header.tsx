@@ -1,4 +1,5 @@
-import { Clock, MapPin } from 'lucide-react'
+import Image from 'next/image'
+import { Armchair, Clock, MapPin, ShieldCheck, Users } from 'lucide-react'
 
 import { PriceTierBadge } from '@/components/discovery/price-tier-badge'
 import { Badge } from '@/components/ui/badge'
@@ -17,67 +18,148 @@ export interface SpaceProfileHeaderProps {
     price_tier: PriceTier
   }
   operatingStatus: SpaceOperatingStatus
+  /** Optional cover photo URL rendered full-bleed behind the progressive frosted glass scrim. */
+  coverPhotoUrl?: string | null
+  /** Optional live seat availability counts displayed in the frosted stat columns. */
+  availability?: {
+    availableUnits: number
+    totalUnits: number
+  }
 }
 
 /**
  * Public Space profile header section (STORY-11 design §0, §3 Screen 1, FR-1.3, D-027, D-048).
- * Renders Space name (h1), address with map pin icon, operating hours with open/closed status badge,
- * curated price tier badge (₱ / ₱₱ / ₱₱₱ / Free), and description.
+ * Full-bleed atmospheric info card with top-left floating badges, progressive frosted-glass
+ * blur + deep forest-green scrim over the lower section, and scannable location/hours footer.
  */
-export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeaderProps) {
+export function SpaceProfileHeader({
+  space,
+  operatingStatus,
+  coverPhotoUrl,
+  availability,
+}: SpaceProfileHeaderProps) {
   const hoursText = formatOpeningHours(space.opens_at, space.closes_at)
 
   return (
-    <header className="relative flex h-full flex-col justify-between gap-6 rounded-3xl border border-white/75 bg-white/82 p-6 shadow-[0_18px_40px_-16px_rgba(10,30,20,0.38),inset_0_1px_0_rgba(255,255,255,0.95)] backdrop-blur-2xl sm:p-7">
-      <div className="space-y-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <Badge
-            variant="outline"
-            className={cn(
-              'h-auto min-h-6 rounded-full px-3 py-0.5 text-xs font-medium break-words whitespace-normal',
-              operatingStatus.isOpen
-                ? 'border-transparent bg-primary text-primary-foreground shadow-xs'
-                : 'border-border/70 bg-white/90 text-muted-foreground',
-            )}
-          >
-            {operatingStatus.displayText}
-          </Badge>
-          <PriceTierBadge tier={space.price_tier} showSymbol />
+    <header className="relative flex h-full min-h-[380px] flex-col justify-between overflow-hidden rounded-[2rem] bg-[#143326] text-white shadow-[0_24px_48px_-18px_rgba(23,60,45,0.36)] sm:min-h-[420px]">
+      {/* Full-bleed cover photo or rich Worq botanical gradient fallback */}
+      {coverPhotoUrl ? (
+        <Image
+          src={coverPhotoUrl}
+          alt=""
+          fill
+          preload
+          sizes="(max-width: 768px) 100vw, 45vw"
+          className="object-cover"
+          aria-hidden="true"
+        />
+      ) : (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#235d42] via-[#194733] to-[#0f291e]"
+        >
+          <div className="absolute -top-20 -right-12 size-64 rounded-full bg-accent/25 blur-3xl" />
+          <div className="absolute bottom-8 -left-12 size-64 rounded-full bg-[#7bc496]/20 blur-3xl" />
         </div>
+      )}
 
-        <div className="space-y-2.5">
-          <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-foreground sm:text-3xl">
-            {space.name}
-          </h1>
+      {/* Subtle top scrim so floating badges stay crisp over bright photos */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/30 to-transparent"
+      />
 
-          {space.description && (
-            <p className="text-sm leading-relaxed break-words whitespace-pre-line text-foreground/85">
-              {space.description}
-            </p>
+      {/* Progressive frosted-glass blur rising smoothly from the bottom */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[68%] [mask-image:linear-gradient(to_top,black_55%,transparent_100%)] backdrop-blur-xl"
+      />
+
+      {/* Deep Worq forest-green gradient scrim guaranteeing crisp contrast on white text */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[76%] bg-gradient-to-t from-[#0e261c]/95 via-[#173c2d]/82 to-transparent"
+      />
+
+      {/* Top-left floating pills */}
+      <div className="relative z-10 flex min-w-0 flex-wrap items-center gap-2 p-5 sm:p-6">
+        <Badge
+          variant="outline"
+          className={cn(
+            'h-auto min-h-7 gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold break-words whitespace-normal shadow-sm backdrop-blur-md',
+            operatingStatus.isOpen
+              ? 'border-white/90 bg-white/95 text-foreground'
+              : 'border-white/80 bg-white/90 text-muted-foreground',
           )}
-        </div>
+        >
+          <span
+            aria-hidden="true"
+            className={cn(
+              'size-2 shrink-0 rounded-full',
+              operatingStatus.isOpen ? 'bg-emerald-600' : 'bg-muted-foreground',
+            )}
+          />
+          {operatingStatus.displayText}
+        </Badge>
+        <PriceTierBadge tier={space.price_tier} showSymbol className="shadow-sm" />
       </div>
 
-      {/* Frosted quick-facts tray grouping Location and Hours for instant scanning */}
-      <div className="space-y-2.5 rounded-2xl border border-white/90 bg-white/85 p-3.5 shadow-2xs backdrop-blur-md">
-        <div className="flex min-w-0 items-start gap-2.5 text-sm wrap-anywhere text-foreground/85">
-          <span
-            aria-hidden="true"
-            className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-primary"
-          >
-            <MapPin className="size-3.5" />
-          </span>
-          <span className="min-w-0 pt-0.5">{space.address}</span>
+      {/* Lower frosted-glass info area with divided quick stats + hairline footer */}
+      <div className="relative z-10 mt-auto space-y-4 p-5 pt-10 sm:p-6 sm:pt-12">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-2">
+            <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-white drop-shadow-xs sm:text-3xl">
+              {space.name}
+            </h1>
+
+            <div className="flex min-w-0 items-start gap-1.5 text-sm wrap-anywhere text-white/90">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-accent" aria-hidden="true" />
+              <span>{space.address}</span>
+            </div>
+
+            {space.description && (
+              <p className="text-sm leading-relaxed break-words whitespace-pre-line text-white/85">
+                {space.description}
+              </p>
+            )}
+          </div>
+
+          {availability && availability.totalUnits > 0 && (
+            <div
+              aria-hidden="true"
+              className="flex shrink-0 items-center divide-x divide-white/25 rounded-2xl border border-white/15 bg-black/20 px-1 py-2 backdrop-blur-md"
+            >
+              <div className="px-3 text-center">
+                <span className="flex items-center justify-center gap-1 text-sm font-semibold text-white">
+                  <Armchair className="size-3.5 text-accent" />
+                  <span>{availability.availableUnits}</span>
+                </span>
+                <span className="block text-xs text-white/75">Open</span>
+              </div>
+              <div className="px-3 text-center">
+                <span className="flex items-center justify-center gap-1 text-sm font-semibold text-white">
+                  <Users className="size-3.5 text-accent" />
+                  <span>{availability.totalUnits}</span>
+                </span>
+                <span className="block text-xs text-white/75">Units</span>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex min-w-0 items-center gap-2.5 border-t border-border/50 pt-2.5 text-sm font-medium text-foreground">
+        {/* Hairline glass footer strip */}
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2.5 border-t border-white/20 pt-3.5 text-sm text-white/95">
+          <div className="flex min-w-0 items-center gap-2 font-medium">
+            <Clock className="size-4 shrink-0 text-accent" aria-hidden="true" />
+            <span className="min-w-0 wrap-anywhere">Hours: {hoursText}</span>
+          </div>
           <span
             aria-hidden="true"
-            className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-primary"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-white/80"
           >
-            <Clock className="size-3.5" />
+            <ShieldCheck className="size-3.5 shrink-0 text-accent" />
+            <span>Verified Space</span>
           </span>
-          <span className="min-w-0 wrap-anywhere">Hours: {hoursText}</span>
         </div>
       </div>
     </header>

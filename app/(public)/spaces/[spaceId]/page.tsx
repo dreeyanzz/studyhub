@@ -231,25 +231,19 @@ export default async function SpaceProfilePage({
           </Link>
         </nav>
 
-        {/* Highlighted Worq forest-green hero showcase: Frosted glass info card beside photo gallery */}
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#173c2d] via-primary to-[#2d6d4d] p-4 shadow-[0_22px_50px_-20px_rgba(23,60,45,0.45)] sm:p-6 lg:p-7">
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-24 -left-16 size-80 rounded-full bg-accent/30 blur-3xl"
+        {/* Top Hero Split: Full-bleed frosted-glass Info Card beside interactive Photo Gallery */}
+        <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <SpaceProfileHeader
+            space={space}
+            operatingStatus={operatingStatus}
+            coverPhotoUrl={photos[0]?.url ?? null}
+            availability={{
+              availableUnits: availability.availableUnits,
+              totalUnits: availability.totalUnits,
+            }}
           />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -bottom-28 left-1/3 size-96 rounded-full bg-[#7bc496]/20 blur-3xl"
-          />
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute -top-16 right-1/4 size-72 rounded-full bg-secondary/20 blur-3xl"
-          />
-          <div className="relative grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-            <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
 
-            <SpacePhotoGallery spaceName={space.name} photos={photos} />
-          </div>
+          <SpacePhotoGallery spaceName={space.name} photos={photos} />
         </div>
 
         {!operatingStatus.isOpen && (
