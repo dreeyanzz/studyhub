@@ -1,6 +1,7 @@
 # Review lifecycle
 
-**Status:** approved 2026-11-19 · **Owner:** @dreeyanzz · **Approved by:** @JamesNino-Mandawe ·
+**Status:** approved 2026-11-19 · **Moderation change (#420):** draft · **Owner:**
+@dreeyanzz · **Approved by:** @JamesNino-Mandawe ·
 **Stories:** STORY-13, STORY-14, STORY-16 · **Decisions:** D-009, D-052, D-055, D-073,
 D-076, D-079, D-080, D-081
 
@@ -142,6 +143,7 @@ says what each kind of denial looks like.
 | N15 | Give a rating outside 1 to 5, a comment over 500 characters, or a report note over 300                                        | Check constraints on `reviews` and `review_reports`                                              | `reviews`: "a rating of 0 or 6 is refused"; "a comment over 500 characters is refused"; "a report note over 300 characters is refused"                                                      |
 | N16 | Count anything but visible reviews of a Verified Space in the averages                                                        | `public.space_review_summary`                                                                    | `reviews`: "the averages leave out hidden and removed reviews"; "a Pending Space's averages read as none"                                                                                   |
 | N17 | Read a reviewer's full name through their review                                                                              | Reviews are read through a function that returns only the short name (D-081)                     | `reviews`: "a review read returns the reviewer's short name, never their full name"                                                                                                         |
+| N18 | Moderate a review that another Administrator moderated after they read it                                                     | `public.moderate_review` compares the newest moderation log entry the Administrator saw          | `review-moderation`: "an Administrator cannot remove a review restored since they read it"; "an Administrator cannot hide a review after a dismissal since they read it"                    |
 
 ## How the database enforces it
 
@@ -173,7 +175,8 @@ because only moderation changes a status.
   with the review, the action (`hide`, `remove`, `restore` or `dismiss`), who took it,
   and when. Only Administrators can read it, and only `moderate_review` writes it.
 - **`public.moderate_review`** (STORY-14):
-  - It takes a review's id, the action, and the version the Administrator saw. It runs as
+  - It takes a review's id, the action, the version the Administrator saw, and the newest
+    entry of the review's moderation log they saw (none when it was empty). It runs as
     `security definer` with an empty `search_path`. `authenticated` may run it, and `anon`
     may not.
   - It refuses anyone who isn't an Administrator with `42501`, the same error a missing
@@ -181,6 +184,11 @@ because only moderation changes a status.
   - It locks the review's row, then refuses if its version has changed since the
     Administrator read it (N9), so a decision covers the text they saw, as
     `set_space_status` does for a Space (D-053).
+  - It also refuses if the review's newest moderation log entry isn't the one the
+    Administrator saw (N18), so a decision covers the moderation they saw too. Another
+    Administrator's hide, restore or dismiss leaves the version as it was, and a dismiss
+    leaves the status as it was, so neither of those alone would catch it (#420). Both
+    refusals read the same to the Administrator: the review changed since they loaded it.
   - It allows only RV4 to RV8, and refuses anything else (N8). Hide, remove and dismiss
     close every open report on the review, whatever version it was about. Hide, remove and
     restore set `status_changed_by` and `status_changed_at`.
