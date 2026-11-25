@@ -57,7 +57,7 @@ export async function moderateReviewAction(
     }
   }
 
-  const { reviewId, action, version } = parsed.data
+  const { reviewId, action, version, lastEventId } = parsed.data
 
   const supabase = await createClient()
   const {
@@ -66,10 +66,14 @@ export async function moderateReviewAction(
 
   if (!user) redirect('/login?returnUrl=%2Fadmin%2Fmoderation')
 
+  // The newest moderation log entry the Administrator saw (N18, #420). Left out when
+  // the log was empty, which the function reads as null, so it refuses with
+  // stale_version once another Administrator has acted on the review.
   const { error } = await supabase.rpc('moderate_review', {
     p_review_id: reviewId,
     p_action: action,
     p_version: version,
+    p_last_event_id: lastEventId ?? undefined,
   })
 
   if (error) {

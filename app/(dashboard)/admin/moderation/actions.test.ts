@@ -63,6 +63,35 @@ describe('moderateReviewAction (STORY-14, TSK-14.3)', () => {
     },
   )
 
+  it('sends the newest moderation log entry the page saw (N18, #420)', async () => {
+    const EVENT_ID = '55555555-5555-4555-8555-555555555555'
+    await moderateReviewAction({
+      reviewId: REVIEW_ID,
+      action: 'remove',
+      version: 1,
+      lastEventId: EVENT_ID,
+    })
+
+    expect(rpcMock).toHaveBeenCalledWith('moderate_review', {
+      p_review_id: REVIEW_ID,
+      p_action: 'remove',
+      p_version: 1,
+      p_last_event_id: EVENT_ID,
+    })
+  })
+
+  it('leaves the entry out when the page saw an empty log, which the function reads as null', async () => {
+    await moderateReviewAction({
+      reviewId: REVIEW_ID,
+      action: 'hide',
+      version: 1,
+      lastEventId: null,
+    })
+
+    const args = rpcMock.mock.calls[0]?.[1] as Record<string, unknown>
+    expect(args.p_last_event_id).toBeUndefined()
+  })
+
   it('redirects signed-out callers to /login', async () => {
     getUserMock.mockResolvedValue({ data: { user: null } })
 

@@ -44,8 +44,9 @@ function positiveIntPreprocess(val: unknown): unknown {
 
 /**
  * Validates input to `moderateReviewAction` / `public.moderate_review`:
- * review UUID, one of the four moderation actions, and the integer version the
- * Administrator saw (N8, N9, D-080).
+ * review UUID, one of the four moderation actions, the integer version the
+ * Administrator saw, and the id of the newest moderation log entry they saw
+ * (null or left out when the log was empty) (N8, N9, N18, D-080, #420).
  */
 export const moderateReviewSchema = z.object({
   reviewId: reviewIdSchema,
@@ -59,6 +60,10 @@ export const moderateReviewSchema = z.object({
       .int({ error: 'Invalid review version.' })
       .min(1, { error: 'Invalid review version.' }),
   ),
+  lastEventId: z
+    .uuid({ error: 'Invalid moderation history entry.' })
+    .nullable()
+    .optional(),
 })
 
 export type ModerateReviewInput = z.infer<typeof moderateReviewSchema>

@@ -150,6 +150,8 @@ export function ModerationQueue({
         reviewId: item.reviewId,
         action,
         version: item.version,
+        // History reads newest first, so its first entry is what this page saw (N18).
+        lastEventId: historyByReviewId[item.reviewId]?.[0]?.id ?? null,
       })
 
       succeededRef.current = result.success

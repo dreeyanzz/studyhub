@@ -67,6 +67,21 @@ describe('moderateReviewSchema (STORY-14, TSK-14.3)', () => {
       }).success,
     ).toBe(false)
   })
+
+  it('takes the newest moderation log entry as a UUID, null, or left out (N18)', () => {
+    const base = { reviewId: VALID_UUID, action: 'remove' as const, version: 1 }
+    const EVENT_ID = '55555555-5555-4555-8555-555555555555'
+
+    const withEntry = moderateReviewSchema.safeParse({ ...base, lastEventId: EVENT_ID })
+    expect(withEntry.success && withEntry.data.lastEventId).toBe(EVENT_ID)
+    expect(moderateReviewSchema.safeParse({ ...base, lastEventId: null }).success).toBe(
+      true,
+    )
+    expect(moderateReviewSchema.safeParse(base).success).toBe(true)
+    expect(
+      moderateReviewSchema.safeParse({ ...base, lastEventId: 'not-a-uuid' }).success,
+    ).toBe(false)
+  })
 })
 
 describe('reviewQueueSchema (STORY-14, TSK-14.3)', () => {
