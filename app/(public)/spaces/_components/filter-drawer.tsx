@@ -166,7 +166,7 @@ export function FilterDrawer({
                   Filter Study Spaces
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Spaces must match all selected filters (AND)
+                  Spaces will match every filter you pick.
                 </p>
               </div>
               <button
@@ -181,7 +181,7 @@ export function FilterDrawer({
             </div>
 
             {/* Scrollable Filter Sections (All 7 Curated Criteria, D-031 48x48px targets) */}
-            <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+            <div className="grid flex-1 grid-cols-1 gap-x-6 gap-y-5 overflow-y-auto px-5 py-4 sm:grid-cols-2">
               {CURATED_TAG_GROUPS.map((group) => (
                 <div
                   key={group.category}
@@ -203,13 +203,13 @@ export function FilterDrawer({
                           data-testid={`drawer-filter-tag-${opt.id}`}
                           onClick={() => onToggleTag(opt.id)}
                           className={cn(
-                            'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                            'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                             isSelected
                               ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                              : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
+                              : 'border-border/70 bg-secondary/45 text-foreground shadow-2xs hover:border-primary/45 hover:bg-secondary/80',
                           )}
                         >
-                          {opt.label}
+                          {opt.shortLabel}
                         </button>
                       )
                     })}
@@ -233,10 +233,10 @@ export function FilterDrawer({
                         data-testid={`drawer-filter-hours-${opt.id}`}
                         onClick={() => onToggleHours(opt.id)}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected
                             ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
+                            : 'border-border/70 bg-secondary/45 text-foreground shadow-2xs hover:border-primary/45 hover:bg-secondary/80',
                         )}
                       >
                         {opt.label}
@@ -262,10 +262,10 @@ export function FilterDrawer({
                         data-testid={`drawer-filter-price-${opt.id}`}
                         onClick={() => onTogglePrice(opt.id)}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected
                             ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
+                            : 'border-border/70 bg-secondary/45 text-foreground shadow-2xs hover:border-primary/45 hover:bg-secondary/80',
                         )}
                       >
                         {opt.label}
@@ -291,10 +291,10 @@ export function FilterDrawer({
                         data-testid={`drawer-filter-unit-${opt.id}`}
                         onClick={() => onToggleUnitType(opt.id)}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected
                             ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
+                            : 'border-border/70 bg-secondary/45 text-foreground shadow-2xs hover:border-primary/45 hover:bg-secondary/80',
                         )}
                       >
                         {opt.label}
