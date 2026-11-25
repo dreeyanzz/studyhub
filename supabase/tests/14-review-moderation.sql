@@ -770,7 +770,7 @@ set local request.jwt.claims =
 select is(
   pg_temp.refusal($$select public.moderate_review('14b00000-0000-4000-8000-000000000005', 'hide', 1, null)$$),
   'P0001 stale_version',
-  'N18: an Administrator cannot hide a review whose reports another Administrator dismissed since they read it'
+  'N18: an Administrator cannot hide a review after a dismissal since they read it'
 );
 
 select is(
@@ -804,7 +804,7 @@ select is(
       (select e.id from public.review_moderation_events e
        where e.review_id = '14b00000-0000-4000-8000-000000000005' and e.action = 'dismiss'))$$),
   'P0001 stale_version',
-  'N18: an Administrator cannot remove a review another Administrator restored since they read it'
+  'N18: an Administrator cannot remove a review restored since they read it'
 );
 
 select results_eq(
