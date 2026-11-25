@@ -33,14 +33,14 @@ describe('SeekerNav (STORY-17)', () => {
   it('marks Dashboard as the current page on /seeker', () => {
     const html = renderToStaticMarkup(<SeekerNav />)
 
-    expect(html).toMatch(/<a[^>]*href="\/seeker"[^>]*aria-current="page"/)
+    expect(html).toMatch(/<a[^>]*aria-current="page"[^>]*href="\/seeker"/)
   })
 
   it('keeps Find a Space reachable while the Seeker is on a hold page', () => {
     pathname.current = '/seeker/reservations/0b7e9a52-1c2d-4e3f-9a8b-7c6d5e4f3a2b'
     const html = renderToStaticMarkup(<SeekerNav />)
 
-    expect(html).toMatch(/<a[^>]*href="\/seeker"[^>]*aria-current="true"/)
+    expect(html).toMatch(/<a[^>]*aria-current="true"[^>]*href="\/seeker"/)
     expect(html).toContain('href="/spaces"')
   })
 })

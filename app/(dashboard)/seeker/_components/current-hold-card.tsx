@@ -2,7 +2,6 @@
 import Link from 'next/link'
 import { User } from 'lucide-react'
 
-import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,16 +9,17 @@ import type { MyReservation } from '@/lib/data/reservations'
 import { formatPeso } from '@/lib/reservations/format'
 
 import { checkOutAction } from '../actions'
+import { PaymentCountdown } from '../reservations/[id]/_components/payment-countdown'
 import {
-  BookingToken,
+  DirectionsLink,
   EndedView,
   HoldPlace,
   HoldStatusBadge,
   ManilaTime,
+  ReservedQrCard,
   WRAPPING_BUTTON,
   buttonLinkClass,
 } from '../reservations/[id]/_components/reservation-status-view'
-import { CopyTokenButton } from './copy-token-button'
 import { WaitCountdown } from './wait-countdown'
 
 export function CurrentHoldCard({
@@ -52,7 +52,8 @@ export function CurrentHoldCard({
           <HoldStatusBadge status={hold.status} />
           <span aria-hidden="true">·</span>
           <span>
-            Pay by <ManilaTime iso={hold.paymentWindowEndsAt} />
+            Pay by <ManilaTime iso={hold.paymentWindowEndsAt} />{' '}
+            <PaymentCountdown deadline={hold.paymentWindowEndsAt} />
           </span>
         </p>
         <Link href={`/seeker/reservations/${hold.id}`} className={buttonLinkClass()}>
@@ -96,20 +97,10 @@ export function CurrentHoldCard({
           </div>
         )}
 
-        {hold.bookingToken && (
-          <div className="flex flex-col items-center gap-3 rounded-lg border border-border/60 bg-background/50 p-4 text-center">
-            <BookingQrCode token={hold.bookingToken} />
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <BookingToken token={hold.bookingToken} />
-              <CopyTokenButton token={hold.bookingToken} />
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Present this QR code to the host or recite your code upon arrival.
-            </p>
-          </div>
-        )}
+        {hold.bookingToken && <ReservedQrCard token={hold.bookingToken} />}
 
         <div className="flex flex-wrap gap-3">
+          <DirectionsLink spaceName={hold.spaceName} spaceAddress={hold.spaceAddress} />
           <Link
             href={`/seeker/reservations/${hold.id}?cancel=1`}
             className={buttonLinkClass('outline')}
@@ -223,9 +214,17 @@ export function CurrentHoldCard({
           Visit completed
         </h2>
         <HoldPlace reservation={hold} />
-        <Link href={`/spaces/${hold.spaceId}`} className={buttonLinkClass()}>
-          Back to {hold.spaceName}
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href={`/spaces/${hold.spaceId}#reviews-heading`}
+            className={buttonLinkClass()}
+          >
+            Leave a review
+          </Link>
+          <Link href={`/spaces/${hold.spaceId}`} className={buttonLinkClass('outline')}>
+            Back to {hold.spaceName}
+          </Link>
+        </div>
       </section>
     )
   }

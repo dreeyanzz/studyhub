@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
-// The Server Actions are only form targets here.
+// WaitCountdown uses useRouter(); the Server Actions are only form targets here.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+}))
 vi.mock('../actions', () => ({ startCheckout: vi.fn(), cancelHold: vi.fn() }))
 
 import type { MyReservation } from '@/lib/data/reservations'
@@ -132,7 +135,7 @@ describe('ReservedView', () => {
     waitWindowEndsAt: '2026-11-14T08:42:00Z',
   }
 
-  it('shows the unit, QR code above the token, and the check-in time in Manila', () => {
+  it('shows the unit, QR code above the token, copy button, countdown, directions, and check-in time', () => {
     const raw = renderToStaticMarkup(
       <ReservedView reservation={reserved} confirmingCancel={false} />,
     )
@@ -141,7 +144,11 @@ describe('ReservedView', () => {
     expect(raw).toContain('aria-label="Booking QR code for token ABCD-EFGH-JKMN"')
     expect(raw.indexOf('role="img"')).toBeLessThan(raw.indexOf('ABCD'))
     expect(html).toContain('ABCD-EFGH-JKMN')
+    expect(html).toContain('Copy code')
+    expect(html).toContain('Time remaining to check in:')
     expect(html).toContain('Check in by 4:42 PM.')
+    expect(html).toContain('Get directions')
+    expect(raw).toContain('https://www.google.com/maps/search/?api=1&amp;query=')
     expect(html).toContain('Cancel reservation')
   })
 

@@ -3,7 +3,7 @@
 // straight to the Server Actions, so cancelling and paying work without JavaScript.
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Clock, Hourglass } from 'lucide-react'
+import { Clock, ExternalLink, Hourglass } from 'lucide-react'
 
 import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,8 @@ import type { MyReservation } from '@/lib/data/reservations'
 import { formatManilaTime, formatPeso } from '@/lib/reservations/format'
 import { cn } from '@/lib/utils'
 
+import { CopyTokenButton } from '../../../_components/copy-token-button'
+import { WaitCountdown } from '../../../_components/wait-countdown'
 import { cancelHold, startCheckout } from '../actions'
 
 export function holdPath(reservation: Pick<MyReservation, 'id'>): string {
@@ -167,7 +169,51 @@ export function CancelConfirmation({ reservation }: { reservation: MyReservation
   )
 }
 
-/** Reserved: the token and the check-in time (seeker-hold-and-pay). */
+/** External Google Maps search URL for one-tap directions to the Space (STORY-17). */
+export function directionsUrl(spaceName: string, spaceAddress: string): string {
+  const query = [spaceName, spaceAddress].filter(Boolean).join(', ')
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+
+/** One-tap directions link for an active Reserved hold (STORY-17). */
+export function DirectionsLink({
+  spaceName,
+  spaceAddress,
+}: {
+  spaceName: string
+  spaceAddress: string
+}) {
+  return (
+    <a
+      href={directionsUrl(spaceName, spaceAddress)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(buttonLinkClass('outline'), 'gap-2')}
+    >
+      Get directions
+      <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  )
+}
+
+/** Shared QR code + copyable booking token card for Reserved holds (STORY-10, STORY-17). */
+export function ReservedQrCard({ token }: { token: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-border/60 bg-background/50 p-4 text-center">
+      <BookingQrCode token={token} />
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <BookingToken token={token} />
+        <CopyTokenButton token={token} />
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Present this QR code to the host or recite your code upon arrival.
+      </p>
+    </div>
+  )
+}
+
+/** Reserved: the token, wait countdown, directions, and check-in time (seeker-hold-and-pay). */
 export function ReservedView({
   reservation,
   confirmingCancel,
@@ -183,28 +229,35 @@ export function ReservedView({
           Reserved: {reservation.unitLabel}
         </h1>
         <HoldPlace reservation={reservation} />
+        <p className="text-sm text-muted-foreground">{reservation.spaceAddress}</p>
       </div>
-      {reservation.bookingToken && (
-        <div className="space-y-3">
-          <BookingQrCode token={reservation.bookingToken} />
-          <BookingToken token={reservation.bookingToken} />
+      {reservation.waitWindowEndsAt && (
+        <div className="space-y-1">
+          <WaitCountdown
+            deadline={reservation.waitWindowEndsAt}
+            reservationId={reservation.id}
+          />
+          <p className="text-sm text-muted-foreground">
+            Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
+          </p>
         </div>
       )}
-      {reservation.waitWindowEndsAt && (
-        <p>
-          Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
-        </p>
-      )}
-      <p className="text-sm text-muted-foreground">{reservation.spaceAddress}</p>
+      {reservation.bookingToken && <ReservedQrCard token={reservation.bookingToken} />}
       {confirmingCancel ? (
         <CancelConfirmation reservation={reservation} />
       ) : (
-        <Link
-          href={`${holdPath(reservation)}?cancel=1`}
-          className={buttonLinkClass('outline')}
-        >
-          Cancel reservation
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <DirectionsLink
+            spaceName={reservation.spaceName}
+            spaceAddress={reservation.spaceAddress}
+          />
+          <Link
+            href={`${holdPath(reservation)}?cancel=1`}
+            className={buttonLinkClass('outline')}
+          >
+            Cancel reservation
+          </Link>
+        </div>
       )}
     </div>
   )
