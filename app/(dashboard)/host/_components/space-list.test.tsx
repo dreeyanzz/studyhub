@@ -102,4 +102,14 @@ describe('SpaceList component (STORY-05, STORY-11 TSK-11.2)', () => {
     expect(html).toContain('You have no Spaces')
     expect(html).toContain('Spaces belong to the Hosts who create them.')
   })
+
+  it('links verified Spaces to their public listing, and omits it for pending Spaces (STORY-17)', () => {
+    const html = renderToStaticMarkup(<SpaceList spaces={mockSpaces} canCreate={true} />)
+
+    expect(html).toContain('href="/spaces/e0000000-0000-4000-8000-000000000001"')
+    expect(html).toContain(
+      'View public listing<span class="sr-only"> for Kapihan Study Hub</span>',
+    )
+    expect(html).not.toContain('href="/spaces/e0000000-0000-4000-8000-000000000002"')
+  })
 })

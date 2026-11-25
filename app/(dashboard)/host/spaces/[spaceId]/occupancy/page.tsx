@@ -5,6 +5,7 @@ import { getSeatMap } from '@/lib/data/seat-map'
 import { createClient } from '@/lib/supabase/server'
 import { spaceIdSchema } from '@/lib/validation/space'
 
+import { SpaceSubNav } from '../_components/space-sub-nav'
 import { OccupancyHeader } from './_components/occupancy-header'
 import { OccupancyView } from './_components/occupancy-view'
 
@@ -55,6 +56,7 @@ export default async function OccupancyPage({
   return (
     <div className="space-y-8">
       <OccupancyHeader space={space} zones={zones} />
+      <SpaceSubNav spaceId={space.id} current="occupancy" />
       <OccupancyView space={space} initialZones={zones} />
     </div>
   )

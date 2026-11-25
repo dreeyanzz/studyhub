@@ -114,6 +114,14 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
         >
           Edit<span className="sr-only"> {space.name}</span>
         </Link>
+        {space.status === 'verified' ? (
+          <Link
+            href={`/spaces/${space.id}`}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            View public listing<span className="sr-only"> for {space.name}</span>
+          </Link>
+        ) : null}
         {/* Only opens the confirmation page; nothing is deleted until it is submitted. */}
         <Link
           href={`/host/spaces/${space.id}/delete`}

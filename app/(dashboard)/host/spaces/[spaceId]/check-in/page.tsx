@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { spaceIdSchema } from '@/lib/validation/space'
 
+import { SpaceSubNav } from '../_components/space-sub-nav'
 import { CheckInShell } from './_components/check-in-shell'
 
 export const metadata: Metadata = {
@@ -105,6 +106,8 @@ export default async function HostCheckInPage({
           </div>
         </div>
       </div>
+
+      <SpaceSubNav spaceId={space.id} current="check-in" />
 
       <CheckInShell spaceId={space.id} spaceName={space.name} />
     </div>

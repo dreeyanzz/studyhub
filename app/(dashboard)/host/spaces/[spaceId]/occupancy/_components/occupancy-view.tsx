@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, LayoutGrid, List, RefreshCw } from 'lucide-react'
@@ -28,15 +28,22 @@ export interface OccupancyViewProps {
   initialZones: SeatMapZone[]
 }
 
+const AUTO_REFRESH_MS = 30_000
+const MIN_FOCUS_REFRESH_GAP_MS = 5_000
+
 /**
  * Client Component state holder for view toggle (STORY-12 design §3, D-031).
  *
  * Toggles between spatial Seat Map View and accessible List View.
  * Manages unit selection and dispatches occupancy state updates via setUnitStateAction.
+ * Also refreshes on tab focus and every 30s while visible so new Seeker holds appear
+ * at the front desk without a manual reload (STORY-17).
  */
 export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const [isRefreshing, startRefreshTransition] = useTransition()
+  const lastRefreshRef = useRef(0)
   const [viewMode, setViewMode] = useState<'seat_map' | 'list'>('seat_map')
   const [error, setError] = useState<string | null>(null)
   const [canRefresh, setCanRefresh] = useState(false)
@@ -44,6 +51,28 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
     unit: SeatMapUnit
     targetState: UnitState
   } | null>(null)
+
+  useEffect(() => {
+    const triggerRefresh = () => {
+      if (document.visibilityState !== 'visible') return
+      const now = Date.now()
+      if (now - lastRefreshRef.current < MIN_FOCUS_REFRESH_GAP_MS) return
+      lastRefreshRef.current = now
+      startRefreshTransition(() => {
+        router.refresh()
+      })
+    }
+
+    window.addEventListener('focus', triggerRefresh)
+    document.addEventListener('visibilitychange', triggerRefresh)
+    const timer = setInterval(triggerRefresh, AUTO_REFRESH_MS)
+
+    return () => {
+      window.removeEventListener('focus', triggerRefresh)
+      document.removeEventListener('visibilitychange', triggerRefresh)
+      clearInterval(timer)
+    }
+  }, [router])
 
   const allUnits = initialZones.flatMap((z) => z.units)
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(
@@ -151,6 +180,25 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
             List View
           </Button>
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          aria-busy={isRefreshing}
+          className="h-auto min-h-12 max-w-full min-w-12 gap-2 px-4 py-2 text-sm font-medium whitespace-normal"
+          onClick={() => {
+            lastRefreshRef.current = Date.now()
+            startRefreshTransition(() => {
+              router.refresh()
+            })
+          }}
+        >
+          <RefreshCw
+            className={cn('size-4 shrink-0', isRefreshing && 'animate-spin')}
+            aria-hidden="true"
+          />
+          {isRefreshing ? 'Refreshing…' : 'Refresh'}
+        </Button>
       </div>
 
       {/* Refusal / Network Error Alert */}
