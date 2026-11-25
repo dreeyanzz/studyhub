@@ -69,7 +69,11 @@ export default async function SpaceTagsPage({
         <nav aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
             <li>
-              <Link href="/host" className="underline-offset-4 hover:underline">
+              {/* A 48 x 48 px target, not just the text (SRS §3.2.2, #375). */}
+              <Link
+                href="/host"
+                className="inline-flex min-h-12 min-w-12 items-center underline-offset-4 hover:underline"
+              >
                 Your Spaces
               </Link>
               <span aria-hidden="true"> /</span>
