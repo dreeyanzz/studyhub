@@ -102,7 +102,7 @@ export function SpacePhotoGallery({
     >
       {/* Hero Image Container with Touch Navigation */}
       <div
-        className="relative aspect-video w-full flex-1 overflow-hidden rounded-[2rem] bg-muted shadow-[0_18px_40px_-16px_rgba(23,60,45,0.22)] sm:aspect-2/1"
+        className="relative aspect-video w-full flex-1 overflow-hidden rounded-2xl bg-muted shadow-xs sm:aspect-2/1 md:max-h-[440px]"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null
           touchStartY.current = e.touches[0]?.clientY ?? null
@@ -193,7 +193,7 @@ export function SpacePhotoGallery({
                 aria-label={`Show photo ${index + 1} of ${totalPhotos}`}
                 aria-current={isSelected ? 'true' : undefined}
                 className={cn(
-                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-2xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'relative h-20 w-28 shrink-0 overflow-hidden rounded-2xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                   isSelected
                     ? 'border-primary shadow-sm ring-2 ring-primary ring-offset-2'
                     : 'border-transparent opacity-75 hover:opacity-100',

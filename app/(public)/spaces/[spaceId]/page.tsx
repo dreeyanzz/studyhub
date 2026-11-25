@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
-import { AlertCircle, ArrowLeft, Clock } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Camera, Clock } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getHoldTerms, getHoldViewer } from '@/lib/data/reservations'
@@ -231,8 +231,8 @@ export default async function SpaceProfilePage({
           </Link>
         </nav>
 
-        {/* Top Hero Split: Full-bleed frosted-glass Info Card beside interactive Photo Gallery */}
-        <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        {/* Top Hero Split: Full-bleed frosted-glass Info Card beside Availability & Amenities */}
+        <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           <SpaceProfileHeader
             space={space}
             operatingStatus={operatingStatus}
@@ -243,7 +243,19 @@ export default async function SpaceProfilePage({
             }}
           />
 
-          <SpacePhotoGallery spaceName={space.name} photos={photos} />
+          <div className="flex min-w-0 flex-col gap-5">
+            {/* Zone availability overview with oldest-available freshness rule (D-051) */}
+            <div className={hasTags ? 'min-w-0' : 'min-w-0 flex-1'}>
+              <AvailabilitySummary summary={availability} />
+            </div>
+
+            {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
+            {hasTags && (
+              <div className="min-w-0 flex-1">
+                <SpaceTags curatedTags={curatedTags} customTags={customTags} />
+              </div>
+            )}
+          </div>
         </div>
 
         {!operatingStatus.isOpen && (
@@ -271,21 +283,6 @@ export default async function SpaceProfilePage({
           </Alert>
         )}
 
-        {/* Solid dual-card band: Amenities & Tags alongside Current Availability */}
-        <div
-          className={
-            hasTags
-              ? 'grid grid-cols-1 items-stretch gap-5 md:grid-cols-2'
-              : 'grid grid-cols-1'
-          }
-        >
-          {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
-          <SpaceTags curatedTags={curatedTags} customTags={customTags} />
-
-          {/* Zone availability overview with oldest-available freshness rule (D-051) */}
-          <AvailabilitySummary summary={availability} />
-        </div>
-
         {refusalMessage && (
           <Alert
             variant="destructive"
@@ -306,6 +303,34 @@ export default async function SpaceProfilePage({
           initialSelectedUnitId={unitParam}
           selectedUnitActionSlot={holdPanel}
         />
+
+        {/* Dedicated Photo Gallery Card for browsing more Space photos (TSK-11.4) */}
+        <section
+          aria-labelledby="space-photos-heading"
+          className="space-y-4 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)] sm:p-7"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="space-y-1">
+              <h2
+                id="space-photos-heading"
+                className="flex items-center gap-2 font-heading text-lg font-semibold tracking-tight text-foreground"
+              >
+                <Camera className="size-5 shrink-0 text-primary" aria-hidden="true" />
+                <span>Space Photos</span>
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Browse more photos of {space.name}&apos;s desks, lighting, and interior.
+              </p>
+            </div>
+            {photos.length > 0 && (
+              <span className="inline-flex items-center rounded-full bg-secondary/80 px-3.5 py-1 text-xs font-semibold text-secondary-foreground">
+                {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
+              </span>
+            )}
+          </div>
+
+          <SpacePhotoGallery spaceName={space.name} photos={photos} />
+        </section>
 
         {/* Community reviews and ratings (STORY-13, TSK-13.4, TSK-13.5, FR-4.1, FR-4.2) */}
         <SpaceReviews
