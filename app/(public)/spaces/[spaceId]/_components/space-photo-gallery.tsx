@@ -69,11 +69,11 @@ export function SpacePhotoGallery({
       <div
         data-testid="space-photos-empty"
         className={cn(
-          'flex h-full min-h-64 flex-col items-center justify-center rounded-3xl bg-muted/75 p-8 text-center sm:p-12',
+          'flex h-full min-h-64 flex-col items-center justify-center rounded-3xl border border-white/75 bg-white/84 p-8 text-center backdrop-blur-xl sm:p-12',
           className,
         )}
       >
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-card text-primary">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-primary">
           <ImageOff className="h-6 w-6" aria-hidden="true" />
         </div>
         {/* A paragraph, not a heading: an h3 here came straight after the page's h1 */}
@@ -102,7 +102,7 @@ export function SpacePhotoGallery({
     >
       {/* Hero Image Container with Touch Navigation */}
       <div
-        className="relative aspect-video w-full flex-1 overflow-hidden rounded-3xl bg-muted shadow-[0_14px_34px_-14px_rgba(23,60,45,0.16)] sm:aspect-2/1"
+        className="relative aspect-video w-full flex-1 overflow-hidden rounded-3xl bg-muted shadow-[0_18px_40px_-16px_rgba(10,30,20,0.42)] ring-1 ring-white/25 sm:aspect-2/1"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null
           touchStartY.current = e.touches[0]?.clientY ?? null
@@ -193,10 +193,10 @@ export function SpacePhotoGallery({
                 aria-label={`Show photo ${index + 1} of ${totalPhotos}`}
                 aria-current={isSelected ? 'true' : undefined}
                 className={cn(
-                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-2xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-2xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary focus-visible:outline-none',
                   isSelected
-                    ? 'border-primary ring-2 ring-primary ring-offset-2'
-                    : 'border-transparent opacity-70 hover:opacity-100',
+                    ? 'border-white shadow-md ring-2 ring-accent/90'
+                    : 'border-white/30 opacity-75 hover:border-white/60 hover:opacity-100',
                 )}
               >
                 <Image
