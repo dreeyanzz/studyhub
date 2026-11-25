@@ -65,9 +65,9 @@ export function SpaceCardList({
       {spaces.length === 0 ? (
         <div
           data-testid="seeker-search-no-results"
-          className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl bg-secondary/55 p-8 text-center sm:p-10"
+          className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center"
         >
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-card text-primary">
+          <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <SearchX className="size-7" aria-hidden="true" />
           </div>
           <h2 className="mt-4 font-heading text-lg font-bold text-foreground">
@@ -82,7 +82,7 @@ export function SpaceCardList({
                 type="button"
                 onClick={handleResetFilters}
                 data-testid="reset-all-filters-button"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-xs outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Reset all filters
               </button>
@@ -90,7 +90,7 @@ export function SpaceCardList({
               <Link
                 href="/spaces"
                 data-testid="reset-all-filters-button"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-xs outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 Reset all filters
               </Link>
@@ -101,7 +101,7 @@ export function SpaceCardList({
         <>
           {/* Result Count Header */}
           <div className="mb-4 flex items-center justify-between">
-            <p className="inline-flex items-center gap-1.5 rounded-full bg-secondary/75 px-4 py-1.5 text-sm font-medium text-secondary-foreground">
+            <p className="text-sm font-medium text-muted-foreground">
               Showing{' '}
               <span className="font-semibold text-foreground">{spaces.length}</span>{' '}
               {spaces.length === 1 ? 'space' : 'spaces'}

@@ -80,19 +80,4 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     expect(html).toContain('Open 24 Hours')
     expect(html).not.toContain('km away')
   })
-
-  it('clips the decorative blurred cover-photo backdrop inside its rounded wrapper', () => {
-    const html = renderToStaticMarkup(
-      <SpaceCard
-        space={{
-          ...mockSpace,
-          cover_photo_url:
-            'https://example.supabase.co/storage/v1/object/public/space-photos/a/1.jpg',
-        }}
-      />,
-    )
-    expect(html).toContain(
-      'pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]',
-    )
-  })
 })

@@ -471,7 +471,7 @@ export function DiscoveryShell({
             mobileView === 'list' ? 'hidden lg:block' : 'block',
           )}
         >
-          <div className="h-[calc(100vh-14rem)] min-h-[450px] w-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
+          <div className="h-[calc(100vh-14rem)] min-h-[450px] w-full overflow-hidden rounded-2xl border border-border shadow-xs">
             <DiscoveryMap
               spaces={displayedSpaces}
               activeSpaceId={activeSpaceId}

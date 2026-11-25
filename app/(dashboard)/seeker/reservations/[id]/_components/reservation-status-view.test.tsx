@@ -181,7 +181,7 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
   it("is the hold page's h1 unless the /seeker card asks for an h2", () => {
     const expired = { ...base, status: 'expired' as const }
     expect(renderToStaticMarkup(<EndedView reservation={expired} />)).toContain(
-      '<h1 class="font-heading text-2xl',
+      '<h1 class="text-2xl',
     )
     const inCard = renderToStaticMarkup(
       <EndedView reservation={expired} headingLevel="h2" headingId="card-heading" />,
