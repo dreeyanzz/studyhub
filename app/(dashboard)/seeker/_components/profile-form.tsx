@@ -101,10 +101,10 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   }
 
   return (
-    <Card className="w-full rounded-2xl shadow-sm">
+    <Card className="w-full">
       <CardHeader>
         <CardTitle>
-          <h2 className="font-heading text-xl font-semibold">Profile Details</h2>
+          <h2 className="text-xl font-semibold">Profile Details</h2>
         </CardTitle>
         <CardDescription>View and update your personal information.</CardDescription>
       </CardHeader>
@@ -120,9 +120,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="full_name" className="px-1">
-              Full Name
-            </Label>
+            <Label htmlFor="full_name">Full Name</Label>
             <Input
               id="full_name"
               name="full_name"
@@ -134,7 +132,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 activeFieldErrors.full_name ? 'full_name-error' : undefined
               }
               placeholder="e.g. Alex Seeker"
-              className="w-full rounded-full bg-muted/60 px-4 focus-visible:bg-background"
+              className="w-full"
             />
             {activeFieldErrors.full_name && (
               <p id="full_name-error" className="text-xs font-medium text-destructive">
@@ -144,9 +142,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone_number" className="px-1">
-              Phone Number
-            </Label>
+            <Label htmlFor="phone_number">Phone Number</Label>
             <Input
               id="phone_number"
               name="phone_number"
@@ -158,7 +154,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 activeFieldErrors.phone_number ? 'phone_number-error' : undefined
               }
               placeholder="e.g. +63 (912) 345-6789"
-              className="w-full rounded-full bg-muted/60 px-4 focus-visible:bg-background"
+              className="w-full"
             />
             {activeFieldErrors.phone_number && (
               <p id="phone_number-error" className="text-xs font-medium text-destructive">
@@ -175,7 +171,6 @@ export function ProfileForm({ profile }: ProfileFormProps) {
             size="default"
             disabled={isPending}
             focusableWhenDisabled
-            className="w-full rounded-full font-semibold sm:w-auto sm:px-6"
           >
             {isPending ? 'Saving changes…' : 'Save Profile'}
           </Button>

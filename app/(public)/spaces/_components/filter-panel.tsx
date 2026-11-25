@@ -1,20 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import {
-  Armchair,
-  Check,
-  ChevronDown,
-  Clock,
-  Plug,
-  RotateCcw,
-  SlidersHorizontal,
-  Tag,
-  Volume2,
-  Wifi,
-  Wind,
-  type LucideIcon,
-} from 'lucide-react'
+import { RotateCcw, SlidersHorizontal } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { HoursFilter, PriceTier, UnitTypeFilter } from '@/lib/validation/search'
 
@@ -191,123 +177,10 @@ export interface FilterPanelProps {
   className?: string
 }
 
-const CATEGORY_ICONS = {
-  wifi: Wifi,
-  power: Plug,
-  noise: Volume2,
-  ac: Wind,
-} as const
-
-interface DropdownOption {
-  id: string
-  label: string
-  testId: string
-  selected: boolean
-  onToggle: () => void
-}
-
-function FilterDropdown({
-  id,
-  title,
-  icon: Icon,
-  options,
-  isOpen,
-  alignRight,
-  triggerRef,
-  onToggleOpen,
-}: {
-  id: string
-  title: string
-  icon: LucideIcon
-  options: DropdownOption[]
-  isOpen: boolean
-  alignRight: boolean
-  triggerRef: (el: HTMLButtonElement | null) => void
-  onToggleOpen: () => void
-}) {
-  const selectedCount = options.filter((opt) => opt.selected).length
-  const menuId = `filter-menu-${id}`
-
-  return (
-    <div role="group" aria-label={title} className="relative">
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-expanded={isOpen}
-        aria-controls={menuId}
-        onClick={onToggleOpen}
-        className={cn(
-          'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
-          selectedCount > 0
-            ? 'border-primary bg-primary/10 text-primary shadow-xs'
-            : isOpen
-              ? 'border-primary/60 bg-accent/50 text-foreground'
-              : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/40',
-        )}
-      >
-        <Icon className="size-3.5 shrink-0" aria-hidden="true" />
-        <span>{title}</span>
-        {selectedCount > 0 && (
-          <span className="inline-flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
-            {selectedCount}
-          </span>
-        )}
-        <ChevronDown
-          aria-hidden="true"
-          className={cn(
-            'size-3.5 shrink-0 text-muted-foreground transition-transform duration-200',
-            isOpen && 'rotate-180',
-          )}
-        />
-      </button>
-
-      <div
-        id={menuId}
-        className={cn(
-          'absolute top-full z-30 mt-2 max-w-[calc(100vw-2rem)] min-w-60 rounded-2xl border border-border bg-card p-1.5 shadow-xl ring-1 ring-black/5',
-          alignRight ? 'right-0' : 'left-0',
-          !isOpen && 'hidden',
-        )}
-      >
-        <div className="flex flex-col gap-1">
-          {options.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              aria-pressed={opt.selected}
-              data-testid={opt.testId}
-              onClick={opt.onToggle}
-              className={cn(
-                'flex min-h-12 w-full min-w-12 items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
-                opt.selected
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-foreground hover:bg-muted/70',
-              )}
-            >
-              <span>{opt.label}</span>
-              <span
-                aria-hidden="true"
-                className={cn(
-                  'flex size-4 shrink-0 items-center justify-center rounded border transition-colors',
-                  opt.selected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-input bg-background',
-                )}
-              >
-                {opt.selected && <Check className="size-3" />}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 /**
- * FilterPanel renders the desktop multi-criteria curated filter dropdowns
+ * FilterPanel renders the desktop multi-criteria curated filter controls
  * across all 7 criteria (Wi-Fi, Outlets, Noise, AC, Hours, Price Tier, Unit Type)
- * combined with strict AND logic (STORY-08, FR-1.2, D-006, D-031, D-048, STORY-17).
+ * combined with strict AND logic (STORY-08, FR-1.2, D-006, D-031, D-048).
  */
 export function FilterPanel({
   filters,
@@ -319,62 +192,13 @@ export function FilterPanel({
   className,
 }: FilterPanelProps) {
   const activeCount = countActiveFilters(filters)
-  const [openKey, setOpenKey] = useState<string | null>(null)
-  const [alignRightKey, setAlignRightKey] = useState<string | null>(null)
-  const containerRef = useRef<HTMLElement>(null)
-  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({})
-
-  useEffect(() => {
-    if (!openKey) return
-    const handlePointerDown = (event: MouseEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) {
-        setOpenKey(null)
-        setAlignRightKey(null)
-      }
-    }
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        const closedKey = openKey
-        setOpenKey(null)
-        setAlignRightKey(null)
-        if (containerRef.current?.contains(document.activeElement)) {
-          triggerRefs.current[closedKey]?.focus()
-        }
-      }
-    }
-    document.addEventListener('mousedown', handlePointerDown)
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', handlePointerDown)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [openKey])
-
-  const toggleMenu = (key: string) => {
-    if (openKey === key) {
-      setOpenKey(null)
-      setAlignRightKey(null)
-      return
-    }
-    const trigger = triggerRefs.current[key]
-    let shouldAlignRight = false
-    if (trigger && typeof window !== 'undefined') {
-      const rect = trigger.getBoundingClientRect()
-      const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
-      const menuMinWidth = 15 * rootPx
-      shouldAlignRight = rect.left + menuMinWidth > window.innerWidth - 16
-    }
-    setAlignRightKey(shouldAlignRight ? key : null)
-    setOpenKey(key)
-  }
 
   return (
     <section
-      ref={containerRef}
       aria-label="Curated space filters"
       data-testid="filter-panel"
       className={cn(
-        'rounded-3xl border border-border/60 bg-card/80 px-5 py-4 shadow-2xs backdrop-blur-md',
+        'rounded-2xl border border-border bg-card p-4 shadow-xs sm:p-5',
         className,
       )}
     >
@@ -384,11 +208,14 @@ export function FilterPanel({
       </div>
 
       {/* Filter Bar Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <SlidersHorizontal className="size-4 text-primary" aria-hidden="true" />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <SlidersHorizontal
+            className="size-4 text-muted-foreground"
+            aria-hidden="true"
+          />
           <h2 className="font-heading text-sm font-bold text-foreground">
-            Filter Spaces
+            Curated Amenity & Venue Filters
           </h2>
           {activeCount > 0 && (
             <span
@@ -399,7 +226,7 @@ export function FilterPanel({
             </span>
           )}
           <span className="text-xs text-muted-foreground">
-            Choose amenities, hours, price, and seat type
+            Matches spaces satisfying all selected criteria (AND)
           </span>
         </div>
 
@@ -408,7 +235,7 @@ export function FilterPanel({
             type="button"
             onClick={onClearAll}
             data-testid="clear-all-filters"
-            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <RotateCcw className="size-3.5" aria-hidden="true" />
             <span>Clear all</span>
@@ -416,86 +243,134 @@ export function FilterPanel({
         )}
       </div>
 
-      {/* 7 Modern Filter Dropdowns */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      {/* 7 Curated Filter Criteria Groups */}
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {/* 1-4: Wi-Fi, Power Outlets, Noise Level, Air Conditioning */}
         {CURATED_TAG_GROUPS.map((group) => (
-          <FilterDropdown
+          <div
             key={group.category}
-            id={group.category}
-            title={group.title}
-            icon={CATEGORY_ICONS[group.category]}
-            isOpen={openKey === group.category}
-            alignRight={alignRightKey === group.category}
-            triggerRef={(el) => {
-              triggerRefs.current[group.category] = el
-            }}
-            onToggleOpen={() => toggleMenu(group.category)}
-            options={group.options.map((opt) => ({
-              id: opt.id,
-              label: opt.shortLabel,
-              testId: `filter-tag-${opt.id}`,
-              selected: filters.tags.includes(opt.id),
-              onToggle: () => onToggleTag(opt.id),
-            }))}
-          />
+            role="group"
+            aria-label={group.title}
+            className="flex flex-col gap-1.5"
+          >
+            <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {group.title}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {group.options.map((opt) => {
+                const isSelected = filters.tags.includes(opt.id)
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    aria-pressed={isSelected}
+                    data-testid={`filter-tag-${opt.id}`}
+                    onClick={() => onToggleTag(opt.id)}
+                    className={cn(
+                      'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+                      isSelected
+                        ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                        : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/40',
+                    )}
+                  >
+                    {opt.shortLabel}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
         ))}
 
-        <FilterDropdown
-          id="hours"
-          title="Operating Hours"
-          icon={Clock}
-          isOpen={openKey === 'hours'}
-          alignRight={alignRightKey === 'hours'}
-          triggerRef={(el) => {
-            triggerRefs.current.hours = el
-          }}
-          onToggleOpen={() => toggleMenu('hours')}
-          options={HOURS_FILTER_OPTIONS.map((opt) => ({
-            id: opt.id,
-            label: opt.label,
-            testId: `filter-hours-${opt.id}`,
-            selected: filters.hours.includes(opt.id),
-            onToggle: () => onToggleHours(opt.id),
-          }))}
-        />
+        {/* 5: Operating Hours (Asia/Manila UTC+8, D-048) */}
+        <div role="group" aria-label="Operating Hours" className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Operating Hours
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {HOURS_FILTER_OPTIONS.map((opt) => {
+              const isSelected = filters.hours.includes(opt.id)
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  data-testid={`filter-hours-${opt.id}`}
+                  onClick={() => onToggleHours(opt.id)}
+                  className={cn(
+                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+                    isSelected
+                      ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                      : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/40',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-        <FilterDropdown
-          id="price"
-          title="Price Tier"
-          icon={Tag}
-          isOpen={openKey === 'price'}
-          alignRight={alignRightKey === 'price'}
-          triggerRef={(el) => {
-            triggerRefs.current.price = el
-          }}
-          onToggleOpen={() => toggleMenu('price')}
-          options={PRICE_TIER_FILTER_OPTIONS.map((opt) => ({
-            id: opt.id,
-            label: opt.label,
-            testId: `filter-price-${opt.id}`,
-            selected: filters.price.includes(opt.id),
-            onToggle: () => onTogglePrice(opt.id),
-          }))}
-        />
+        {/* 6: Price Tier (spaces.price_tier, D-027) */}
+        <div role="group" aria-label="Price Tier" className="flex flex-col gap-1.5">
+          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Price Tier
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {PRICE_TIER_FILTER_OPTIONS.map((opt) => {
+              const isSelected = filters.price.includes(opt.id)
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  data-testid={`filter-price-${opt.id}`}
+                  onClick={() => onTogglePrice(opt.id)}
+                  className={cn(
+                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+                    isSelected
+                      ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                      : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/40',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
-        <FilterDropdown
-          id="unitType"
-          title="Unit / Room Type"
-          icon={Armchair}
-          isOpen={openKey === 'unitType'}
-          alignRight={alignRightKey === 'unitType'}
-          triggerRef={(el) => {
-            triggerRefs.current.unitType = el
-          }}
-          onToggleOpen={() => toggleMenu('unitType')}
-          options={UNIT_TYPE_FILTER_OPTIONS.map((opt) => ({
-            id: opt.id,
-            label: opt.label,
-            testId: `filter-unit-${opt.id}`,
-            selected: filters.unitType.includes(opt.id),
-            onToggle: () => onToggleUnitType(opt.id),
-          }))}
-        />
+        {/* 7: Unit / Room Type (units.unit_type, STORY-07) */}
+        <div
+          role="group"
+          aria-label="Unit Type"
+          className="flex flex-col gap-1.5 md:col-span-2"
+        >
+          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Unit / Room Type
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {UNIT_TYPE_FILTER_OPTIONS.map((opt) => {
+              const isSelected = filters.unitType.includes(opt.id)
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  aria-pressed={isSelected}
+                  data-testid={`filter-unit-${opt.id}`}
+                  onClick={() => onToggleUnitType(opt.id)}
+                  className={cn(
+                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+                    isSelected
+                      ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                      : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/40',
+                  )}
+                >
+                  {opt.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </section>
   )

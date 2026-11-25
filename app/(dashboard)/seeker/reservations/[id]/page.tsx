@@ -1,7 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, Clock } from 'lucide-react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { getMyReservation } from '@/lib/data/reservations'
@@ -43,29 +41,17 @@ export default async function HoldPage({
   if (!reservation) notFound()
 
   const confirmingCancel = query.cancel === '1'
-  const backLink = (
-    <nav aria-label="Breadcrumb">
-      <Link
-        href="/seeker"
-        className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-      >
-        <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
-        <span>Back to dashboard</span>
-      </Link>
-    </nav>
-  )
-
   const notices = (
     <>
       {query.notice === 'payment-won' && (
-        <Alert className="rounded-2xl border-0 bg-card">
+        <Alert>
           <AlertDescription>
             Your payment was confirmed just now, so your hold wasn&apos;t cancelled.
           </AlertDescription>
         </Alert>
       )}
       {query.error === 'cancel' && (
-        <Alert variant="destructive" className="rounded-2xl border-destructive/30">
+        <Alert variant="destructive">
           <AlertDescription>
             We could not cancel your hold. Check your connection and try again.
           </AlertDescription>
@@ -77,60 +63,43 @@ export default async function HoldPage({
   switch (reservation.status) {
     case 'pending_payment':
       return (
-        <div className="space-y-6">
-          {backLink}
+        <div className="max-w-2xl space-y-6">
           {notices}
           {query.error === 'checkout' && (
             // W14 (seeker-payment-failure-retry).
-            <Alert variant="destructive" className="rounded-2xl border-destructive/30">
+            <Alert variant="destructive">
               <AlertDescription>
                 We could not open the payment page. Try again, or cancel your hold.
               </AlertDescription>
             </Alert>
           )}
-          <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-            <section className="space-y-5 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]">
-              <div className="space-y-2">
-                <HoldStatusBadge status="pending_payment" />
-                <h1 className="font-heading text-2xl font-bold tracking-tight">
-                  Hold {reservation.unitLabel}
-                </h1>
-                <HoldPlace reservation={reservation} />
-              </div>
-              <div className="space-y-1.5 rounded-2xl bg-secondary/55 px-4 py-3.5">
-                <p className="text-lg font-medium text-foreground">
-                  Pay {formatPeso(reservation.feeAmount)} by{' '}
-                  <ManilaTime iso={reservation.paymentWindowEndsAt} />{' '}
-                  <PaymentCountdown deadline={reservation.paymentWindowEndsAt} />
-                </p>
-                <p className="flex items-center gap-2 text-muted-foreground">
-                  <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                  <span>
-                    We&apos;ll keep {reservation.unitLabel} for{' '}
-                    {reservation.waitWindowMinutes} min after you pay.
-                  </span>
-                </p>
-              </div>
-            </section>
-
-            <section className="flex flex-col justify-between gap-4 rounded-3xl bg-secondary/75 p-6">
-              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-                Next step
-              </p>
-              {confirmingCancel ? (
-                <CancelConfirmation reservation={reservation} className="bg-card" />
-              ) : (
-                <PaymentActions reservation={reservation} />
-              )}
-            </section>
+          <div className="space-y-2">
+            <HoldStatusBadge status="pending_payment" />
+            <h1 className="text-2xl font-bold tracking-tight">
+              Hold {reservation.unitLabel}
+            </h1>
+            <HoldPlace reservation={reservation} />
           </div>
+          <p className="text-lg">
+            Pay {formatPeso(reservation.feeAmount)} by{' '}
+            <ManilaTime iso={reservation.paymentWindowEndsAt} />{' '}
+            <PaymentCountdown deadline={reservation.paymentWindowEndsAt} />
+          </p>
+          <p>
+            We&apos;ll keep {reservation.unitLabel} for {reservation.waitWindowMinutes}{' '}
+            min after you pay.
+          </p>
+          {confirmingCancel ? (
+            <CancelConfirmation reservation={reservation} />
+          ) : (
+            <PaymentActions reservation={reservation} />
+          )}
         </div>
       )
 
     case 'reserved':
       return (
-        <div className="space-y-6">
-          {backLink}
+        <div className="max-w-2xl space-y-6">
           {notices}
           <ReservedView reservation={reservation} confirmingCancel={confirmingCancel} />
         </div>
@@ -139,12 +108,9 @@ export default async function HoldPage({
     case 'expired':
     case 'cancelled':
       return (
-        <div className="space-y-6">
-          {backLink}
+        <div className="max-w-2xl space-y-6">
           {notices}
-          <section className="max-w-3xl rounded-3xl bg-card p-6">
-            <EndedView reservation={reservation} />
-          </section>
+          <EndedView reservation={reservation} />
         </div>
       )
 

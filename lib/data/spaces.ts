@@ -30,7 +30,6 @@ export interface VerifiedSpaceSearchResult {
   custom_tags: string[]
   review_count: number
   avg_overall: number | null
-  cover_photo_url?: string | null
 }
 
 export interface SearchSpacesOptions {

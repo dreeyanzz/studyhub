@@ -69,15 +69,15 @@ export function SpacePhotoGallery({
       <div
         data-testid="space-photos-empty"
         className={cn(
-          'flex h-full min-h-64 flex-col items-center justify-center rounded-[2rem] border border-border/60 bg-secondary/45 p-8 text-center sm:p-12',
+          'flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center sm:p-12',
           className,
         )}
       >
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-card text-primary shadow-2xs">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <ImageOff className="h-6 w-6" aria-hidden="true" />
         </div>
         {/* A paragraph, not a heading: an h3 here came straight after the page's h1 */}
-        <p className="font-heading text-base font-semibold text-foreground">
+        <p className="text-base font-semibold text-foreground">
           No Space photos uploaded yet.
         </p>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
@@ -98,11 +98,11 @@ export function SpacePhotoGallery({
       role="region"
       aria-roledescription="carousel"
       aria-label={`Photos of ${spaceName}`}
-      className={cn('relative flex h-full min-w-0 flex-col gap-3', className)}
+      className={cn('relative min-w-0 space-y-3 rounded-xl', className)}
     >
       {/* Hero Image Container with Touch Navigation */}
       <div
-        className="relative aspect-video w-full flex-1 overflow-hidden rounded-2xl bg-muted shadow-xs sm:aspect-2/1 md:max-h-[440px]"
+        className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted sm:aspect-2/1"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null
           touchStartY.current = e.touches[0]?.clientY ?? null
@@ -131,7 +131,7 @@ export function SpacePhotoGallery({
           alt={`Photo of ${spaceName} (${safeIndex + 1} of ${totalPhotos})`}
           fill
           preload={safeIndex === 0}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 760px"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1024px"
           className="object-cover"
         />
 
@@ -139,7 +139,7 @@ export function SpacePhotoGallery({
         <div
           data-testid="carousel-counter"
           aria-live="polite"
-          className="absolute top-3.5 right-3.5 rounded-full border border-white/25 bg-foreground/65 px-3 py-1 text-xs font-medium text-white shadow-xs backdrop-blur-md"
+          className="absolute top-3 right-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground shadow-xs backdrop-blur-xs"
         >
           {/* Screen readers hear only "Slide 1 of 3", not the visible "1 / 3" as well */}
           <span aria-hidden="true">
@@ -152,13 +152,13 @@ export function SpacePhotoGallery({
 
         {/* Navigation Controls (D-031: 48x48 px touch targets) */}
         {totalPhotos > 1 && (
-          <div className="pointer-events-none absolute inset-x-3 inset-y-0 flex items-center justify-between">
+          <div className="pointer-events-none absolute inset-x-2 inset-y-0 flex items-center justify-between">
             <button
               type="button"
               onClick={goToPrev}
               onKeyDown={handleKeyDown}
               aria-label="Previous slide"
-              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full border border-white/85 bg-white/80 text-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-xs transition-colors hover:bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -167,7 +167,7 @@ export function SpacePhotoGallery({
               onClick={goToNext}
               onKeyDown={handleKeyDown}
               aria-label="Next slide"
-              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full border border-white/85 bg-white/80 text-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-xs transition-colors hover:bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -180,7 +180,7 @@ export function SpacePhotoGallery({
         <div
           role="group"
           aria-label="Photo thumbnails"
-          className="flex min-w-0 gap-2.5 overflow-x-auto py-0.5"
+          className="flex min-w-0 gap-2 overflow-x-auto py-1"
         >
           {photos.map((photo, index) => {
             const isSelected = index === safeIndex
@@ -193,10 +193,10 @@ export function SpacePhotoGallery({
                 aria-label={`Show photo ${index + 1} of ${totalPhotos}`}
                 aria-current={isSelected ? 'true' : undefined}
                 className={cn(
-                  'relative h-20 w-28 shrink-0 overflow-hidden rounded-2xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-md border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                   isSelected
-                    ? 'border-primary shadow-sm ring-2 ring-primary ring-offset-2'
-                    : 'border-transparent opacity-75 hover:opacity-100',
+                    ? 'border-primary ring-2 ring-primary ring-offset-2'
+                    : 'border-transparent opacity-70 hover:opacity-100',
                 )}
               >
                 <Image

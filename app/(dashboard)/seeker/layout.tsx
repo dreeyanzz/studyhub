@@ -7,9 +7,11 @@ import { SeekerHeader } from './_components/seeker-header'
  */
 export default async function SeekerLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30 text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <SeekerHeader />
-      <main className="w-full flex-1 px-4 py-6 sm:px-6 lg:px-10">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
+        {children}
+      </main>
     </div>
   )
 }

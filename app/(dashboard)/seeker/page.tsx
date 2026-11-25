@@ -56,25 +56,23 @@ export default async function SeekerPage({
 
   return (
     <div className="space-y-8">
-      <div className="space-y-1">
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Seeker Dashboard
         </h1>
-        <p className="text-base text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           See your hold, find a Space, and manage your profile details.
         </p>
       </div>
 
-      <div className="grid items-start gap-6 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-        <div className="space-y-6">
-          <CurrentHoldCard
-            hold={hold}
-            showEnded={Boolean(reservationId)}
-            confirmingCheckOut={confirmingCheckOut}
-            checkOutError={checkOutError}
-          />
-          {!hasHold && <FindSpaceCard />}
-        </div>
+      <div className="max-w-2xl space-y-8">
+        <CurrentHoldCard
+          hold={hold}
+          showEnded={Boolean(reservationId)}
+          confirmingCheckOut={confirmingCheckOut}
+          checkOutError={checkOutError}
+        />
+        {!hasHold && <FindSpaceCard />}
         <ProfileForm profile={profile} />
       </div>
     </div>
