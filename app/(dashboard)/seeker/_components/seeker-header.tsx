@@ -38,13 +38,13 @@ export async function SeekerHeader() {
   return (
     <header className="border-b border-border bg-card/95 backdrop-blur-sm">
       <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
             href="/"
             aria-label="Worq home"
             className={cn(
               buttonVariants({ variant: 'ghost' }),
-              'gap-2 px-2 font-heading text-xl font-semibold',
+              'h-auto min-h-12 max-w-full shrink gap-2 px-2 py-2 font-heading text-xl font-semibold whitespace-normal',
             )}
           >
             <svg
@@ -94,7 +94,7 @@ export async function SeekerHeader() {
             Worq
           </Link>
           <span aria-hidden="true" className="hidden h-6 w-px bg-border sm:block" />
-          <div className="flex min-w-0 items-center gap-2.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <div
               aria-hidden="true"
               className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
@@ -103,7 +103,7 @@ export async function SeekerHeader() {
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-base font-semibold break-words text-foreground">
+                <p className="text-base font-semibold wrap-anywhere text-foreground">
                   {displayName}
                 </p>
                 <Badge variant="secondary">{roleLabels[profile.role]}</Badge>
@@ -113,12 +113,12 @@ export async function SeekerHeader() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex max-w-full flex-wrap items-center gap-2">
           <Link
             href="/spaces"
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              'rounded-full px-4 text-sm',
+              'h-auto min-h-12 max-w-full shrink rounded-full px-4 py-2 text-center text-sm whitespace-normal',
             )}
           >
             <Search aria-hidden="true" className="size-4" /> Find a Space
@@ -128,7 +128,7 @@ export async function SeekerHeader() {
               variant="ghost"
               size="default"
               type="submit"
-              className="rounded-full px-4"
+              className="h-auto min-h-12 max-w-full shrink rounded-full px-4 py-2 whitespace-normal"
             >
               Log out
             </Button>

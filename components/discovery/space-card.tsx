@@ -64,7 +64,7 @@ export function SpaceCard({
       {space.cover_photo_url && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[2rem]"
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]"
         >
           <Image
             src={space.cover_photo_url}

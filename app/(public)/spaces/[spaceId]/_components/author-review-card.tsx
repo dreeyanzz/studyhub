@@ -80,24 +80,26 @@ export function AuthorReviewCard({
   return (
     <article
       data-testid={`author-review-${review.id}`}
-      className="space-y-3.5 rounded-2xl border border-primary/30 bg-card p-5 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] ring-1 ring-primary/10 sm:p-6"
+      className="space-y-3.5 rounded-2xl border border-primary/30 bg-card p-3 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] ring-1 ring-primary/10 sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold text-foreground">{reviewerShortName}</p>
-            <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+            <p className="font-semibold wrap-anywhere text-foreground">
+              {reviewerShortName}
+            </p>
+            <span className="inline-flex max-w-full items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
               Checked-in visit
             </span>
             {review.edited && (
-              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+              <span className="inline-flex max-w-full items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-foreground">
                 Edited
               </span>
             )}
             {statusLabel && (
               <span
                 data-testid={`author-review-status-${review.id}`}
-                className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900"
+                className="inline-flex max-w-full items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold wrap-anywhere text-amber-900"
               >
                 {statusLabel}
               </span>
@@ -110,12 +112,14 @@ export function AuthorReviewCard({
           )}
         </div>
 
-        <p className="inline-flex items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
+        <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
           <Star
             className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
             aria-hidden="true"
           />
-          <span>Overall {formatReviewScore(review.overall)} / 5</span>
+          <span className="wrap-anywhere">
+            Overall {formatReviewScore(review.overall)} / 5
+          </span>
         </p>
       </div>
 
@@ -158,7 +162,7 @@ export function AuthorReviewCard({
             {REVIEW_RATING_CATEGORIES.map((category) => (
               <div
                 key={category.key}
-                className="min-w-0 space-y-1 rounded-xl bg-muted/65 px-3 py-2 break-words"
+                className="min-w-0 space-y-1 rounded-xl bg-muted/65 px-2.5 py-2 break-words sm:px-3"
               >
                 <dt className="text-muted-foreground">{category.label}</dt>
                 <dd className="flex flex-wrap items-center gap-1.5 font-semibold text-foreground">
@@ -278,7 +282,7 @@ export function AuthorReviewsSection({
       {reviewableVisit && (
         <div
           data-testid="write-review-panel"
-          className="space-y-4 rounded-2xl bg-card p-5 sm:p-6"
+          className="space-y-4 rounded-2xl bg-card p-4 sm:p-6"
         >
           <div className="space-y-1">
             <h3 className="font-heading text-base font-semibold text-foreground">

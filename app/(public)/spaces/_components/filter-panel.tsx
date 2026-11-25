@@ -212,6 +212,8 @@ function FilterDropdown({
   icon: Icon,
   options,
   isOpen,
+  alignRight,
+  triggerRef,
   onToggleOpen,
 }: {
   id: string
@@ -219,6 +221,8 @@ function FilterDropdown({
   icon: LucideIcon
   options: DropdownOption[]
   isOpen: boolean
+  alignRight: boolean
+  triggerRef: (el: HTMLButtonElement | null) => void
   onToggleOpen: () => void
 }) {
   const selectedCount = options.filter((opt) => opt.selected).length
@@ -227,6 +231,7 @@ function FilterDropdown({
   return (
     <div role="group" aria-label={title} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         aria-expanded={isOpen}
         aria-controls={menuId}
@@ -259,7 +264,8 @@ function FilterDropdown({
       <div
         id={menuId}
         className={cn(
-          'absolute top-full left-0 z-30 mt-2 min-w-60 rounded-2xl border border-border bg-card p-1.5 shadow-xl ring-1 ring-black/5',
+          'absolute top-full z-30 mt-2 max-w-[calc(100vw-2rem)] min-w-60 rounded-2xl border border-border bg-card p-1.5 shadow-xl ring-1 ring-black/5',
+          alignRight ? 'right-0' : 'left-0',
           !isOpen && 'hidden',
         )}
       >
@@ -314,18 +320,26 @@ export function FilterPanel({
 }: FilterPanelProps) {
   const activeCount = countActiveFilters(filters)
   const [openKey, setOpenKey] = useState<string | null>(null)
+  const [alignRightKey, setAlignRightKey] = useState<string | null>(null)
   const containerRef = useRef<HTMLElement>(null)
+  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   useEffect(() => {
     if (!openKey) return
     const handlePointerDown = (event: MouseEvent) => {
       if (!containerRef.current?.contains(event.target as Node)) {
         setOpenKey(null)
+        setAlignRightKey(null)
       }
     }
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        const closedKey = openKey
         setOpenKey(null)
+        setAlignRightKey(null)
+        if (containerRef.current?.contains(document.activeElement)) {
+          triggerRefs.current[closedKey]?.focus()
+        }
       }
     }
     document.addEventListener('mousedown', handlePointerDown)
@@ -337,7 +351,21 @@ export function FilterPanel({
   }, [openKey])
 
   const toggleMenu = (key: string) => {
-    setOpenKey((prev) => (prev === key ? null : key))
+    if (openKey === key) {
+      setOpenKey(null)
+      setAlignRightKey(null)
+      return
+    }
+    const trigger = triggerRefs.current[key]
+    let shouldAlignRight = false
+    if (trigger && typeof window !== 'undefined') {
+      const rect = trigger.getBoundingClientRect()
+      const rootPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
+      const menuMinWidth = 15 * rootPx
+      shouldAlignRight = rect.left + menuMinWidth > window.innerWidth - 16
+    }
+    setAlignRightKey(shouldAlignRight ? key : null)
+    setOpenKey(key)
   }
 
   return (
@@ -397,6 +425,10 @@ export function FilterPanel({
             title={group.title}
             icon={CATEGORY_ICONS[group.category]}
             isOpen={openKey === group.category}
+            alignRight={alignRightKey === group.category}
+            triggerRef={(el) => {
+              triggerRefs.current[group.category] = el
+            }}
             onToggleOpen={() => toggleMenu(group.category)}
             options={group.options.map((opt) => ({
               id: opt.id,
@@ -413,6 +445,10 @@ export function FilterPanel({
           title="Operating Hours"
           icon={Clock}
           isOpen={openKey === 'hours'}
+          alignRight={alignRightKey === 'hours'}
+          triggerRef={(el) => {
+            triggerRefs.current.hours = el
+          }}
           onToggleOpen={() => toggleMenu('hours')}
           options={HOURS_FILTER_OPTIONS.map((opt) => ({
             id: opt.id,
@@ -428,6 +464,10 @@ export function FilterPanel({
           title="Price Tier"
           icon={Tag}
           isOpen={openKey === 'price'}
+          alignRight={alignRightKey === 'price'}
+          triggerRef={(el) => {
+            triggerRefs.current.price = el
+          }}
           onToggleOpen={() => toggleMenu('price')}
           options={PRICE_TIER_FILTER_OPTIONS.map((opt) => ({
             id: opt.id,
@@ -443,6 +483,10 @@ export function FilterPanel({
           title="Unit / Room Type"
           icon={Armchair}
           isOpen={openKey === 'unitType'}
+          alignRight={alignRightKey === 'unitType'}
+          triggerRef={(el) => {
+            triggerRefs.current.unitType = el
+          }}
           onToggleOpen={() => toggleMenu('unitType')}
           options={UNIT_TYPE_FILTER_OPTIONS.map((opt) => ({
             id: opt.id,
