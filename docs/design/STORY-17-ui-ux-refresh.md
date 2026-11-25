@@ -57,6 +57,15 @@ Not applicable: STORY-17 adds or modifies no Postgres tables, columns, enums, Zo
       - **A hero search** (SRS §3.7.1): the card leads with a search box that submits to `/spaces?q=` as a plain form, so it works before JavaScript loads. It follows STORY-08's search field, as D-033's revisit note asks of real search controls.
   - **Restyle consistency across portals:** Clear visual hierarchy, mobile-first spacing at 360 px, no clipped text at 200% zoom, and consistent use of `components/ui/` primitives.
   - **The other screen groups' direction grows here.** The pilot on `/` sets the direction. Each group's restyle PR (rows 4 to 7 of §6) adds that group's notes to this section, under a heading of its own: layout, type, spacing, components and wording. Those notes are reviewed with the code in the same PR, so no group waits on a separate design PR. Where a restyled screen and its notes disagree, the screen wins (D-074).
+  - **Administrator portal (`/admin`):**
+    - **Layout:** Collapsible left navigation sidebar on desktop (`w-72` expanded, `w-20` collapsed via `Ctrl+B` or accessible toggle button), with persistent navigation links for Space Verification (`/admin`), Review Moderation (`/admin/moderation`), and Payments & Refunds (`/admin/payments`). Sticky mobile top nav (`<1024px`) with accessible 48×48 px touch targets. Single main content area containing the Space Verification queue.
+    - **Type & Spacing:** Georgia headings (`font-heading`) paired with Geist body text for operational data. Single `<h1>` per view (`<h1>Space Verification</h1>`), while sidebar brand identity uses styled non-heading text to preserve heading hierarchy.
+    - **Components:**
+      - `AdminSidebar`: Collapsible sidebar with active route detection via `usePathname()`, live pending Space counter badge, Administrator profile, Discovery map shortcut, and accessible sign-out. All collapsed controls include explicit `aria-label`s.
+      - `AdminMobileHeader`: Mobile top bar with tab navigation, Administrator avatar, and sign-out button.
+      - `VerificationCard`: Responsive pending Space card with host, hours, submitted timestamp, and accessible 48×48 px `[Inspect]`, `[Reject]`, and `[Approve]` action buttons. `wrap-anywhere` without `truncate` prevents text clipping at 200% zoom.
+      - `SpaceInspectionDialog`: Accessible split inspection modal dossier built on `components/ui/dialog.tsx` (Base UI primitive). Features physical address with OpenStreetMap check (`D-012`), operating schedule, host details, description, photo gallery loaded from the `space-photos` bucket (`D-063`) with loop navigation (when host photos exist) or neutral empty/unavailable state, and Approve/Reject action buttons. Never fabricates capacity counts or amenities.
+    - **Wording:** Follows Glossary strictly (`Space`, `Unit`, `Administrator`, `Visit`).
   - **Audit findings** (`TSK-17.1`) go in an "Audit findings" subsection at the end of this section: one row per route, with the widths, 200% text and keyboard results. Each finding is either a **fix**, linked to the bug issue filed under the story that built the screen, or a **design change**, assigned to one of `TSK-17.4` to `TSK-17.7`. The subsection ends with the re-estimate that decides whether `STORY-18` splits off (§5).
 - **Routes and components:**
   - `app/(public)/_components/startup-lamp.tsx` — **Client Component** (decorative startup overlay: it renders nothing until it has checked reduced motion and the session flag, §3).
@@ -84,6 +93,14 @@ Not applicable: STORY-17 adds or modifies no Postgres tables, columns, enums, Zo
   - WCAG 2.1 AA contrast (≥ 4.5:1 for normal text, ≥ 3:1 for large text, borders, and focus indicators).
   - Zero horizontal scrolling at 360, 768, and 1024 px and at 200% text zoom.
   - List view preserved alongside any map view.
+
+### Auth screens (`/login`, `/register`, and `/choose-role`, part of `TSK-17.4`)
+
+- **Layout:** Shared split white-and-photo `AuthShell` (`max-w-4xl`, `rounded-3xl`) inside `app/(auth)/layout.tsx` on a soft `bg-muted/40` canvas, with the desk-lamp brand mark and an outline pill `Find a Space` link (`/spaces`) in the header. Two columns (`5fr / 6fr`) from `md` up — form panel on the left and a framed study-space photo (`/images/public-landing/library.webp`, D-033) with decorative `aria-hidden` frosted-glass callout pins on the right (all entrance and pin animations disabled under `prefers-reduced-motion: reduce` in `app/(auth)/auth.css`). Stacks to a single column (`grid-cols-[minmax(0,1fr)]`) below `md`.
+- **Type:** Georgia (`font-heading`) `Worq` link and `h1` (`text-3xl`) for the form title; Geist body and helper text.
+- **Spacing:** Responsive mobile padding (`px-[min(1rem,3vw)]` on `<main>`, `px-4 py-6 sm:px-8 sm:py-8` inside the form panel) so 360 px at 200% text never clips.
+- **Components:** Pill inputs (`rounded-full border-input bg-muted/85` for ≥ 3:1 WCAG 2.1 AA boundary contrast) with a 48 × 48 px (`size-12`) password visibility toggle in `FormField`, pill primary submit buttons (`h-auto min-h-12 py-3 whitespace-normal`), `Alert`, `GoogleAuthButton`, `LoginForm`, `RegisterForm`, and `ChooseRoleForm` with all Server Action contracts, `returnUrl`, `defaultRole`, and Google OAuth onboarding unchanged (D-042, D-095).
+- **Wording:** Form headings (`"Welcome back"` on `/login`, `"Start your focus"` on `/register`, `"Finish setting up your account"` on `/choose-role`) and decorative callouts highlighting quiet study desks, the snap-grid seat map, and verified Spaces.
 
 ## 4. Security and test matrix
 

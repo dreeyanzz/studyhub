@@ -751,6 +751,7 @@ export type Database = {
       moderate_review: {
         Args: {
           p_action: Database["public"]["Enums"]["review_moderation_action"]
+          p_last_event_id?: string
           p_review_id: string
           p_version: number
         }
@@ -778,6 +779,26 @@ export type Database = {
           wait_window_ends_at: string
           wait_window_minutes: number
           zone_name: string
+        }[]
+      }
+      my_reservation_history: {
+        Args: { p_page_offset?: number; p_page_size?: number }
+        Returns: {
+          checked_in_at: string
+          created_at: string
+          ended_at: string
+          fee_amount: number
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          refunded_at: string
+          reservation_id: string
+          reservation_status: Database["public"]["Enums"]["reservation_status"]
+          review_id: string
+          review_status: Database["public"]["Enums"]["review_status"]
+          space_id: string
+          space_listed: boolean
+          space_name: string
+          unit_id: string
+          unit_label: string
         }[]
       }
       my_reviewable_visit: {

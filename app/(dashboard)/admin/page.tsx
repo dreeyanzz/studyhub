@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 }
 
 /**
- * The Administration Space Verification portal (STORY-15 design §3).
- * Loads Pending Spaces oldest-first joined with profiles(full_name).
- * Enforces Administrator role check before rendering the verification queue.
+ * The Administration portal dashboard page (STORY-15, STORY-17).
+ * Renders the Space Verification queue for pending spaces.
+ * Enforces Administrator role check before querying queue.
  */
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -46,7 +46,7 @@ export default async function AdminPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Space Verification
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -54,9 +54,12 @@ export default async function AdminPage() {
             search.
           </p>
         </div>
-        <Alert variant="destructive">
-          <AlertTitle>Error loading queue</AlertTitle>
-          <AlertDescription>
+        <Alert
+          variant="destructive"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
+          <AlertTitle className="font-semibold">Error loading queue</AlertTitle>
+          <AlertDescription className="text-sm">
             We could not load the verification queue. Refresh the page to try again.
           </AlertDescription>
         </Alert>
@@ -64,18 +67,41 @@ export default async function AdminPage() {
     )
   }
 
-  const pendingSpaces: PendingSpace[] = (spaces ?? []).map((space) => ({
-    id: space.id,
-    name: space.name,
-    description: space.description,
-    address: space.address,
-    opens_at: space.opens_at,
-    closes_at: space.closes_at,
-    status: space.status,
-    created_at: space.created_at,
-    updated_at: space.updated_at,
-    host_name: space.profiles?.full_name ?? null,
-  }))
+  // Load uploaded photos from space-photos bucket in parallel (D-063; admins can select via RLS)
+  const pendingSpaces: PendingSpace[] = await Promise.all(
+    (spaces ?? []).map(async (space) => {
+      const { data: storageFiles, error: storageError } = await supabase.storage
+        .from('space-photos')
+        .list(space.id, {
+          sortBy: { column: 'created_at', order: 'asc' },
+        })
+
+      const photos = storageError
+        ? null
+        : (storageFiles ?? [])
+            .filter((file) => file.name && !file.name.startsWith('.'))
+            .map(
+              (file) =>
+                supabase.storage
+                  .from('space-photos')
+                  .getPublicUrl(`${space.id}/${file.name}`).data.publicUrl,
+            )
+
+      return {
+        id: space.id,
+        name: space.name,
+        description: space.description,
+        address: space.address,
+        opens_at: space.opens_at,
+        closes_at: space.closes_at,
+        status: space.status,
+        created_at: space.created_at,
+        updated_at: space.updated_at,
+        host_name: space.profiles?.full_name ?? null,
+        photos,
+      }
+    }),
+  )
 
   return <VerificationQueue initialSpaces={pendingSpaces} />
 }

@@ -60,8 +60,8 @@ and its Sprint 3 follow-ups are STORY-20's.
 
 - **[Review lifecycle](../flows/review-lifecycle.md)** (#339). This story builds RV4 to
   RV8 and RP2, `public.moderate_review`, the moderation log, the Reported, Hidden and
-  Removed lists, and the tests in the `review-moderation` file: N7 to N9, N13 and N14.
-  STORY-13 builds the rest.
+  Removed lists, and the tests in the `review-moderation` file: N7 to N9, N13, N14 and
+  N18 (#420). STORY-13 builds the rest.
 - **[Reservation lifecycle](../flows/reservation-lifecycle.md)** (#173). This story builds
   P1, a payment going from `paid` to `refunded`, and names its test, which the flow left
   to this design. P1 follows R9 (a Host's override), R14 (a take-down) or P2.
@@ -189,12 +189,16 @@ Each public one runs as `security definer` with an empty `search_path`, revokes 
 from `public`, `anon` and `authenticated`, grants it to `authenticated` only, and refuses
 anyone who isn't an Administrator with `42501`, as `set_space_status` does (D-047, D-053).
 
-- **`public.moderate_review(p_review_id uuid, p_action review_moderation_action, p_version integer)`**,
+- **`public.moderate_review(p_review_id uuid, p_action review_moderation_action, p_version integer, p_last_event_id uuid default null)`**,
   as the flow's "How the database enforces it" describes:
   - It refuses with `P0001` and the hint `not_found` when the review no longer exists,
     because its author deleted it (RV3) or it went with its Space or visit (RV9).
   - It locks the review, then refuses with `P0001` and the hint `stale_version` if its
-    version isn't the one the Administrator saw (N9).
+    version isn't the one the Administrator saw (N9), or if its newest moderation log
+    entry isn't the one they saw (N18, #420). `p_last_event_id` is that entry's id, and
+    null, or left out, when the log was empty, so a call without it is refused once the
+    review has any history. Another Administrator's hide, restore or dismiss changes the
+    newest entry but not the version.
   - It allows only these, and refuses anything else with `P0001` and the hint
     `not_allowed` (N8): hide and remove a visible review (RV4, RV5); dismiss the open
     reports of a visible review that has some (RV6); restore and remove a hidden one (RV7,
@@ -245,7 +249,8 @@ anyone who isn't an Administrator with `42501`, as `set_space_status` does (D-04
 ### Reads that need no function
 
 The moderation log, for one review's history, is a plain select, which only
-Administrators pass (N14).
+Administrators pass (N14). It reads newest first, by `created_at` and then `id`, the
+order `moderate_review` uses, and its first row is the entry each action sends (N18).
 
 ### The Stripe refund (`lib/payments/stripe.ts`, Adrian)
 
@@ -271,8 +276,9 @@ nothing, as when it finds none.
 
 ### Form rules (`lib/validation/admin.ts`, Luke)
 
-- **`moderateReviewSchema`:** the review id, the action (one of the four), and the
-  version the Administrator saw.
+- **`moderateReviewSchema`:** the review id, the action (one of the four), the version
+  the Administrator saw, and the id of the newest moderation log entry they saw, if
+  there was one (N18).
 - **`refundPaymentSchema`:** the payment id, and a reason: trimmed, 1 to 300 characters.
 - **`reviewQueueSchema`** and **`paymentRecordsSchema`**, from the pages' search params:
   the list, or the filter (all, Paid, Forfeited, Refunded or Refundable), and how many
@@ -398,6 +404,7 @@ the moderation ones, and the reservation lifecycle's P1 leaves its test to this 
 | pgTAP      | N7: "a Seeker and a Host cannot moderate a review"; "a signed-out visitor cannot run moderate_review"                                                         | `42501`                                        |
 | pgTAP      | N8: "an Administrator cannot restore or change a removed review"; "an Administrator cannot dismiss a review with no open reports"                             | `P0001`, `not_allowed`                         |
 | pgTAP      | N9: "an Administrator cannot moderate a review edited since they read it"                                                                                     | `P0001`, `stale_version`                       |
+| pgTAP      | N18: "an Administrator cannot remove a review restored since they read it"; "an Administrator cannot hide a review after a dismissal since they read it"      | `P0001`, `stale_version`                       |
 | pgTAP      | "an Administrator cannot moderate a review its author has deleted"                                                                                            | `P0001`, `not_found`                           |
 | pgTAP      | N13: "nobody can edit or delete a report"; "nobody can write to the moderation log directly"                                                                  | `42501`                                        |
 | pgTAP      | N14: "a Seeker and a Host read 0 rows of the moderation log"                                                                                                  | 0 rows                                         |

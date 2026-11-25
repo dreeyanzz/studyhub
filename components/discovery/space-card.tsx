@@ -4,6 +4,7 @@ import { ReviewRating } from '@/components/review/review-rating'
 import { PriceTierBadge } from './price-tier-badge'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 import { isSpaceOpen24h } from '@/lib/data/spaces'
+import { formatDescriptionSnippet } from '@/lib/space/format'
 import { cn } from '@/lib/utils'
 
 interface SpaceCardProps {
@@ -39,6 +40,8 @@ export function SpaceCard({
   onSelect,
   className,
 }: SpaceCardProps) {
+  const snippet = space.description ? formatDescriptionSnippet(space.description) : ''
+
   return (
     <article
       data-testid={`space-card-${space.id}`}
@@ -73,13 +76,15 @@ export function SpaceCard({
         </div>
 
         {/* Address and Distance */}
+        {/* The address wraps instead of being clamped to one line, so none of it is
+            cut off with text at 200% (#372, SRS §3.2.2). */}
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
+          <div className="flex min-w-0 items-start gap-1">
             <MapPin
-              className="size-4 shrink-0 text-muted-foreground"
+              className="mt-0.5 size-4 shrink-0 text-muted-foreground"
               aria-hidden="true"
             />
-            <span className="line-clamp-1">{space.address}</span>
+            <span className="min-w-0 break-words">{space.address}</span>
           </div>
           {space.distance_km !== null && (
             <span
@@ -106,11 +111,10 @@ export function SpaceCard({
           />
         </div>
 
-        {/* Description Snippet */}
-        {space.description && (
-          <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-            {space.description}
-          </p>
+        {/* Description Snippet: shortened by characters, not by a line clamp, so the
+            same words show at every text size (#372). */}
+        {snippet && (
+          <p className="mt-3 text-sm break-words text-muted-foreground">{snippet}</p>
         )}
 
         {/* Curated Amenity Tags */}

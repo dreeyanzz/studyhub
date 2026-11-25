@@ -90,7 +90,7 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `(public)/` (with STORY-08's discovery map in `spaces/`, STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel and STORY-13's community reviews, and STORY-21's `privacy/` policy page), STORY-03's `(auth)/` pages (with STORY-21's Google OAuth button and `choose-role/` onboarding page) and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
 `(dashboard)/seeker/` portal (with STORY-09's hold and return pages in `reservations/[id]/`), STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
-page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/` (with STORY-14's Payments page in `payments/`)),
+page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/` (with STORY-14's review moderation page in `moderation/` and Payments page in `payments/`)),
 `components/ui/`
 (STORY-02's six primitives, STORY-12's `alert-dialog`, and STORY-13's `dialog`), `components/discovery/`
 (STORY-08's Space card and price tier badge), `components/reservation/` (STORY-10's
@@ -98,7 +98,7 @@ booking QR code), `components/review/` (STORY-13's shared review form and rating
 renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
 (STORY-03's role guard), `lib/check-in/` (STORY-10's booking token normalization and
 wait-window countdown), `lib/data/` (STORY-07's seat map, STORY-08's discovery search,
-STORY-09's reservation queries, STORY-13's review queries and STORY-14's admin payment queries), `lib/geo/` (STORY-08's Haversine distance and
+STORY-09's reservation queries, STORY-13's review queries and STORY-14's admin moderation and payment queries), `lib/geo/` (STORY-08's Haversine distance and
 campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/`
 (STORY-09's Stripe checkout, webhook and hold refusals, and STORY-14's Stripe refund), `lib/reservations/` (STORY-09's
 fee, time and countdown formatters), `lib/seat-map/`
