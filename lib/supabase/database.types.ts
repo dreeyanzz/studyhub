@@ -751,6 +751,7 @@ export type Database = {
       moderate_review: {
         Args: {
           p_action: Database["public"]["Enums"]["review_moderation_action"]
+          p_last_event_id?: string
           p_review_id: string
           p_version: number
         }
