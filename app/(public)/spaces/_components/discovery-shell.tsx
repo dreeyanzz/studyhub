@@ -467,7 +467,7 @@ export function DiscoveryShell({
         <section
           aria-label="Discovery map"
           className={cn(
-            'w-full lg:sticky lg:top-6 lg:w-[52%] xl:w-[55%]',
+            'w-full lg:sticky lg:top-20 lg:w-[52%] xl:w-[55%]',
             mobileView === 'list' ? 'hidden lg:block' : 'block',
           )}
         >

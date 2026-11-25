@@ -345,8 +345,9 @@ export default function DiscoveryMap({
     const map = mapRef.current
     const L = leafletModuleRef.current
     if (!map || !L || spacesWithCoords.length === 0) return
-    if (spacesWithCoords.length === 1) {
-      map.setView([spacesWithCoords[0].latitude, spacesWithCoords[0].longitude], 15, {
+    const first = spacesWithCoords[0]
+    if (spacesWithCoords.length === 1 && first) {
+      map.setView([first.latitude, first.longitude], 15, {
         animate: true,
       })
       return
