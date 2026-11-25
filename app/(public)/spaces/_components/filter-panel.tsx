@@ -237,12 +237,12 @@ function FilterDropdown({
         aria-controls={menuId}
         onClick={onToggleOpen}
         className={cn(
-          'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+          'inline-flex min-h-12 min-w-12 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
           selectedCount > 0
-            ? 'border-primary bg-primary/10 text-primary shadow-xs'
+            ? 'border-primary bg-primary/12 text-primary shadow-xs'
             : isOpen
-              ? 'border-primary/60 bg-accent/50 text-foreground'
-              : 'border-border bg-background text-foreground hover:border-primary/50 hover:bg-accent/40',
+              ? 'border-primary/60 bg-secondary text-foreground'
+              : 'border-border/70 bg-secondary/45 text-foreground hover:border-primary/45 hover:bg-secondary/80',
         )}
       >
         <Icon className="size-3.5 shrink-0" aria-hidden="true" />
@@ -374,7 +374,7 @@ export function FilterPanel({
       aria-label="Curated space filters"
       data-testid="filter-panel"
       className={cn(
-        'rounded-3xl border border-border/60 bg-card/80 px-5 py-4 shadow-2xs backdrop-blur-md',
+        'rounded-2xl border border-border/60 bg-card/90 px-4 py-3.5 shadow-xs backdrop-blur-md',
         className,
       )}
     >
@@ -384,9 +384,11 @@ export function FilterPanel({
       </div>
 
       {/* Filter Bar Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <SlidersHorizontal className="size-4 text-primary" aria-hidden="true" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-primary">
+            <SlidersHorizontal className="size-3.5" aria-hidden="true" />
+          </span>
           <h2 className="font-heading text-sm font-bold text-foreground">
             Filter Spaces
           </h2>
@@ -399,7 +401,7 @@ export function FilterPanel({
             </span>
           )}
           <span className="text-xs text-muted-foreground">
-            Choose amenities, hours, price, and seat type
+            · Amenities, hours, price, and seat type
           </span>
         </div>
 
@@ -416,8 +418,8 @@ export function FilterPanel({
         )}
       </div>
 
-      {/* 7 Modern Filter Dropdowns */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      {/* 7 Cohesive Filter Dropdowns */}
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {CURATED_TAG_GROUPS.map((group) => (
           <FilterDropdown
             key={group.category}
