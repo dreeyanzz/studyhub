@@ -62,6 +62,64 @@ export function formatReviewDate(isoDate: string): string {
   return REVIEW_DATE_FORMATTER.format(parsed)
 }
 
+const STAR_SLOTS = [1, 2, 3, 4, 5] as const
+
+/**
+ * Decorative 5-star solid rating strip supporting whole and fractional values
+ * (e.g. 4.5 fills 4 full stars + 1 half star). Always paired with visible numeric
+ * text so screen readers announce the exact score once without repetition.
+ */
+export function SolidStars({
+  value,
+  size = 'sm',
+  className,
+}: {
+  value: number | null | undefined
+  size?: 'xs' | 'sm'
+  className?: string
+}) {
+  const safeValue =
+    value !== null && value !== undefined && Number.isFinite(value)
+      ? Math.max(0, Math.min(5, value))
+      : 0
+  const iconClass = size === 'xs' ? 'size-3' : 'size-4'
+
+  return (
+    <span
+      aria-hidden="true"
+      className={cn('inline-flex items-center gap-0.5', className)}
+    >
+      {STAR_SLOTS.map((slot) => {
+        const fillRatio = Math.max(0, Math.min(1, safeValue - (slot - 1)))
+        const fillPercent = Math.round(fillRatio * 100)
+
+        return (
+          <span key={slot} className={cn('relative inline-block shrink-0', iconClass)}>
+            <Star
+              className={cn(
+                iconClass,
+                'fill-muted-foreground/20 text-muted-foreground/20',
+              )}
+              strokeWidth={1.5}
+            />
+            {fillPercent > 0 && (
+              <span
+                className="absolute inset-y-0 left-0 overflow-hidden"
+                style={{ width: `${fillPercent}%` }}
+              >
+                <Star
+                  className={cn(iconClass, 'fill-[#eab308] text-[#ca8a04]')}
+                  strokeWidth={1.5}
+                />
+              </span>
+            )}
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
 export interface ReviewRatingProps {
   average: number | null | undefined
   count: number
@@ -106,7 +164,7 @@ export function ReviewRating({
       )}
     >
       <Star
-        className="size-4 shrink-0 fill-amber-500 text-amber-700"
+        className="size-4 shrink-0 fill-[#eab308] text-[#ca8a04]"
         aria-hidden="true"
       />
       <span aria-hidden="true">{text}</span>

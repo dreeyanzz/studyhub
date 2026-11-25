@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Star } from 'lucide-react'
 
 import {
   formatReviewDate,
   formatReviewScore,
   ReviewRating,
+  SolidStars,
 } from '@/components/review/review-rating'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import type {
@@ -136,38 +137,24 @@ export function SpaceReviews({
         </Alert>
       ) : (
         <div className="space-y-6">
-          {/* Averages scorecard strip (solid white divided bar with mini score meters) or Empty State */}
+          {/* Averages scorecard strip (solid white divided bar with solid stars + numeric scores) or Empty State */}
           {summary.reviewCount > 0 ? (
             <div data-testid="reviews-summary">
               <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] divide-y divide-border/60 rounded-2xl border border-border/50 bg-card shadow-[0_2px_10px_-4px_rgba(23,60,45,0.06)] sm:divide-x sm:divide-y-0">
-                {categoryAverages.map((category) => {
-                  const pct =
-                    category.value !== null
-                      ? Math.max(0, Math.min(100, Math.round((category.value / 5) * 100)))
-                      : 0
-                  return (
-                    <div
-                      key={category.label}
-                      className="min-w-0 space-y-2 px-5 py-4 break-words"
-                    >
-                      <dt className="text-xs font-medium text-muted-foreground">
-                        {category.label}
-                      </dt>
-                      <dd className="text-sm font-semibold text-foreground">
-                        {formatReviewScore(category.value)} / 5
-                      </dd>
-                      <div
-                        aria-hidden="true"
-                        className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
-                      >
-                        <div
-                          className="h-full rounded-full bg-primary"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
+                {categoryAverages.map((category) => (
+                  <div
+                    key={category.label}
+                    className="min-w-0 space-y-1.5 px-5 py-4 break-words"
+                  >
+                    <dt className="text-xs font-medium text-muted-foreground">
+                      {category.label}
+                    </dt>
+                    <dd className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+                      <SolidStars value={category.value} size="sm" />
+                      <span>{formatReviewScore(category.value)} / 5</span>
+                    </dd>
+                  </div>
+                ))}
               </dl>
             </div>
           ) : (
@@ -278,8 +265,14 @@ export function SpaceReviews({
                                 </div>
                               </div>
 
-                              <p className="rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
-                                Overall {formatReviewScore(review.overall)} / 5
+                              <p className="inline-flex items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
+                                <Star
+                                  className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
+                                  aria-hidden="true"
+                                />
+                                <span>
+                                  Overall {formatReviewScore(review.overall)} / 5
+                                </span>
                               </p>
                             </div>
 
@@ -292,17 +285,18 @@ export function SpaceReviews({
                           </div>
 
                           <div className="space-y-3">
-                            <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,7.5rem),1fr))] gap-2 text-xs">
+                            <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] gap-2 text-xs">
                               {REVIEW_RATING_CATEGORIES.map((category) => (
                                 <div
                                   key={category.key}
-                                  className="min-w-0 rounded-xl bg-muted/65 px-3 py-2 break-words"
+                                  className="min-w-0 space-y-1 rounded-xl bg-muted/65 px-3 py-2 break-words"
                                 >
                                   <dt className="text-muted-foreground">
                                     {category.label}
                                   </dt>
-                                  <dd className="mt-0.5 font-semibold text-foreground">
-                                    {review[category.key]} / 5
+                                  <dd className="flex flex-wrap items-center gap-1.5 font-semibold text-foreground">
+                                    <SolidStars value={review[category.key]} size="xs" />
+                                    <span>{review[category.key]} / 5</span>
                                   </dd>
                                 </div>
                               ))}

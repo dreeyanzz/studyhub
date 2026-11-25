@@ -1,10 +1,14 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Star } from 'lucide-react'
 
 import { ReviewForm } from '@/components/review/review-form'
-import { formatReviewDate, formatReviewScore } from '@/components/review/review-rating'
+import {
+  formatReviewDate,
+  formatReviewScore,
+  SolidStars,
+} from '@/components/review/review-rating'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -106,8 +110,12 @@ export function AuthorReviewCard({
           )}
         </div>
 
-        <p className="rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
-          Overall {formatReviewScore(review.overall)} / 5
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
+          <Star
+            className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
+            aria-hidden="true"
+          />
+          <span>Overall {formatReviewScore(review.overall)} / 5</span>
         </p>
       </div>
 
@@ -146,15 +154,16 @@ export function AuthorReviewCard({
         </div>
       ) : (
         <>
-          <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-2 text-xs">
+          <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] gap-2 text-xs">
             {REVIEW_RATING_CATEGORIES.map((category) => (
               <div
                 key={category.key}
-                className="min-w-0 rounded-xl bg-muted/65 px-3 py-2 break-words"
+                className="min-w-0 space-y-1 rounded-xl bg-muted/65 px-3 py-2 break-words"
               >
                 <dt className="text-muted-foreground">{category.label}</dt>
-                <dd className="mt-0.5 font-semibold text-foreground">
-                  {review[category.key]} / 5
+                <dd className="flex flex-wrap items-center gap-1.5 font-semibold text-foreground">
+                  <SolidStars value={review[category.key]} size="xs" />
+                  <span>{review[category.key]} / 5</span>
                 </dd>
               </div>
             ))}
