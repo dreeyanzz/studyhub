@@ -153,6 +153,68 @@ describe('ModerationQueue (STORY-14, TSK-14.3)', () => {
     expect(removedHtml).not.toContain(`data-testid="moderation-dismiss-${REVIEW_ID}"`)
   })
 
+  it('lists only open reports on Reported, and every report with its outcome on Hidden', () => {
+    const closedReport = {
+      ...sampleItem().reports[0]!,
+      id: 'rep-closed',
+      reason: 'offensive' as const,
+      note: 'Dismissed earlier.',
+      outcome: 'dismissed' as const,
+      closedBy: 'admin-1',
+      closedByFullName: 'Alma Reyes',
+      closedAt: '2026-11-24T03:30:00Z',
+    }
+    const withClosed = sampleItem({
+      openReportCount: 1,
+      reports: [closedReport, ...sampleItem().reports],
+    })
+
+    const reportedHtml = renderToStaticMarkup(
+      <ModerationQueue
+        items={[withClosed]}
+        historyByReviewId={sampleHistory}
+        list="reported"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    expect(reportedHtml).toContain('Open reports (1)')
+    expect(reportedHtml).toContain('data-testid="moderation-report-rep-1"')
+    expect(reportedHtml).not.toContain('data-testid="moderation-report-rep-closed"')
+    expect(reportedHtml).not.toContain('Dismissed earlier.')
+
+    const hiddenHtml = renderToStaticMarkup(
+      <ModerationQueue
+        items={[{ ...withClosed, status: 'hidden', openReportCount: 0 }]}
+        historyByReviewId={sampleHistory}
+        list="hidden"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    expect(hiddenHtml).toContain('Reports (2)')
+    expect(hiddenHtml).toContain('data-testid="moderation-report-rep-closed"')
+    expect(hiddenHtml).toContain('Outcome: Dismissed')
+  })
+
+  it('keeps the live status region empty until an action finishes', () => {
+    const html = renderToStaticMarkup(
+      <ModerationQueue
+        items={[sampleItem()]}
+        historyByReviewId={sampleHistory}
+        list="reported"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    const status =
+      html.match(/<div[^>]*data-testid="moderation-live-status"[^>]*>([^<]*)<\/div>/) ??
+      []
+    expect(status[0]).toContain('sr-only')
+    expect(status[1]).toBe('')
+    expect(html).toContain('tabindex="-1"')
+  })
+
   it('renders empty states for each list and Show more / 100-item cap copy', () => {
     expect(
       renderToStaticMarkup(

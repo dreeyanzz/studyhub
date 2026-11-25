@@ -113,8 +113,11 @@ export default async function AdminModerationPage({
     historyByReviewId[reviewId] = events
   }
 
+  // key={list}: a list change starts the queue afresh, so a message about a review on
+  // one list never shows on another.
   return (
     <ModerationQueue
+      key={list}
       items={queue.items}
       historyByReviewId={historyByReviewId}
       list={list}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AlertCircle, Flag, History, Inbox } from 'lucide-react'
@@ -33,7 +33,7 @@ import {
   REVIEW_RATING_CATEGORIES,
   REVIEW_REPORT_REASON_LABELS,
 } from '@/lib/validation/review'
-import { moderateReviewAction, type ModerateReviewResult } from '../actions'
+import { moderateReviewAction } from '../actions'
 
 const LIST_TABS: ReadonlyArray<{ value: ReviewQueueList; label: string }> = [
   { value: 'reported', label: 'Reported' },
@@ -99,12 +99,6 @@ export interface ModerationQueueProps {
   list: ReviewQueueList
   shown: AdminShowCount
   hasMore: boolean
-  /** Injectable for unit tests; defaults to `moderateReviewAction`. */
-  onModerate?: (input: {
-    reviewId: string
-    action: ReviewModerationAction
-    version: number
-  }) => Promise<ModerateReviewResult>
 }
 
 interface PendingDialog {
@@ -115,6 +109,9 @@ interface PendingDialog {
 /**
  * Interactive review moderation console (STORY-14 design §3 Screen 2, TSK-14.3,
  * FR-5.2, RV4–RV8, RP2, D-080, SRS §3.2.2, §3.5.2).
+ *
+ * The page renders it with `key={list}`, so a message from one list never shows on
+ * another.
  */
 export function ModerationQueue({
   items,
@@ -122,28 +119,40 @@ export function ModerationQueue({
   list,
   shown,
   hasMore,
-  onModerate = moderateReviewAction,
 }: ModerationQueueProps) {
   const router = useRouter()
+  const headingRef = useRef<HTMLHeadingElement>(null)
+  // Set when an action succeeds. Every action takes its review off the current list,
+  // so the dialog then returns focus to the heading, not to a button that is about to
+  // disappear (which would leave focus on the page body).
+  const succeededRef = useRef(false)
   const [pendingDialog, setPendingDialog] = useState<PendingDialog | null>(null)
   const [announcement, setAnnouncement] = useState<string | null>(null)
   const [errorBanner, setErrorBanner] = useState<string | null>(null)
   const [activeReviewId, setActiveReviewId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
+  function openDialog(item: AdminReviewQueueItem, action: ReviewModerationAction) {
+    succeededRef.current = false
+    setPendingDialog({ item, action })
+  }
+
   function handleConfirm() {
     if (!pendingDialog) return
     const { item, action } = pendingDialog
     setErrorBanner(null)
+    // Empty the live region first, so the same message twice in a row is still read.
+    setAnnouncement(null)
     setActiveReviewId(item.reviewId)
 
     startTransition(async () => {
-      const result = await onModerate({
+      const result = await moderateReviewAction({
         reviewId: item.reviewId,
         action,
         version: item.version,
       })
 
+      succeededRef.current = result.success
       setPendingDialog(null)
       setActiveReviewId(null)
 
@@ -153,8 +162,8 @@ export function ModerationQueue({
         return
       }
 
+      // role="alert" reads the error, so the status region stays quiet (no double read).
       setErrorBanner(result.error)
-      setAnnouncement(result.error)
     })
   }
 
@@ -164,7 +173,11 @@ export function ModerationQueue({
   return (
     <div className="space-y-6">
       <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-2xl font-bold tracking-tight text-foreground outline-none"
+        >
           Review Moderation
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -236,6 +249,13 @@ export function ModerationQueue({
               item.openReportCount === 1
                 ? '1 open report'
                 : `${item.openReportCount} open reports`
+            // Reported shows each open report (design §3). Hidden and Removed show every
+            // report, with its outcome.
+            const reports =
+              list === 'reported'
+                ? item.reports.filter((report) => report.outcome === null)
+                : item.reports
+            const reportsHeading = list === 'reported' ? 'Open reports' : 'Reports'
 
             return (
               <Card
@@ -352,17 +372,17 @@ export function ModerationQueue({
 
                   {/* Reports section */}
                   <section
-                    aria-label="Reports"
+                    aria-label={reportsHeading}
                     className="min-w-0 space-y-2 border-t border-border pt-3"
                   >
                     <h3 className="text-sm font-semibold text-foreground">
-                      Reports ({item.reports.length})
+                      {reportsHeading} ({reports.length})
                     </h3>
-                    {item.reports.length === 0 ? (
+                    {reports.length === 0 ? (
                       <p className="text-xs text-muted-foreground">No reports on file.</p>
                     ) : (
                       <ul className="space-y-2">
-                        {item.reports.map((report) => {
+                        {reports.map((report) => {
                           const editedAfterReport = report.reviewVersion < item.version
                           return (
                             <li
@@ -468,7 +488,7 @@ export function ModerationQueue({
                           disabled={isPending}
                           aria-busy={isCardBusy}
                           data-testid={`moderation-dismiss-${item.reviewId}`}
-                          onClick={() => setPendingDialog({ item, action: 'dismiss' })}
+                          onClick={() => openDialog(item, 'dismiss')}
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Dismiss reports
@@ -479,7 +499,7 @@ export function ModerationQueue({
                           disabled={isPending}
                           aria-busy={isCardBusy}
                           data-testid={`moderation-hide-${item.reviewId}`}
-                          onClick={() => setPendingDialog({ item, action: 'hide' })}
+                          onClick={() => openDialog(item, 'hide')}
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Hide
@@ -490,7 +510,7 @@ export function ModerationQueue({
                           disabled={isPending}
                           aria-busy={isCardBusy}
                           data-testid={`moderation-remove-${item.reviewId}`}
-                          onClick={() => setPendingDialog({ item, action: 'remove' })}
+                          onClick={() => openDialog(item, 'remove')}
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Remove
@@ -506,7 +526,7 @@ export function ModerationQueue({
                           disabled={isPending}
                           aria-busy={isCardBusy}
                           data-testid={`moderation-restore-${item.reviewId}`}
-                          onClick={() => setPendingDialog({ item, action: 'restore' })}
+                          onClick={() => openDialog(item, 'restore')}
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Restore
@@ -517,7 +537,7 @@ export function ModerationQueue({
                           disabled={isPending}
                           aria-busy={isCardBusy}
                           data-testid={`moderation-remove-${item.reviewId}`}
-                          onClick={() => setPendingDialog({ item, action: 'remove' })}
+                          onClick={() => openDialog(item, 'remove')}
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Remove
@@ -563,7 +583,9 @@ export function ModerationQueue({
         }}
       >
         {dialogCopy && pendingDialog && (
-          <AlertDialogContent>
+          <AlertDialogContent
+            finalFocus={() => (succeededRef.current ? headingRef.current : true)}
+          >
             <AlertDialogHeader>
               <AlertDialogTitle>{dialogCopy.title}</AlertDialogTitle>
               <AlertDialogDescription>{dialogCopy.body}</AlertDialogDescription>
