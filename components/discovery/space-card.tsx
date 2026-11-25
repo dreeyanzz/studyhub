@@ -50,14 +50,14 @@ export function SpaceCard({
       onMouseEnter={() => onHover?.(space.id)}
       onMouseLeave={() => onHover?.(null)}
       className={cn(
-        'group relative flex flex-col justify-between rounded-2xl border border-border/80 bg-card text-card-foreground shadow-sm transition-all duration-200 outline-none',
-        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:border-primary/50 hover:shadow-md',
+        'group relative flex flex-col justify-between rounded-3xl border border-transparent bg-card text-card-foreground transition-all duration-200 outline-none',
+        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:border-primary/40 hover:shadow-md',
         isActive && 'border-primary shadow-md ring-2 ring-primary',
-        isHovered && !isActive && 'border-primary/50 bg-accent/20',
+        isHovered && !isActive && 'border-primary/40 bg-secondary/25',
         className,
       )}
     >
-      <div className="p-5">
+      <div className="p-6">
         {/* Header: Title + Price Tier */}
         {/* Wraps, so at 200% text the badge drops below the name instead of past the edge. */}
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -111,7 +111,7 @@ export function SpaceCard({
         {/* Description Snippet: shortened by characters, not by a line clamp, so the
             same words show at every text size (#372). */}
         {snippet && (
-          <p className="mt-3 rounded-xl border border-border/60 bg-muted/20 px-3.5 py-2.5 text-sm break-words text-muted-foreground">
+          <p className="mt-3 text-sm leading-relaxed break-words text-muted-foreground">
             {snippet}
           </p>
         )}
@@ -146,7 +146,7 @@ export function SpaceCard({
       </div>
 
       {/* Footer / CTA Action Link */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-2xl border-t border-border/70 bg-muted/25 px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-b-3xl bg-secondary/45 px-6 py-4">
         <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <ShieldCheck className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
           <span>Verified study space</span>

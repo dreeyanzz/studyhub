@@ -119,10 +119,7 @@ export function SearchBar({
   return (
     <div
       data-testid="discovery-search-bar"
-      className={cn(
-        'rounded-2xl border border-border/80 bg-card p-4 shadow-sm sm:p-5',
-        className,
-      )}
+      className={cn('rounded-3xl bg-secondary/60 p-4 sm:p-6', className)}
     >
       <div className="flex flex-col gap-3 md:flex-row md:items-center">
         {/* Search Input Form */}
@@ -150,7 +147,7 @@ export function SearchBar({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Search by campus, city, or space name..."
               maxLength={100}
-              className="min-h-12 w-full rounded-full border border-input bg-muted/60 pr-12 pl-10 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              className="min-h-12 w-full rounded-full border border-input bg-card pr-12 pl-10 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             />
             {inputValue.length > 0 && (
               <button
@@ -182,10 +179,10 @@ export function SearchBar({
           aria-pressed={hasUserLocation}
           data-testid="use-my-location-button"
           className={cn(
-            'inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium shadow-2xs transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98] disabled:opacity-60',
+            'inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98] disabled:opacity-60',
             hasUserLocation
-              ? 'border-primary bg-primary/10 text-primary hover:bg-primary/15'
-              : 'border-border/80 bg-secondary/70 text-secondary-foreground hover:border-primary/40 hover:bg-secondary',
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'bg-card text-foreground hover:bg-accent',
           )}
         >
           {isLocating ? (
@@ -226,10 +223,10 @@ export function SearchBar({
                 data-testid={`campus-chip-${chip.id}`}
                 onClick={() => handleCampusChipClick(chip)}
                 className={cn(
-                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
                   isActive
-                    ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                    : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-card text-foreground hover:bg-accent',
                 )}
               >
                 {chip.label}

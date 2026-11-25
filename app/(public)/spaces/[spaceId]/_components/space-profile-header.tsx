@@ -28,43 +28,46 @@ export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeade
   const hoursText = formatOpeningHours(space.opens_at, space.closes_at)
 
   return (
-    <header className="space-y-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-foreground sm:text-3xl">
-          {space.name}
-        </h1>
-        <div className="mt-1.5 flex min-w-0 items-start gap-1.5 text-sm wrap-anywhere text-muted-foreground">
-          <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-          <span>{space.address}</span>
+    <header className="flex h-full flex-col justify-between gap-5 rounded-3xl bg-secondary/75 p-6 sm:p-8">
+      <div className="space-y-4">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Badge
+            variant="outline"
+            className={cn(
+              'h-auto min-h-6 rounded-full border-transparent px-3 py-0.5 text-xs font-medium break-words whitespace-normal',
+              operatingStatus.isOpen
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card text-muted-foreground',
+            )}
+          >
+            {operatingStatus.displayText}
+          </Badge>
+          <PriceTierBadge tier={space.price_tier} showSymbol />
         </div>
+
+        <div>
+          <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-foreground sm:text-3xl">
+            {space.name}
+          </h1>
+          <div className="mt-2 flex min-w-0 items-start gap-1.5 text-sm wrap-anywhere text-muted-foreground">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>{space.address}</span>
+          </div>
+        </div>
+
+        {space.description && (
+          <p className="text-sm leading-relaxed break-words whitespace-pre-line text-foreground/85">
+            {space.description}
+          </p>
+        )}
       </div>
 
-      <div className="flex min-w-0 flex-wrap items-center gap-2.5 text-sm text-muted-foreground">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/30 px-3 py-1 text-foreground">
+      <div className="flex min-w-0 flex-wrap items-center gap-2.5 border-t border-border/60 pt-4 text-sm text-foreground">
+        <div className="inline-flex items-center gap-2 rounded-full bg-card px-3.5 py-1.5 font-medium">
           <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
           <span>Hours: {hoursText}</span>
         </div>
-        <Badge
-          variant="outline"
-          className={cn(
-            'h-auto min-h-6 rounded-full px-3 py-0.5 text-xs font-medium break-words whitespace-normal',
-            operatingStatus.isOpen
-              ? 'border-primary/20 bg-primary/10 text-primary'
-              : 'border-border bg-muted/60 text-muted-foreground',
-          )}
-        >
-          {operatingStatus.displayText}
-        </Badge>
-        <PriceTierBadge tier={space.price_tier} showSymbol />
       </div>
-
-      {space.description && (
-        <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3">
-          <p className="text-sm leading-relaxed break-words whitespace-pre-line text-muted-foreground">
-            {space.description}
-          </p>
-        </div>
-      )}
     </header>
   )
 }

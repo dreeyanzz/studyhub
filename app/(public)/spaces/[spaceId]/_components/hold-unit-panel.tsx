@@ -170,14 +170,14 @@ export function HoldUnitPanel({
           {terms.waitWindowMinutes.map((minutes) => (
             <label
               key={minutes}
-              className="flex min-h-12 min-w-12 cursor-pointer items-center gap-2 rounded-full border border-input bg-card px-4 shadow-2xs transition-colors hover:border-primary/50 has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary has-focus-visible:ring-3 has-focus-visible:ring-ring"
+              className="flex min-h-12 min-w-12 cursor-pointer items-center gap-2 rounded-full bg-muted/75 px-4 font-medium text-foreground transition-colors hover:bg-secondary has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring"
             >
               <input
                 type="radio"
                 name="waitWindowMinutes"
                 value={minutes}
                 defaultChecked={minutes === shortest}
-                className="size-5 accent-primary"
+                className="size-4 accent-primary-foreground"
               />
               {formatWaitWindow(minutes)}
             </label>

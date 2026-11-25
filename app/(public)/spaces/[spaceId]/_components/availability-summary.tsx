@@ -23,7 +23,7 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
   return (
     <section
       aria-labelledby="availability-overview-heading"
-      className="min-w-0 space-y-3.5 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
+      className="h-full min-w-0 space-y-3.5 rounded-3xl bg-muted/80 p-6"
     >
       <h2
         id="availability-overview-heading"
@@ -46,10 +46,10 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
               <div
                 key={zone.zoneId}
                 role="listitem"
-                className={`flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-xs shadow-2xs sm:text-sm ${
+                className={`flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-2xl px-4 py-2.5 text-xs sm:text-sm ${
                   hasAvailable
-                    ? 'border-primary/25 bg-primary/5 text-foreground'
-                    : 'border-border/70 bg-muted/35 text-muted-foreground'
+                    ? 'bg-card text-foreground'
+                    : 'bg-background/80 text-muted-foreground'
                 }`}
               >
                 <span className="min-w-0 font-semibold wrap-anywhere text-foreground">
@@ -95,7 +95,7 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
         <Alert
           data-testid="seeker-profile-no-available-unit"
           variant="default"
-          className="rounded-2xl border-border/80 bg-muted/30 shadow-2xs"
+          className="rounded-2xl border-0 bg-card"
         >
           <Info className="size-4 shrink-0 text-primary" aria-hidden="true" />
           <AlertTitle>No units available</AlertTitle>

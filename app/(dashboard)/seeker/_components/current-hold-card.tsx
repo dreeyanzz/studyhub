@@ -39,7 +39,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-2xl border border-primary/25 bg-card p-5 shadow-sm sm:p-6"
+        className="space-y-4 rounded-3xl bg-card p-6"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="current-hold-heading" className="font-heading text-lg font-semibold">
@@ -47,7 +47,7 @@ export function CurrentHoldCard({
           </h2>
           <HoldStatusBadge status={hold.status} />
         </div>
-        <p className="flex flex-wrap items-center gap-2 rounded-xl border border-border/70 bg-muted/25 px-4 py-3">
+        <p className="flex flex-wrap items-center gap-2 rounded-2xl bg-secondary/55 px-4 py-3">
           <span className="font-medium text-foreground">
             {hold.unitLabel} at {hold.spaceName}
           </span>
@@ -69,7 +69,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-2xl border border-primary/25 bg-card p-5 shadow-sm sm:p-6"
+        className="space-y-4 rounded-3xl bg-card p-6"
       >
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -94,7 +94,7 @@ export function CurrentHoldCard({
         </div>
 
         {hold.waitWindowEndsAt && (
-          <div className="space-y-1 rounded-xl border border-blue-600/20 bg-blue-50/50 px-4 py-3">
+          <div className="space-y-1 rounded-2xl bg-blue-50/75 px-4 py-3.5">
             <WaitCountdown deadline={hold.waitWindowEndsAt} reservationId={hold.id} />
             <p className="text-sm text-muted-foreground">
               Check in by <ManilaTime iso={hold.waitWindowEndsAt} />.
@@ -103,8 +103,8 @@ export function CurrentHoldCard({
         )}
 
         {hold.bookingToken && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/80 bg-muted/20 p-5 text-center shadow-2xs">
-            <div className="rounded-xl bg-white p-2 shadow-2xs">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-secondary/50 p-5 text-center">
+            <div className="rounded-xl bg-white p-2">
               <BookingQrCode token={hold.bookingToken} />
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -117,7 +117,7 @@ export function CurrentHoldCard({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-3 border-t border-border/70 pt-4">
+        <div className="flex flex-wrap gap-3 pt-1">
           <Link
             href={`/seeker/reservations/${hold.id}?cancel=1`}
             className={buttonLinkClass('outline')}
@@ -137,13 +137,10 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-2xl border border-amber-600/30 bg-card p-5 shadow-sm sm:p-6"
+        className="space-y-4 rounded-3xl bg-card p-6"
       >
         {checkOutError && (
-          <Alert
-            variant="destructive"
-            className="rounded-2xl border-destructive/30 shadow-xs"
-          >
+          <Alert variant="destructive" className="rounded-2xl border-destructive/30">
             <AlertDescription>
               We could not check you out. Check your connection and try again.
             </AlertDescription>
@@ -168,7 +165,7 @@ export function CurrentHoldCard({
             <span>{hold.spaceAddress}</span>
           </p>
           {hold.checkedInAt && (
-            <p className="inline-flex items-center gap-2 rounded-xl border border-border/70 bg-muted/25 px-3.5 py-2 text-sm text-foreground">
+            <p className="inline-flex items-center gap-2 rounded-full bg-secondary/65 px-3.5 py-2 text-sm text-foreground">
               <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
               <span>
                 Arrived at <ManilaTime iso={hold.checkedInAt} />
@@ -181,7 +178,7 @@ export function CurrentHoldCard({
           <div
             role="region"
             aria-labelledby="checkout-confirm-heading"
-            className="space-y-3 rounded-2xl border border-border/80 bg-muted/25 p-4 sm:p-5"
+            className="space-y-3 rounded-2xl bg-muted/65 p-5"
           >
             <h3
               id="checkout-confirm-heading"
@@ -205,7 +202,7 @@ export function CurrentHoldCard({
             </div>
           </div>
         ) : (
-          <div className="border-t border-border/70 pt-4">
+          <div className="pt-1">
             <Link href="/seeker?checkout=1" className={buttonLinkClass()}>
               Check Out
             </Link>
@@ -221,7 +218,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-3.5 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
+        className="space-y-3.5 rounded-3xl bg-card p-6"
       >
         <h2 id="current-hold-heading" className="font-heading text-xl font-semibold">
           Wait window lapsed · Unit released
@@ -239,7 +236,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-3.5 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
+        className="space-y-3.5 rounded-3xl bg-card p-6"
       >
         <h2 id="current-hold-heading" className="font-heading text-xl font-semibold">
           Visit completed
@@ -255,7 +252,7 @@ export function CurrentHoldCard({
   return (
     <section
       aria-labelledby="current-hold-heading"
-      className="space-y-3.5 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
+      className="space-y-3.5 rounded-3xl bg-card p-6"
     >
       <EndedView reservation={hold} headingLevel="h2" headingId="current-hold-heading" />
     </section>

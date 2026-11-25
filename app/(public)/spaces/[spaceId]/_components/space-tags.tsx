@@ -42,15 +42,12 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
     <section
       aria-label="Amenities and Tags"
       data-testid="space-tags"
-      className={cn(
-        'min-w-0 space-y-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6',
-        className,
-      )}
+      className={cn('h-full min-w-0 space-y-4 rounded-3xl bg-card p-6', className)}
     >
       {/* Curated Amenity Tags */}
       {hasCurated && (
-        <div className="min-w-0 space-y-2" data-testid="curated-tags">
-          <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="min-w-0 space-y-2.5" data-testid="curated-tags">
+          <h2 className="text-xs font-semibold tracking-wider text-primary uppercase">
             Curated Amenities
           </h2>
           <div
@@ -65,7 +62,7 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
                 <div
                   key={tag.id}
                   role="listitem"
-                  className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-medium wrap-anywhere text-primary shadow-2xs"
+                  className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-medium wrap-anywhere text-primary"
                 >
                   <Icon className="size-3.5 shrink-0" aria-hidden="true" />
                   <span className="min-w-0 wrap-anywhere">{tag.label}</span>
@@ -80,7 +77,7 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
       {hasCustom && (
         <div
           className={cn(
-            'min-w-0 space-y-2',
+            'min-w-0 space-y-2.5',
             hasCurated && 'border-t border-border/60 pt-4',
           )}
           data-testid="custom-tags"

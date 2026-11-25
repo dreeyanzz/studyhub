@@ -216,27 +216,24 @@ export default async function SpaceProfilePage({
     />
   ) : null
 
+  const hasTags = curatedTags.length > 0 || customTags.length > 0
+
   return (
-    <div className="min-h-[calc(100vh-8rem)] w-full bg-muted/30">
-      <div className="mx-auto w-full max-w-7xl min-w-0 space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+    <div className="min-h-[calc(100vh-8rem)] w-full bg-background">
+      <div className="mx-auto w-full max-w-7xl min-w-0 space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <nav aria-label="Breadcrumb">
           <Link
             href={DISCOVERY_HREF}
-            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <span>Back to search</span>
           </Link>
         </nav>
 
-        {/* Top split: Space details & tags alongside the photo gallery from md up */}
-        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <div className="min-w-0 space-y-6">
-            <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
-
-            {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
-            <SpaceTags curatedTags={curatedTags} customTags={customTags} />
-          </div>
+        {/* Top Hero Split: Solid sage info card beside flush photo gallery */}
+        <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
 
           <SpacePhotoGallery spaceName={space.name} photos={photos} />
         </div>
@@ -245,7 +242,7 @@ export default async function SpaceProfilePage({
           <Alert
             data-testid="seeker-space-closed"
             variant="default"
-            className="rounded-2xl border-border/80 bg-card shadow-xs"
+            className="rounded-2xl border-0 bg-muted/80"
           >
             <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <AlertTitle>This Space is closed now</AlertTitle>
@@ -266,15 +263,27 @@ export default async function SpaceProfilePage({
           </Alert>
         )}
 
-        {/* Zone availability overview with oldest-available freshness rule (D-051) */}
-        <AvailabilitySummary summary={availability} />
+        {/* Solid dual-card band: Amenities & Tags alongside Current Availability */}
+        <div
+          className={
+            hasTags
+              ? 'grid grid-cols-1 items-stretch gap-5 md:grid-cols-2'
+              : 'grid grid-cols-1'
+          }
+        >
+          {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
+          <SpaceTags curatedTags={curatedTags} customTags={customTags} />
+
+          {/* Zone availability overview with oldest-available freshness rule (D-051) */}
+          <AvailabilitySummary summary={availability} />
+        </div>
 
         {refusalMessage && (
           <Alert
             variant="destructive"
             role="alert"
             data-testid="hold-refusal"
-            className="rounded-2xl border-destructive/30 shadow-xs"
+            className="rounded-2xl border-destructive/30"
           >
             <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
             <AlertDescription>{refusalMessage}</AlertDescription>

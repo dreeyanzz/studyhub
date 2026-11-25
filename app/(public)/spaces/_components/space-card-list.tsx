@@ -65,9 +65,9 @@ export function SpaceCardList({
       {spaces.length === 0 ? (
         <div
           data-testid="seeker-search-no-results"
-          className="flex min-h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/70 p-8 text-center shadow-xs sm:p-10"
+          className="flex min-h-[400px] flex-col items-center justify-center rounded-3xl bg-secondary/55 p-8 text-center sm:p-10"
         >
-          <div className="flex size-14 items-center justify-center rounded-2xl bg-secondary text-primary shadow-xs">
+          <div className="flex size-14 items-center justify-center rounded-2xl bg-card text-primary">
             <SearchX className="size-7" aria-hidden="true" />
           </div>
           <h2 className="mt-4 font-heading text-lg font-bold text-foreground">
@@ -101,7 +101,7 @@ export function SpaceCardList({
         <>
           {/* Result Count Header */}
           <div className="mb-4 flex items-center justify-between">
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card px-3.5 py-1.5 text-sm font-medium text-muted-foreground shadow-2xs">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-secondary/75 px-4 py-1.5 text-sm font-medium text-secondary-foreground">
               Showing{' '}
               <span className="font-semibold text-foreground">{spaces.length}</span>{' '}
               {spaces.length === 1 ? 'space' : 'spaces'}

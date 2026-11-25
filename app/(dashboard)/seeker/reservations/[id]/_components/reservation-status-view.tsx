@@ -129,13 +129,19 @@ export function PaymentActions({ reservation }: { reservation: MyReservation }) 
  * The confirmation step at `?cancel=1`, which works by keyboard and without
  * JavaScript (design §3, seeker-cancel-pending-hold).
  */
-export function CancelConfirmation({ reservation }: { reservation: MyReservation }) {
+export function CancelConfirmation({
+  reservation,
+  className,
+}: {
+  reservation: MyReservation
+  className?: string
+}) {
   const isPaid = reservation.status === 'reserved'
   const fee = formatPeso(reservation.feeAmount)
   return (
     <section
       aria-labelledby="cancel-heading"
-      className="space-y-4 rounded-2xl border border-destructive/25 bg-muted/25 p-5 shadow-2xs"
+      className={cn('space-y-4 rounded-2xl bg-muted/70 p-5', className)}
     >
       <h2 id="cancel-heading" className="font-heading text-base font-semibold">
         {isPaid
@@ -178,36 +184,41 @@ export function ReservedView({
   return (
     <div
       className={cn(
-        'grid grid-cols-1 items-start gap-6',
+        'grid grid-cols-1 items-stretch gap-5',
         reservation.bookingToken && 'md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
       )}
     >
-      <section className="space-y-5 rounded-2xl border border-primary/25 bg-card p-5 shadow-sm sm:p-6">
-        <div className="space-y-2">
-          <HoldStatusBadge status="reserved" />
-          <h1 className="font-heading text-2xl font-bold tracking-tight">
-            Reserved: {reservation.unitLabel}
-          </h1>
-          <HoldPlace reservation={reservation} />
-        </div>
-        <div className="space-y-2 rounded-xl border border-border/70 bg-muted/25 px-4 py-3.5">
-          {reservation.waitWindowEndsAt && (
-            <p className="flex items-center gap-2 font-medium text-foreground">
-              <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
-              <span>
-                Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
-              </span>
+      <section className="flex flex-col justify-between gap-5 rounded-3xl bg-card p-6">
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <HoldStatusBadge status="reserved" />
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
+              Reserved: {reservation.unitLabel}
+            </h1>
+            <HoldPlace reservation={reservation} />
+          </div>
+          <div className="space-y-2 rounded-2xl bg-muted/65 px-4 py-3.5">
+            {reservation.waitWindowEndsAt && (
+              <p className="flex items-center gap-2 font-medium text-foreground">
+                <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                <span>
+                  Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
+                </span>
+              </p>
+            )}
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <MapPin
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              <span>{reservation.spaceAddress}</span>
             </p>
-          )}
-          <p className="flex items-start gap-2 text-sm text-muted-foreground">
-            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-            <span>{reservation.spaceAddress}</span>
-          </p>
+          </div>
         </div>
         {confirmingCancel ? (
           <CancelConfirmation reservation={reservation} />
         ) : (
-          <div className="border-t border-border/70 pt-4">
+          <div className="pt-1">
             <Link
               href={`${holdPath(reservation)}?cancel=1`}
               className={buttonLinkClass('outline')}
@@ -219,14 +230,12 @@ export function ReservedView({
       </section>
 
       {reservation.bookingToken && (
-        <section className="flex flex-col items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-5 text-center shadow-sm sm:p-6">
+        <section className="flex flex-col items-center justify-center gap-4 rounded-3xl bg-secondary/75 p-6 text-center">
           <p className="text-xs font-semibold tracking-wider text-primary uppercase">
             Check-in pass
           </p>
-          <div className="rounded-2xl border border-border/70 bg-muted/20 p-4 shadow-2xs">
-            <div className="rounded-xl bg-white p-2 shadow-2xs">
-              <BookingQrCode token={reservation.bookingToken} />
-            </div>
+          <div className="rounded-2xl bg-white p-3">
+            <BookingQrCode token={reservation.bookingToken} />
           </div>
           <BookingToken token={reservation.bookingToken} />
         </section>

@@ -76,17 +76,17 @@ export function AuthorReviewCard({
   return (
     <article
       data-testid={`author-review-${review.id}`}
-      className="space-y-3.5 rounded-2xl border border-primary/25 bg-card p-4 shadow-xs sm:p-5"
+      className="space-y-3.5 rounded-2xl bg-card p-5 sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-medium text-foreground">{reviewerShortName}</p>
-            <span className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+            <p className="font-semibold text-foreground">{reviewerShortName}</p>
+            <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
               Checked-in visit
             </span>
             {review.edited && (
-              <span className="inline-flex items-center rounded-full border border-border/80 bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+              <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
                 Edited
               </span>
             )}
@@ -106,7 +106,7 @@ export function AuthorReviewCard({
           )}
         </div>
 
-        <p className="rounded-full border border-border/80 bg-muted/30 px-3 py-1 text-sm font-semibold text-foreground shadow-2xs">
+        <p className="rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
           Overall {formatReviewScore(review.overall)} / 5
         </p>
       </div>
@@ -150,7 +150,7 @@ export function AuthorReviewCard({
             {REVIEW_RATING_CATEGORIES.map((category) => (
               <div
                 key={category.key}
-                className="min-w-0 rounded-xl border border-border/70 bg-muted/25 px-3 py-2 break-words shadow-2xs"
+                className="min-w-0 rounded-xl bg-muted/65 px-3 py-2 break-words"
               >
                 <dt className="text-muted-foreground">{category.label}</dt>
                 <dd className="mt-0.5 font-semibold text-foreground">
@@ -269,7 +269,7 @@ export function AuthorReviewsSection({
       {reviewableVisit && (
         <div
           data-testid="write-review-panel"
-          className="space-y-4 rounded-2xl border border-border/80 bg-muted/25 p-5 shadow-2xs sm:p-6"
+          className="space-y-4 rounded-2xl bg-card p-5 sm:p-6"
         >
           <div className="space-y-1">
             <h3 className="font-heading text-base font-semibold text-foreground">

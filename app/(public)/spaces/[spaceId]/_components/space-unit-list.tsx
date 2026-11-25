@@ -90,7 +90,7 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
             {zone.name}
           </h3>
 
-          <div className="divide-y divide-border/70 rounded-2xl border border-border/80 bg-card shadow-sm">
+          <div className="divide-y divide-border/60 rounded-3xl bg-card">
             {zone.units.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">No units in this zone.</p>
             ) : (
@@ -113,14 +113,14 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
                   <div
                     key={unit.id}
                     className={cn(
-                      'flex flex-col gap-3 p-3.5 transition-colors first:rounded-t-2xl last:rounded-b-2xl sm:flex-row sm:items-center sm:justify-between sm:p-4',
+                      'flex flex-col gap-3 p-4 transition-colors first:rounded-t-3xl last:rounded-b-3xl sm:flex-row sm:items-center sm:justify-between',
                       isSelected
-                        ? 'bg-primary/5 ring-1 ring-primary ring-inset'
-                        : 'hover:bg-muted/25',
+                        ? 'bg-secondary/60 ring-1 ring-primary/40 ring-inset'
+                        : 'hover:bg-muted/35',
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-secondary/70 text-primary shadow-2xs">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
                         <TypeIcon className="size-5" aria-hidden="true" />
                       </div>
 
@@ -159,8 +159,8 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
                         className={cn(
                           'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                           isSelected
-                            ? 'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90'
-                            : 'border border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/40 hover:bg-accent/40',
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'bg-secondary text-secondary-foreground hover:bg-accent',
                         )}
                         aria-current={isSelected ? 'true' : undefined}
                       >

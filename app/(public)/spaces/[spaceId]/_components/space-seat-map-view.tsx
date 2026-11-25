@@ -85,9 +85,9 @@ export function SpaceSeatMapView({
     : '?view=list'
 
   return (
-    <div className="min-w-0 space-y-6" data-testid="space-seat-map-view">
-      {/* View Switcher: Seat map vs Accessible list */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card px-5 py-4 shadow-sm">
+    <div className="min-w-0 space-y-5" data-testid="space-seat-map-view">
+      {/* Open editorial section header: Title + Solid pill view switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="min-w-0 font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground">
           Seat Selection
         </h2>
@@ -95,17 +95,17 @@ export function SpaceSeatMapView({
         <div
           role="group"
           aria-label="View switcher"
-          className="inline-flex max-w-full flex-wrap rounded-full border border-border/80 bg-muted/60 p-1"
+          className="inline-flex max-w-full flex-wrap rounded-full bg-secondary/80 p-1"
         >
           <Link
             href={gridHref}
             scroll={false}
             aria-current={view === 'grid' ? 'page' : undefined}
             className={cn(
-              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
+              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
               view === 'grid'
-                ? 'bg-card text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-primary text-primary-foreground'
+                : 'text-secondary-foreground hover:bg-card/70',
             )}
           >
             <LayoutGrid className="size-4" aria-hidden="true" />
@@ -117,10 +117,10 @@ export function SpaceSeatMapView({
             scroll={false}
             aria-current={view === 'list' ? 'page' : undefined}
             className={cn(
-              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
+              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
               view === 'list'
-                ? 'bg-card text-foreground shadow-xs'
-                : 'text-muted-foreground hover:text-foreground',
+                ? 'bg-primary text-primary-foreground'
+                : 'text-secondary-foreground hover:bg-card/70',
             )}
           >
             <List className="size-4" aria-hidden="true" />
@@ -177,27 +177,27 @@ export function SpaceSeatMapView({
           )}
         </div>
 
-        {/* Selected Unit Panel (sticky side-by-side from md up) */}
+        {/* Selected Unit Panel (solid sticky card side-by-side from md up) */}
         {allUnits.length > 0 && (
           <div className="min-w-0 md:sticky md:top-6">
             {selectedUnit ? (
               <Card
                 data-testid="selected-unit-panel"
-                className="rounded-2xl border border-primary/35 bg-card shadow-sm"
+                className="gap-0 rounded-3xl border-0 bg-card py-0 ring-0"
               >
-                <CardHeader className="border-b border-border/70 pb-3.5">
+                <CardHeader className="rounded-t-3xl bg-secondary/75 px-6 py-5">
                   <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
                     <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-foreground">
                       Selected Unit: {selectedUnit.label}
                     </CardTitle>
-                    <span className="min-w-0 rounded-full border border-border/80 bg-secondary/70 px-3 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
+                    <span className="min-w-0 rounded-full bg-card px-3 py-0.5 text-xs font-semibold wrap-anywhere text-foreground">
                       {selectedZone?.name ?? 'Zone'}
                     </span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-2.5 text-xs sm:text-sm">
-                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                <CardContent className="space-y-5 p-6">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10.5rem),1fr))] gap-2.5 text-xs sm:text-sm">
+                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Type
                       </span>
@@ -206,7 +206,7 @@ export function SpaceSeatMapView({
                       </span>
                     </div>
 
-                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Capacity
                       </span>
@@ -216,7 +216,7 @@ export function SpaceSeatMapView({
                       </span>
                     </div>
 
-                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Status
                       </span>
@@ -225,7 +225,7 @@ export function SpaceSeatMapView({
                       </span>
                     </div>
 
-                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Freshness
                       </span>
@@ -241,7 +241,7 @@ export function SpaceSeatMapView({
                     <Alert
                       data-testid="selected-unit-space-closed"
                       variant="default"
-                      className="rounded-2xl border-border/80 bg-muted/30"
+                      className="rounded-2xl border-0 bg-muted/70"
                     >
                       <Clock
                         className="size-4 shrink-0 text-primary"
@@ -266,7 +266,7 @@ export function SpaceSeatMapView({
                   ) : selectedUnit.seatState === 'available' ? (
                     <div
                       data-testid="selected-unit-hold-action"
-                      className="border-t border-border/70 pt-4"
+                      className="border-t border-border/60 pt-5"
                     >
                       {renderSelectedUnitAction
                         ? renderSelectedUnitAction(selectedUnit)
@@ -279,7 +279,7 @@ export function SpaceSeatMapView({
                           ))}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2.5 rounded-xl border border-amber-600/30 bg-amber-50 p-3.5 text-xs text-amber-900">
+                    <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50 p-4 text-xs text-amber-900">
                       <AlertCircle
                         className="size-4 shrink-0 text-amber-700"
                         aria-hidden="true"
@@ -296,8 +296,8 @@ export function SpaceSeatMapView({
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/70 p-6 text-center shadow-xs sm:p-8">
-                <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-secondary text-primary shadow-xs">
+              <div className="flex flex-col items-center justify-center rounded-3xl bg-secondary/60 p-8 text-center">
+                <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-card text-primary">
                   <Armchair className="size-6" aria-hidden="true" />
                 </div>
                 <p className="font-heading text-base font-semibold text-foreground">
