@@ -154,7 +154,7 @@ export function AuthorReviewCard({
         </div>
       ) : (
         <>
-          <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,11rem),1fr))] gap-2 text-xs">
+          <dl className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
             {REVIEW_RATING_CATEGORIES.map((category) => (
               <div
                 key={category.key}

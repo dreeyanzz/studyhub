@@ -220,7 +220,7 @@ export default async function SpaceProfilePage({
 
   return (
     <div className="min-h-[calc(100vh-8rem)] w-full bg-background">
-      <div className="mx-auto w-full max-w-7xl min-w-0 space-y-8 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <div className="w-full min-w-0 space-y-6 px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
         <nav aria-label="Breadcrumb">
           <Link
             href={DISCOVERY_HREF}

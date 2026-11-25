@@ -37,7 +37,7 @@ export async function SeekerHeader() {
 
   return (
     <header className="border-b border-border bg-card/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6">
+      <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/"

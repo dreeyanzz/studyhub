@@ -52,8 +52,8 @@ export default async function SpacesPage(props: SpacesPageProps) {
   )
 
   return (
-    <div className="discovery-page min-h-[calc(100vh-8rem)] w-full bg-background py-8 sm:py-10">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="discovery-page min-h-[calc(100vh-8rem)] w-full bg-background py-6 sm:py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-10">
         <header className="mx-auto mb-7 max-w-2xl space-y-2 text-center">
           <p className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
             <Compass className="size-3.5 shrink-0" aria-hidden="true" />

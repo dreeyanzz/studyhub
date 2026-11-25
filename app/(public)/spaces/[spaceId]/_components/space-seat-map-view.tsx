@@ -222,7 +222,7 @@ export function SpaceSeatMapView({
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5 p-6">
-                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10.5rem),1fr))] gap-2.5 text-xs sm:text-sm">
+                  <div className="grid grid-cols-1 gap-2.5 text-xs sm:grid-cols-2 sm:text-sm">
                     <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Type
