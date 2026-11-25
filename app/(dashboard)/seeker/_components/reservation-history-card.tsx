@@ -21,8 +21,8 @@ export function ReservationHistoryCard() {
       <p className="text-sm text-muted-foreground">
         See past paid holds, hold the same unit again, or leave a review.
       </p>
-      {/* flex-wrap lets the icon sit above the label when the label wraps, so the
-          link fits the dashboard's grid column at 360 px with 200% text (design §3). */}
+      {/* flex-wrap lets the icon sit above the label when even the wrapped label is
+          too wide, so the link still fits a narrow card with 200% text (design §3). */}
       <Link
         href="/seeker/reservations"
         className={cn(buttonLinkClass('outline'), 'flex-wrap')}
