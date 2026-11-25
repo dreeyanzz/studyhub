@@ -92,9 +92,9 @@ describe('SpaceInspectionDialog (STORY-15, STORY-17)', () => {
     expect(html).toContain('Reject Space')
     expect(html).toContain('Approve &amp; Publish')
 
-    // External map link
-    expect(html).toContain('Open in Google Maps')
-    expect(html).toContain('https://www.google.com/maps/search/?api=1&amp;query=')
+    // External map link (D-012 OpenStreetMap)
+    expect(html).toContain('Open in OpenStreetMap')
+    expect(html).toContain('https://www.openstreetmap.org/search?query=')
 
     // No fabricated data
     expect(html).not.toContain('12 Desks')

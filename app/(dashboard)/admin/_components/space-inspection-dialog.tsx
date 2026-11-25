@@ -173,8 +173,8 @@ function SpaceInspectionDossier({
             </div>
             <p className="mt-4 text-sm font-bold text-foreground">No photos attached</p>
             <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
-              The host has not uploaded photos for this Space listing yet. Review the
-              physical details and operating schedule on the right.
+              No photos are currently attached to this Space listing. Review the physical
+              details and operating schedule on the right.
             </p>
           </div>
         )}
@@ -209,12 +209,12 @@ function SpaceInspectionDossier({
                 <span>Physical Address & Vicinity</span>
               </div>
               <a
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(space.address)}`}
+                href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(space.address)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex min-h-[48px] items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
               >
-                <span>Open in Google Maps</span>
+                <span>Open in OpenStreetMap</span>
                 <ExternalLink className="size-3.5" aria-hidden="true" />
               </a>
             </div>

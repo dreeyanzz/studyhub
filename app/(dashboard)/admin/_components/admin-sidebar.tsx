@@ -101,7 +101,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                       variant="secondary"
                       className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-primary uppercase"
                     >
-                      Admin
+                      Administrator
                     </Badge>
                   </div>
                   <p className="text-xs font-medium text-muted-foreground">
@@ -194,7 +194,14 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
               />
               {!isCollapsed && <span>Space Verification</span>}
               {isCollapsed && pendingCount > 0 && (
-                <span className="absolute -top-1.5 -right-2 flex size-4.5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground shadow-2xs">
+                <span
+                  className={cn(
+                    'absolute -top-1.5 -right-2 flex size-4.5 items-center justify-center rounded-full text-[10px] font-bold shadow-2xs',
+                    isVerification
+                      ? 'bg-card text-primary ring-2 ring-card'
+                      : 'bg-primary text-primary-foreground',
+                  )}
+                >
                   {pendingCount}
                 </span>
               )}

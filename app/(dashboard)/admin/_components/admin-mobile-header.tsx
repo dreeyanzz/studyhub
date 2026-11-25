@@ -45,7 +45,7 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
             <div className="flex items-center gap-1.5">
               <p className="truncate text-xs font-bold text-foreground">{displayName}</p>
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
-                Admin
+                Administrator
               </Badge>
             </div>
             <p className="text-[10px] text-muted-foreground">Administrator Console</p>
