@@ -92,6 +92,12 @@ export function SpaceReviews({
     : []
 
   const nextShown = Math.min(shown + REVIEWS_PAGE_STEP, MAX_REVIEWS_SHOWN)
+  const hasFeedContent =
+    !loadError &&
+    (summary.reviewCount > 0 ||
+      reviewsPage.reviews.length > 0 ||
+      reviewableVisit !== null ||
+      myReviews.length > 0)
 
   return (
     <section
@@ -121,195 +127,211 @@ export function SpaceReviews({
           </AlertDescription>
         </Alert>
       ) : (
-        <>
-          {/* Averages Summary or Empty State */}
-          {summary.reviewCount > 0 ? (
-            <div className="space-y-4" data-testid="reviews-summary">
-              <ReviewRating
-                average={summary.avgOverall}
-                count={summary.reviewCount}
-                className="text-base font-semibold"
-                data-testid="reviews-overall-rating"
-              />
-              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-3">
-                {categoryAverages.map((category) => (
-                  <div
-                    key={category.label}
-                    className="min-w-0 rounded-xl border border-border/80 bg-muted/25 px-3.5 py-3 break-words shadow-2xs"
-                  >
-                    <dt className="text-xs font-medium text-muted-foreground">
-                      {category.label}
-                    </dt>
-                    <dd className="mt-0.5 text-sm font-semibold text-foreground">
-                      {formatReviewScore(category.value)} / 5
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          ) : (
-            <div
-              className="space-y-1 rounded-2xl border-2 border-dashed border-border/80 bg-muted/15 p-5"
-              data-testid="reviews-empty-state"
-            >
-              <p className="text-base font-medium text-foreground">No reviews yet</p>
-              <p className="text-sm text-muted-foreground">
-                Be the first to review after checking in.
-              </p>
-            </div>
+        <div
+          className={cn(
+            'grid grid-cols-1 items-start gap-6',
+            hasFeedContent && 'md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] lg:gap-8',
           )}
-
-          {/* Write a review + Seeker's own reviews (pinned above others' reviews) */}
-          <AuthorReviewsSection
-            spaceId={spaceId}
-            viewerShortName={viewerShortName}
-            reviewableVisit={reviewableVisit}
-            myReviews={myReviews}
-          />
-
-          {/* Sort links + Others' visible reviews */}
-          {(summary.reviewCount > 0 || reviewsPage.reviews.length > 0) && (
-            <div className="space-y-4 border-t border-border/70 pt-5">
-              <nav
-                aria-label="Sort reviews"
-                className="flex flex-wrap items-center gap-2"
+        >
+          {/* Left column: Averages Summary or Empty State */}
+          <div className={cn('min-w-0', hasFeedContent && 'md:sticky md:top-6')}>
+            {summary.reviewCount > 0 ? (
+              <div className="space-y-4" data-testid="reviews-summary">
+                <ReviewRating
+                  average={summary.avgOverall}
+                  count={summary.reviewCount}
+                  className="text-base font-semibold"
+                  data-testid="reviews-overall-rating"
+                />
+                <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-3">
+                  {categoryAverages.map((category) => (
+                    <div
+                      key={category.label}
+                      className="min-w-0 rounded-xl border border-border/80 bg-muted/25 px-3.5 py-3 break-words shadow-2xs"
+                    >
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        {category.label}
+                      </dt>
+                      <dd className="mt-0.5 text-sm font-semibold text-foreground">
+                        {formatReviewScore(category.value)} / 5
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ) : (
+              <div
+                className="space-y-1 rounded-2xl border-2 border-dashed border-border/80 bg-muted/15 p-5"
+                data-testid="reviews-empty-state"
               >
-                {SORT_OPTIONS.map((option) => {
-                  const isCurrent = sort === option.value
-                  return (
+                <p className="text-base font-medium text-foreground">No reviews yet</p>
+                <p className="text-sm text-muted-foreground">
+                  Be the first to review after checking in.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right column: Author panel + Sort + Community reviews feed */}
+          <div className="min-w-0 space-y-6">
+            {/* Write a review + Seeker's own reviews (pinned above others' reviews) */}
+            <AuthorReviewsSection
+              spaceId={spaceId}
+              viewerShortName={viewerShortName}
+              reviewableVisit={reviewableVisit}
+              myReviews={myReviews}
+            />
+
+            {/* Sort links + Others' visible reviews */}
+            {(summary.reviewCount > 0 || reviewsPage.reviews.length > 0) && (
+              <div
+                className={cn(
+                  'space-y-4',
+                  (reviewableVisit !== null || myReviews.length > 0) &&
+                    'border-t border-border/70 pt-5',
+                )}
+              >
+                <nav
+                  aria-label="Sort reviews"
+                  className="flex flex-wrap items-center gap-2"
+                >
+                  {SORT_OPTIONS.map((option) => {
+                    const isCurrent = sort === option.value
+                    return (
+                      <Link
+                        key={option.value}
+                        href={buildReviewsHref(spaceId, {
+                          sort: option.value,
+                          reviews: shown,
+                          view,
+                          unit,
+                        })}
+                        aria-current={isCurrent ? 'page' : undefined}
+                        className={cn(
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-center text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                          isCurrent
+                            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/40 hover:bg-accent/40',
+                        )}
+                      >
+                        {option.label}
+                      </Link>
+                    )
+                  })}
+                </nav>
+
+                {reviewsPage.reviews.length === 0 ? (
+                  <p
+                    data-testid="no-other-reviews"
+                    className="text-sm text-muted-foreground"
+                  >
+                    No other reviews yet.
+                  </p>
+                ) : (
+                  <ul className="space-y-4" data-testid="space-reviews-list">
+                    {reviewsPage.reviews.map((review) => {
+                      const postedDate = formatReviewDate(review.createdAt)
+                      return (
+                        <li key={review.id}>
+                          <article
+                            data-testid={`review-card-${review.id}`}
+                            className="space-y-3.5 rounded-2xl border border-border/80 bg-background/70 p-4 shadow-2xs transition-colors hover:border-border sm:p-5"
+                          >
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div className="min-w-0 space-y-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="font-medium text-foreground">
+                                    {review.reviewerName}
+                                  </p>
+                                  <span className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                                    Checked-in visit
+                                  </span>
+                                  {review.edited && (
+                                    <span className="inline-flex items-center rounded-full border border-border/80 bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+                                      Edited
+                                    </span>
+                                  )}
+                                </div>
+                                {postedDate && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Reviewed{' '}
+                                    <time dateTime={review.createdAt}>{postedDate}</time>
+                                  </p>
+                                )}
+                              </div>
+
+                              <p className="rounded-full border border-border/80 bg-card px-3 py-1 text-sm font-semibold text-foreground shadow-2xs">
+                                Overall {formatReviewScore(review.overall)} / 5
+                              </p>
+                            </div>
+
+                            <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-2 text-xs">
+                              {REVIEW_RATING_CATEGORIES.map((category) => (
+                                <div
+                                  key={category.key}
+                                  className="min-w-0 rounded-xl border border-border/70 bg-card px-3 py-2 break-words shadow-2xs"
+                                >
+                                  <dt className="text-muted-foreground">
+                                    {category.label}
+                                  </dt>
+                                  <dd className="mt-0.5 font-semibold text-foreground">
+                                    {review[category.key]} / 5
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+
+                            {/* Plain React text node only — never rendered as HTML (SRS §3.5.2). */}
+                            {review.comment && (
+                              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
+                                {review.comment}
+                              </p>
+                            )}
+
+                            {canReport && (
+                              <div className="pt-1">
+                                <ReportReviewDialog
+                                  spaceId={spaceId}
+                                  reviewId={review.id}
+                                  reportedByCaller={review.reportedByCaller}
+                                />
+                              </div>
+                            )}
+                          </article>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+
+                {reviewsPage.hasMore && shown < MAX_REVIEWS_SHOWN && (
+                  <div>
                     <Link
-                      key={option.value}
                       href={buildReviewsHref(spaceId, {
-                        sort: option.value,
-                        reviews: shown,
+                        sort,
+                        reviews: nextShown,
                         view,
                         unit,
                       })}
-                      aria-current={isCurrent ? 'page' : undefined}
-                      className={cn(
-                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-center text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
-                        isCurrent
-                          ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                          : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/40 hover:bg-accent/40',
-                      )}
+                      className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border border-border/80 bg-card px-5 py-2 text-center text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                     >
-                      {option.label}
+                      Show more reviews
                     </Link>
-                  )
-                })}
-              </nav>
+                  </div>
+                )}
 
-              {reviewsPage.reviews.length === 0 ? (
-                <p
-                  data-testid="no-other-reviews"
-                  className="text-sm text-muted-foreground"
-                >
-                  No other reviews yet.
-                </p>
-              ) : (
-                <ul className="space-y-4" data-testid="space-reviews-list">
-                  {reviewsPage.reviews.map((review) => {
-                    const postedDate = formatReviewDate(review.createdAt)
-                    return (
-                      <li key={review.id}>
-                        <article
-                          data-testid={`review-card-${review.id}`}
-                          className="space-y-3.5 rounded-2xl border border-border/80 bg-background/70 p-4 shadow-2xs transition-colors hover:border-border sm:p-5"
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div className="min-w-0 space-y-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-medium text-foreground">
-                                  {review.reviewerName}
-                                </p>
-                                <span className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                                  Checked-in visit
-                                </span>
-                                {review.edited && (
-                                  <span className="inline-flex items-center rounded-full border border-border/80 bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
-                                    Edited
-                                  </span>
-                                )}
-                              </div>
-                              {postedDate && (
-                                <p className="text-xs text-muted-foreground">
-                                  Reviewed{' '}
-                                  <time dateTime={review.createdAt}>{postedDate}</time>
-                                </p>
-                              )}
-                            </div>
-
-                            <p className="rounded-full border border-border/80 bg-card px-3 py-1 text-sm font-semibold text-foreground shadow-2xs">
-                              Overall {formatReviewScore(review.overall)} / 5
-                            </p>
-                          </div>
-
-                          <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-2 text-xs">
-                            {REVIEW_RATING_CATEGORIES.map((category) => (
-                              <div
-                                key={category.key}
-                                className="min-w-0 rounded-xl border border-border/70 bg-card px-3 py-2 break-words shadow-2xs"
-                              >
-                                <dt className="text-muted-foreground">
-                                  {category.label}
-                                </dt>
-                                <dd className="mt-0.5 font-semibold text-foreground">
-                                  {review[category.key]} / 5
-                                </dd>
-                              </div>
-                            ))}
-                          </dl>
-
-                          {/* Plain React text node only — never rendered as HTML (SRS §3.5.2). */}
-                          {review.comment && (
-                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
-                              {review.comment}
-                            </p>
-                          )}
-
-                          {canReport && (
-                            <div className="pt-1">
-                              <ReportReviewDialog
-                                spaceId={spaceId}
-                                reviewId={review.id}
-                                reportedByCaller={review.reportedByCaller}
-                              />
-                            </div>
-                          )}
-                        </article>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-
-              {reviewsPage.hasMore && shown < MAX_REVIEWS_SHOWN && (
-                <div>
-                  <Link
-                    href={buildReviewsHref(spaceId, {
-                      sort,
-                      reviews: nextShown,
-                      view,
-                      unit,
-                    })}
-                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border border-border/80 bg-card px-5 py-2 text-center text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                {reviewsPage.hasMore && shown >= MAX_REVIEWS_SHOWN && (
+                  <p
+                    data-testid="reviews-cap-notice"
+                    className="text-sm text-muted-foreground"
                   >
-                    Show more reviews
-                  </Link>
-                </div>
-              )}
-
-              {reviewsPage.hasMore && shown >= MAX_REVIEWS_SHOWN && (
-                <p
-                  data-testid="reviews-cap-notice"
-                  className="text-sm text-muted-foreground"
-                >
-                  Showing the first 50 reviews in this order.
-                </p>
-              )}
-            </div>
-          )}
-        </>
+                    Showing the first 50 reviews in this order.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </section>
   )

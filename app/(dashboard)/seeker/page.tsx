@@ -65,7 +65,7 @@ export default async function SeekerPage({
         </p>
       </div>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+      <div className="grid items-start gap-6 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <div className="space-y-6">
           <CurrentHoldCard
             hold={hold}

@@ -80,7 +80,7 @@ export default async function HoldPage({
   switch (reservation.status) {
     case 'pending_payment':
       return (
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="space-y-6">
           {backLink}
           {notices}
           {query.error === 'checkout' && (
@@ -94,42 +94,48 @@ export default async function HoldPage({
               </AlertDescription>
             </Alert>
           )}
-          <section className="space-y-5 rounded-2xl border border-primary/25 bg-card p-5 shadow-sm sm:p-6">
-            <div className="space-y-2">
-              <HoldStatusBadge status="pending_payment" />
-              <h1 className="font-heading text-2xl font-bold tracking-tight">
-                Hold {reservation.unitLabel}
-              </h1>
-              <HoldPlace reservation={reservation} />
-            </div>
-            <div className="space-y-1.5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3.5">
-              <p className="text-lg font-medium text-foreground">
-                Pay {formatPeso(reservation.feeAmount)} by{' '}
-                <ManilaTime iso={reservation.paymentWindowEndsAt} />{' '}
-                <PaymentCountdown deadline={reservation.paymentWindowEndsAt} />
-              </p>
-              <p className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                <span>
-                  We&apos;ll keep {reservation.unitLabel} for{' '}
-                  {reservation.waitWindowMinutes} min after you pay.
-                </span>
-              </p>
-            </div>
-            {confirmingCancel ? (
-              <CancelConfirmation reservation={reservation} />
-            ) : (
-              <div className="border-t border-border/70 pt-4">
-                <PaymentActions reservation={reservation} />
+          <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+            <section className="space-y-5 rounded-2xl border border-primary/25 bg-card p-5 shadow-sm sm:p-6">
+              <div className="space-y-2">
+                <HoldStatusBadge status="pending_payment" />
+                <h1 className="font-heading text-2xl font-bold tracking-tight">
+                  Hold {reservation.unitLabel}
+                </h1>
+                <HoldPlace reservation={reservation} />
               </div>
-            )}
-          </section>
+              <div className="space-y-1.5 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3.5">
+                <p className="text-lg font-medium text-foreground">
+                  Pay {formatPeso(reservation.feeAmount)} by{' '}
+                  <ManilaTime iso={reservation.paymentWindowEndsAt} />{' '}
+                  <PaymentCountdown deadline={reservation.paymentWindowEndsAt} />
+                </p>
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span>
+                    We&apos;ll keep {reservation.unitLabel} for{' '}
+                    {reservation.waitWindowMinutes} min after you pay.
+                  </span>
+                </p>
+              </div>
+            </section>
+
+            <section className="space-y-4 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+                Next step
+              </p>
+              {confirmingCancel ? (
+                <CancelConfirmation reservation={reservation} />
+              ) : (
+                <PaymentActions reservation={reservation} />
+              )}
+            </section>
+          </div>
         </div>
       )
 
     case 'reserved':
       return (
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="space-y-6">
           {backLink}
           {notices}
           <ReservedView reservation={reservation} confirmingCancel={confirmingCancel} />
@@ -139,10 +145,10 @@ export default async function HoldPage({
     case 'expired':
     case 'cancelled':
       return (
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="space-y-6">
           {backLink}
           {notices}
-          <section className="rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6">
+          <section className="max-w-3xl rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6">
             <EndedView reservation={reservation} />
           </section>
         </div>

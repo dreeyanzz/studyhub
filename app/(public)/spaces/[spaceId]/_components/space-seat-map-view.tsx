@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { AlertCircle, Clock, LayoutGrid, List } from 'lucide-react'
+import { AlertCircle, Armchair, Clock, LayoutGrid, List } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -129,160 +129,189 @@ export function SpaceSeatMapView({
         </div>
       </div>
 
-      {/* Main View Area */}
-      {view === 'grid' ? (
-        <div className="w-full overflow-x-auto px-1 pt-1 pb-2">
-          {/* Direct embedding without extra card padding to fit 328px at 360px viewport (D-062) */}
-          <SeatMapGrid
-            zones={zones}
-            renderUnit={(unit) => {
-              const isSelected = unit.id === selectedUnitId
-              const typeLabel = TYPE_LABELS[unit.unitType] ?? unit.unitType
-              const stateLabel = STATE_LABELS[unit.seatState] ?? unit.seatState
-              const freshnessLabel = formatFreshnessLabel(unit.hostUpdatedAt, now)
-              const tileAria = `${unit.label}, ${typeLabel}, ${stateLabel}, ${freshnessLabel}`
+      {/* Main Split Area: Seat map / list alongside the sticky Selected Unit panel from md up */}
+      <div
+        className={cn(
+          'grid grid-cols-1 items-start gap-6',
+          allUnits.length > 0 && 'md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
+        )}
+      >
+        <div className="min-w-0">
+          {view === 'grid' ? (
+            <div className="w-full overflow-x-auto px-1 pt-1 pb-2">
+              {/* Direct embedding without extra card padding to fit 328px at 360px viewport (D-062) */}
+              <SeatMapGrid
+                zones={zones}
+                renderUnit={(unit) => {
+                  const isSelected = unit.id === selectedUnitId
+                  const typeLabel = TYPE_LABELS[unit.unitType] ?? unit.unitType
+                  const stateLabel = STATE_LABELS[unit.seatState] ?? unit.seatState
+                  const freshnessLabel = formatFreshnessLabel(unit.hostUpdatedAt, now)
+                  const tileAria = `${unit.label}, ${typeLabel}, ${stateLabel}, ${freshnessLabel}`
 
-              return (
-                <Link
-                  href={`?view=grid&unit=${encodeURIComponent(unit.id)}`}
-                  scroll={false}
-                  aria-label={tileAria}
-                  aria-current={isSelected ? 'true' : undefined}
-                  className={cn(
-                    'group relative flex h-full min-h-12 w-full min-w-[48px] items-stretch rounded-md p-0 text-left transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
-                    isSelected && 'ring-2 ring-primary ring-offset-2',
-                  )}
-                >
-                  <SeatMapTile
-                    unit={unit}
-                    className={cn(
-                      'pointer-events-none transition-shadow',
-                      isSelected ? 'shadow-md' : 'group-hover:shadow-xs',
-                    )}
-                  />
-                </Link>
-              )
-            }}
-          />
-        </div>
-      ) : (
-        <SpaceUnitList zones={zones} selectedUnitId={selectedUnitId} />
-      )}
-
-      {/* Selected Unit Panel */}
-      {selectedUnit && (
-        <Card
-          data-testid="selected-unit-panel"
-          className="rounded-2xl border border-primary/35 bg-card shadow-sm"
-        >
-          <CardHeader className="border-b border-border/70 pb-3.5">
-            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-              <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-foreground">
-                Selected Unit: {selectedUnit.label}
-              </CardTitle>
-              <span className="min-w-0 rounded-full border border-border/80 bg-secondary/70 px-3 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
-                {selectedZone?.name ?? 'Zone'}
-              </span>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-2.5 text-xs sm:grid-cols-4 sm:text-sm">
-              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
-                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  Type
-                </span>
-                <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
-                  {TYPE_LABELS[selectedUnit.unitType] ?? selectedUnit.unitType}
-                </span>
-              </div>
-
-              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
-                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  Capacity
-                </span>
-                <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
-                  {selectedUnit.capacity ?? 1}{' '}
-                  {(selectedUnit.capacity ?? 1) === 1 ? 'person' : 'people'}
-                </span>
-              </div>
-
-              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
-                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  Status
-                </span>
-                <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
-                  {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
-                </span>
-              </div>
-
-              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
-                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
-                  Freshness
-                </span>
-                <FreshnessBadge
-                  date={selectedUnit.hostUpdatedAt}
-                  className="mt-0.5 block font-medium wrap-anywhere text-foreground"
-                />
-              </div>
-            </div>
-
-            {/* Actions & Status Notices */}
-            {!isOpen ? (
-              <Alert
-                data-testid="selected-unit-space-closed"
-                variant="default"
-                className="rounded-2xl border-border/80 bg-muted/30"
-              >
-                <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                <AlertTitle>This Space is closed now</AlertTitle>
-                <AlertDescription className="space-y-2">
-                  <p>
-                    You can review seats and amenities; reservations open during operating
-                    hours.
-                  </p>
-                  <div>
+                  return (
                     <Link
-                      href={DISCOVERY_HREF}
-                      className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                      href={`?view=grid&unit=${encodeURIComponent(unit.id)}`}
+                      scroll={false}
+                      aria-label={tileAria}
+                      aria-current={isSelected ? 'true' : undefined}
+                      className={cn(
+                        'group relative flex h-full min-h-12 w-full min-w-[48px] items-stretch rounded-md p-0 text-left transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                        isSelected && 'ring-2 ring-primary ring-offset-2',
+                      )}
                     >
-                      Explore other spaces
+                      <SeatMapTile
+                        unit={unit}
+                        className={cn(
+                          'pointer-events-none transition-shadow',
+                          isSelected ? 'shadow-md' : 'group-hover:shadow-xs',
+                        )}
+                      />
                     </Link>
-                  </div>
-                </AlertDescription>
-              </Alert>
-            ) : selectedUnit.seatState === 'available' ? (
-              <div
-                data-testid="selected-unit-hold-action"
-                className="border-t border-border/70 pt-4"
+                  )
+                }}
+              />
+            </div>
+          ) : (
+            <SpaceUnitList zones={zones} selectedUnitId={selectedUnitId} />
+          )}
+        </div>
+
+        {/* Selected Unit Panel (sticky side-by-side from md up) */}
+        {allUnits.length > 0 && (
+          <div className="min-w-0 md:sticky md:top-6">
+            {selectedUnit ? (
+              <Card
+                data-testid="selected-unit-panel"
+                className="rounded-2xl border border-primary/35 bg-card shadow-sm"
               >
-                {renderSelectedUnitAction
-                  ? renderSelectedUnitAction(selectedUnit)
-                  : ((selectedUnit.id === initialSelectedUnitId
-                      ? selectedUnitActionSlot
-                      : undefined) ?? (
-                      <p className="text-xs text-muted-foreground">
-                        Ready for reservation hold.
-                      </p>
-                    ))}
-              </div>
+                <CardHeader className="border-b border-border/70 pb-3.5">
+                  <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+                    <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-foreground">
+                      Selected Unit: {selectedUnit.label}
+                    </CardTitle>
+                    <span className="min-w-0 rounded-full border border-border/80 bg-secondary/70 px-3 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
+                      {selectedZone?.name ?? 'Zone'}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8rem),1fr))] gap-2.5 text-xs sm:text-sm">
+                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                      <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                        Type
+                      </span>
+                      <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
+                        {TYPE_LABELS[selectedUnit.unitType] ?? selectedUnit.unitType}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                      <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                        Capacity
+                      </span>
+                      <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
+                        {selectedUnit.capacity ?? 1}{' '}
+                        {(selectedUnit.capacity ?? 1) === 1 ? 'person' : 'people'}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                      <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                        Status
+                      </span>
+                      <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
+                        {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                      <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+                        Freshness
+                      </span>
+                      <FreshnessBadge
+                        date={selectedUnit.hostUpdatedAt}
+                        className="mt-0.5 block font-medium wrap-anywhere text-foreground"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Actions & Status Notices */}
+                  {!isOpen ? (
+                    <Alert
+                      data-testid="selected-unit-space-closed"
+                      variant="default"
+                      className="rounded-2xl border-border/80 bg-muted/30"
+                    >
+                      <Clock
+                        className="size-4 shrink-0 text-primary"
+                        aria-hidden="true"
+                      />
+                      <AlertTitle>This Space is closed now</AlertTitle>
+                      <AlertDescription className="space-y-2">
+                        <p>
+                          You can review seats and amenities; reservations open during
+                          operating hours.
+                        </p>
+                        <div>
+                          <Link
+                            href={DISCOVERY_HREF}
+                            className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                          >
+                            Explore other spaces
+                          </Link>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  ) : selectedUnit.seatState === 'available' ? (
+                    <div
+                      data-testid="selected-unit-hold-action"
+                      className="border-t border-border/70 pt-4"
+                    >
+                      {renderSelectedUnitAction
+                        ? renderSelectedUnitAction(selectedUnit)
+                        : ((selectedUnit.id === initialSelectedUnitId
+                            ? selectedUnitActionSlot
+                            : undefined) ?? (
+                            <p className="text-xs text-muted-foreground">
+                              Ready for reservation hold.
+                            </p>
+                          ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2.5 rounded-xl border border-amber-600/30 bg-amber-50 p-3.5 text-xs text-amber-900">
+                      <AlertCircle
+                        className="size-4 shrink-0 text-amber-700"
+                        aria-hidden="true"
+                      />
+                      <span className="min-w-0 wrap-anywhere">
+                        This unit is currently{' '}
+                        <strong className="font-semibold">
+                          {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
+                        </strong>
+                        . It is not available to hold right now.
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             ) : (
-              <div className="flex items-center gap-2.5 rounded-xl border border-amber-600/30 bg-amber-50 p-3.5 text-xs text-amber-900">
-                <AlertCircle
-                  className="size-4 shrink-0 text-amber-700"
-                  aria-hidden="true"
-                />
-                <span className="min-w-0 wrap-anywhere">
-                  This unit is currently{' '}
-                  <strong className="font-semibold">
-                    {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
-                  </strong>
-                  . It is not available to hold right now.
-                </span>
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/70 p-6 text-center shadow-xs sm:p-8">
+                <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-secondary text-primary shadow-xs">
+                  <Armchair className="size-6" aria-hidden="true" />
+                </div>
+                <p className="font-heading text-base font-semibold text-foreground">
+                  Choose a unit on the map
+                </p>
+                <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+                  Select any seat, desk, or room to view its details and reservation
+                  options.
+                </p>
               </div>
             )}
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

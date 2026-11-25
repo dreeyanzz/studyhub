@@ -218,7 +218,7 @@ export default async function SpaceProfilePage({
 
   return (
     <div className="min-h-[calc(100vh-8rem)] w-full bg-muted/30">
-      <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="mx-auto w-full max-w-7xl min-w-0 space-y-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         <nav aria-label="Breadcrumb">
           <Link
             href={DISCOVERY_HREF}
@@ -229,12 +229,17 @@ export default async function SpaceProfilePage({
           </Link>
         </nav>
 
-        <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
+        {/* Top split: Space details & tags alongside the photo gallery from md up */}
+        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div className="min-w-0 space-y-6">
+            <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
 
-        <SpacePhotoGallery spaceName={space.name} photos={photos} />
+            {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
+            <SpaceTags curatedTags={curatedTags} customTags={customTags} />
+          </div>
 
-        {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
-        <SpaceTags curatedTags={curatedTags} customTags={customTags} />
+          <SpacePhotoGallery spaceName={space.name} photos={photos} />
+        </div>
 
         {!operatingStatus.isOpen && (
           <Alert
