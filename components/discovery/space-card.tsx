@@ -78,76 +78,44 @@ export function SpaceCard({
       )}
 
       <div className="relative flex flex-col gap-4">
-        {/* Top Inset Rounded Visual Showcase */}
-        <div
-          className={cn(
-            'relative rounded-[1.35rem]',
-            space.cover_photo_url
-              ? 'aspect-[16/9] bg-muted shadow-xs'
-              : 'bg-[radial-gradient(circle_at_90%_15%,rgba(221,235,204,0.24),transparent_48%),linear-gradient(135deg,#194432_0%,#215c3f_55%,#3b6e52_100%)] px-4 py-4 text-white shadow-xs',
-          )}
-        >
-          {space.cover_photo_url ? (
-            <>
-              <Image
-                src={space.cover_photo_url}
-                alt=""
-                fill
-                sizes="(max-width: 1024px) 100vw, 45vw"
-                className="rounded-[1.35rem] object-cover"
-                aria-hidden="true"
-              />
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-[1.35rem] bg-gradient-to-b from-black/30 to-transparent"
-              />
-              <div className="relative flex flex-wrap items-start justify-between gap-2 p-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/95 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-md">
-                  <ShieldCheck
-                    className="size-3.5 shrink-0 text-primary"
-                    aria-hidden="true"
-                  />
-                  <span>Verified study space</span>
-                </span>
-                <PriceTierBadge
-                  tier={space.price_tier}
-                  showSymbol
-                  className="shadow-xs"
+        {/* Top Inset Rounded Visual Showcase (cover photo) or Soft Sage Badge Strip */}
+        {space.cover_photo_url ? (
+          <div className="relative aspect-[16/9] rounded-[1.35rem] bg-muted shadow-xs">
+            <Image
+              src={space.cover_photo_url}
+              alt=""
+              fill
+              sizes="(max-width: 1024px) 100vw, 45vw"
+              className="rounded-[1.35rem] object-cover"
+              aria-hidden="true"
+            />
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-[1.35rem] bg-gradient-to-b from-black/30 to-transparent"
+            />
+            <div className="relative flex flex-wrap items-start justify-between gap-2 p-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/95 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-md">
+                <ShieldCheck
+                  className="size-3.5 shrink-0 text-primary"
+                  aria-hidden="true"
                 />
-              </div>
-            </>
-          ) : (
-            <div className="relative space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                  <ShieldCheck
-                    className="size-3.5 shrink-0 text-accent"
-                    aria-hidden="true"
-                  />
-                  <span>Verified study space</span>
-                </span>
-                <PriceTierBadge
-                  tier={space.price_tier}
-                  showSymbol
-                  className="shadow-xs"
-                />
-              </div>
-
-              {space.curated_tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5" aria-label="Amenities">
-                  {space.curated_tags.map((tag) => (
-                    <span
-                      key={tag.id}
-                      className="inline-flex items-center rounded-full border border-white/25 bg-black/25 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
-                    >
-                      {tag.label}
-                    </span>
-                  ))}
-                </div>
-              )}
+                <span>Verified study space</span>
+              </span>
+              <PriceTierBadge tier={space.price_tier} showSymbol className="shadow-xs" />
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-primary/15 bg-secondary/55 px-3.5 py-2.5">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <ShieldCheck
+                className="size-3.5 shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              <span>Verified study space</span>
+            </span>
+            <PriceTierBadge tier={space.price_tier} showSymbol />
+          </div>
+        )}
 
         {/* Middle Frosted Space Identity Block */}
         <div className="space-y-2.5 px-1.5">
@@ -198,8 +166,8 @@ export function SpaceCard({
             </p>
           )}
 
-          {/* Curated Amenity Tags when cover photo is shown above */}
-          {space.cover_photo_url && space.curated_tags.length > 0 && (
+          {/* Curated Amenity Tags */}
+          {space.curated_tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 pt-0.5" aria-label="Amenities">
               {space.curated_tags.map((tag) => (
                 <span
