@@ -85,12 +85,12 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
         >
           <h3
             id={`unit-list-zone-${zone.id}`}
-            className="min-w-0 text-base font-semibold tracking-tight wrap-anywhere text-foreground"
+            className="min-w-0 font-heading text-base font-semibold tracking-tight wrap-anywhere text-foreground"
           >
             {zone.name}
           </h3>
 
-          <div className="divide-y divide-border rounded-xl border border-border bg-card shadow-xs">
+          <div className="divide-y divide-border/60 rounded-3xl bg-card">
             {zone.units.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">No units in this zone.</p>
             ) : (
@@ -113,14 +113,14 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
                   <div
                     key={unit.id}
                     className={cn(
-                      'flex flex-col gap-3 p-3 transition-colors first:rounded-t-xl last:rounded-b-xl sm:flex-row sm:items-center sm:justify-between',
+                      'flex flex-col gap-3 p-4 transition-colors first:rounded-t-3xl last:rounded-b-3xl sm:flex-row sm:items-center sm:justify-between',
                       isSelected
-                        ? 'bg-primary/5 ring-1 ring-primary ring-inset'
-                        : 'hover:bg-muted/30',
+                        ? 'bg-secondary/60 ring-1 ring-primary/40 ring-inset'
+                        : 'hover:bg-muted/35',
                     )}
                   >
                     <div className="flex min-w-0 items-center gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/50 text-foreground">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
                         <TypeIcon className="size-5" aria-hidden="true" />
                       </div>
 
@@ -145,7 +145,7 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
                     <div className="flex max-w-full shrink-0 flex-wrap items-center gap-2.5 self-end sm:self-center">
                       <span
                         className={cn(
-                          'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium',
+                          'inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-medium',
                           stateInfo.badgeClassName,
                         )}
                       >
@@ -157,10 +157,10 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
                         href={`?view=list&unit=${encodeURIComponent(unit.id)}`}
                         scroll={false}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                           isSelected
                             ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                            : 'border border-border bg-background text-foreground hover:bg-muted',
+                            : 'bg-secondary text-secondary-foreground hover:bg-accent',
                         )}
                         aria-current={isSelected ? 'true' : undefined}
                       >

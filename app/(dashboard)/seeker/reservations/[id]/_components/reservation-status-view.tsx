@@ -3,7 +3,7 @@
 // straight to the Server Actions, so cancelling and paying work without JavaScript.
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Clock, Hourglass } from 'lucide-react'
+import { Clock, ExternalLink, Hourglass, MapPin } from 'lucide-react'
 
 import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Badge } from '@/components/ui/badge'
@@ -13,6 +13,8 @@ import type { MyReservation } from '@/lib/data/reservations'
 import { formatManilaTime, formatPeso } from '@/lib/reservations/format'
 import { cn } from '@/lib/utils'
 
+import { CopyTokenButton } from '../../../_components/copy-token-button'
+import { WaitCountdown } from '../../../_components/wait-countdown'
 import { cancelHold, startCheckout } from '../actions'
 
 export function holdPath(reservation: Pick<MyReservation, 'id'>): string {
@@ -25,7 +27,7 @@ export function holdPath(reservation: Pick<MyReservation, 'id'>): string {
  * h-12, shrink-0 and whitespace-nowrap, as on the Host's photos page.
  */
 export const WRAPPING_BUTTON =
-  'h-auto min-h-12 max-w-full shrink py-2 text-center whitespace-normal'
+  'h-auto min-h-12 max-w-full shrink rounded-full px-5 py-2 text-center font-semibold whitespace-normal'
 
 /** A link styled as a button, whose label wraps. */
 export function buttonLinkClass(variant: 'default' | 'outline' = 'default'): string {
@@ -60,7 +62,7 @@ export function HoldStatusBadge({ status }: { status: 'pending_payment' | 'reser
       variant="outline"
       className={cn(
         // Wraps like the buttons, so 200% text never pushes it off a 360 px screen.
-        'h-auto min-h-7 max-w-full gap-1.5 px-2.5 py-1 text-sm whitespace-normal',
+        'h-auto min-h-7 max-w-full gap-1.5 rounded-full px-3 py-1 text-sm whitespace-normal',
         status === 'pending_payment'
           ? 'border-purple-600/40 bg-purple-50 text-purple-950'
           : 'border-blue-600/40 bg-blue-50 text-blue-950',
@@ -100,7 +102,13 @@ export function BookingToken({ token }: { token: string }) {
 export function ContinueToPaymentForm({ reservation }: { reservation: MyReservation }) {
   return (
     <form action={startCheckout.bind(null, reservation.id)}>
-      <Button type="submit" className={WRAPPING_BUTTON}>
+      <Button
+        type="submit"
+        className={cn(
+          WRAPPING_BUTTON,
+          'bg-[#f0c95c] text-foreground shadow-sm hover:bg-[#e5ba45]',
+        )}
+      >
         Continue to payment
       </Button>
     </form>
@@ -129,20 +137,26 @@ export function PaymentActions({ reservation }: { reservation: MyReservation }) 
  * The confirmation step at `?cancel=1`, which works by keyboard and without
  * JavaScript (design §3, seeker-cancel-pending-hold).
  */
-export function CancelConfirmation({ reservation }: { reservation: MyReservation }) {
+export function CancelConfirmation({
+  reservation,
+  className,
+}: {
+  reservation: MyReservation
+  className?: string
+}) {
   const isPaid = reservation.status === 'reserved'
   const fee = formatPeso(reservation.feeAmount)
   return (
     <section
       aria-labelledby="cancel-heading"
-      className="space-y-4 rounded-lg border border-border bg-card p-4"
+      className={cn('space-y-4 rounded-2xl bg-muted/70 p-5', className)}
     >
-      <h2 id="cancel-heading" className="text-base font-semibold">
+      <h2 id="cancel-heading" className="font-heading text-base font-semibold">
         {isPaid
           ? 'Cancel your reservation?'
           : `Cancel your hold on ${reservation.unitLabel}?`}
       </h2>
-      <p className="text-sm">
+      <p className="text-sm text-muted-foreground">
         {isPaid
           ? `Your ${fee} fee will be forfeited, and ${reservation.unitLabel} will be released at once.`
           : 'Nothing has been charged.'}
@@ -167,7 +181,53 @@ export function CancelConfirmation({ reservation }: { reservation: MyReservation
   )
 }
 
-/** Reserved: the token and the check-in time (seeker-hold-and-pay). */
+/** External Google Maps search URL for one-tap directions to the Space (STORY-17). */
+export function directionsUrl(spaceName: string, spaceAddress: string): string {
+  const query = [spaceName, spaceAddress].filter(Boolean).join(', ')
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
+}
+
+/** One-tap directions link for an active Reserved hold (STORY-17). */
+export function DirectionsLink({
+  spaceName,
+  spaceAddress,
+}: {
+  spaceName: string
+  spaceAddress: string
+}) {
+  return (
+    <a
+      href={directionsUrl(spaceName, spaceAddress)}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={cn(buttonLinkClass('outline'), 'gap-2')}
+    >
+      Get directions
+      <ExternalLink aria-hidden="true" className="size-4 shrink-0" />
+      <span className="sr-only"> (opens in a new tab)</span>
+    </a>
+  )
+}
+
+/** Shared QR code + copyable booking token card for Reserved holds (STORY-10, STORY-17). */
+export function ReservedQrCard({ token }: { token: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/25 bg-secondary/50 p-5 text-center">
+      <div className="rounded-xl border border-white/90 bg-white p-2.5 shadow-xs">
+        <BookingQrCode token={token} />
+      </div>
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <BookingToken token={token} />
+        <CopyTokenButton token={token} />
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Present this QR code to the host or recite your code upon arrival.
+      </p>
+    </div>
+  )
+}
+
+/** Reserved: the token, wait countdown, directions, and check-in time (seeker-hold-and-pay). */
 export function ReservedView({
   reservation,
   confirmingCancel,
@@ -176,35 +236,74 @@ export function ReservedView({
   confirmingCancel: boolean
 }) {
   return (
-    <div className="space-y-5">
-      <div className="space-y-2">
-        <HoldStatusBadge status="reserved" />
-        <h1 className="text-2xl font-bold tracking-tight">
-          Reserved: {reservation.unitLabel}
-        </h1>
-        <HoldPlace reservation={reservation} />
-      </div>
-      {reservation.bookingToken && (
-        <div className="space-y-3">
-          <BookingQrCode token={reservation.bookingToken} />
-          <BookingToken token={reservation.bookingToken} />
+    <div
+      className={cn(
+        'grid grid-cols-1 items-stretch gap-5',
+        reservation.bookingToken && 'md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
+      )}
+    >
+      <section className="flex flex-col justify-between gap-5 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]">
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <HoldStatusBadge status="reserved" />
+            <h1 className="font-heading text-2xl font-bold tracking-tight">
+              Reserved: {reservation.unitLabel}
+            </h1>
+            <HoldPlace reservation={reservation} />
+          </div>
+          <div className="space-y-2 rounded-2xl bg-muted/65 px-4 py-3.5">
+            {reservation.waitWindowEndsAt && (
+              <>
+                <WaitCountdown
+                  deadline={reservation.waitWindowEndsAt}
+                  reservationId={reservation.id}
+                />
+                <p className="flex items-center gap-2 font-medium text-foreground">
+                  <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                  <span>
+                    Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
+                  </span>
+                </p>
+              </>
+            )}
+            <p className="flex items-start gap-2 text-sm text-muted-foreground">
+              <MapPin
+                className="mt-0.5 size-4 shrink-0 text-primary"
+                aria-hidden="true"
+              />
+              <span>{reservation.spaceAddress}</span>
+            </p>
+          </div>
         </div>
-      )}
-      {reservation.waitWindowEndsAt && (
-        <p>
-          Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
-        </p>
-      )}
-      <p className="text-sm text-muted-foreground">{reservation.spaceAddress}</p>
-      {confirmingCancel ? (
-        <CancelConfirmation reservation={reservation} />
-      ) : (
-        <Link
-          href={`${holdPath(reservation)}?cancel=1`}
-          className={buttonLinkClass('outline')}
-        >
-          Cancel reservation
-        </Link>
+        {confirmingCancel ? (
+          <CancelConfirmation reservation={reservation} />
+        ) : (
+          <div className="flex flex-wrap gap-3 pt-1">
+            <DirectionsLink
+              spaceName={reservation.spaceName}
+              spaceAddress={reservation.spaceAddress}
+            />
+            <Link
+              href={`${holdPath(reservation)}?cancel=1`}
+              className={buttonLinkClass('outline')}
+            >
+              Cancel reservation
+            </Link>
+          </div>
+        )}
+      </section>
+
+      {reservation.bookingToken && (
+        <section className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-primary/30 bg-secondary/70 p-6 text-center">
+          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+            Check-in pass
+          </p>
+          <div className="rounded-2xl border border-white/90 bg-white p-3.5 shadow-sm">
+            <BookingQrCode token={reservation.bookingToken} />
+          </div>
+          <BookingToken token={reservation.bookingToken} />
+          <CopyTokenButton token={reservation.bookingToken} />
+        </section>
       )}
     </div>
   )
@@ -289,9 +388,9 @@ function EndedMessage({
         id={headingId}
         className={
           headingLevel === 'h1'
-            ? 'text-2xl font-bold tracking-tight'
+            ? 'font-heading text-2xl font-bold tracking-tight'
             : // The card's other ended states use this size (current-hold-card.tsx).
-              'text-xl font-semibold'
+              'font-heading text-xl font-semibold'
         }
       >
         {title}

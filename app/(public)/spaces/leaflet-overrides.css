@@ -10,3 +10,13 @@
   height: 3rem;
   line-height: 3rem;
 }
+
+/* Muted earthy map tone to blend OpenStreetMap tiles with Worq's forest/cream palette. */
+.leaflet-container .leaflet-tile-pane {
+  filter: saturate(0.72) contrast(1.04) brightness(0.94) sepia(0.12);
+}
+
+.leaflet-container .leaflet-popup-content-wrapper {
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 28px -8px rgba(23, 60, 45, 0.25);
+}
