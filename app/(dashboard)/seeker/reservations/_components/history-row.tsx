@@ -101,13 +101,16 @@ export function HistoryRow({ item }: HistoryRowProps) {
   return (
     <Card data-testid="history-row" className="gap-3">
       <CardHeader className="space-y-1">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
+        {/* min-w-0 lets this row shrink inside CardHeader's grid, and wrap-anywhere
+            breaks a long one-word Space name, so neither clips at 360 px with 200% text
+            (design §3, Accessibility). break-words alone doesn't lower the row's width. */}
+        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
           <CardTitle className="min-w-0">
-            <h2 className="text-lg font-semibold break-words">
+            <h2 className="text-lg font-semibold wrap-anywhere">
               {item.spaceListed ? (
                 <Link
                   href={`/spaces/${item.spaceId}`}
-                  className="inline-flex min-h-12 min-w-12 items-center break-words hover:underline focus-visible:underline"
+                  className="inline-flex min-h-12 min-w-12 items-center wrap-anywhere hover:underline focus-visible:underline"
                 >
                   {item.spaceName}
                 </Link>

@@ -36,6 +36,14 @@ describe('HistoryRow (STORY-16 design §3)', () => {
     expect(html).toContain('inline-flex min-h-12 min-w-12 items-center')
   })
 
+  it('lets a long one-word Space name break instead of clipping the card', () => {
+    const html = renderToStaticMarkup(
+      <HistoryRow item={{ ...baseItem, spaceName: 'KapihanStudyHallLahugBranch' }} />,
+    )
+    expect(html).toMatch(/<h2 class="[^"]*wrap-anywhere[^"]*">/)
+    expect(html).toMatch(/class="flex min-w-0 flex-wrap items-baseline/)
+  })
+
   it('lets the Hold again label wrap on narrow screens', () => {
     const html = renderToStaticMarkup(<HistoryRow item={baseItem} />)
     expect(html).toMatch(/class="[^"]*whitespace-normal[^"]*"[^>]*>Hold again/)
