@@ -1,14 +1,10 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { AlertCircle, Star } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
 
 import { ReviewForm } from '@/components/review/review-form'
-import {
-  formatReviewDate,
-  formatReviewScore,
-  SolidStars,
-} from '@/components/review/review-rating'
+import { formatReviewDate, formatReviewScore } from '@/components/review/review-rating'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -80,26 +76,24 @@ export function AuthorReviewCard({
   return (
     <article
       data-testid={`author-review-${review.id}`}
-      className="space-y-3.5 rounded-2xl border border-primary/30 bg-card p-3 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] ring-1 ring-primary/10 sm:p-6"
+      className="space-y-3 rounded-lg border border-border bg-background p-4"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold wrap-anywhere text-foreground">
-              {reviewerShortName}
-            </p>
-            <span className="inline-flex max-w-full items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
+            <p className="font-medium text-foreground">{reviewerShortName}</p>
+            <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
               Checked-in visit
             </span>
             {review.edited && (
-              <span className="inline-flex max-w-full items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-foreground">
+              <span className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
                 Edited
               </span>
             )}
             {statusLabel && (
               <span
                 data-testid={`author-review-status-${review.id}`}
-                className="inline-flex max-w-full items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold wrap-anywhere text-amber-900"
+                className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900"
               >
                 {statusLabel}
               </span>
@@ -112,23 +106,13 @@ export function AuthorReviewCard({
           )}
         </div>
 
-        <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
-          <Star
-            className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
-            aria-hidden="true"
-          />
-          <span className="wrap-anywhere">
-            Overall {formatReviewScore(review.overall)} / 5
-          </span>
+        <p className="text-sm font-semibold text-foreground">
+          Overall {formatReviewScore(review.overall)} / 5
         </p>
       </div>
 
       {deleteError && (
-        <Alert
-          variant="destructive"
-          role="alert"
-          className="rounded-2xl border-destructive/30 shadow-xs"
-        >
+        <Alert variant="destructive" role="alert">
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <AlertDescription>{deleteError}</AlertDescription>
         </Alert>
@@ -158,23 +142,22 @@ export function AuthorReviewCard({
         </div>
       ) : (
         <>
-          <dl className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+          <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-2 text-xs">
             {REVIEW_RATING_CATEGORIES.map((category) => (
               <div
                 key={category.key}
-                className="min-w-0 space-y-1 rounded-xl bg-muted/65 px-2.5 py-2 break-words sm:px-3"
+                className="min-w-0 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5 break-words"
               >
                 <dt className="text-muted-foreground">{category.label}</dt>
-                <dd className="flex flex-wrap items-center gap-1.5 font-semibold text-foreground">
-                  <SolidStars value={review[category.key]} size="xs" />
-                  <span>{review[category.key]} / 5</span>
+                <dd className="font-semibold text-foreground">
+                  {review[category.key]} / 5
                 </dd>
               </div>
             ))}
           </dl>
 
           {review.comment && (
-            <p className="rounded-xl border-l-2 border-l-primary/40 bg-background/85 px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
+            <p className="text-sm break-words whitespace-pre-wrap text-foreground">
               {review.comment}
             </p>
           )}
@@ -189,7 +172,7 @@ export function AuthorReviewCard({
                   setDeleteError(null)
                   setIsEditing(true)
                 }}
-                className="h-auto min-h-12 rounded-full px-5 py-2 whitespace-normal"
+                className="h-auto min-h-12 py-2 whitespace-normal"
               >
                 Edit
               </Button>
@@ -202,7 +185,7 @@ export function AuthorReviewCard({
                   setDeleteError(null)
                   setIsDeleteOpen(true)
                 }}
-                className="h-auto min-h-12 rounded-full px-5 py-2 whitespace-normal"
+                className="h-auto min-h-12 py-2 whitespace-normal"
               >
                 Delete
               </Button>
@@ -213,7 +196,7 @@ export function AuthorReviewCard({
 
       {canModify && (
         <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <AlertDialogContent className="rounded-3xl border-border/80 bg-card shadow-2xl">
+          <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this review?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -222,15 +205,12 @@ export function AuthorReviewCard({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting} className="rounded-full px-5">
-                Cancel
-              </AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 disabled={isDeleting}
                 aria-busy={isDeleting}
                 onClick={handleConfirmDelete}
-                className="rounded-full px-5"
               >
                 {isDeleting ? 'Deleting...' : 'Delete review'}
               </AlertDialogAction>
@@ -272,7 +252,7 @@ export function AuthorReviewsSection({
         data-testid="review-live-status"
         className={cn(
           announcement
-            ? 'rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-medium text-foreground'
+            ? 'rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm font-medium text-foreground'
             : 'sr-only',
         )}
       >
@@ -282,7 +262,7 @@ export function AuthorReviewsSection({
       {reviewableVisit && (
         <div
           data-testid="write-review-panel"
-          className="space-y-4 rounded-2xl bg-card p-4 sm:p-6"
+          className="space-y-4 rounded-lg border border-border bg-muted/20 p-4 sm:p-5"
         >
           <div className="space-y-1">
             <h3 className="font-heading text-base font-semibold text-foreground">

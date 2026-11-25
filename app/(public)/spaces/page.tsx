@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Compass } from 'lucide-react'
 
 import { DiscoveryShell } from './_components/discovery-shell'
 import { searchVerifiedSpaces } from '@/lib/data/spaces'
@@ -26,44 +25,16 @@ export default async function SpacesPage(props: SpacesPageProps) {
   const parsedQuery = discoverySearchQuerySchema.safeParse(searchParams)
   const initialQuery = parsedQuery.success ? parsedQuery.data : undefined
   const supabase = await createClient()
-  const rawSpaces = await searchVerifiedSpaces(supabase, searchParams)
-
-  const spaces = await Promise.all(
-    rawSpaces.map(async (space) => {
-      try {
-        const { data: files } = await supabase.storage
-          .from('space-photos')
-          .list(space.id, {
-            limit: 2,
-            sortBy: { column: 'created_at', order: 'asc' },
-          })
-        const firstPhoto = (files ?? []).find((f) => f.name && !f.name.startsWith('.'))
-        if (!firstPhoto) {
-          return { ...space, cover_photo_url: null }
-        }
-        const coverUrl = supabase.storage
-          .from('space-photos')
-          .getPublicUrl(`${space.id}/${firstPhoto.name}`).data.publicUrl
-        return { ...space, cover_photo_url: coverUrl }
-      } catch {
-        return { ...space, cover_photo_url: null }
-      }
-    }),
-  )
+  const spaces = await searchVerifiedSpaces(supabase, searchParams)
 
   return (
-    <div className="discovery-page min-h-[calc(100vh-8rem)] w-full bg-background py-6 sm:py-8">
-      <div className="w-full px-4 sm:px-6 lg:px-10">
-        <header className="mx-auto mb-7 max-w-2xl space-y-2 text-center">
-          <p className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
-            <Compass className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>Discover Spaces</span>
-          </p>
+    <div className="discovery-page min-h-[calc(100vh-8rem)] w-full py-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <header className="mb-6">
           <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Explore <span className="text-primary italic">Study &amp; Co-Working</span>{' '}
-            Spaces
+            Explore Study & Co-Working Spaces
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Search verified spaces near university campuses and study hubs across Metro
             Cebu.
           </p>

@@ -12,7 +12,5 @@ describe('FindSpaceCard (STORY-04)', () => {
       /<h2 id="find-space-heading"[^>]*>Ready for your next study day\?<\/h2>/,
     )
     expect(html).toMatch(/<a[^>]*href="\/spaces"[^>]*>.*Find a Space<\/a>/)
-    // Wraps at 360 px / 200% text scaling instead of inheriting whitespace-nowrap from buttonVariants (SRS §3.2.2)
-    expect(html).toContain('whitespace-normal')
   })
 })

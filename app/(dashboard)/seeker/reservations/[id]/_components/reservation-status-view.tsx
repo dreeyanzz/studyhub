@@ -3,7 +3,7 @@
 // straight to the Server Actions, so cancelling and paying work without JavaScript.
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Clock, Hourglass, MapPin } from 'lucide-react'
+import { Clock, Hourglass } from 'lucide-react'
 
 import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +25,7 @@ export function holdPath(reservation: Pick<MyReservation, 'id'>): string {
  * h-12, shrink-0 and whitespace-nowrap, as on the Host's photos page.
  */
 export const WRAPPING_BUTTON =
-  'h-auto min-h-12 max-w-full shrink rounded-full px-5 py-2 text-center font-semibold whitespace-normal'
+  'h-auto min-h-12 max-w-full shrink py-2 text-center whitespace-normal'
 
 /** A link styled as a button, whose label wraps. */
 export function buttonLinkClass(variant: 'default' | 'outline' = 'default'): string {
@@ -60,7 +60,7 @@ export function HoldStatusBadge({ status }: { status: 'pending_payment' | 'reser
       variant="outline"
       className={cn(
         // Wraps like the buttons, so 200% text never pushes it off a 360 px screen.
-        'h-auto min-h-7 max-w-full gap-1.5 rounded-full px-3 py-1 text-sm whitespace-normal',
+        'h-auto min-h-7 max-w-full gap-1.5 px-2.5 py-1 text-sm whitespace-normal',
         status === 'pending_payment'
           ? 'border-purple-600/40 bg-purple-50 text-purple-950'
           : 'border-blue-600/40 bg-blue-50 text-blue-950',
@@ -100,13 +100,7 @@ export function BookingToken({ token }: { token: string }) {
 export function ContinueToPaymentForm({ reservation }: { reservation: MyReservation }) {
   return (
     <form action={startCheckout.bind(null, reservation.id)}>
-      <Button
-        type="submit"
-        className={cn(
-          WRAPPING_BUTTON,
-          'bg-[#f0c95c] text-foreground shadow-sm hover:bg-[#e5ba45]',
-        )}
-      >
+      <Button type="submit" className={WRAPPING_BUTTON}>
         Continue to payment
       </Button>
     </form>
@@ -135,26 +129,20 @@ export function PaymentActions({ reservation }: { reservation: MyReservation }) 
  * The confirmation step at `?cancel=1`, which works by keyboard and without
  * JavaScript (design §3, seeker-cancel-pending-hold).
  */
-export function CancelConfirmation({
-  reservation,
-  className,
-}: {
-  reservation: MyReservation
-  className?: string
-}) {
+export function CancelConfirmation({ reservation }: { reservation: MyReservation }) {
   const isPaid = reservation.status === 'reserved'
   const fee = formatPeso(reservation.feeAmount)
   return (
     <section
       aria-labelledby="cancel-heading"
-      className={cn('space-y-4 rounded-2xl bg-muted/70 p-5', className)}
+      className="space-y-4 rounded-lg border border-border bg-card p-4"
     >
-      <h2 id="cancel-heading" className="font-heading text-base font-semibold">
+      <h2 id="cancel-heading" className="text-base font-semibold">
         {isPaid
           ? 'Cancel your reservation?'
           : `Cancel your hold on ${reservation.unitLabel}?`}
       </h2>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm">
         {isPaid
           ? `Your ${fee} fee will be forfeited, and ${reservation.unitLabel} will be released at once.`
           : 'Nothing has been charged.'}
@@ -188,63 +176,35 @@ export function ReservedView({
   confirmingCancel: boolean
 }) {
   return (
-    <div
-      className={cn(
-        'grid grid-cols-1 items-stretch gap-5',
-        reservation.bookingToken && 'md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
-      )}
-    >
-      <section className="flex flex-col justify-between gap-5 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]">
-        <div className="space-y-5">
-          <div className="space-y-2">
-            <HoldStatusBadge status="reserved" />
-            <h1 className="font-heading text-2xl font-bold tracking-tight">
-              Reserved: {reservation.unitLabel}
-            </h1>
-            <HoldPlace reservation={reservation} />
-          </div>
-          <div className="space-y-2 rounded-2xl bg-muted/65 px-4 py-3.5">
-            {reservation.waitWindowEndsAt && (
-              <p className="flex items-center gap-2 font-medium text-foreground">
-                <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
-                <span>
-                  Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
-                </span>
-              </p>
-            )}
-            <p className="flex items-start gap-2 text-sm text-muted-foreground">
-              <MapPin
-                className="mt-0.5 size-4 shrink-0 text-primary"
-                aria-hidden="true"
-              />
-              <span>{reservation.spaceAddress}</span>
-            </p>
-          </div>
-        </div>
-        {confirmingCancel ? (
-          <CancelConfirmation reservation={reservation} />
-        ) : (
-          <div className="pt-1">
-            <Link
-              href={`${holdPath(reservation)}?cancel=1`}
-              className={buttonLinkClass('outline')}
-            >
-              Cancel reservation
-            </Link>
-          </div>
-        )}
-      </section>
-
+    <div className="space-y-5">
+      <div className="space-y-2">
+        <HoldStatusBadge status="reserved" />
+        <h1 className="text-2xl font-bold tracking-tight">
+          Reserved: {reservation.unitLabel}
+        </h1>
+        <HoldPlace reservation={reservation} />
+      </div>
       {reservation.bookingToken && (
-        <section className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-primary/30 bg-secondary/70 p-6 text-center">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-            Check-in pass
-          </p>
-          <div className="rounded-2xl border border-white/90 bg-white p-3.5 shadow-sm">
-            <BookingQrCode token={reservation.bookingToken} />
-          </div>
+        <div className="space-y-3">
+          <BookingQrCode token={reservation.bookingToken} />
           <BookingToken token={reservation.bookingToken} />
-        </section>
+        </div>
+      )}
+      {reservation.waitWindowEndsAt && (
+        <p>
+          Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
+        </p>
+      )}
+      <p className="text-sm text-muted-foreground">{reservation.spaceAddress}</p>
+      {confirmingCancel ? (
+        <CancelConfirmation reservation={reservation} />
+      ) : (
+        <Link
+          href={`${holdPath(reservation)}?cancel=1`}
+          className={buttonLinkClass('outline')}
+        >
+          Cancel reservation
+        </Link>
       )}
     </div>
   )
@@ -329,9 +289,9 @@ function EndedMessage({
         id={headingId}
         className={
           headingLevel === 'h1'
-            ? 'font-heading text-2xl font-bold tracking-tight'
+            ? 'text-2xl font-bold tracking-tight'
             : // The card's other ended states use this size (current-hold-card.tsx).
-              'font-heading text-xl font-semibold'
+              'text-xl font-semibold'
         }
       >
         {title}
