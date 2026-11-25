@@ -87,24 +87,24 @@ export function SpaceSeatMapView({
   return (
     <div className="min-w-0 space-y-6" data-testid="space-seat-map-view">
       {/* View Switcher: Seat map vs Accessible list */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
-        <h2 className="min-w-0 text-lg font-semibold tracking-tight wrap-anywhere text-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-card px-5 py-4 shadow-sm">
+        <h2 className="min-w-0 font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground">
           Seat Selection
         </h2>
 
         <div
           role="group"
           aria-label="View switcher"
-          className="inline-flex max-w-full flex-wrap rounded-lg border border-border bg-muted/50 p-1"
+          className="inline-flex max-w-full flex-wrap rounded-full border border-border/80 bg-muted/60 p-1"
         >
           <Link
             href={gridHref}
             scroll={false}
             aria-current={view === 'grid' ? 'page' : undefined}
             className={cn(
-              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
+              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
               view === 'grid'
-                ? 'bg-background text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -117,9 +117,9 @@ export function SpaceSeatMapView({
             scroll={false}
             aria-current={view === 'list' ? 'page' : undefined}
             className={cn(
-              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
+              'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
               view === 'list'
-                ? 'bg-background text-foreground shadow-xs'
+                ? 'bg-card text-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -173,55 +173,55 @@ export function SpaceSeatMapView({
       {selectedUnit && (
         <Card
           data-testid="selected-unit-panel"
-          className="rounded-xl border-primary/30 bg-card shadow-sm"
+          className="rounded-2xl border border-primary/35 bg-card shadow-sm"
         >
-          <CardHeader className="pb-3">
+          <CardHeader className="border-b border-border/70 pb-3.5">
             <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-              <CardTitle className="min-w-0 text-base font-semibold wrap-anywhere text-foreground">
+              <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-foreground">
                 Selected Unit: {selectedUnit.label}
               </CardTitle>
-              <span className="min-w-0 text-xs wrap-anywhere text-muted-foreground">
+              <span className="min-w-0 rounded-full border border-border/80 bg-secondary/70 px-3 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
                 {selectedZone?.name ?? 'Zone'}
               </span>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 text-xs sm:grid-cols-4 sm:text-sm">
-              <div className="min-w-0">
-                <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
+            <div className="grid grid-cols-2 gap-2.5 text-xs sm:grid-cols-4 sm:text-sm">
+              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Type
                 </span>
-                <span className="font-medium wrap-anywhere text-foreground">
+                <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
                   {TYPE_LABELS[selectedUnit.unitType] ?? selectedUnit.unitType}
                 </span>
               </div>
 
-              <div className="min-w-0">
-                <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
+              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Capacity
                 </span>
-                <span className="font-medium wrap-anywhere text-foreground">
+                <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
                   {selectedUnit.capacity ?? 1}{' '}
                   {(selectedUnit.capacity ?? 1) === 1 ? 'person' : 'people'}
                 </span>
               </div>
 
-              <div className="min-w-0">
-                <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
+              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Status
                 </span>
-                <span className="font-medium wrap-anywhere text-foreground">
+                <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
                   {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
                 </span>
               </div>
 
-              <div className="min-w-0">
-                <span className="block text-[11px] tracking-wider text-muted-foreground uppercase">
+              <div className="min-w-0 rounded-xl border border-border/80 bg-muted/20 p-3 shadow-2xs">
+                <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                   Freshness
                 </span>
                 <FreshnessBadge
                   date={selectedUnit.hostUpdatedAt}
-                  className="font-medium wrap-anywhere text-foreground"
+                  className="mt-0.5 block font-medium wrap-anywhere text-foreground"
                 />
               </div>
             </div>
@@ -231,9 +231,9 @@ export function SpaceSeatMapView({
               <Alert
                 data-testid="selected-unit-space-closed"
                 variant="default"
-                className="border-muted-foreground/20 bg-muted/30"
+                className="rounded-2xl border-border/80 bg-muted/30"
               >
-                <Clock className="size-4 shrink-0" aria-hidden="true" />
+                <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
                 <AlertTitle>This Space is closed now</AlertTitle>
                 <AlertDescription className="space-y-2">
                   <p>
@@ -243,7 +243,7 @@ export function SpaceSeatMapView({
                   <div>
                     <Link
                       href={DISCOVERY_HREF}
-                      className="inline-flex min-h-12 items-center rounded-xs font-medium underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                      className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                     >
                       Explore other spaces
                     </Link>
@@ -251,7 +251,10 @@ export function SpaceSeatMapView({
                 </AlertDescription>
               </Alert>
             ) : selectedUnit.seatState === 'available' ? (
-              <div data-testid="selected-unit-hold-action" className="pt-2">
+              <div
+                data-testid="selected-unit-hold-action"
+                className="border-t border-border/70 pt-4"
+              >
                 {renderSelectedUnitAction
                   ? renderSelectedUnitAction(selectedUnit)
                   : ((selectedUnit.id === initialSelectedUnitId
@@ -263,7 +266,7 @@ export function SpaceSeatMapView({
                     ))}
               </div>
             ) : (
-              <div className="flex items-center gap-2 rounded-lg border border-amber-600/30 bg-amber-50 p-3 text-xs text-amber-900">
+              <div className="flex items-center gap-2.5 rounded-xl border border-amber-600/30 bg-amber-50 p-3.5 text-xs text-amber-900">
                 <AlertCircle
                   className="size-4 shrink-0 text-amber-700"
                   aria-hidden="true"

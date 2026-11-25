@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Compass } from 'lucide-react'
 
 import { DiscoveryShell } from './_components/discovery-shell'
 import { searchVerifiedSpaces } from '@/lib/data/spaces'
@@ -28,13 +29,17 @@ export default async function SpacesPage(props: SpacesPageProps) {
   const spaces = await searchVerifiedSpaces(supabase, searchParams)
 
   return (
-    <div className="discovery-page min-h-[calc(100vh-8rem)] w-full py-6">
+    <div className="discovery-page min-h-[calc(100vh-8rem)] w-full bg-muted/30 py-6 sm:py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <header className="mb-6">
+        <header className="mb-6 space-y-1.5">
+          <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
+            <Compass className="size-3.5 shrink-0" aria-hidden="true" />
+            <span>Discover Spaces</span>
+          </p>
           <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Explore Study & Co-Working Spaces
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Search verified spaces near university campuses and study hubs across Metro
             Cebu.
           </p>

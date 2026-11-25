@@ -217,82 +217,89 @@ export default async function SpaceProfilePage({
   ) : null
 
   return (
-    <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6">
-      <nav aria-label="Breadcrumb">
-        <Link
-          href={DISCOVERY_HREF}
-          className="inline-flex min-h-12 items-center gap-1.5 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-        >
-          <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
-          <span>Back to search</span>
-        </Link>
-      </nav>
+    <div className="min-h-[calc(100vh-8rem)] w-full bg-muted/30">
+      <div className="mx-auto w-full max-w-5xl min-w-0 space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+        <nav aria-label="Breadcrumb">
+          <Link
+            href={DISCOVERY_HREF}
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>Back to search</span>
+          </Link>
+        </nav>
 
-      <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
+        <SpaceProfileHeader space={space} operatingStatus={operatingStatus} />
 
-      <SpacePhotoGallery spaceName={space.name} photos={photos} />
+        <SpacePhotoGallery spaceName={space.name} photos={photos} />
 
-      {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
-      <SpaceTags curatedTags={curatedTags} customTags={customTags} />
+        {/* Curated Amenity Tags and Host Custom Tags (D-006, TSK-11.6) */}
+        <SpaceTags curatedTags={curatedTags} customTags={customTags} />
 
-      {!operatingStatus.isOpen && (
-        <Alert
-          data-testid="seeker-space-closed"
-          variant="default"
-          className="border-muted-foreground/20 bg-muted/30"
-        >
-          <Clock className="size-4 shrink-0" aria-hidden="true" />
-          <AlertTitle>This Space is closed now</AlertTitle>
-          <AlertDescription className="space-y-2">
-            <p>
-              You can review seats and amenities; reservations open during operating
-              hours.
-            </p>
-            <div>
-              <Link
-                href={DISCOVERY_HREF}
-                className="inline-flex min-h-12 items-center rounded-xs font-medium underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
-              >
-                Explore other spaces
-              </Link>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+        {!operatingStatus.isOpen && (
+          <Alert
+            data-testid="seeker-space-closed"
+            variant="default"
+            className="rounded-2xl border-border/80 bg-card shadow-xs"
+          >
+            <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <AlertTitle>This Space is closed now</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                You can review seats and amenities; reservations open during operating
+                hours.
+              </p>
+              <div>
+                <Link
+                  href={DISCOVERY_HREF}
+                  className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                >
+                  Explore other spaces
+                </Link>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
-      {/* Zone availability overview with oldest-available freshness rule (D-051) */}
-      <AvailabilitySummary summary={availability} />
+        {/* Zone availability overview with oldest-available freshness rule (D-051) */}
+        <AvailabilitySummary summary={availability} />
 
-      {refusalMessage && (
-        <Alert variant="destructive" role="alert" data-testid="hold-refusal">
-          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
-          <AlertDescription>{refusalMessage}</AlertDescription>
-        </Alert>
-      )}
+        {refusalMessage && (
+          <Alert
+            variant="destructive"
+            role="alert"
+            data-testid="hold-refusal"
+            className="rounded-2xl border-destructive/30 shadow-xs"
+          >
+            <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+            <AlertDescription>{refusalMessage}</AlertDescription>
+          </Alert>
+        )}
 
-      {/* Synchronized Seat Map & Accessible List View with Unit Selection (TSK-11.5) */}
-      <SpaceSeatMapView
-        zones={zones}
-        isOpen={operatingStatus.isOpen}
-        initialView={initialView}
-        initialSelectedUnitId={unitParam}
-        selectedUnitActionSlot={holdPanel}
-      />
+        {/* Synchronized Seat Map & Accessible List View with Unit Selection (TSK-11.5) */}
+        <SpaceSeatMapView
+          zones={zones}
+          isOpen={operatingStatus.isOpen}
+          initialView={initialView}
+          initialSelectedUnitId={unitParam}
+          selectedUnitActionSlot={holdPanel}
+        />
 
-      {/* Community reviews and ratings (STORY-13, TSK-13.4, TSK-13.5, FR-4.1, FR-4.2) */}
-      <SpaceReviews
-        spaceId={space.id}
-        summary={reviewSummary}
-        reviewsPage={reviewsPage}
-        myReviews={myReviews}
-        reviewableVisit={reviewableVisit}
-        viewerShortName={viewerShortName}
-        canReport={viewer.role !== null}
-        sort={reviewSort}
-        shown={reviewShown}
-        view={viewParam === 'list' ? 'list' : undefined}
-        unit={unitParam}
-      />
+        {/* Community reviews and ratings (STORY-13, TSK-13.4, TSK-13.5, FR-4.1, FR-4.2) */}
+        <SpaceReviews
+          spaceId={space.id}
+          summary={reviewSummary}
+          reviewsPage={reviewsPage}
+          myReviews={myReviews}
+          reviewableVisit={reviewableVisit}
+          viewerShortName={viewerShortName}
+          canReport={viewer.role !== null}
+          sort={reviewSort}
+          shown={reviewShown}
+          view={viewParam === 'list' ? 'list' : undefined}
+          unit={unitParam}
+        />
+      </div>
     </div>
   )
 }

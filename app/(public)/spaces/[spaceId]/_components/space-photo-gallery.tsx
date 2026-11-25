@@ -69,15 +69,15 @@ export function SpacePhotoGallery({
       <div
         data-testid="space-photos-empty"
         className={cn(
-          'flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center sm:p-12',
+          'flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/70 p-8 text-center shadow-xs sm:p-12',
           className,
         )}
       >
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary text-primary shadow-xs">
           <ImageOff className="h-6 w-6" aria-hidden="true" />
         </div>
         {/* A paragraph, not a heading: an h3 here came straight after the page's h1 */}
-        <p className="text-base font-semibold text-foreground">
+        <p className="font-heading text-base font-semibold text-foreground">
           No Space photos uploaded yet.
         </p>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
@@ -98,7 +98,10 @@ export function SpacePhotoGallery({
       role="region"
       aria-roledescription="carousel"
       aria-label={`Photos of ${spaceName}`}
-      className={cn('relative min-w-0 space-y-3 rounded-xl', className)}
+      className={cn(
+        'relative min-w-0 space-y-3 rounded-2xl border border-border/80 bg-card p-2.5 shadow-sm sm:p-3',
+        className,
+      )}
     >
       {/* Hero Image Container with Touch Navigation */}
       <div
@@ -139,7 +142,7 @@ export function SpacePhotoGallery({
         <div
           data-testid="carousel-counter"
           aria-live="polite"
-          className="absolute top-3 right-3 rounded-full bg-background/80 px-2.5 py-1 text-xs font-medium text-foreground shadow-xs backdrop-blur-xs"
+          className="absolute top-3 right-3 rounded-full border border-white/25 bg-foreground/75 px-3 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-md"
         >
           {/* Screen readers hear only "Slide 1 of 3", not the visible "1 / 3" as well */}
           <span aria-hidden="true">
@@ -158,7 +161,7 @@ export function SpacePhotoGallery({
               onClick={goToPrev}
               onKeyDown={handleKeyDown}
               aria-label="Previous slide"
-              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-xs transition-colors hover:bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full border border-border/80 bg-card/90 text-foreground shadow-md backdrop-blur-xs transition-colors hover:bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -167,7 +170,7 @@ export function SpacePhotoGallery({
               onClick={goToNext}
               onKeyDown={handleKeyDown}
               aria-label="Next slide"
-              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-xs transition-colors hover:bg-background focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full border border-border/80 bg-card/90 text-foreground shadow-md backdrop-blur-xs transition-colors hover:bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -193,7 +196,7 @@ export function SpacePhotoGallery({
                 aria-label={`Show photo ${index + 1} of ${totalPhotos}`}
                 aria-current={isSelected ? 'true' : undefined}
                 className={cn(
-                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-md border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border-2 transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                   isSelected
                     ? 'border-primary ring-2 ring-primary ring-offset-2'
                     : 'border-transparent opacity-70 hover:opacity-100',

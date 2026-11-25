@@ -3,7 +3,7 @@
 // straight to the Server Actions, so cancelling and paying work without JavaScript.
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { Clock, Hourglass } from 'lucide-react'
+import { Clock, Hourglass, MapPin } from 'lucide-react'
 
 import { BookingQrCode } from '@/components/reservation/qr-code'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +25,7 @@ export function holdPath(reservation: Pick<MyReservation, 'id'>): string {
  * h-12, shrink-0 and whitespace-nowrap, as on the Host's photos page.
  */
 export const WRAPPING_BUTTON =
-  'h-auto min-h-12 max-w-full shrink py-2 text-center whitespace-normal'
+  'h-auto min-h-12 max-w-full shrink rounded-full px-5 py-2 text-center font-semibold whitespace-normal'
 
 /** A link styled as a button, whose label wraps. */
 export function buttonLinkClass(variant: 'default' | 'outline' = 'default'): string {
@@ -60,7 +60,7 @@ export function HoldStatusBadge({ status }: { status: 'pending_payment' | 'reser
       variant="outline"
       className={cn(
         // Wraps like the buttons, so 200% text never pushes it off a 360 px screen.
-        'h-auto min-h-7 max-w-full gap-1.5 px-2.5 py-1 text-sm whitespace-normal',
+        'h-auto min-h-7 max-w-full gap-1.5 rounded-full px-3 py-1 text-sm whitespace-normal',
         status === 'pending_payment'
           ? 'border-purple-600/40 bg-purple-50 text-purple-950'
           : 'border-blue-600/40 bg-blue-50 text-blue-950',
@@ -135,14 +135,14 @@ export function CancelConfirmation({ reservation }: { reservation: MyReservation
   return (
     <section
       aria-labelledby="cancel-heading"
-      className="space-y-4 rounded-lg border border-border bg-card p-4"
+      className="space-y-4 rounded-2xl border border-destructive/25 bg-muted/25 p-5 shadow-2xs"
     >
-      <h2 id="cancel-heading" className="text-base font-semibold">
+      <h2 id="cancel-heading" className="font-heading text-base font-semibold">
         {isPaid
           ? 'Cancel your reservation?'
           : `Cancel your hold on ${reservation.unitLabel}?`}
       </h2>
-      <p className="text-sm">
+      <p className="text-sm text-muted-foreground">
         {isPaid
           ? `Your ${fee} fee will be forfeited, and ${reservation.unitLabel} will be released at once.`
           : 'Nothing has been charged.'}
@@ -176,35 +176,47 @@ export function ReservedView({
   confirmingCancel: boolean
 }) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 rounded-2xl border border-primary/25 bg-card p-5 shadow-sm sm:p-6">
       <div className="space-y-2">
         <HoldStatusBadge status="reserved" />
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="font-heading text-2xl font-bold tracking-tight">
           Reserved: {reservation.unitLabel}
         </h1>
         <HoldPlace reservation={reservation} />
       </div>
       {reservation.bookingToken && (
-        <div className="space-y-3">
-          <BookingQrCode token={reservation.bookingToken} />
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-border/80 bg-muted/20 p-5 text-center shadow-2xs">
+          <div className="rounded-xl bg-white p-2 shadow-2xs">
+            <BookingQrCode token={reservation.bookingToken} />
+          </div>
           <BookingToken token={reservation.bookingToken} />
         </div>
       )}
-      {reservation.waitWindowEndsAt && (
-        <p>
-          Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
+      <div className="space-y-2 rounded-xl border border-border/70 bg-muted/25 px-4 py-3.5">
+        {reservation.waitWindowEndsAt && (
+          <p className="flex items-center gap-2 font-medium text-foreground">
+            <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>
+              Check in by <ManilaTime iso={reservation.waitWindowEndsAt} />.
+            </span>
+          </p>
+        )}
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
+          <span>{reservation.spaceAddress}</span>
         </p>
-      )}
-      <p className="text-sm text-muted-foreground">{reservation.spaceAddress}</p>
+      </div>
       {confirmingCancel ? (
         <CancelConfirmation reservation={reservation} />
       ) : (
-        <Link
-          href={`${holdPath(reservation)}?cancel=1`}
-          className={buttonLinkClass('outline')}
-        >
-          Cancel reservation
-        </Link>
+        <div className="border-t border-border/70 pt-4">
+          <Link
+            href={`${holdPath(reservation)}?cancel=1`}
+            className={buttonLinkClass('outline')}
+          >
+            Cancel reservation
+          </Link>
+        </div>
       )}
     </div>
   )
@@ -289,9 +301,9 @@ function EndedMessage({
         id={headingId}
         className={
           headingLevel === 'h1'
-            ? 'text-2xl font-bold tracking-tight'
+            ? 'font-heading text-2xl font-bold tracking-tight'
             : // The card's other ended states use this size (current-hold-card.tsx).
-              'text-xl font-semibold'
+              'font-heading text-xl font-semibold'
         }
       >
         {title}

@@ -97,7 +97,7 @@ export function SpaceReviews({
     <section
       aria-labelledby="reviews-heading"
       data-testid="space-reviews-section"
-      className="space-y-6 rounded-xl border bg-card p-5 text-card-foreground shadow-xs sm:p-6"
+      className="space-y-6 rounded-2xl border border-border/80 bg-card p-5 text-card-foreground shadow-sm sm:p-6"
     >
       <div className="space-y-1">
         <h2
@@ -109,7 +109,12 @@ export function SpaceReviews({
       </div>
 
       {loadError ? (
-        <Alert variant="destructive" role="alert" data-testid="reviews-load-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="reviews-load-error"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <AlertDescription>
             We couldn&apos;t load reviews right now. Refresh the page to try again.
@@ -130,9 +135,11 @@ export function SpaceReviews({
                 {categoryAverages.map((category) => (
                   <div
                     key={category.label}
-                    className="min-w-0 rounded-lg border border-border bg-muted/30 px-3 py-2.5 break-words"
+                    className="min-w-0 rounded-xl border border-border/80 bg-muted/25 px-3.5 py-3 break-words shadow-2xs"
                   >
-                    <dt className="text-xs text-muted-foreground">{category.label}</dt>
+                    <dt className="text-xs font-medium text-muted-foreground">
+                      {category.label}
+                    </dt>
                     <dd className="mt-0.5 text-sm font-semibold text-foreground">
                       {formatReviewScore(category.value)} / 5
                     </dd>
@@ -141,7 +148,10 @@ export function SpaceReviews({
               </dl>
             </div>
           ) : (
-            <div className="space-y-1" data-testid="reviews-empty-state">
+            <div
+              className="space-y-1 rounded-2xl border-2 border-dashed border-border/80 bg-muted/15 p-5"
+              data-testid="reviews-empty-state"
+            >
               <p className="text-base font-medium text-foreground">No reviews yet</p>
               <p className="text-sm text-muted-foreground">
                 Be the first to review after checking in.
@@ -159,7 +169,7 @@ export function SpaceReviews({
 
           {/* Sort links + Others' visible reviews */}
           {(summary.reviewCount > 0 || reviewsPage.reviews.length > 0) && (
-            <div className="space-y-4 border-t border-border pt-5">
+            <div className="space-y-4 border-t border-border/70 pt-5">
               <nav
                 aria-label="Sort reviews"
                 className="flex flex-wrap items-center gap-2"
@@ -177,10 +187,10 @@ export function SpaceReviews({
                       })}
                       aria-current={isCurrent ? 'page' : undefined}
                       className={cn(
-                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-4 py-2 text-center text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-center text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                         isCurrent
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-background text-foreground hover:bg-muted',
+                          ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                          : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/40 hover:bg-accent/40',
                       )}
                     >
                       {option.label}
@@ -204,7 +214,7 @@ export function SpaceReviews({
                       <li key={review.id}>
                         <article
                           data-testid={`review-card-${review.id}`}
-                          className="space-y-3 rounded-lg border border-border bg-background p-4"
+                          className="space-y-3.5 rounded-2xl border border-border/80 bg-background/70 p-4 shadow-2xs transition-colors hover:border-border sm:p-5"
                         >
                           <div className="flex flex-wrap items-start justify-between gap-2">
                             <div className="min-w-0 space-y-1">
@@ -212,11 +222,11 @@ export function SpaceReviews({
                                 <p className="font-medium text-foreground">
                                   {review.reviewerName}
                                 </p>
-                                <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                                <span className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
                                   Checked-in visit
                                 </span>
                                 {review.edited && (
-                                  <span className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+                                  <span className="inline-flex items-center rounded-full border border-border/80 bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
                                     Edited
                                   </span>
                                 )}
@@ -229,7 +239,7 @@ export function SpaceReviews({
                               )}
                             </div>
 
-                            <p className="text-sm font-semibold text-foreground">
+                            <p className="rounded-full border border-border/80 bg-card px-3 py-1 text-sm font-semibold text-foreground shadow-2xs">
                               Overall {formatReviewScore(review.overall)} / 5
                             </p>
                           </div>
@@ -238,12 +248,12 @@ export function SpaceReviews({
                             {REVIEW_RATING_CATEGORIES.map((category) => (
                               <div
                                 key={category.key}
-                                className="min-w-0 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5 break-words"
+                                className="min-w-0 rounded-xl border border-border/70 bg-card px-3 py-2 break-words shadow-2xs"
                               >
                                 <dt className="text-muted-foreground">
                                   {category.label}
                                 </dt>
-                                <dd className="font-semibold text-foreground">
+                                <dd className="mt-0.5 font-semibold text-foreground">
                                   {review[category.key]} / 5
                                 </dd>
                               </div>
@@ -252,7 +262,7 @@ export function SpaceReviews({
 
                           {/* Plain React text node only — never rendered as HTML (SRS §3.5.2). */}
                           {review.comment && (
-                            <p className="text-sm break-words whitespace-pre-wrap text-foreground">
+                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
                               {review.comment}
                             </p>
                           )}
@@ -282,7 +292,7 @@ export function SpaceReviews({
                       view,
                       unit,
                     })}
-                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-center text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border border-border/80 bg-card px-5 py-2 text-center text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/40 hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     Show more reviews
                   </Link>

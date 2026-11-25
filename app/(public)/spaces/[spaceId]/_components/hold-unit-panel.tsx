@@ -39,7 +39,7 @@ const DISCOVERY_HREF = '/spaces'
  * h-12, shrink-0 and whitespace-nowrap.
  */
 const WRAPPING_BUTTON =
-  'h-auto min-h-12 max-w-full shrink py-2 text-center whitespace-normal'
+  'h-auto min-h-12 max-w-full shrink rounded-full px-5 py-2 text-center font-semibold whitespace-normal'
 
 function linkClass(variant: 'default' | 'outline' = 'default'): string {
   return cn(buttonVariants({ variant }), WRAPPING_BUTTON)
@@ -154,7 +154,9 @@ export function HoldUnitPanel({
   const shortest = terms.waitWindowMinutes[0]
   return (
     <form action={holdUnit} className="space-y-4">
-      <h3 className="text-base font-semibold">Hold {unit.label}</h3>
+      <h3 className="font-heading text-base font-semibold text-foreground">
+        Hold {unit.label}
+      </h3>
       <FeeLine terms={terms} />
       <input type="hidden" name="spaceId" value={spaceId} />
       <input type="hidden" name="unitId" value={unit.id} />
@@ -168,7 +170,7 @@ export function HoldUnitPanel({
           {terms.waitWindowMinutes.map((minutes) => (
             <label
               key={minutes}
-              className="flex min-h-12 min-w-12 cursor-pointer items-center gap-2 rounded-lg border border-input px-3 has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring"
+              className="flex min-h-12 min-w-12 cursor-pointer items-center gap-2 rounded-full border border-input bg-card px-4 shadow-2xs transition-colors hover:border-primary/50 has-checked:border-primary has-checked:bg-primary/10 has-checked:text-primary has-focus-visible:ring-3 has-focus-visible:ring-ring"
             >
               <input
                 type="radio"

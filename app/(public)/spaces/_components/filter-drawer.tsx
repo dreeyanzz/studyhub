@@ -105,10 +105,10 @@ export function FilterDrawer({
           aria-controls="mobile-filter-drawer"
           data-testid="filter-drawer-trigger"
           className={cn(
-            'inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none',
+            'inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold shadow-2xs transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]',
             activeCount > 0
               ? 'border-primary bg-primary/10 text-primary'
-              : 'border-border bg-card text-foreground hover:bg-accent/40',
+              : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-accent/40',
           )}
         >
           <SlidersHorizontal className="size-4" aria-hidden="true" />
@@ -128,7 +128,7 @@ export function FilterDrawer({
             type="button"
             onClick={onClearAll}
             data-testid="mobile-clear-all-filters"
-            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
           >
             <RotateCcw className="size-3.5" aria-hidden="true" />
             <span>Clear all ({activeCount})</span>
@@ -154,10 +154,10 @@ export function FilterDrawer({
             aria-modal="true"
             aria-labelledby="filter-drawer-title"
             data-testid="filter-drawer-dialog"
-            className="relative z-10 flex max-h-[85vh] w-full flex-col rounded-t-3xl border-t border-border bg-background shadow-2xl"
+            className="relative z-10 flex max-h-[85vh] w-full flex-col rounded-t-3xl border-t border-border/80 bg-card shadow-2xl"
           >
             {/* Drawer Header */}
-            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <div className="flex items-center justify-between border-b border-border/70 bg-muted/25 px-5 py-4">
               <div>
                 <h2
                   id="filter-drawer-title"
@@ -174,7 +174,7 @@ export function FilterDrawer({
                 onClick={closeDrawer}
                 aria-label="Close filter drawer"
                 data-testid="filter-drawer-close"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <X className="size-5" aria-hidden="true" />
               </button>
@@ -203,10 +203,10 @@ export function FilterDrawer({
                           data-testid={`drawer-filter-tag-${opt.id}`}
                           onClick={() => onToggleTag(opt.id)}
                           className={cn(
-                            'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                            'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                             isSelected
                               ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                              : 'border-border bg-card text-foreground hover:border-primary/50',
+                              : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
                           )}
                         >
                           {opt.label}
@@ -233,10 +233,10 @@ export function FilterDrawer({
                         data-testid={`drawer-filter-hours-${opt.id}`}
                         onClick={() => onToggleHours(opt.id)}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected
                             ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border bg-card text-foreground hover:border-primary/50',
+                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
                         )}
                       >
                         {opt.label}
@@ -262,10 +262,10 @@ export function FilterDrawer({
                         data-testid={`drawer-filter-price-${opt.id}`}
                         onClick={() => onTogglePrice(opt.id)}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected
                             ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border bg-card text-foreground hover:border-primary/50',
+                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
                         )}
                       >
                         {opt.label}
@@ -291,10 +291,10 @@ export function FilterDrawer({
                         data-testid={`drawer-filter-unit-${opt.id}`}
                         onClick={() => onToggleUnitType(opt.id)}
                         className={cn(
-                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-3.5 py-2 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
+                          'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                           isSelected
                             ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                            : 'border-border bg-card text-foreground hover:border-primary/50',
+                            : 'border-border/80 bg-background text-foreground shadow-2xs hover:border-primary/50 hover:bg-accent/40',
                         )}
                       >
                         {opt.label}
@@ -306,12 +306,12 @@ export function FilterDrawer({
             </div>
 
             {/* Sticky Drawer Footer */}
-            <div className="flex items-center justify-between gap-3 border-t border-border bg-card px-5 py-4">
+            <div className="flex items-center justify-between gap-3 border-t border-border/70 bg-muted/25 px-5 py-4">
               <button
                 type="button"
                 onClick={onClearAll}
                 data-testid="drawer-clear-all"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground hover:bg-accent focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full border border-border/80 bg-card px-5 py-2.5 text-sm font-medium text-foreground shadow-2xs transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
               >
                 <RotateCcw className="size-4" aria-hidden="true" />
                 <span>Reset all</span>
@@ -321,7 +321,7 @@ export function FilterDrawer({
                 type="button"
                 onClick={closeDrawer}
                 data-testid="drawer-apply-button"
-                className="inline-flex min-h-12 min-w-12 flex-1 items-center justify-center rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="inline-flex min-h-12 min-w-12 flex-1 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
               >
                 Show {resultCount} {resultCount === 1 ? 'space' : 'spaces'}
               </button>

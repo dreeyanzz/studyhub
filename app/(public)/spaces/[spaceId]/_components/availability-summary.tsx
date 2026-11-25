@@ -23,11 +23,11 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
   return (
     <section
       aria-labelledby="availability-overview-heading"
-      className="min-w-0 space-y-3"
+      className="min-w-0 space-y-3.5 rounded-2xl border border-border/80 bg-card p-5 shadow-sm sm:p-6"
     >
       <h2
         id="availability-overview-heading"
-        className="text-base font-semibold text-foreground"
+        className="font-heading text-base font-semibold text-foreground"
       >
         Current Availability
       </h2>
@@ -46,10 +46,10 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
               <div
                 key={zone.zoneId}
                 role="listitem"
-                className={`flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-lg border px-3 py-2 text-xs shadow-xs sm:text-sm ${
+                className={`flex max-w-full min-w-0 flex-wrap items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-xs shadow-2xs sm:text-sm ${
                   hasAvailable
-                    ? 'border-border bg-card text-foreground'
-                    : 'border-border/60 bg-muted/40 text-muted-foreground'
+                    ? 'border-primary/25 bg-primary/5 text-foreground'
+                    : 'border-border/70 bg-muted/35 text-muted-foreground'
                 }`}
               >
                 <span className="min-w-0 font-semibold wrap-anywhere text-foreground">
@@ -95,16 +95,16 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
         <Alert
           data-testid="seeker-profile-no-available-unit"
           variant="default"
-          className="border-muted-foreground/20 bg-muted/30"
+          className="rounded-2xl border-border/80 bg-muted/30 shadow-2xs"
         >
-          <Info className="size-4 shrink-0" aria-hidden="true" />
+          <Info className="size-4 shrink-0 text-primary" aria-hidden="true" />
           <AlertTitle>No units available</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
               No units are currently Available. Check back later or{' '}
               <Link
                 href={DISCOVERY_HREF}
-                className="inline-flex min-h-12 items-center rounded-xs font-medium underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
               >
                 explore other spaces
               </Link>

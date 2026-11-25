@@ -76,17 +76,17 @@ export function AuthorReviewCard({
   return (
     <article
       data-testid={`author-review-${review.id}`}
-      className="space-y-3 rounded-lg border border-border bg-background p-4"
+      className="space-y-3.5 rounded-2xl border border-primary/25 bg-card p-4 shadow-xs sm:p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium text-foreground">{reviewerShortName}</p>
-            <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+            <span className="inline-flex items-center rounded-full border border-border/80 bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
               Checked-in visit
             </span>
             {review.edited && (
-              <span className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+              <span className="inline-flex items-center rounded-full border border-border/80 bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
                 Edited
               </span>
             )}
@@ -106,13 +106,17 @@ export function AuthorReviewCard({
           )}
         </div>
 
-        <p className="text-sm font-semibold text-foreground">
+        <p className="rounded-full border border-border/80 bg-muted/30 px-3 py-1 text-sm font-semibold text-foreground shadow-2xs">
           Overall {formatReviewScore(review.overall)} / 5
         </p>
       </div>
 
       {deleteError && (
-        <Alert variant="destructive" role="alert">
+        <Alert
+          variant="destructive"
+          role="alert"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <AlertDescription>{deleteError}</AlertDescription>
         </Alert>
@@ -146,10 +150,10 @@ export function AuthorReviewCard({
             {REVIEW_RATING_CATEGORIES.map((category) => (
               <div
                 key={category.key}
-                className="min-w-0 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5 break-words"
+                className="min-w-0 rounded-xl border border-border/70 bg-muted/25 px-3 py-2 break-words shadow-2xs"
               >
                 <dt className="text-muted-foreground">{category.label}</dt>
-                <dd className="font-semibold text-foreground">
+                <dd className="mt-0.5 font-semibold text-foreground">
                   {review[category.key]} / 5
                 </dd>
               </div>
@@ -157,7 +161,7 @@ export function AuthorReviewCard({
           </dl>
 
           {review.comment && (
-            <p className="text-sm break-words whitespace-pre-wrap text-foreground">
+            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
               {review.comment}
             </p>
           )}
@@ -172,7 +176,7 @@ export function AuthorReviewCard({
                   setDeleteError(null)
                   setIsEditing(true)
                 }}
-                className="h-auto min-h-12 py-2 whitespace-normal"
+                className="h-auto min-h-12 rounded-full px-5 py-2 whitespace-normal"
               >
                 Edit
               </Button>
@@ -185,7 +189,7 @@ export function AuthorReviewCard({
                   setDeleteError(null)
                   setIsDeleteOpen(true)
                 }}
-                className="h-auto min-h-12 py-2 whitespace-normal"
+                className="h-auto min-h-12 rounded-full px-5 py-2 whitespace-normal"
               >
                 Delete
               </Button>
@@ -196,7 +200,7 @@ export function AuthorReviewCard({
 
       {canModify && (
         <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-          <AlertDialogContent>
+          <AlertDialogContent className="rounded-3xl border-border/80 bg-card shadow-2xl">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete this review?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -205,12 +209,15 @@ export function AuthorReviewCard({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel disabled={isDeleting} className="rounded-full px-5">
+                Cancel
+              </AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"
                 disabled={isDeleting}
                 aria-busy={isDeleting}
                 onClick={handleConfirmDelete}
+                className="rounded-full px-5"
               >
                 {isDeleting ? 'Deleting...' : 'Delete review'}
               </AlertDialogAction>
@@ -252,7 +259,7 @@ export function AuthorReviewsSection({
         data-testid="review-live-status"
         className={cn(
           announcement
-            ? 'rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm font-medium text-foreground'
+            ? 'rounded-2xl border border-primary/25 bg-primary/10 px-4 py-3 text-sm font-medium text-foreground'
             : 'sr-only',
         )}
       >
@@ -262,7 +269,7 @@ export function AuthorReviewsSection({
       {reviewableVisit && (
         <div
           data-testid="write-review-panel"
-          className="space-y-4 rounded-lg border border-border bg-muted/20 p-4 sm:p-5"
+          className="space-y-4 rounded-2xl border border-border/80 bg-muted/25 p-5 shadow-2xs sm:p-6"
         >
           <div className="space-y-1">
             <h3 className="font-heading text-base font-semibold text-foreground">
