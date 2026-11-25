@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { CheckCircle2, Circle } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
@@ -40,8 +41,91 @@ export const statusBadges: Record<
   rejected: { label: 'Rejected', variant: 'destructive' },
 }
 
-function SpaceCard({ space }: { space: SpaceListItem }) {
+/** Completion flags for a Space's initial setup steps (STORY-17). */
+export interface SpaceSetupStatus {
+  hasUnits: boolean
+  hasPhotos: boolean
+  hasTags: boolean
+}
+
+function SpaceSetupChecklist({
+  spaceId,
+  spaceName,
+  setup,
+}: {
+  spaceId: string
+  spaceName: string
+  setup: SpaceSetupStatus
+}) {
+  const steps = [
+    {
+      key: 'seat-map',
+      label: 'Seat map',
+      done: setup.hasUnits,
+      todoText: 'Add units',
+    },
+    {
+      key: 'photos',
+      label: 'Photos',
+      done: setup.hasPhotos,
+      todoText: 'Add photos',
+    },
+    {
+      key: 'tags',
+      label: 'Tags',
+      done: setup.hasTags,
+      todoText: 'Add tags',
+    },
+  ] as const
+
+  return (
+    <div className="rounded-lg border border-border bg-muted/30 p-3">
+      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+        Setup checklist
+      </p>
+      <ul className="mt-2 space-y-1 text-sm">
+        {steps.map((step) => (
+          <li
+            key={step.key}
+            className="flex flex-wrap items-center justify-between gap-2"
+          >
+            <span className="flex items-center gap-2">
+              {step.done ? (
+                <CheckCircle2
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-primary"
+                />
+              ) : (
+                <Circle
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-muted-foreground"
+                />
+              )}
+              <span>{step.label}</span>
+            </span>
+            {step.done ? (
+              <span className="text-xs font-medium text-primary">Done</span>
+            ) : (
+              <Link
+                href={`/host/spaces/${spaceId}/${step.key}`}
+                className="inline-flex min-h-12 items-center text-xs font-medium text-primary underline underline-offset-4 hover:text-primary/80"
+              >
+                {step.todoText}
+                <span className="sr-only"> for {spaceName}</span>
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupStatus }) {
   const status = statusBadges[space.status]
+  const showChecklist =
+    setup !== undefined &&
+    (space.status === 'pending' || !setup.hasUnits || !setup.hasPhotos || !setup.hasTags)
 
   return (
     <Card className="h-full">
@@ -73,6 +157,9 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
             </dd>
           </div>
         </dl>
+        {showChecklist ? (
+          <SpaceSetupChecklist spaceId={space.id} spaceName={space.name} setup={setup} />
+        ) : null}
       </CardContent>
       <CardFooter className="flex-wrap gap-2">
         {/* The hidden name completes each link's accessible name, so every card's
@@ -142,9 +229,11 @@ function SpaceCard({ space }: { space: SpaceListItem }) {
 export function SpaceList({
   spaces,
   canCreate,
+  setupBySpaceId,
 }: {
   spaces: SpaceListItem[]
   canCreate: boolean
+  setupBySpaceId?: Record<string, SpaceSetupStatus>
 }) {
   // An Administrator may open /host (D-032), owns no Spaces, and has no create form
   // to be pointed to (#145).
@@ -177,7 +266,7 @@ export function SpaceList({
     <ul className="grid gap-4 md:grid-cols-2">
       {spaces.map((space) => (
         <li key={space.id}>
-          <SpaceCard space={space} />
+          <SpaceCard space={space} setup={setupBySpaceId?.[space.id]} />
         </li>
       ))}
     </ul>

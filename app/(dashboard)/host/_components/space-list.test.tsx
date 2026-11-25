@@ -112,4 +112,34 @@ describe('SpaceList component (STORY-05, STORY-11 TSK-11.2)', () => {
     )
     expect(html).not.toContain('href="/spaces/e0000000-0000-4000-8000-000000000002"')
   })
+
+  it('shows setup checklist items for incomplete or pending Spaces (STORY-17)', () => {
+    const html = renderToStaticMarkup(
+      <SpaceList
+        spaces={mockSpaces}
+        canCreate={true}
+        setupBySpaceId={{
+          'e0000000-0000-4000-8000-000000000001': {
+            hasUnits: true,
+            hasPhotos: true,
+            hasTags: true,
+          },
+          'e0000000-0000-4000-8000-000000000002': {
+            hasUnits: true,
+            hasPhotos: false,
+            hasTags: false,
+          },
+        }}
+      />,
+    )
+
+    expect(html).toContain('Setup checklist')
+    expect(html).toContain('Done')
+    expect(html).toContain(
+      'Add photos<span class="sr-only"> for Night Owls Coworking</span>',
+    )
+    expect(html).toContain(
+      'Add tags<span class="sr-only"> for Night Owls Coworking</span>',
+    )
+  })
 })
