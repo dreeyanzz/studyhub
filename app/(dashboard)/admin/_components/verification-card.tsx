@@ -67,7 +67,7 @@ export function VerificationCard({
   }
 
   return (
-    <Card className="group relative h-full rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md">
+    <Card className="group relative h-full overflow-visible rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md">
       <CardHeader className="gap-3 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3.5">
@@ -110,7 +110,7 @@ export function VerificationCard({
           </div>
         ) : null}
 
-        <dl className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        <dl className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
           <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
             <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
               <User className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
@@ -143,12 +143,12 @@ export function VerificationCard({
         </dl>
       </CardContent>
 
-      <CardFooter className="flex flex-wrap justify-end gap-3 border-t border-border/70 bg-muted/25 px-6 py-4">
+      <CardFooter className="flex flex-wrap justify-end gap-3 border-t border-border/70 bg-muted/25 px-4 py-4 sm:px-6">
         {onInspect && (
           <Button
             type="button"
             variant="outline"
-            className="min-h-[48px] min-w-[48px] rounded-xl border-border/80 font-semibold text-foreground hover:bg-muted"
+            className="min-h-[48px] w-full min-w-[48px] rounded-xl border-border/80 font-semibold text-foreground hover:bg-muted sm:w-auto"
             onClick={() => onInspect(space)}
           >
             <span>Inspect</span>
@@ -159,7 +159,7 @@ export function VerificationCard({
         <Button
           type="button"
           variant="outline"
-          className="min-h-[48px] min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98]"
+          className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98] sm:w-auto"
           onClick={(e) => handleAction(e, 'rejected')}
           disabled={isPending}
           aria-busy={isPending && activeDecision === 'rejected'}
@@ -173,7 +173,7 @@ export function VerificationCard({
 
         <Button
           type="button"
-          className="min-h-[48px] min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98]"
+          className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] sm:w-auto"
           onClick={(e) => handleAction(e, 'verified')}
           disabled={isPending}
           aria-busy={isPending && activeDecision === 'verified'}
