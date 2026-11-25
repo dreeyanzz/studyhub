@@ -41,7 +41,7 @@ export function SpaceProfileHeader({
   const hoursText = formatOpeningHours(space.opens_at, space.closes_at)
 
   return (
-    <header className="relative flex h-full min-h-[380px] flex-col justify-between overflow-hidden rounded-[2rem] bg-[#143326] text-white shadow-[0_24px_48px_-18px_rgba(23,60,45,0.36)] sm:min-h-[420px]">
+    <header className="relative flex h-full min-h-[380px] flex-col justify-between rounded-[2rem] bg-[#143326] text-white shadow-[0_24px_48px_-18px_rgba(23,60,45,0.36)] sm:min-h-[420px]">
       {/* Full-bleed cover photo or rich Worq botanical gradient fallback */}
       {coverPhotoUrl ? (
         <Image
@@ -50,35 +50,32 @@ export function SpaceProfileHeader({
           fill
           preload
           sizes="(max-width: 768px) 100vw, 45vw"
-          className="object-cover"
+          className="rounded-[2rem] object-cover"
           aria-hidden="true"
         />
       ) : (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#235d42] via-[#194733] to-[#0f291e]"
-        >
-          <div className="absolute -top-20 -right-12 size-64 rounded-full bg-accent/25 blur-3xl" />
-          <div className="absolute bottom-8 -left-12 size-64 rounded-full bg-[#7bc496]/20 blur-3xl" />
-        </div>
+          className="pointer-events-none absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_85%_12%,rgba(221,235,204,0.22),transparent_48%),radial-gradient(circle_at_12%_88%,rgba(123,196,150,0.18),transparent_50%),linear-gradient(135deg,#235d42_0%,#194733_52%,#0f291e_100%)]"
+        />
       )}
 
       {/* Subtle top scrim so floating badges stay crisp without dimming the room */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/15 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-[2rem] bg-gradient-to-b from-black/15 to-transparent"
       />
 
       {/* Gentle progressive frosted-glass blur rising from bottom so the photo behind stays clearly visible */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[50%] [mask-image:linear-gradient(to_top,black_36%,transparent_100%)] backdrop-blur-md"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[50%] rounded-b-[2rem] [mask-image:linear-gradient(to_top,black_36%,transparent_100%)] backdrop-blur-md"
       />
 
       {/* Translucent Worq forest-green scrim preserving photo visibility and WCAG AA/AAA text contrast */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[56%] bg-gradient-to-t from-[#0f2b20]/72 via-[#173c2d]/42 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[56%] rounded-b-[2rem] bg-gradient-to-t from-[#0f2b20]/72 via-[#173c2d]/42 to-transparent"
       />
 
       {/* Top-left floating pills */}

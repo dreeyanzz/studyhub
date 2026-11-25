@@ -130,7 +130,7 @@ export function SearchBar({
           onSubmit={handleSubmit}
           // Wraps, so at 200% text the Search button drops under the field instead of
           // running off the screen (SRS §3.2.2: no horizontal scrolling from 360 px).
-          className="flex min-w-0 flex-1 flex-wrap items-center gap-2 rounded-full border border-border/70 bg-card p-1.5 shadow-[0_12px_30px_-14px_rgba(23,60,45,0.16)] transition-shadow focus-within:border-primary/50 focus-within:shadow-[0_14px_34px_-14px_rgba(33,92,63,0.22)]"
+          className="flex min-w-0 flex-1 flex-wrap items-center gap-2 rounded-3xl border border-border/70 bg-card p-1.5 shadow-[0_12px_30px_-14px_rgba(23,60,45,0.16)] transition-shadow focus-within:border-primary/50 focus-within:shadow-[0_14px_34px_-14px_rgba(33,92,63,0.22)] sm:rounded-full"
         >
           <div className="relative min-w-0 flex-1 basis-48">
             <label htmlFor="discovery-search-input" className="sr-only">

@@ -113,10 +113,7 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
 
                 {/* Visual open-capacity meter for quick scanning (non-semantic; counts above carry full info) */}
                 {zone.totalUnits > 0 && (
-                  <div
-                    aria-hidden="true"
-                    className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
-                  >
+                  <div aria-hidden="true" className="h-1.5 w-full rounded-full bg-muted">
                     <div
                       className={`h-full rounded-full transition-all ${
                         hasAvailable ? 'bg-primary' : 'bg-amber-500/40'

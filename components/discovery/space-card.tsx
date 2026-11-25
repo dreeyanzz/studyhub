@@ -53,8 +53,8 @@ export function SpaceCard({
       onMouseEnter={() => onHover?.(space.id)}
       onMouseLeave={() => onHover?.(null)}
       className={cn(
-        'group relative overflow-hidden rounded-[2rem] border border-white/80 bg-gradient-to-br from-[#c7d8c4] via-[#e2eadc] to-[#b5cab3] p-3.5 text-card-foreground shadow-[0_16px_36px_-18px_rgba(23,60,45,0.22),inset_0_1px_0_rgba(255,255,255,0.88)] transition-all duration-200 outline-none sm:p-4',
-        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-[0_22px_42px_-16px_rgba(23,60,45,0.28)]',
+        'group relative rounded-[2rem] border border-white/80 bg-gradient-to-br from-[#dce7da] via-[#eef2e9] to-[#d2e0d1] p-3.5 text-card-foreground shadow-[0_16px_36px_-18px_rgba(23,60,45,0.2),inset_0_1px_0_rgba(255,255,255,0.9)] transition-all duration-200 outline-none sm:p-4',
+        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-[0_22px_42px_-16px_rgba(23,60,45,0.26)]',
         isActive && 'border-primary shadow-md ring-2 ring-primary',
         isHovered && !isActive && 'border-primary/50',
         className,
@@ -62,15 +62,18 @@ export function SpaceCard({
     >
       {/* Subtle blurred atmospheric photo bleed behind the frosted glass shell when cover photo exists */}
       {space.cover_photo_url && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-[2rem]"
+        >
           <Image
             src={space.cover_photo_url}
             alt=""
             fill
             sizes="(max-width: 1024px) 100vw, 45vw"
-            className="scale-110 object-cover opacity-55 blur-xl"
+            className="rounded-[2rem] object-cover opacity-45 blur-md"
           />
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-lg" />
+          <div className="absolute inset-0 rounded-[2rem] bg-white/55 backdrop-blur-md" />
         </div>
       )}
 
@@ -78,10 +81,10 @@ export function SpaceCard({
         {/* Top Inset Rounded Visual Showcase */}
         <div
           className={cn(
-            'relative overflow-hidden rounded-[1.35rem]',
+            'relative rounded-[1.35rem]',
             space.cover_photo_url
               ? 'aspect-[16/9] bg-muted shadow-xs'
-              : 'bg-gradient-to-br from-[#194432] via-primary to-[#43785a] px-4 py-4 text-white shadow-xs',
+              : 'bg-[radial-gradient(circle_at_90%_15%,rgba(221,235,204,0.24),transparent_48%),linear-gradient(135deg,#194432_0%,#215c3f_55%,#3b6e52_100%)] px-4 py-4 text-white shadow-xs',
           )}
         >
           {space.cover_photo_url ? (
@@ -91,15 +94,15 @@ export function SpaceCard({
                 alt=""
                 fill
                 sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+                className="rounded-[1.35rem] object-cover"
                 aria-hidden="true"
               />
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/30 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 h-20 rounded-t-[1.35rem] bg-gradient-to-b from-black/30 to-transparent"
               />
-              <div className="relative flex items-start justify-between gap-2 p-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/90 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-md">
+              <div className="relative flex flex-wrap items-start justify-between gap-2 p-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/60 bg-white/95 px-3 py-1 text-xs font-semibold text-foreground shadow-xs backdrop-blur-md">
                   <ShieldCheck
                     className="size-3.5 shrink-0 text-primary"
                     aria-hidden="true"
@@ -114,41 +117,35 @@ export function SpaceCard({
               </div>
             </>
           ) : (
-            <>
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -top-10 -right-8 size-36 rounded-full bg-accent/25 blur-2xl"
-              />
-              <div className="relative space-y-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
-                    <ShieldCheck
-                      className="size-3.5 shrink-0 text-accent"
-                      aria-hidden="true"
-                    />
-                    <span>Verified study space</span>
-                  </span>
-                  <PriceTierBadge
-                    tier={space.price_tier}
-                    showSymbol
-                    className="shadow-xs"
+            <div className="relative space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-black/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-md">
+                  <ShieldCheck
+                    className="size-3.5 shrink-0 text-accent"
+                    aria-hidden="true"
                   />
-                </div>
-
-                {space.curated_tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5" aria-label="Amenities">
-                    {space.curated_tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="inline-flex items-center rounded-full border border-white/20 bg-black/20 px-2.5 py-0.5 text-xs font-medium text-white/95 backdrop-blur-sm"
-                      >
-                        {tag.label}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                  <span>Verified study space</span>
+                </span>
+                <PriceTierBadge
+                  tier={space.price_tier}
+                  showSymbol
+                  className="shadow-xs"
+                />
               </div>
-            </>
+
+              {space.curated_tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5" aria-label="Amenities">
+                  {space.curated_tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="inline-flex items-center rounded-full border border-white/25 bg-black/25 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
+                    >
+                      {tag.label}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -171,12 +168,12 @@ export function SpaceCard({
               average={space.avg_overall}
               count={space.review_count}
               data-testid={`space-rating-${space.id}`}
-              className="rounded-full bg-white/75 px-2.5 py-0.5 text-foreground backdrop-blur-xs"
+              className="rounded-full bg-white/85 px-2.5 py-0.5 text-foreground backdrop-blur-xs"
             />
           </div>
 
           {/* Address and Distance (wraps cleanly at 200% zoom, #372) */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-foreground/80">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-foreground">
             <div className="flex min-w-0 items-start gap-1.5">
               <MapPin
                 className="mt-0.5 size-4 shrink-0 text-primary"
@@ -196,7 +193,7 @@ export function SpaceCard({
 
           {/* Description Snippet: shortened by characters, never line-clamped (#372) */}
           {snippet && (
-            <p className="text-sm leading-relaxed break-words text-foreground/80">
+            <p className="text-sm leading-relaxed break-words text-foreground">
               {snippet}
             </p>
           )}
@@ -207,7 +204,7 @@ export function SpaceCard({
               {space.curated_tags.map((tag) => (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center rounded-full border border-primary/20 bg-white/80 px-2.5 py-0.5 text-xs font-medium text-primary backdrop-blur-xs"
+                  className="inline-flex items-center rounded-full border border-primary/20 bg-white/90 px-2.5 py-0.5 text-xs font-medium text-primary backdrop-blur-xs"
                 >
                   {tag.label}
                 </span>
@@ -221,7 +218,7 @@ export function SpaceCard({
               {space.custom_tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center rounded-full border border-foreground/15 bg-white/65 px-2.5 py-0.5 text-xs text-foreground/80"
+                  className="inline-flex items-center rounded-full border border-foreground/15 bg-white/85 px-2.5 py-0.5 text-xs text-foreground"
                 >
                   #{tag}
                 </span>
@@ -231,9 +228,9 @@ export function SpaceCard({
         </div>
 
         {/* Bottom Dark Frosted Glass Metrics + Action Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/15 bg-[#153528]/90 px-4 py-3 text-white backdrop-blur-md">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/15 bg-[#153528]/92 px-4 py-3 text-white backdrop-blur-md">
           <div className="min-w-0 space-y-0.5">
-            <span className="block text-xs text-white/75">Operating hours</span>
+            <span className="block text-xs text-white/85">Operating hours</span>
             <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
               <Clock className="size-3.5 shrink-0 text-accent" aria-hidden="true" />
               <span>{hoursLabel}</span>

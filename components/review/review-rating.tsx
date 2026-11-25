@@ -104,8 +104,8 @@ export function SolidStars({
             />
             {fillPercent > 0 && (
               <span
-                className="absolute inset-y-0 left-0 overflow-hidden"
-                style={{ width: `${fillPercent}%` }}
+                className="absolute inset-0"
+                style={{ clipPath: `inset(0 ${100 - fillPercent}% 0 0)` }}
               >
                 <Star
                   className={cn(iconClass, 'fill-[#eab308] text-[#ca8a04]')}
