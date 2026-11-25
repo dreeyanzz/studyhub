@@ -37,26 +37,42 @@ function getPinColor(tier: PriceTier): string {
 }
 
 /**
- * Creates an SVG map pin DivIcon to avoid broken default PNG asset paths in Next.js bundlers.
+ * Creates an SVG map pin DivIcon with a floating dark-green name + rating pill
+ * beside the pin (STORY-17).
  */
 function createSvgPin(
   L: typeof LeafletType,
-  tier: PriceTier,
+  space: Pick<
+    VerifiedSpaceSearchResult,
+    'name' | 'price_tier' | 'avg_overall' | 'review_count'
+  >,
   isActive: boolean,
   isHovered: boolean,
 ) {
-  const color = getPinColor(tier)
+  const color = getPinColor(space.price_tier)
   const isElevated = isActive || isHovered
-  const scale = isActive ? 1.3 : isHovered ? 1.15 : 1.0
+  const scale = isActive ? 1.15 : isHovered ? 1.08 : 1.0
   const zIndex = isActive ? 1000 : isHovered ? 900 : 500
+  const ratingText =
+    space.review_count > 0 && space.avg_overall !== null
+      ? `${space.avg_overall.toFixed(1)} ★`
+      : 'New'
+  const pillBg = isActive ? '#f0c95c' : '#153528'
+  const pillText = isActive ? '#173c2d' : '#ffffff'
+  const pillStarColor = isActive ? '#173c2d' : '#f0c95c'
+  const pillBorder = isElevated ? '#ffffff' : 'rgba(255,255,255,0.22)'
 
   const svg = `
-    <div style="width: 48px; height: 48px; transform: scale(${scale}); transform-origin: 50% 100%; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    <div style="position: relative; width: 48px; height: 48px; transform: scale(${scale}); transform-origin: 24px 46px; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; align-items: center; justify-content: center;">
       <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.35));">
         <path d="M17 0C7.611 0 0 7.611 0 17C0 28.5 17 44 17 44C17 44 34 28.5 34 17C34 7.611 26.389 0 17 0Z" fill="${color}" stroke="${isElevated ? '#ffffff' : 'rgba(255,255,255,0.7)'}" stroke-width="${isElevated ? '2.5' : '1.5'}"/>
         <circle cx="17" cy="16" r="8" fill="#ffffff"/>
         <circle cx="17" cy="16" r="5" fill="${color}"/>
       </svg>
+      <div style="position: absolute; left: 42px; top: 4px; display: inline-flex; flex-direction: column; gap: 1px; max-width: 160px; padding: 4px 9px; border-radius: 10px; background: ${pillBg}; color: ${pillText}; border: 1.5px solid ${pillBorder}; box-shadow: 0 4px 12px rgba(0,0,0,0.28); backdrop-filter: blur(6px); pointer-events: auto;">
+        <span style="font-size: 11px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(space.name)}</span>
+        <span style="font-size: 10px; font-weight: 600; line-height: 1.2; color: ${pillStarColor}; white-space: nowrap;">${escapeHtml(ratingText)}</span>
+      </div>
     </div>
   `
 
@@ -242,7 +258,7 @@ export default function DiscoveryMap({
 
       const isActive = space.id === activeSpaceId
       const isHovered = space.id === hoveredSpaceId
-      const icon = createSvgPin(L, space.price_tier, isActive, isHovered)
+      const icon = createSvgPin(L, space, isActive, isHovered)
 
       let marker = currentMarkers.get(space.id)
 
