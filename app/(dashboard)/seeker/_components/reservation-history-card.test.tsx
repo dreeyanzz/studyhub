@@ -18,4 +18,11 @@ describe('ReservationHistoryCard (STORY-16 design §3)', () => {
       /<a[^>]*href="\/seeker\/reservations"[^>]*>.*View reservation history<\/a>/,
     )
   })
+
+  it('lets the link wrap its icon and label to fit 360 px at 200% text', () => {
+    const html = renderToStaticMarkup(<ReservationHistoryCard />)
+    expect(html).toMatch(
+      /<a[^>]*class="[^"]*whitespace-normal[^"]*flex-wrap[^"]*"[^>]*href="\/seeker\/reservations"/,
+    )
+  })
 })
