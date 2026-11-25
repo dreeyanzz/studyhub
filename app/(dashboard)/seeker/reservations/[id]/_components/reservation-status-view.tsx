@@ -188,7 +188,7 @@ export function ReservedView({
         reservation.bookingToken && 'md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
       )}
     >
-      <section className="flex flex-col justify-between gap-5 rounded-3xl bg-card p-6">
+      <section className="flex flex-col justify-between gap-5 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]">
         <div className="space-y-5">
           <div className="space-y-2">
             <HoldStatusBadge status="reserved" />
@@ -230,11 +230,11 @@ export function ReservedView({
       </section>
 
       {reservation.bookingToken && (
-        <section className="flex flex-col items-center justify-center gap-4 rounded-3xl bg-secondary/75 p-6 text-center">
+        <section className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-primary/30 bg-secondary/70 p-6 text-center">
           <p className="text-xs font-semibold tracking-wider text-primary uppercase">
             Check-in pass
           </p>
-          <div className="rounded-2xl bg-white p-3">
+          <div className="rounded-2xl border border-white/90 bg-white p-3.5 shadow-sm">
             <BookingQrCode token={reservation.bookingToken} />
           </div>
           <BookingToken token={reservation.bookingToken} />

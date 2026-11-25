@@ -119,163 +119,176 @@ export function SearchBar({
   return (
     <div
       data-testid="discovery-search-bar"
-      className={cn('rounded-3xl bg-secondary/60 p-4 sm:p-6', className)}
+      className={cn(
+        'relative overflow-hidden rounded-3xl bg-gradient-to-r from-secondary/90 via-accent/55 to-secondary/80 p-1.5 shadow-[0_12px_32px_-14px_rgba(23,60,45,0.14)]',
+        className,
+      )}
     >
-      <div className="flex flex-col gap-3 md:flex-row md:items-center">
-        {/* Search Input Form */}
-        <form
-          role="search"
-          aria-label="Search study spaces"
-          onSubmit={handleSubmit}
-          // Wraps, so at 200% text the Search button drops under the field instead of
-          // running off the screen (SRS §3.2.2: no horizontal scrolling from 360 px).
-          className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5"
-        >
-          <div className="relative min-w-0 flex-1 basis-48">
-            <label htmlFor="discovery-search-input" className="sr-only">
-              Search by campus, city, or space name
-            </label>
-            <Search
-              className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <input
-              id="discovery-search-input"
-              data-testid="discovery-search-input"
-              type="search"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Search by campus, city, or space name..."
-              maxLength={100}
-              className="min-h-12 w-full rounded-full border border-input bg-card pr-12 pl-10 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-            />
-            {inputValue.length > 0 && (
-              <button
-                type="button"
-                onClick={handleClearInput}
-                data-testid="clear-search-button"
-                aria-label="Clear search query"
-                className="absolute top-1/2 right-0 inline-flex min-h-12 min-w-12 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-12 right-12 size-44 rounded-full bg-primary/18 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-12 left-10 size-44 rounded-full bg-accent blur-3xl"
+      />
+      <div className="relative rounded-[calc(1.5rem-6px)] border border-white/80 bg-white/68 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] backdrop-blur-xl sm:p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center">
+          {/* Search Input Form */}
+          <form
+            role="search"
+            aria-label="Search study spaces"
+            onSubmit={handleSubmit}
+            // Wraps, so at 200% text the Search button drops under the field instead of
+            // running off the screen (SRS §3.2.2: no horizontal scrolling from 360 px).
+            className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5"
+          >
+            <div className="relative min-w-0 flex-1 basis-48">
+              <label htmlFor="discovery-search-input" className="sr-only">
+                Search by campus, city, or space name
+              </label>
+              <Search
+                className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <input
+                id="discovery-search-input"
+                data-testid="discovery-search-input"
+                type="search"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Search by campus, city, or space name..."
+                maxLength={100}
+                className="min-h-12 w-full rounded-full border border-input bg-card pr-12 pl-10 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+              />
+              {inputValue.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleClearInput}
+                  data-testid="clear-search-button"
+                  aria-label="Clear search query"
+                  className="absolute top-1/2 right-0 inline-flex min-h-12 min-w-12 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              data-testid="search-submit-button"
+              className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
+            >
+              Search
+            </button>
+          </form>
+
+          {/* W3C Geolocation Trigger Button (D-031: 48x48px minimum target) */}
+          <button
+            type="button"
+            onClick={handleUseMyLocation}
+            disabled={isLocating}
+            aria-pressed={hasUserLocation}
+            data-testid="use-my-location-button"
+            className={cn(
+              'inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98] disabled:opacity-60',
+              hasUserLocation
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                : 'bg-card text-foreground hover:bg-accent',
+            )}
+          >
+            {isLocating ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : (
+              <LocateFixed className="size-4" aria-hidden="true" />
+            )}
+            <span>
+              {isLocating
+                ? 'Locating...'
+                : hasUserLocation
+                  ? 'Using my location'
+                  : 'Use my location'}
+            </span>
+          </button>
+        </div>
+
+        {/* Quick Campus Chips (Metro Cebu Campus Dictionary, FR-1.1) */}
+        <div className="mt-3.5 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3.5">
+          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <MapPin className="size-3.5 text-primary" aria-hidden="true" />
+            <span>Quick campuses:</span>
+          </span>
+          <div
+            role="group"
+            aria-label="Quick campus search"
+            className="flex flex-wrap items-center gap-1.5"
+          >
+            {QUICK_CAMPUS_CHIPS.map((chip) => {
+              const isActive = matchedCampus?.id === chip.id && !hasUserLocation
+              const campusInfo = CEBU_CAMPUSES.find((c) => c.id === chip.id)
+              return (
+                <button
+                  key={chip.id}
+                  type="button"
+                  aria-pressed={isActive}
+                  title={campusInfo?.name ?? chip.label}
+                  data-testid={`campus-chip-${chip.id}`}
+                  onClick={() => handleCampusChipClick(chip)}
+                  className={cn(
+                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-card text-foreground hover:bg-accent',
+                  )}
+                >
+                  {chip.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Active Campus Resolution / Geolocation Status Feedback */}
+        {(matchedCampus || hasUserLocation || geoError) && (
+          <div
+            aria-live="polite"
+            className="mt-3 flex flex-wrap items-center gap-2 text-xs"
+          >
+            {hasUserLocation && (
+              <span
+                data-testid="active-location-banner"
+                className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-medium text-primary"
               >
-                <X className="size-4" aria-hidden="true" />
-              </button>
+                <LocateFixed className="size-3.5 shrink-0" aria-hidden="true" />
+                <span>
+                  Showing spaces near your coordinates ({lat?.toFixed(4)},{' '}
+                  {lng?.toFixed(4)})
+                </span>
+              </span>
+            )}
+            {!hasUserLocation && matchedCampus && (
+              <span
+                data-testid="active-campus-banner"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-secondary/80 px-3 py-1 font-medium text-secondary-foreground"
+              >
+                <MapPin className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span>
+                  Campus match: {matchedCampus.name} (within {matchedCampus.radiusKm} km)
+                </span>
+              </span>
+            )}
+            {geoError && (
+              <span
+                role="status"
+                data-testid="geolocation-error"
+                className="font-medium text-destructive"
+              >
+                {geoError}
+              </span>
             )}
           </div>
-
-          <button
-            type="submit"
-            data-testid="search-submit-button"
-            className="inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]"
-          >
-            Search
-          </button>
-        </form>
-
-        {/* W3C Geolocation Trigger Button (D-031: 48x48px minimum target) */}
-        <button
-          type="button"
-          onClick={handleUseMyLocation}
-          disabled={isLocating}
-          aria-pressed={hasUserLocation}
-          data-testid="use-my-location-button"
-          className={cn(
-            'inline-flex min-h-12 min-w-12 shrink-0 items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98] disabled:opacity-60',
-            hasUserLocation
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'bg-card text-foreground hover:bg-accent',
-          )}
-        >
-          {isLocating ? (
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          ) : (
-            <LocateFixed className="size-4" aria-hidden="true" />
-          )}
-          <span>
-            {isLocating
-              ? 'Locating...'
-              : hasUserLocation
-                ? 'Using my location'
-                : 'Use my location'}
-          </span>
-        </button>
+        )}
       </div>
-
-      {/* Quick Campus Chips (Metro Cebu Campus Dictionary, FR-1.1) */}
-      <div className="mt-3.5 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3.5">
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-          <MapPin className="size-3.5 text-primary" aria-hidden="true" />
-          <span>Quick campuses:</span>
-        </span>
-        <div
-          role="group"
-          aria-label="Quick campus search"
-          className="flex flex-wrap items-center gap-1.5"
-        >
-          {QUICK_CAMPUS_CHIPS.map((chip) => {
-            const isActive = matchedCampus?.id === chip.id && !hasUserLocation
-            const campusInfo = CEBU_CAMPUSES.find((c) => c.id === chip.id)
-            return (
-              <button
-                key={chip.id}
-                type="button"
-                aria-pressed={isActive}
-                title={campusInfo?.name ?? chip.label}
-                data-testid={`campus-chip-${chip.id}`}
-                onClick={() => handleCampusChipClick(chip)}
-                className={cn(
-                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-1.5 text-xs font-medium transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card text-foreground hover:bg-accent',
-                )}
-              >
-                {chip.label}
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Active Campus Resolution / Geolocation Status Feedback */}
-      {(matchedCampus || hasUserLocation || geoError) && (
-        <div
-          aria-live="polite"
-          className="mt-3 flex flex-wrap items-center gap-2 text-xs"
-        >
-          {hasUserLocation && (
-            <span
-              data-testid="active-location-banner"
-              className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-medium text-primary"
-            >
-              <LocateFixed className="size-3.5 shrink-0" aria-hidden="true" />
-              <span>
-                Showing spaces near your coordinates ({lat?.toFixed(4)}, {lng?.toFixed(4)}
-                )
-              </span>
-            </span>
-          )}
-          {!hasUserLocation && matchedCampus && (
-            <span
-              data-testid="active-campus-banner"
-              className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-secondary/80 px-3 py-1 font-medium text-secondary-foreground"
-            >
-              <MapPin className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
-              <span>
-                Campus match: {matchedCampus.name} (within {matchedCampus.radiusKm} km)
-              </span>
-            </span>
-          )}
-          {geoError && (
-            <span
-              role="status"
-              data-testid="geolocation-error"
-              className="font-medium text-destructive"
-            >
-              {geoError}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   )
 }

@@ -57,7 +57,7 @@ function HoldButton() {
 
 function FeeLine({ terms }: { terms: HoldTerms }) {
   return (
-    <p className="text-sm">
+    <p className="rounded-2xl bg-secondary/55 px-4 py-2.5 text-sm font-medium text-foreground">
       Reservation fee: {formatPeso(terms.feeAmount)}. You&apos;ll have{' '}
       {terms.paymentWindowMinutes} minutes to pay.
     </p>

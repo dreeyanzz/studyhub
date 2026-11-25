@@ -64,7 +64,7 @@ export default async function ConfirmationPage({
           <div className="space-y-6">
             {backLink}
             <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
-              <section className="space-y-5 rounded-3xl bg-card p-6">
+              <section className="space-y-5 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]">
                 <div className="space-y-2">
                   <h1 className="font-heading text-2xl font-bold tracking-tight">
                     You left the payment page

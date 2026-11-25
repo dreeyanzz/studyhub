@@ -102,7 +102,7 @@ export function SpacePhotoGallery({
     >
       {/* Hero Image Container with Touch Navigation */}
       <div
-        className="relative aspect-video w-full flex-1 overflow-hidden rounded-3xl bg-muted sm:aspect-2/1"
+        className="relative aspect-video w-full flex-1 overflow-hidden rounded-3xl bg-muted shadow-[0_14px_34px_-14px_rgba(23,60,45,0.16)] sm:aspect-2/1"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0]?.clientX ?? null
           touchStartY.current = e.touches[0]?.clientY ?? null
@@ -139,7 +139,7 @@ export function SpacePhotoGallery({
         <div
           data-testid="carousel-counter"
           aria-live="polite"
-          className="absolute top-3.5 right-3.5 rounded-full bg-foreground/80 px-3 py-1 text-xs font-medium text-white backdrop-blur-md"
+          className="absolute top-3.5 right-3.5 rounded-full border border-white/25 bg-foreground/65 px-3 py-1 text-xs font-medium text-white shadow-xs backdrop-blur-md"
         >
           {/* Screen readers hear only "Slide 1 of 3", not the visible "1 / 3" as well */}
           <span aria-hidden="true">
@@ -158,7 +158,7 @@ export function SpacePhotoGallery({
               onClick={goToPrev}
               onKeyDown={handleKeyDown}
               aria-label="Previous slide"
-              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full bg-card/95 text-foreground shadow-sm transition-colors hover:bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full border border-white/85 bg-white/80 text-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               <ChevronLeft className="h-6 w-6" aria-hidden="true" />
             </button>
@@ -167,7 +167,7 @@ export function SpacePhotoGallery({
               onClick={goToNext}
               onKeyDown={handleKeyDown}
               aria-label="Next slide"
-              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full bg-card/95 text-foreground shadow-sm transition-colors hover:bg-card focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="pointer-events-auto inline-flex h-12 min-h-12 w-12 min-w-12 items-center justify-center rounded-full border border-white/85 bg-white/80 text-foreground shadow-sm backdrop-blur-md transition-colors hover:bg-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
             >
               <ChevronRight className="h-6 w-6" aria-hidden="true" />
             </button>

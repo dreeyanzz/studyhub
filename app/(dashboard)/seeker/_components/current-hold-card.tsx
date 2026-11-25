@@ -39,7 +39,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-3xl bg-card p-6"
+        className="space-y-4 rounded-3xl border border-l-4 border-border/60 border-l-purple-600 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 id="current-hold-heading" className="font-heading text-lg font-semibold">
@@ -69,7 +69,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-3xl bg-card p-6"
+        className="space-y-4 rounded-3xl border border-l-4 border-border/60 border-l-primary bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
       >
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -103,8 +103,8 @@ export function CurrentHoldCard({
         )}
 
         {hold.bookingToken && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-secondary/50 p-5 text-center">
-            <div className="rounded-xl bg-white p-2">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/25 bg-secondary/50 p-5 text-center">
+            <div className="rounded-xl border border-white/90 bg-white p-2.5 shadow-xs">
               <BookingQrCode token={hold.bookingToken} />
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -137,7 +137,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-3xl bg-card p-6"
+        className="space-y-4 rounded-3xl border border-l-4 border-border/60 border-l-amber-600 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
       >
         {checkOutError && (
           <Alert variant="destructive" className="rounded-2xl border-destructive/30">

@@ -133,20 +133,38 @@ export function SpaceReviews({
         </Alert>
       ) : (
         <div className="space-y-6">
-          {/* Averages strip (solid white divided bar) or Empty State */}
+          {/* Averages scorecard strip (solid white divided bar with mini score meters) or Empty State */}
           {summary.reviewCount > 0 ? (
             <div data-testid="reviews-summary">
-              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] divide-y divide-border/60 rounded-2xl bg-card sm:divide-x sm:divide-y-0">
-                {categoryAverages.map((category) => (
-                  <div key={category.label} className="min-w-0 px-5 py-4 break-words">
-                    <dt className="text-xs font-medium text-muted-foreground">
-                      {category.label}
-                    </dt>
-                    <dd className="mt-1 text-sm font-semibold text-foreground">
-                      {formatReviewScore(category.value)} / 5
-                    </dd>
-                  </div>
-                ))}
+              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] divide-y divide-border/60 rounded-2xl border border-border/50 bg-card shadow-[0_2px_10px_-4px_rgba(23,60,45,0.06)] sm:divide-x sm:divide-y-0">
+                {categoryAverages.map((category) => {
+                  const pct =
+                    category.value !== null
+                      ? Math.max(0, Math.min(100, Math.round((category.value / 5) * 100)))
+                      : 0
+                  return (
+                    <div
+                      key={category.label}
+                      className="min-w-0 space-y-2 px-5 py-4 break-words"
+                    >
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        {category.label}
+                      </dt>
+                      <dd className="text-sm font-semibold text-foreground">
+                        {formatReviewScore(category.value)} / 5
+                      </dd>
+                      <div
+                        aria-hidden="true"
+                        className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                      >
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
               </dl>
             </div>
           ) : (
@@ -215,34 +233,46 @@ export function SpaceReviews({
                 >
                   {reviewsPage.reviews.map((review) => {
                     const postedDate = formatReviewDate(review.createdAt)
+                    const initial =
+                      review.reviewerName.trim().charAt(0).toUpperCase() || 'S'
                     return (
                       <li key={review.id} className="min-w-0">
                         <article
                           data-testid={`review-card-${review.id}`}
-                          className="flex h-full flex-col justify-between gap-4 rounded-2xl bg-card p-5 sm:p-6"
+                          className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-border/60 bg-card p-5 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] sm:p-6"
                         >
                           <div className="space-y-3.5">
                             <div className="flex flex-wrap items-start justify-between gap-2">
-                              <div className="min-w-0 space-y-1">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <p className="font-semibold text-foreground">
-                                    {review.reviewerName}
-                                  </p>
-                                  <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                                    Checked-in visit
-                                  </span>
-                                  {review.edited && (
-                                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
-                                      Edited
+                              <div className="flex min-w-0 items-start gap-3">
+                                <span
+                                  aria-hidden="true"
+                                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-sm font-bold text-primary"
+                                >
+                                  {initial}
+                                </span>
+                                <div className="min-w-0 space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-semibold text-foreground">
+                                      {review.reviewerName}
+                                    </p>
+                                    <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                                      Checked-in visit
                                     </span>
+                                    {review.edited && (
+                                      <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
+                                        Edited
+                                      </span>
+                                    )}
+                                  </div>
+                                  {postedDate && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Reviewed{' '}
+                                      <time dateTime={review.createdAt}>
+                                        {postedDate}
+                                      </time>
+                                    </p>
                                   )}
                                 </div>
-                                {postedDate && (
-                                  <p className="text-xs text-muted-foreground">
-                                    Reviewed{' '}
-                                    <time dateTime={review.createdAt}>{postedDate}</time>
-                                  </p>
-                                )}
                               </div>
 
                               <p className="rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
@@ -252,7 +282,7 @@ export function SpaceReviews({
 
                             {/* Plain React text node only — never rendered as HTML (SRS §3.5.2). */}
                             {review.comment && (
-                              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
+                              <p className="rounded-xl border-l-2 border-l-primary/40 bg-background/85 px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
                                 {review.comment}
                               </p>
                             )}

@@ -76,7 +76,7 @@ export function AuthorReviewCard({
   return (
     <article
       data-testid={`author-review-${review.id}`}
-      className="space-y-3.5 rounded-2xl bg-card p-5 sm:p-6"
+      className="space-y-3.5 rounded-2xl border border-primary/30 bg-card p-5 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] ring-1 ring-primary/10 sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 space-y-1">
@@ -161,7 +161,7 @@ export function AuthorReviewCard({
           </dl>
 
           {review.comment && (
-            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
+            <p className="rounded-xl border-l-2 border-l-primary/40 bg-background/85 px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
               {review.comment}
             </p>
           )}

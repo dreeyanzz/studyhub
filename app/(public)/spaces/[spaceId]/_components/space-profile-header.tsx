@@ -28,44 +28,73 @@ export function SpaceProfileHeader({ space, operatingStatus }: SpaceProfileHeade
   const hoursText = formatOpeningHours(space.opens_at, space.closes_at)
 
   return (
-    <header className="flex h-full flex-col justify-between gap-5 rounded-3xl bg-secondary/75 p-6 sm:p-8">
-      <div className="space-y-4">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <Badge
-            variant="outline"
-            className={cn(
-              'h-auto min-h-6 rounded-full border-transparent px-3 py-0.5 text-xs font-medium break-words whitespace-normal',
-              operatingStatus.isOpen
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-card text-muted-foreground',
-            )}
-          >
-            {operatingStatus.displayText}
-          </Badge>
-          <PriceTierBadge tier={space.price_tier} showSymbol />
-        </div>
+    <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-secondary via-accent/60 to-background p-1.5 shadow-[0_14px_38px_-14px_rgba(23,60,45,0.16)]">
+      {/* Subtle botanical glow layers behind the frosted glass surface */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-14 -right-12 size-52 rounded-full bg-primary/25 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-16 -left-10 size-56 rounded-full bg-accent blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-1/2 left-1/3 size-36 -translate-y-1/2 rounded-full bg-primary/15 blur-2xl"
+      />
 
-        <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-foreground sm:text-3xl">
-            {space.name}
-          </h1>
-          <div className="mt-2 flex min-w-0 items-start gap-1.5 text-sm wrap-anywhere text-muted-foreground">
-            <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-            <span>{space.address}</span>
+      {/* Frosted glassmorphism surface */}
+      <div className="relative flex h-full flex-col justify-between gap-6 rounded-[calc(1.5rem-6px)] border border-white/80 bg-white/68 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.92)] backdrop-blur-xl sm:p-7">
+        <div className="space-y-4">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className={cn(
+                'h-auto min-h-6 rounded-full px-3 py-0.5 text-xs font-medium break-words whitespace-normal',
+                operatingStatus.isOpen
+                  ? 'border-transparent bg-primary text-primary-foreground shadow-xs'
+                  : 'border-border/70 bg-white/85 text-muted-foreground',
+              )}
+            >
+              {operatingStatus.displayText}
+            </Badge>
+            <PriceTierBadge tier={space.price_tier} showSymbol />
+          </div>
+
+          <div className="space-y-2.5">
+            <h1 className="font-heading text-2xl font-bold tracking-tight break-words text-foreground sm:text-3xl">
+              {space.name}
+            </h1>
+
+            {space.description && (
+              <p className="text-sm leading-relaxed break-words whitespace-pre-line text-foreground/85">
+                {space.description}
+              </p>
+            )}
           </div>
         </div>
 
-        {space.description && (
-          <p className="text-sm leading-relaxed break-words whitespace-pre-line text-foreground/85">
-            {space.description}
-          </p>
-        )}
-      </div>
+        {/* Frosted quick-facts tray grouping Location and Hours for instant scanning */}
+        <div className="space-y-2.5 rounded-2xl border border-white/85 bg-white/75 p-3.5 shadow-2xs backdrop-blur-md">
+          <div className="flex min-w-0 items-start gap-2.5 text-sm wrap-anywhere text-foreground/85">
+            <span
+              aria-hidden="true"
+              className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/90 text-primary"
+            >
+              <MapPin className="size-3.5" />
+            </span>
+            <span className="min-w-0 pt-0.5">{space.address}</span>
+          </div>
 
-      <div className="flex min-w-0 flex-wrap items-center gap-2.5 border-t border-border/60 pt-4 text-sm text-foreground">
-        <div className="inline-flex items-center gap-2 rounded-full bg-card px-3.5 py-1.5 font-medium">
-          <Clock className="size-4 shrink-0 text-primary" aria-hidden="true" />
-          <span>Hours: {hoursText}</span>
+          <div className="flex min-w-0 items-center gap-2.5 border-t border-border/50 pt-2.5 text-sm font-medium text-foreground">
+            <span
+              aria-hidden="true"
+              className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary/90 text-primary"
+            >
+              <Clock className="size-3.5" />
+            </span>
+            <span className="min-w-0 wrap-anywhere">Hours: {hoursText}</span>
+          </div>
         </div>
       </div>
     </header>

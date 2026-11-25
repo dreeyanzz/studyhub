@@ -32,6 +32,13 @@ const STATE_LABELS: Record<SeatState, string> = {
   occupied: 'Occupied',
 }
 
+const STATE_DOT_CLASS: Record<SeatState, string> = {
+  available: 'bg-emerald-600',
+  pending_payment: 'bg-purple-600',
+  reserved: 'bg-blue-600',
+  occupied: 'bg-amber-600',
+}
+
 export interface SpaceSeatMapViewProps {
   zones: SeatMapZone[]
   isOpen: boolean
@@ -177,20 +184,20 @@ export function SpaceSeatMapView({
           )}
         </div>
 
-        {/* Selected Unit Panel (solid sticky card side-by-side from md up) */}
+        {/* Selected Unit Panel (reservation ticket card side-by-side from md up) */}
         {allUnits.length > 0 && (
           <div className="min-w-0 md:sticky md:top-6">
             {selectedUnit ? (
               <Card
                 data-testid="selected-unit-panel"
-                className="gap-0 rounded-3xl border-0 bg-card py-0 ring-0"
+                className="gap-0 rounded-3xl border border-primary/20 bg-card py-0 shadow-[0_14px_34px_-12px_rgba(23,60,45,0.14)] ring-0"
               >
-                <CardHeader className="rounded-t-3xl bg-secondary/75 px-6 py-5">
+                <CardHeader className="rounded-t-[calc(1.5rem-1px)] bg-primary px-6 py-5 text-primary-foreground">
                   <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                    <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-foreground">
+                    <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-primary-foreground">
                       Selected Unit: {selectedUnit.label}
                     </CardTitle>
-                    <span className="min-w-0 rounded-full bg-card px-3 py-0.5 text-xs font-semibold wrap-anywhere text-foreground">
+                    <span className="min-w-0 rounded-full border border-white/25 bg-white/15 px-3 py-0.5 text-xs font-semibold wrap-anywhere text-primary-foreground backdrop-blur-xs">
                       {selectedZone?.name ?? 'Zone'}
                     </span>
                   </div>
@@ -220,8 +227,18 @@ export function SpaceSeatMapView({
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Status
                       </span>
-                      <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
-                        {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
+                      <span className="mt-0.5 flex items-center gap-1.5 font-medium wrap-anywhere text-foreground">
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            'size-2 shrink-0 rounded-full',
+                            STATE_DOT_CLASS[selectedUnit.seatState] ??
+                              'bg-muted-foreground',
+                          )}
+                        />
+                        <span>
+                          {STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState}
+                        </span>
                       </span>
                     </div>
 
@@ -266,7 +283,7 @@ export function SpaceSeatMapView({
                   ) : selectedUnit.seatState === 'available' ? (
                     <div
                       data-testid="selected-unit-hold-action"
-                      className="border-t border-border/60 pt-5"
+                      className="border-t border-dashed border-border pt-5"
                     >
                       {renderSelectedUnitAction
                         ? renderSelectedUnitAction(selectedUnit)
@@ -279,7 +296,7 @@ export function SpaceSeatMapView({
                           ))}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2.5 rounded-2xl bg-amber-50 p-4 text-xs text-amber-900">
+                    <div className="flex items-center gap-2.5 rounded-2xl border border-amber-600/25 bg-amber-50 p-4 text-xs text-amber-900">
                       <AlertCircle
                         className="size-4 shrink-0 text-amber-700"
                         aria-hidden="true"
@@ -296,8 +313,8 @@ export function SpaceSeatMapView({
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-3xl bg-secondary/60 p-8 text-center">
-                <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-card text-primary">
+              <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-primary/25 bg-secondary/35 p-8 text-center">
+                <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-card text-primary shadow-2xs">
                   <Armchair className="size-6" aria-hidden="true" />
                 </div>
                 <p className="font-heading text-base font-semibold text-foreground">

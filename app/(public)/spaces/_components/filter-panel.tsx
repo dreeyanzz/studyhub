@@ -345,7 +345,10 @@ export function FilterPanel({
       ref={containerRef}
       aria-label="Curated space filters"
       data-testid="filter-panel"
-      className={cn('rounded-3xl bg-card p-4 sm:p-5', className)}
+      className={cn(
+        'rounded-2xl border border-border/70 bg-card p-4 shadow-2xs sm:p-5',
+        className,
+      )}
     >
       {/* Screen reader polite announcement for active filter count (§3 Accessibility) */}
       <div aria-live="polite" className="sr-only">

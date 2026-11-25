@@ -50,10 +50,10 @@ export function SpaceCard({
       onMouseEnter={() => onHover?.(space.id)}
       onMouseLeave={() => onHover?.(null)}
       className={cn(
-        'group relative flex flex-col justify-between rounded-3xl border border-transparent bg-card text-card-foreground transition-all duration-200 outline-none',
-        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:border-primary/40 hover:shadow-md',
+        'group relative flex flex-col justify-between rounded-3xl border border-border/60 bg-card text-card-foreground shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] transition-all duration-200 outline-none',
+        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-[0_12px_28px_-10px_rgba(23,60,45,0.14)]',
         isActive && 'border-primary shadow-md ring-2 ring-primary',
-        isHovered && !isActive && 'border-primary/40 bg-secondary/25',
+        isHovered && !isActive && 'border-primary/45 bg-secondary/20',
         className,
       )}
     >
