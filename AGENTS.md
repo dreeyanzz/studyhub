@@ -92,7 +92,7 @@ Most of that tree does not exist yet; it is where files go when a story creates 
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
 page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/`),
 `components/ui/`
-(STORY-02's six primitives, STORY-12's `alert-dialog`, and STORY-13's `dialog`), `components/discovery/`
+(STORY-02's six primitives, STORY-12's `alert-dialog`, and STORY-13's `dialog`), `components/brand/` (STORY-17's Worq mark), `components/discovery/`
 (STORY-08's Space card and price tier badge), `components/reservation/` (STORY-10's
 booking QR code), `components/review/` (STORY-13's shared review form and rating summary), `components/seat-map/` (STORY-07's shared
 renderer), `components/space/` (STORY-11's freshness badge), `proxy.ts` (STORY-03), `lib/utils.ts`, `lib/auth/`
