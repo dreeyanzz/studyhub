@@ -467,11 +467,11 @@ export function DiscoveryShell({
         <section
           aria-label="Discovery map"
           className={cn(
-            'w-full lg:sticky lg:top-20 lg:w-[52%] xl:w-[55%]',
+            'w-full lg:sticky lg:top-6 lg:w-[52%] xl:w-[55%]',
             mobileView === 'list' ? 'hidden lg:block' : 'block',
           )}
         >
-          <div className="h-[calc(100vh-14rem)] min-h-[450px] w-full overflow-hidden rounded-2xl border border-border/80 bg-card shadow-sm">
+          <div className="h-[calc(100vh-11rem)] min-h-[460px] w-full overflow-hidden rounded-[2rem] border border-border/60 bg-card shadow-[0_8px_30px_-12px_rgba(23,60,45,0.18)]">
             <DiscoveryMap
               spaces={displayedSpaces}
               activeSpaceId={activeSpaceId}

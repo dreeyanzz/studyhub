@@ -1,10 +1,11 @@
 'use client'
 
 import type * as LeafletType from 'leaflet'
+import { LocateFixed } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { PRICE_TIER_LABELS } from '@/components/discovery/price-tier-badge'
 import { formatReviewRating } from '@/components/review/review-rating'
-import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
+import { isSpaceOpen24h, type VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 import type { PriceTier } from '@/lib/validation/search'
 
 interface DiscoveryMapProps {
@@ -97,13 +98,21 @@ export function buildPopupHtml(
     | 'curated_tags'
     | 'review_count'
     | 'avg_overall'
-  >,
+  > & { opens_at?: string; closes_at?: string },
 ): string {
   const rating = formatReviewRating(space.avg_overall, space.review_count)
   const ratingHtml = `<div style="font-size: 12px; color: ${rating.hasReviews ? 'var(--foreground)' : 'var(--muted-foreground)'}; font-weight: ${rating.hasReviews ? '600' : '400'}; margin-top: 4px;">${escapeHtml(rating.text)}</div>`
   const distance =
     space.distance_km !== null
-      ? `<div style="font-size: 12px; color: var(--foreground); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
+      ? `<div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
+      : ''
+  const hours =
+    space.opens_at && space.closes_at
+      ? `<div style="font-size: 11px; color: var(--muted-foreground); margin-top: 2px;">Hours: ${escapeHtml(
+          isSpaceOpen24h(space.opens_at, space.closes_at)
+            ? 'Open 24 Hours'
+            : `${space.opens_at.slice(0, 5)} - ${space.closes_at.slice(0, 5)}`,
+        )}</div>`
       : ''
   const tags =
     space.curated_tags.length > 0
@@ -115,17 +124,18 @@ export function buildPopupHtml(
           .join('')}</div>`
       : ''
   return `
-    <div style="font-family: inherit; min-width: 190px; padding: 2px;">
+    <div style="font-family: inherit; min-width: 210px; padding: 2px;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-        <h3 style="margin: 0; font-family: var(--font-heading); font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h3>
-        <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
+        <h3 style="margin: 0; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--foreground); line-height: 1.25;">${escapeHtml(space.name)}</h3>
+        <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: var(--secondary); color: var(--secondary-foreground); white-space: nowrap;">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
       </div>
-      <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
+      <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.35;">${escapeHtml(space.address)}</div>
+      ${hours}
       ${ratingHtml}
       ${distance}
       ${tags}
       <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
-        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 14px; border-radius: 9999px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: #f0c95c; color: #173c2d; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-decoration: none;">View Space</a>
       </div>
     </div>
   `
@@ -310,12 +320,69 @@ export default function DiscoveryMap({
     map.setView([lat, lng], zoom, { animate: true })
   }, [mapReady, center, zoom])
 
+  const spacesWithCoords = spaces.filter(
+    (s): s is VerifiedSpaceSearchResult & { latitude: number; longitude: number } =>
+      s.latitude !== null && s.longitude !== null,
+  )
+
+  function handleFitAll() {
+    const map = mapRef.current
+    const L = leafletModuleRef.current
+    if (!map || !L || spacesWithCoords.length === 0) return
+    if (spacesWithCoords.length === 1) {
+      map.setView([spacesWithCoords[0].latitude, spacesWithCoords[0].longitude], 15, {
+        animate: true,
+      })
+      return
+    }
+    const bounds = L.latLngBounds(
+      spacesWithCoords.map((s) => [s.latitude, s.longitude] as [number, number]),
+    )
+    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15, animate: true })
+  }
+
   return (
-    <div
-      data-testid="discovery-map-container"
-      className={className}
-      ref={containerRef}
-      style={{ minHeight: '360px' }}
-    />
+    <div className="relative h-full w-full">
+      <div
+        data-testid="discovery-map-container"
+        className={className}
+        ref={containerRef}
+        style={{ minHeight: '360px' }}
+      />
+
+      {spacesWithCoords.length > 0 && (
+        <button
+          type="button"
+          onClick={handleFitAll}
+          className="absolute top-3 right-3 z-[400] inline-flex min-h-12 min-w-12 items-center gap-1.5 rounded-full border border-border/80 bg-card/95 px-4 py-2 text-xs font-semibold text-foreground shadow-md backdrop-blur-md transition-colors hover:bg-secondary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        >
+          <LocateFixed className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+          <span>Fit all spaces</span>
+        </button>
+      )}
+
+      <div
+        aria-label="Map pin price tiers"
+        className="pointer-events-none absolute bottom-3 left-3 z-[400] flex flex-wrap items-center gap-x-3 gap-y-1 rounded-full border border-border/70 bg-card/92 px-3.5 py-1.5 text-[11px] font-medium text-foreground shadow-sm backdrop-blur-md"
+      >
+        {(
+          [
+            ['free', 'Free'],
+            ['budget', 'Budget'],
+            ['standard', 'Standard'],
+            ['premium', 'Premium'],
+          ] as const
+        ).map(([tier, label]) => (
+          <span key={tier} className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-2.5 shrink-0 rounded-full border border-white shadow-2xs"
+              style={{ backgroundColor: getPinColor(tier) }}
+            />
+            <span>{label}</span>
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }
