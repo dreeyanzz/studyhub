@@ -92,12 +92,31 @@ export function SpaceSeatMapView({
     : '?view=list'
 
   return (
-    <div className="min-w-0 space-y-5" data-testid="space-seat-map-view">
-      {/* Open editorial section header: Title + Solid pill view switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="min-w-0 font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground">
-          Seat Selection
-        </h2>
+    <section
+      aria-labelledby="seat-selection-heading"
+      className="min-w-0 space-y-5 rounded-3xl sm:border sm:border-primary/20 sm:bg-card/90 sm:p-6 sm:shadow-[0_12px_36px_-18px_rgba(23,60,45,0.14)] lg:p-7"
+      data-testid="space-seat-map-view"
+    >
+      {/* Distinct Booking & Seat Selection header: Eyebrow + Title + Solid pill view switcher */}
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-5">
+        <div className="min-w-0 space-y-1">
+          <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
+            <span
+              aria-hidden="true"
+              className="size-2 rounded-full bg-[#f0c95c] ring-2 ring-primary/20"
+            />
+            <span>Reserve a Seat</span>
+          </p>
+          <h2
+            id="seat-selection-heading"
+            className="min-w-0 font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground"
+          >
+            Seat Selection
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Pick an open seat, desk, or room on the map to review details and book it now.
+          </p>
+        </div>
 
         <div
           role="group"
@@ -329,6 +348,6 @@ export function SpaceSeatMapView({
           </div>
         )}
       </div>
-    </div>
+    </section>
   )
 }

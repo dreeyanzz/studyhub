@@ -97,10 +97,13 @@ export function SpaceReviews({
     <section
       aria-labelledby="reviews-heading"
       data-testid="space-reviews-section"
-      className="space-y-6 rounded-3xl bg-secondary/50 p-6 text-card-foreground sm:p-8"
+      className="space-y-6 rounded-3xl border border-primary/15 bg-secondary/50 p-6 text-card-foreground sm:p-8"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
+          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+            Community Feedback
+          </p>
           <h2
             id="reviews-heading"
             className="font-heading text-xl font-bold tracking-tight text-foreground"

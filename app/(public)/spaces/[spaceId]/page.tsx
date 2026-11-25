@@ -304,26 +304,38 @@ export default async function SpaceProfilePage({
           selectedUnitActionSlot={holdPanel}
         />
 
+        {/* Visual section divider separating Live Seat Booking from Photos & Reviews */}
+        <div aria-hidden="true" className="flex items-center gap-4 pt-4">
+          <div className="h-px flex-1 bg-border/80" />
+          <span className="inline-flex items-center rounded-full border border-border/70 bg-secondary/65 px-4 py-1.5 text-xs font-semibold tracking-wider text-secondary-foreground uppercase">
+            Explore More · Photos &amp; Reviews
+          </span>
+          <div className="h-px flex-1 bg-border/80" />
+        </div>
+
         {/* Dedicated Photo Gallery Card for browsing more Space photos (TSK-11.4) */}
         <section
           aria-labelledby="space-photos-heading"
-          className="space-y-4 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)] sm:p-7"
+          className="space-y-4 rounded-3xl border border-border/60 bg-muted/75 p-6 sm:p-7"
         >
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="space-y-1">
+              <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+                <Camera className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span>Gallery</span>
+              </p>
               <h2
                 id="space-photos-heading"
-                className="flex items-center gap-2 font-heading text-lg font-semibold tracking-tight text-foreground"
+                className="font-heading text-lg font-semibold tracking-tight text-foreground"
               >
-                <Camera className="size-5 shrink-0 text-primary" aria-hidden="true" />
-                <span>Space Photos</span>
+                Space Photos
               </h2>
               <p className="text-sm text-muted-foreground">
                 Browse more photos of {space.name}&apos;s desks, lighting, and interior.
               </p>
             </div>
             {photos.length > 0 && (
-              <span className="inline-flex items-center rounded-full bg-secondary/80 px-3.5 py-1 text-xs font-semibold text-secondary-foreground">
+              <span className="inline-flex items-center rounded-full bg-card px-3.5 py-1 text-xs font-semibold text-foreground shadow-2xs">
                 {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
               </span>
             )}
