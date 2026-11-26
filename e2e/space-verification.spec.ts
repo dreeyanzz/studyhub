@@ -181,6 +181,17 @@ test.describe('Space verification portal (STORY-15)', () => {
       .getByRole('button', { name: new RegExp(`Reject ${uniqueRejectedName}`) })
       .click()
 
+    // A rejection needs a reason (STORY-20, N10): an empty one is refused in the dialog.
+    const reasonDialog = page.getByRole('dialog', {
+      name: `Reject Space — ${uniqueRejectedName}`,
+    })
+    await reasonDialog.getByRole('button', { name: 'Confirm rejection' }).click()
+    await expect(reasonDialog.getByRole('alert')).toContainText(
+      'Enter a reason before continuing.',
+    )
+    await reasonDialog.getByLabel('Reason').fill('The address does not match the photos.')
+    await reasonDialog.getByRole('button', { name: 'Confirm rejection' }).click()
+
     await expect(page.getByRole('status')).toContainText(
       `${uniqueRejectedName} has been rejected.`,
     )

@@ -141,8 +141,10 @@ select throws_ok(
   'a space needs a name'
 );
 
+-- V4. The description, not the name: from STORY-20 a new name sends a Verified Space
+-- back to Pending (V6), which 05-space-verification.sql tests.
 select results_eq(
-  $$update public.spaces set name = 'Kapihan Study Hall & Cafe'
+  $$update public.spaces set description = 'Quiet tables, strong wifi and a new reading nook.'
     where id = 'e0000000-0000-4000-8000-000000000001' returning status$$,
   $$values ('verified'::public.space_status)$$,
   'a Host edits their own verified space, and it stays verified'
@@ -185,9 +187,10 @@ select is_empty(
 reset role;
 
 select results_eq(
-  $$select name, status, host_id from public.spaces
+  $$select name, description, status, host_id from public.spaces
     where id = 'e0000000-0000-4000-8000-000000000001'$$,
-  $$values ('Kapihan Study Hall & Cafe', 'verified'::public.space_status,
+  $$values ('Kapihan Study Hall', 'Quiet tables, strong wifi and a new reading nook.',
+            'verified'::public.space_status,
             'b0000000-0000-4000-8000-000000000001'::uuid)$$,
   'the Host''s space keeps only its owner''s edit'
 );

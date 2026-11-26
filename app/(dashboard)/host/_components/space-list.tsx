@@ -39,6 +39,8 @@ export const statusBadges: Record<
   pending: { label: 'Pending verification', variant: 'secondary' },
   verified: { label: 'Verified', variant: 'default' },
   rejected: { label: 'Rejected', variant: 'destructive' },
+  // STORY-20 (D-084). TSK-20.2 adds its reason and Resubmit.
+  taken_down: { label: 'Taken down', variant: 'destructive' },
 }
 
 /** Completion flags for a Space's initial setup steps (STORY-17). */

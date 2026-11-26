@@ -2,8 +2,8 @@ import { createHmac, randomBytes } from 'node:crypto'
 import http from 'node:http'
 
 /**
- * A stub of the three Stripe calls Worq makes (D-070), so the Seeker journey can pay
- * without Stripe: `playwright.config.ts` points the app's `STRIPE_API_URL` here.
+ * A stub of the four Stripe calls Worq makes (D-070, D-088), so the journeys can pay and
+ * refund without Stripe: `playwright.config.ts` points the app's `STRIPE_API_URL` here.
  *
  * - `POST /v1/checkout/sessions` answers with a session whose `url` is this stub's own
  *   checkout page.
@@ -11,6 +11,8 @@ import http from 'node:http'
  *   "Cancel" to its cancel URL, as Stripe's hosted page would. Paying sends no webhook;
  *   the test sends it with `signedCheckoutCompleted`, when it chooses.
  * - `POST /v1/checkout/sessions/<session>/expire` answers that the session expired.
+ * - `POST /v1/refunds` answers with a succeeded refund, and the same one again for the
+ *   same Idempotency-Key, as Stripe would (STORY-14 design §2 and §4, TSK-14.5).
  *
  * Placeholders, not keys (D-005): the stub accepts any secret key, and the webhook secret
  * only has to match between the app and this file.
@@ -26,9 +28,19 @@ export interface StubSession {
   cancelUrl: string
 }
 
+export interface StubRefund {
+  id: string
+  paymentIntent: string
+  /** `metadata[payment_id]`: Worq's `payments.id`. */
+  paymentId: string
+  idempotencyKey: string
+}
+
 export interface StripeStub {
   /** Every checkout session the app made, oldest first. */
   sessions: StubSession[]
+  /** Every refund the app asked for, one per Idempotency-Key, oldest first. */
+  refunds: StubRefund[]
   close: () => Promise<void>
 }
 
@@ -47,6 +59,7 @@ function escapeHtml(value: string) {
 
 export function startStripeStub(): Promise<StripeStub> {
   const sessions: StubSession[] = []
+  const refunds: StubRefund[] = []
   const server = http.createServer((req, res) => {
     void (async () => {
       const url = new URL(req.url ?? '/', STRIPE_STUB_URL)
@@ -90,6 +103,35 @@ export function startStripeStub(): Promise<StripeStub> {
         return
       }
 
+      if (req.method === 'POST' && url.pathname === '/v1/refunds') {
+        const form = new URLSearchParams(await readBody(req))
+        const header = req.headers['idempotency-key']
+        const idempotencyKey = (Array.isArray(header) ? header[0] : header) ?? ''
+        let refund = refunds.find(
+          (r) => idempotencyKey !== '' && r.idempotencyKey === idempotencyKey,
+        )
+        if (!refund) {
+          refund = {
+            id: `re_test_e2e_${randomBytes(8).toString('hex')}`,
+            paymentIntent: form.get('payment_intent') ?? '',
+            paymentId: form.get('metadata[payment_id]') ?? '',
+            idempotencyKey,
+          }
+          refunds.push(refund)
+        }
+        send(
+          200,
+          'application/json',
+          JSON.stringify({
+            id: refund.id,
+            object: 'refund',
+            status: 'succeeded',
+            payment_intent: refund.paymentIntent,
+          }),
+        )
+        return
+      }
+
       const pay = /^\/pay\/([^/]+)$/.exec(url.pathname)
       const session = pay ? sessions.find((s) => s.id === pay[1]) : undefined
       if (req.method === 'GET' && session) {
@@ -117,6 +159,7 @@ export function startStripeStub(): Promise<StripeStub> {
     server.listen(STRIPE_STUB_PORT, '127.0.0.1', () =>
       resolve({
         sessions,
+        refunds,
         close: () => new Promise((done) => server.close(() => done())),
       }),
     ),

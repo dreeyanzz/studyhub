@@ -82,6 +82,12 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     path: '/seeker',
   },
   {
+    id: 'seeker-history',
+    label: 'Seeker reservation history',
+    role: 'seeker',
+    path: '/seeker/reservations',
+  },
+  {
     id: 'seeker-hold',
     label: 'Seeker hold page',
     role: 'seeker',
@@ -150,5 +156,17 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     label: 'Admin Space verification queue',
     role: 'admin',
     path: '/admin',
+  },
+  {
+    id: 'admin-moderation',
+    label: 'Admin review moderation',
+    role: 'admin',
+    path: '/admin/moderation',
+  },
+  {
+    id: 'admin-payments',
+    label: 'Admin payment records',
+    role: 'admin',
+    path: '/admin/payments',
   },
 ]

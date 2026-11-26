@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MapPin } from 'lucide-react'
+import { Calendar, CheckCircle2, Clock, MapPin, User, XCircle } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -22,10 +22,11 @@ export type VerificationCardItem = {
   address: string
   opens_at: string
   closes_at: string
-  status: 'pending' | 'verified' | 'rejected'
+  status: 'pending' | 'verified' | 'rejected' | 'taken_down'
   created_at: string
   updated_at: string
   host_name: string | null
+  photos?: string[] | null
 }
 
 interface VerificationCardProps {
@@ -34,20 +35,23 @@ interface VerificationCardProps {
     space: VerificationCardItem,
     status: 'verified' | 'rejected',
   ) => Promise<void>
+  onInspect?: (space: VerificationCardItem) => void
 }
 
 /**
  * Individual pending Space card within the verification queue (STORY-15 design §3).
  * Renders Space name, address, hours, host name, creation timestamp, and
- * accessible Approve/Reject action buttons with 48x48 px minimum touch targets (D-031).
+ * accessible Inspect, Approve, and Reject action buttons with 48x48 px minimum touch targets (D-031).
  */
-export function VerificationCard({ space, onDecision }: VerificationCardProps) {
+export function VerificationCard({
+  space,
+  onDecision,
+  onInspect,
+}: VerificationCardProps) {
   const [isPending, setIsPending] = useState(false)
   const [activeDecision, setActiveDecision] = useState<'verified' | 'rejected' | null>(
     null,
   )
-
-  // The "Host:" label is the <dt> below, so the value is the name alone (design §3).
   const hostDisplay = space.host_name?.trim() || 'Unnamed'
 
   async function handleAction(status: 'verified' | 'rejected') {
@@ -62,69 +66,121 @@ export function VerificationCard({ space, onDecision }: VerificationCardProps) {
   }
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <CardTitle className="min-w-0">
-            <h2 className="text-lg font-semibold wrap-anywhere">{space.name}</h2>
-          </CardTitle>
-          <Badge variant="secondary">Pending verification</Badge>
+    <Card className="group relative h-full overflow-visible rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md">
+      <CardHeader className="gap-3 pb-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3.5">
+            <div
+              aria-hidden="true"
+              className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 font-heading text-xl font-bold text-primary shadow-2xs transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
+            >
+              {space.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="min-w-0">
+                <h2 className="font-heading text-xl font-bold tracking-tight wrap-anywhere text-foreground sm:text-2xl">
+                  {space.name}
+                </h2>
+              </CardTitle>
+              <CardDescription className="mt-1 flex items-center gap-1.5 text-sm font-medium wrap-anywhere text-muted-foreground">
+                <MapPin className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                <span>{space.address}</span>
+              </CardDescription>
+            </div>
+          </div>
+          <Badge
+            variant="secondary"
+            className="rounded-full px-3 py-1 text-xs font-semibold"
+          >
+            Pending verification
+          </Badge>
         </div>
-        <CardDescription className="flex items-center gap-1.5 pt-1 wrap-anywhere">
-          <MapPin className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span>{space.address}</span>
-        </CardDescription>
       </CardHeader>
 
-      <CardContent className="flex-1 space-y-3">
+      <CardContent className="flex-1 space-y-4 pt-0">
         {space.description ? (
-          <p className="text-sm wrap-anywhere whitespace-pre-line text-foreground/90">
-            {space.description}
-          </p>
+          <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3">
+            <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              Description
+            </p>
+            <p className="mt-1 text-sm leading-relaxed wrap-anywhere whitespace-pre-line text-foreground italic">
+              &ldquo;{space.description}&rdquo;
+            </p>
+          </div>
         ) : null}
 
-        <dl className="space-y-1.5 text-sm">
-          <div>
-            <dt className="inline font-medium text-foreground">Daily hours: </dt>
-            <dd className="inline text-muted-foreground">
+        <dl className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
+          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <User className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+              Host:{' '}
+            </dt>
+            <dd className="mt-1 block font-bold wrap-anywhere text-foreground">
+              {hostDisplay}
+            </dd>
+          </div>
+
+          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <Clock className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+              Daily hours:{' '}
+            </dt>
+            <dd className="mt-1 block font-bold wrap-anywhere text-foreground">
               {formatOpeningHours(space.opens_at, space.closes_at)}
             </dd>
           </div>
-          <div>
-            <dt className="inline font-medium text-foreground">Host: </dt>
-            <dd className="inline text-muted-foreground">{hostDisplay}</dd>
-          </div>
-          <div>
-            <dt className="inline font-medium text-foreground">Submitted: </dt>
-            <dd className="inline text-muted-foreground">
+
+          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+              <Calendar className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+              Submitted:{' '}
+            </dt>
+            <dd className="mt-1 block font-bold wrap-anywhere text-foreground">
               <time dateTime={space.created_at}>{formatDateTime(space.created_at)}</time>
             </dd>
           </div>
         </dl>
       </CardContent>
 
-      {/* flex-wrap: at 360 px with 200% text both buttons don't fit on one line (D-031). */}
-      <CardFooter className="flex flex-wrap justify-end gap-3 pt-2">
+      <CardFooter className="flex flex-wrap justify-end gap-3 rounded-b-2xl border-t border-border/70 bg-muted/25 px-4 py-4 sm:px-6">
+        {onInspect && (
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-[48px] w-full min-w-[48px] rounded-xl border-border/80 font-semibold text-foreground hover:bg-muted sm:w-auto"
+            onClick={() => onInspect(space)}
+          >
+            <span>Inspect</span>
+            <span className="sr-only"> {space.name}</span>
+          </Button>
+        )}
+
         <Button
           type="button"
           variant="outline"
-          className="min-h-[48px] min-w-[48px] border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive focus-visible:ring-destructive"
+          className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98] sm:w-auto"
           onClick={() => handleAction('rejected')}
           disabled={isPending}
           aria-busy={isPending && activeDecision === 'rejected'}
         >
-          {isPending && activeDecision === 'rejected' ? 'Rejecting...' : 'Reject'}
+          <XCircle className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            {isPending && activeDecision === 'rejected' ? 'Rejecting...' : 'Reject'}
+          </span>
           <span className="sr-only"> {space.name}</span>
         </Button>
 
         <Button
           type="button"
-          className="min-h-[48px] min-w-[48px] bg-primary text-primary-foreground hover:bg-primary/90"
+          className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] sm:w-auto"
           onClick={() => handleAction('verified')}
           disabled={isPending}
           aria-busy={isPending && activeDecision === 'verified'}
         >
-          {isPending && activeDecision === 'verified' ? 'Approving...' : 'Approve'}
+          <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+          <span>
+            {isPending && activeDecision === 'verified' ? 'Approving...' : 'Approve'}
+          </span>
           <span className="sr-only"> {space.name}</span>
         </Button>
       </CardFooter>

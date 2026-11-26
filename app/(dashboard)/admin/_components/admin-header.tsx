@@ -1,17 +1,16 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { signOut } from '@/app/(auth)/actions'
 import { Badge } from '@/components/ui/badge'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { dashboardFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
-import { cn } from '@/lib/utils'
+import { AdminNav } from './admin-nav'
 
 /**
- * The Administration portal header (STORY-15 design §3): the signed-in
- * Administrator's name from their profiles row, an Administrator badge,
- * the Verification Queue link, and a Log out button.
+ * The Administration portal header (STORY-15 design §3, STORY-14 design §3 Screen 1):
+ * the signed-in Administrator's name from their profiles row, an Administrator badge,
+ * the portal navigation (`AdminNav`), and a Log out button.
  */
 export async function AdminHeader() {
   const supabase = await createClient()
@@ -56,20 +55,13 @@ export async function AdminHeader() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <nav aria-label="Administration portal">
-            <Link
-              href="/admin"
-              aria-current="page"
-              className={cn(
-                buttonVariants({ variant: 'ghost' }),
-                'min-h-[48px] min-w-[48px] aria-[current=page]:bg-secondary aria-[current=page]:text-secondary-foreground',
-              )}
-            >
-              Verification Queue
-            </Link>
-          </nav>
+          <AdminNav />
           <form action={signOut}>
-            <Button variant="outline" type="submit" className="min-h-[48px] min-w-[48px]">
+            <Button
+              variant="outline"
+              type="submit"
+              className="h-auto min-h-12 min-w-12 py-2 whitespace-normal"
+            >
               Log out
             </Button>
           </form>

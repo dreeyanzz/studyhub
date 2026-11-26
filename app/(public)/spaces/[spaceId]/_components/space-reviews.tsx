@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Star } from 'lucide-react'
 
 import {
   formatReviewDate,
   formatReviewScore,
   ReviewRating,
+  SolidStars,
 } from '@/components/review/review-rating'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import type {
@@ -97,51 +98,70 @@ export function SpaceReviews({
     <section
       aria-labelledby="reviews-heading"
       data-testid="space-reviews-section"
-      className="space-y-6 rounded-xl border bg-card p-5 text-card-foreground shadow-xs sm:p-6"
+      className="space-y-6 rounded-3xl border border-primary/15 bg-secondary/50 p-3 text-card-foreground sm:p-8"
     >
-      <div className="space-y-1">
-        <h2
-          id="reviews-heading"
-          className="font-heading text-xl font-bold tracking-tight text-foreground"
-        >
-          Reviews
-        </h2>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+            Community Feedback
+          </p>
+          <h2
+            id="reviews-heading"
+            className="font-heading text-xl font-bold tracking-tight text-foreground"
+          >
+            Reviews
+          </h2>
+        </div>
+
+        {!loadError && summary.reviewCount > 0 && (
+          <ReviewRating
+            average={summary.avgOverall}
+            count={summary.reviewCount}
+            className="rounded-full bg-card px-4 py-1.5 text-base font-semibold"
+            data-testid="reviews-overall-rating"
+          />
+        )}
       </div>
 
       {loadError ? (
-        <Alert variant="destructive" role="alert" data-testid="reviews-load-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="reviews-load-error"
+          className="rounded-2xl border-destructive/30 bg-card"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <AlertDescription>
             We couldn&apos;t load reviews right now. Refresh the page to try again.
           </AlertDescription>
         </Alert>
       ) : (
-        <>
-          {/* Averages Summary or Empty State */}
+        <div className="space-y-6">
+          {/* Averages scorecard strip (solid white divided bar with solid stars + numeric scores) or Empty State */}
           {summary.reviewCount > 0 ? (
-            <div className="space-y-4" data-testid="reviews-summary">
-              <ReviewRating
-                average={summary.avgOverall}
-                count={summary.reviewCount}
-                className="text-base font-semibold"
-                data-testid="reviews-overall-rating"
-              />
-              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-3">
+            <div data-testid="reviews-summary">
+              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] divide-y divide-border/60 rounded-2xl border border-border/50 bg-card shadow-[0_2px_10px_-4px_rgba(23,60,45,0.06)] sm:divide-x sm:divide-y-0">
                 {categoryAverages.map((category) => (
                   <div
                     key={category.label}
-                    className="min-w-0 rounded-lg border border-border bg-muted/30 px-3 py-2.5 break-words"
+                    className="min-w-0 space-y-1.5 px-3 py-3 break-words sm:px-5 sm:py-4"
                   >
-                    <dt className="text-xs text-muted-foreground">{category.label}</dt>
-                    <dd className="mt-0.5 text-sm font-semibold text-foreground">
-                      {formatReviewScore(category.value)} / 5
+                    <dt className="text-xs font-medium text-muted-foreground">
+                      {category.label}
+                    </dt>
+                    <dd className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
+                      <SolidStars value={category.value} size="sm" />
+                      <span>{formatReviewScore(category.value)} / 5</span>
                     </dd>
                   </div>
                 ))}
               </dl>
             </div>
           ) : (
-            <div className="space-y-1" data-testid="reviews-empty-state">
+            <div
+              className="space-y-1 rounded-2xl bg-card p-4 sm:p-6"
+              data-testid="reviews-empty-state"
+            >
               <p className="text-base font-medium text-foreground">No reviews yet</p>
               <p className="text-sm text-muted-foreground">
                 Be the first to review after checking in.
@@ -157,9 +177,9 @@ export function SpaceReviews({
             myReviews={myReviews}
           />
 
-          {/* Sort links + Others' visible reviews */}
+          {/* Sort links + Others' visible reviews in side-by-side solid cards */}
           {(summary.reviewCount > 0 || reviewsPage.reviews.length > 0) && (
-            <div className="space-y-4 border-t border-border pt-5">
+            <div className="space-y-4">
               <nav
                 aria-label="Sort reviews"
                 className="flex flex-wrap items-center gap-2"
@@ -177,10 +197,10 @@ export function SpaceReviews({
                       })}
                       aria-current={isCurrent ? 'page' : undefined}
                       className={cn(
-                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border px-4 py-2 text-center text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-2 text-center text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                         isCurrent
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-background text-foreground hover:bg-muted',
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-card text-foreground hover:bg-accent',
                       )}
                     >
                       {option.label}
@@ -197,75 +217,101 @@ export function SpaceReviews({
                   No other reviews yet.
                 </p>
               ) : (
-                <ul className="space-y-4" data-testid="space-reviews-list">
+                <ul
+                  className="grid grid-cols-1 gap-4 md:grid-cols-2"
+                  data-testid="space-reviews-list"
+                >
                   {reviewsPage.reviews.map((review) => {
                     const postedDate = formatReviewDate(review.createdAt)
+                    const initial =
+                      review.reviewerName.trim().charAt(0).toUpperCase() || 'S'
                     return (
-                      <li key={review.id}>
+                      <li key={review.id} className="min-w-0">
                         <article
                           data-testid={`review-card-${review.id}`}
-                          className="space-y-3 rounded-lg border border-border bg-background p-4"
+                          className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] sm:p-6"
                         >
-                          <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div className="min-w-0 space-y-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <p className="font-medium text-foreground">
-                                  {review.reviewerName}
-                                </p>
-                                <span className="inline-flex items-center rounded-full border border-border bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                                  Checked-in visit
+                          <div className="space-y-3.5">
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                              <div className="flex min-w-0 flex-wrap items-start gap-3">
+                                <span
+                                  aria-hidden="true"
+                                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-sm font-bold text-primary"
+                                >
+                                  {initial}
                                 </span>
-                                {review.edited && (
-                                  <span className="inline-flex items-center rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
-                                    Edited
-                                  </span>
-                                )}
+                                <div className="min-w-0 space-y-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <p className="font-semibold wrap-anywhere text-foreground">
+                                      {review.reviewerName}
+                                    </p>
+                                    <span className="inline-flex max-w-full items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
+                                      Checked-in visit
+                                    </span>
+                                    {review.edited && (
+                                      <span className="inline-flex max-w-full items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-foreground">
+                                        Edited
+                                      </span>
+                                    )}
+                                  </div>
+                                  {postedDate && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Reviewed{' '}
+                                      <time dateTime={review.createdAt}>
+                                        {postedDate}
+                                      </time>
+                                    </p>
+                                  )}
+                                </div>
                               </div>
-                              {postedDate && (
-                                <p className="text-xs text-muted-foreground">
-                                  Reviewed{' '}
-                                  <time dateTime={review.createdAt}>{postedDate}</time>
-                                </p>
-                              )}
+
+                              <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
+                                <Star
+                                  className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
+                                  aria-hidden="true"
+                                />
+                                <span className="wrap-anywhere">
+                                  Overall {formatReviewScore(review.overall)} / 5
+                                </span>
+                              </p>
                             </div>
 
-                            <p className="text-sm font-semibold text-foreground">
-                              Overall {formatReviewScore(review.overall)} / 5
-                            </p>
+                            {/* Plain React text node only — never rendered as HTML (SRS §3.5.2). */}
+                            {review.comment && (
+                              <p className="rounded-xl border-l-2 border-l-primary/40 bg-background/85 px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-foreground">
+                                {review.comment}
+                              </p>
+                            )}
                           </div>
 
-                          <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] gap-2 text-xs">
-                            {REVIEW_RATING_CATEGORIES.map((category) => (
-                              <div
-                                key={category.key}
-                                className="min-w-0 rounded-md border border-border/60 bg-muted/30 px-2.5 py-1.5 break-words"
-                              >
-                                <dt className="text-muted-foreground">
-                                  {category.label}
-                                </dt>
-                                <dd className="font-semibold text-foreground">
-                                  {review[category.key]} / 5
-                                </dd>
+                          <div className="space-y-3">
+                            <dl className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                              {REVIEW_RATING_CATEGORIES.map((category) => (
+                                <div
+                                  key={category.key}
+                                  className="min-w-0 space-y-1 rounded-xl bg-muted/65 px-2.5 py-2 break-words sm:px-3"
+                                >
+                                  <dt className="text-muted-foreground">
+                                    {category.label}
+                                  </dt>
+                                  <dd className="flex flex-wrap items-center gap-1.5 font-semibold text-foreground">
+                                    <SolidStars value={review[category.key]} size="xs" />
+                                    <span>{review[category.key]} / 5</span>
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+
+                            {canReport && (
+                              <div>
+                                <ReportReviewDialog
+                                  spaceId={spaceId}
+                                  reviewId={review.id}
+                                  reportedByCaller={review.reportedByCaller}
+                                />
                               </div>
-                            ))}
-                          </dl>
-
-                          {/* Plain React text node only — never rendered as HTML (SRS §3.5.2). */}
-                          {review.comment && (
-                            <p className="text-sm break-words whitespace-pre-wrap text-foreground">
-                              {review.comment}
-                            </p>
-                          )}
-
-                          {canReport && (
-                            <div className="pt-1">
-                              <ReportReviewDialog
-                                spaceId={spaceId}
-                                reviewId={review.id}
-                                reportedByCaller={review.reportedByCaller}
-                              />
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </article>
                       </li>
                     )
@@ -282,7 +328,7 @@ export function SpaceReviews({
                       view,
                       unit,
                     })}
-                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg border border-border bg-background px-4 py-2 text-center text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-full bg-card px-5 py-2 text-center text-sm font-semibold text-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
                   >
                     Show more reviews
                   </Link>
@@ -299,7 +345,7 @@ export function SpaceReviews({
               )}
             </div>
           )}
-        </>
+        </div>
       )}
     </section>
   )
