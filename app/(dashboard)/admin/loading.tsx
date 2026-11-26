@@ -19,7 +19,7 @@ export default function AdminLoading() {
       </div>
 
       {/* Metric skeleton */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-3">
         {[1, 2, 3].map((id) => (
           <div
             key={id}
