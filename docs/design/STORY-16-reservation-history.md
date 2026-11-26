@@ -4,7 +4,7 @@
 > owners changed: every task below is Luke's, so where this doc says Adrian builds a part,
 > read Luke. Adrian still reviews and merges its migration and pushes it (D-066).
 
-**Status:** approved 2026-11-22 · **Owner:** @lukedongque, end to end (D-094) · **Story:** #335 · **FR:** none (a Sprint 3 addition, D-075) · **Depends on:**
+**Status:** implemented 2026-11-26 · **Owner:** @lukedongque, end to end (D-094) · **Story:** #335 · **FR:** none (a Sprint 3 addition, D-075) · **Depends on:**
 STORY-09, STORY-10, STORY-11, STORY-13, STORY-14 · **Flows:**
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
 [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md),
@@ -341,4 +341,71 @@ component in §3, recorded on this branch.
 
 ## 9. After the build
 
-Filled in when the story is done.
+Built in five PRs after this design (#350), in the order they merged. Luke built all of
+them (D-094). The email landed first, as §5 allowed:
+
+1. **#387 (`TSK-16.2`, #383):** `lib/email/transport.ts` and
+   `lib/email/hold-confirmation.ts` with their Vitest tests, `nodemailer`, the webhook
+   route's `after()`, an `onConfirmed` callback in `lib/payments/webhook.ts`, and
+   `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `docs/DEVELOPMENT.md` and `.env.example`.
+2. **#407 (`TSK-16.1`, #382):** `supabase/migrations/20261124103300_reservation_history.sql`
+   (`my_reservation_history`), `supabase/tests/15-reservation-history.sql` (23 pgTAP
+   cases), and `db:types`.
+3. **#415 (`TSK-16.3`, #384):** the history page on `/seeker/reservations` (`page.tsx`,
+   `loading.tsx`, `history-row.tsx`), `lib/data/history.ts`, `lib/validation/history.ts`,
+   `formatManilaDate`, the Reservation history card on `/seeker`, and the page's place in
+   the accessibility sweep (`e2e/support/routes.ts`).
+4. **#435 (`TSK-16.4`, #385):** `review-dialog.tsx`, Leave a review and Edit your review
+   in `history-row.tsx`, the reads that prefill Edit, and the Space profile's
+   `hold-again-notice` and closed-Space line.
+5. **#437 (`TSK-16.5`, #386):** `e2e/history.spec.ts`, §4's three Playwright rows.
+
+### What differed from the original plan, and why
+
+- **Who built it:** the doc was written with Adrian building the database half and the
+  email. On 23 November every task became Luke's (D-094). Adrian still reviewed the
+  migration (D-066).
+- **The email provider:** #335's last criterion still names Resend (D-078). D-089
+  replaced Resend with the team Gmail account before this design merged, so the email
+  goes through Gmail's SMTP, and the tests use a fake transport.
+- **The webhook's hook:** §3 named only the route. #387 also gave `handleStripeWebhook` an
+  `onConfirmed` callback that runs only when the outcome is `confirmed`, and the route
+  passes it the `after()` call. The route reads the unit's label from the reservation's
+  own `unit_label`, so the email names a unit that was removed since.
+- **The dialog primitive:** `components/ui/dialog.tsx` landed with STORY-13, so this story
+  didn't add it.
+- **Small helpers §3 didn't list:** the portal link is its own component
+  (`app/(dashboard)/seeker/_components/reservation-history-card.tsx`); refund dates use a
+  new `formatManilaDate` in `lib/reservations/format.ts`; and
+  `getMyHistoryReviewValues` in `lib/data/history.ts` reads the ratings and comment of the
+  caller's own visible reviews among the rows shown, so Edit your review opens prefilled.
+  When that read fails, the row still says `Reviewed` and offers no Edit button.
+- **A closed Space whose unit was also removed or taken:** §3 left this open. The profile
+  shows only the closed alert, with its added line, so there is one alert (#435).
+- **The Seeker nav:** §3's screen 1 is the card on `/seeker`. The nav from #418 had no link
+  to the history, which #433 found while #415 was reviewed. STORY-17's #438 added
+  My reservations to `seeker-nav.tsx` (D-074).
+
+### Acceptance criteria coverage (#335)
+
+| Criterion                                                                                                                                     | Proven by                                                                                                                                                                                                                                                                                                                                                                                           |
+| --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A Seeker sees their past reservations, newest first: the Space, the unit, the date and how it ended. Another Seeker gets 0 rows (pgTAP)       | `15-reservation-history.sql` ("a Seeker reads their paid, ended reservations, newest first", "another Seeker gets 0 rows of someone else's history", "a Host gets 0 rows …", "an Administrator gets 0 rows …"); `history-row.test.tsx`; `reservations/page.test.tsx`; `e2e/history.spec.ts` ("a finished visit is in the history …")                                                                |
+| Hold again opens the Space profile with the same unit picked if it is Available now, and otherwise says why (D-077). It never holds by itself | `spaces/[spaceId]/page.test.tsx` (Available, taken, removed, closed with one alert); `e2e/history.spec.ts` ("Hold again picks the unit when it is Available, and says why when it is taken (D-077)", with no active hold afterwards, and "a visit to a Space that isn't listed shows no Hold again …")                                                                                              |
+| A checked-in visit with no review links to STORY-13's review form                                                                             | `history-row.test.tsx` (Leave a review, listed and unlisted Spaces); `review-dialog.test.tsx`; `e2e/history.spec.ts` (`RV1`, `RV2`, and the unlisted Space's review, D-081)                                                                                                                                                                                                                         |
+| A confirmed payment sends the Seeker one confirmation email (D-078). Local tests and CI never call Resend (Gmail since D-089)                 | `route.test.ts` ("schedules the confirmation email via after() when confirm_payment returns confirmed", "never schedules an email for already_processed, late_payment or not_found"); `webhook.test.ts` ("calls onConfirmed only when outcome is confirmed"); `hold-confirmation.test.ts` (the `@example.test` skip and the single attempt); `transport.test.ts` (nothing sent when Gmail is unset) |
+
+### Still open / follow-up
+
+- **§4's manual email row:** a hold paid by a Seeker with a real address, through
+  `npm run stripe:listen` with `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `.env.local`,
+  sending one email, and a resent event sending none. #387 left it until the team Gmail
+  account existed, and no PR records it since.
+- **§4's layout row for the dialog:** #415 checked the history page and its portal card at
+  360, 768 and 1024 px, with 200% text and by keyboard. #435 left the same check of the
+  review dialog and the profile's notice for the local stack. `e2e/history.spec.ts` walks
+  the dialog's focus and announcements, but not the widths.
+- **STORY-17:** Maria and James review how the history page, its card and the dialog look
+  (D-073, D-074). STORY-17's restyle (#439) didn't touch them.
+- The acceptance-criteria checkboxes on #335 are left for its owner to tick when closing
+  it.

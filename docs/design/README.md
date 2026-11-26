@@ -75,7 +75,7 @@ and what the right user is prevented from doing to their own rows.
 | STORY-13 | [STORY-13-reviews.md](STORY-13-reviews.md)                                 | implemented 2026-11-24                                              |
 | STORY-14 | [STORY-14-admin-console.md](STORY-14-admin-console.md)                     | implemented 2026-11-26                                              |
 | STORY-15 | [STORY-15-space-verification.md](STORY-15-space-verification.md)           | implemented 2026-11-09                                              |
-| STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md)         | approved 2026-11-22                                                 |
+| STORY-16 | [STORY-16-reservation-history.md](STORY-16-reservation-history.md)         | implemented 2026-11-26                                              |
 | STORY-17 | [STORY-17-ui-ux-refresh.md](STORY-17-ui-ux-refresh.md)                     | approved 2026-11-23                                                 |
 | STORY-19 | [STORY-19-final-hardening.md](STORY-19-final-hardening.md)                 | approved 2026-11-22                                                 |
 | STORY-20 | [STORY-20-verification-follow-ups.md](STORY-20-verification-follow-ups.md) | approved 2026-11-25                                                 |
