@@ -13,8 +13,8 @@ export default function AdminLoading() {
           Space Verification
         </h1>
         <p className="text-sm text-muted-foreground">
-          Review pending Spaces. Approved Spaces become immediately visible in public
-          search.
+          Review Pending Spaces, inspect changes, take Verified Spaces down, or undo past
+          decisions.
         </p>
       </div>
 
@@ -35,7 +35,7 @@ export default function AdminLoading() {
       </div>
 
       <div className="space-y-4">
-        {[1, 2].map((placeholderId) => (
+        {[1, 2, 3].map((placeholderId) => (
           <Card
             key={placeholderId}
             className="animate-pulse overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs"

@@ -49,10 +49,14 @@ const sampleSpace: VerificationCardItem = {
   opens_at: '07:00:00',
   closes_at: '23:00:00',
   status: 'pending',
+  status_reason: null,
+  status_changed_at: '2026-11-01T08:00:00Z',
   created_at: '2026-11-01T08:00:00Z',
   updated_at: '2026-11-01T08:00:00Z',
   host_name: 'Maria Santos',
   photos: [],
+  origin: null,
+  events: [],
 }
 
 describe('SpaceInspectionDialog (STORY-15, STORY-17)', () => {

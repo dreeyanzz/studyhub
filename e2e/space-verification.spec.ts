@@ -146,7 +146,7 @@ test.describe('Space verification portal (STORY-15)', () => {
     ).toBeVisible()
     await expect(
       page.getByText(
-        'Review pending Spaces. Approved Spaces become immediately visible in public search.',
+        'Review Pending Spaces, inspect changes, take Verified Spaces down, or undo past decisions.',
       ),
     ).toBeVisible()
 

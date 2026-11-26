@@ -3,19 +3,21 @@ import { redirect } from 'next/navigation'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { dashboardFor } from '@/lib/auth/role-guard'
+import { getVerificationSpaces } from '@/lib/data/verification'
 import { createClient } from '@/lib/supabase/server'
-import { VerificationQueue, type PendingSpace } from './_components/verification-queue'
+import { verificationQueueTabSchema } from '@/lib/validation/verification'
+import { VerificationQueue } from './_components/verification-queue'
 
 export const metadata: Metadata = {
   title: 'Space Verification',
 }
 
 /**
- * The Administration portal dashboard page (STORY-15, STORY-17).
- * Renders the Space Verification queue for pending spaces.
- * Enforces Administrator role check before querying queue.
+ * The Administration portal dashboard page (STORY-15, STORY-17, STORY-20 design §3).
+ * Checks the Administrator role, reads `?tab` (Pending, Verified, Rejected or Taken
+ * down, Pending when missing or unknown) and loads that list with its lists of changes.
  */
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: PageProps<'/admin'>) {
   const supabase = await createClient()
   const {
     data: { user },
@@ -33,18 +35,10 @@ export default async function AdminPage() {
     redirect(profile ? dashboardFor(profile.role) : '/login')
   }
 
-  // Load Pending spaces oldest-first embedding the Host's profiles(full_name) (Task #224,
-  // FR-5.1). spaces has two foreign keys to profiles since STORY-20 (host_id and
-  // status_changed_by), so the embed names the Host's.
-  const { data: spaces, error } = await supabase
-    .from('spaces')
-    .select(
-      'id, name, description, address, opens_at, closes_at, status, created_at, updated_at, host_id, profiles!spaces_host_id_fkey(full_name)',
-    )
-    .eq('status', 'pending')
-    .order('created_at', { ascending: true })
+  const tab = verificationQueueTabSchema.parse((await searchParams).tab)
+  const result = await getVerificationSpaces(supabase, tab)
 
-  if (error) {
+  if (!result.ok) {
     return (
       <div className="space-y-6">
         <div>
@@ -52,8 +46,8 @@ export default async function AdminPage() {
             Space Verification
           </h1>
           <p className="text-sm text-muted-foreground">
-            Review pending Spaces. Approved Spaces become immediately visible in public
-            search.
+            Review Pending Spaces, inspect changes, take Verified Spaces down, or undo
+            past decisions.
           </p>
         </div>
         <Alert
@@ -69,41 +63,6 @@ export default async function AdminPage() {
     )
   }
 
-  // Load uploaded photos from space-photos bucket in parallel (D-063; admins can select via RLS)
-  const pendingSpaces: PendingSpace[] = await Promise.all(
-    (spaces ?? []).map(async (space) => {
-      const { data: storageFiles, error: storageError } = await supabase.storage
-        .from('space-photos')
-        .list(space.id, {
-          sortBy: { column: 'created_at', order: 'asc' },
-        })
-
-      const photos = storageError
-        ? null
-        : (storageFiles ?? [])
-            .filter((file) => file.name && !file.name.startsWith('.'))
-            .map(
-              (file) =>
-                supabase.storage
-                  .from('space-photos')
-                  .getPublicUrl(`${space.id}/${file.name}`).data.publicUrl,
-            )
-
-      return {
-        id: space.id,
-        name: space.name,
-        description: space.description,
-        address: space.address,
-        opens_at: space.opens_at,
-        closes_at: space.closes_at,
-        status: space.status,
-        created_at: space.created_at,
-        updated_at: space.updated_at,
-        host_name: space.profiles?.full_name ?? null,
-        photos,
-      }
-    }),
-  )
-
-  return <VerificationQueue initialSpaces={pendingSpaces} />
+  // Keyed by tab, so switching lists starts with that list's own state.
+  return <VerificationQueue key={tab} tab={tab} initialSpaces={result.spaces} />
 }
