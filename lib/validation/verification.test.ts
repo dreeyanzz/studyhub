@@ -5,11 +5,13 @@ import {
   resubmitSpaceSchema,
   spaceStatusReasonSchema,
   spaceVerificationDecisionSchema,
+  verificationQueueTabSchema,
   verifySpaceSchema,
 } from './verification'
 
 describe('spaceVerificationDecisionSchema (STORY-15, TSK-15.2)', () => {
-  it('accepts verified and rejected', () => {
+  it('accepts verified, rejected and taken_down', () => {
+    expect(spaceVerificationDecisionSchema.safeParse('taken_down').success).toBe(true)
     expect(spaceVerificationDecisionSchema.safeParse('verified').success).toBe(true)
     expect(spaceVerificationDecisionSchema.safeParse('rejected').success).toBe(true)
   })
@@ -20,7 +22,7 @@ describe('spaceVerificationDecisionSchema (STORY-15, TSK-15.2)', () => {
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.error.issues[0]?.message).toBe(
-          'Decision must be either verified or rejected',
+          'Decision must be verified, rejected or taken down',
         )
       }
     }
@@ -68,7 +70,7 @@ describe('verifySpaceSchema (STORY-15, TSK-15.2)', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       expect(result.error.issues[0]?.message).toBe(
-        'Decision must be either verified or rejected',
+        'Decision must be verified, rejected or taken down',
       )
     }
   })
@@ -191,6 +193,42 @@ describe('a rejection reason (STORY-20, TSK-20.1, N10)', () => {
 
   it('spaceStatusReasonSchema refuses a value that is not text', () => {
     expect(spaceStatusReasonSchema.safeParse(42).success).toBe(false)
+  })
+})
+
+describe('a take-down reason (STORY-20, TSK-20.3, V7, N10)', () => {
+  const base = {
+    spaceId: 'e0000000-0000-4000-8000-000000000002',
+    updatedAt: '2026-11-02T19:17:57.235481+00:00',
+    status: 'taken_down' as const,
+  }
+
+  it('trims and keeps the reason', () => {
+    const result = verifySpaceSchema.safeParse({
+      ...base,
+      reason: '  Closed for repairs. ',
+    })
+    expect(result.success && result.data.reason).toBe('Closed for repairs.')
+  })
+
+  it('refuses a take-down with no reason', () => {
+    const result = verifySpaceSchema.safeParse({ ...base, reason: '  ' })
+    expect(result.success).toBe(false)
+    if (!result.success) expect(result.error.issues[0]?.path).toEqual(['reason'])
+  })
+})
+
+describe('verificationQueueTabSchema (STORY-20, TSK-20.3)', () => {
+  it('accepts the four lists', () => {
+    for (const tab of ['pending', 'verified', 'rejected', 'taken_down']) {
+      expect(verificationQueueTabSchema.parse(tab)).toBe(tab)
+    }
+  })
+
+  it('falls back to pending for a missing or unknown tab', () => {
+    for (const tab of [undefined, '', 'archived', 'PENDING', ['verified']]) {
+      expect(verificationQueueTabSchema.parse(tab)).toBe('pending')
+    }
   })
 })
 

@@ -146,7 +146,7 @@ export function SearchBar({
               type="search"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Search by campus, city, or space name..."
+              placeholder="Campus, city, or space name..."
               maxLength={100}
               className="min-h-12 w-full rounded-full bg-transparent pr-12 pl-11 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
             />

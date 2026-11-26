@@ -9,7 +9,7 @@ describe('SearchBar component (STORY-08, FR-1.1, D-031)', () => {
     )
 
     expect(html).toContain('discovery-search-bar')
-    expect(html).toContain('placeholder="Search by campus, city, or space name..."')
+    expect(html).toContain('placeholder="Campus, city, or space name..."')
     expect(html).toContain('use-my-location-button')
     expect(html).toContain('Use my location')
     expect(html).toContain('min-h-12 min-w-12')

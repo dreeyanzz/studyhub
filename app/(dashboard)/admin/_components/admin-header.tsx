@@ -1,10 +1,13 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { signOut } from '@/app/(auth)/actions'
+import { WorqMark } from '@/components/brand/worq-mark'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { dashboardFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 import { AdminNav } from './admin-nav'
 
 /**
@@ -37,6 +40,17 @@ export async function AdminHeader() {
     <header className="border-b border-border bg-card px-4 py-4 sm:px-6">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/admin"
+            aria-label="Worq home"
+            className={cn(
+              buttonVariants({ variant: 'ghost' }),
+              'h-auto min-h-12 max-w-full shrink gap-2 px-2 py-2 font-heading text-xl font-semibold whitespace-normal',
+            )}
+          >
+            <WorqMark className="size-7" />
+            Worq
+          </Link>
           <div
             aria-hidden="true"
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary"
