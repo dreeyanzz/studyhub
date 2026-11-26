@@ -174,6 +174,13 @@ and their Vitest and Playwright tests. Their tasks are #359 to #368.
 > Space profile and card, and confirmed users can report reviews for moderation in STORY-14
 > (design §9).
 
+> **Update, Thu 26 Nov: STORY-14 is done** (#389, #402, #422, #409, #410, #428). An
+> Administrator moderates reported reviews on `/admin/moderation` (hide, remove, restore,
+> dismiss, with a moderation log), and reads payment records and refunds a fee whose hold
+> ended without a check-in on `/admin/payments`, through the Stripe sandbox. The review
+> lifecycle flow is now implemented. The design's two manual checks are still to do
+> (design §9).
+
 **Your backend.** Everything in `supabase/` for STORY-20: tables, policies, database
 functions, pgTAP tests and seed data. For STORY-19, the production project, #218 and the
 Definition of Done check. You also review Luke's STORY-16 migration (D-066); once merged,
