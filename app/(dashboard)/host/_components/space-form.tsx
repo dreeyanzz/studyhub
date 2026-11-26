@@ -7,13 +7,20 @@ import { z } from 'zod'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import type { Database } from '@/lib/supabase/database.types'
 import { cn } from '@/lib/utils'
 import { WAIT_WINDOW_OPTIONS } from '@/lib/validation/reservation'
 import type { PriceTier } from '@/lib/validation/search'
-import { spaceIdSchema, spaceSchema, type SpaceField } from '@/lib/validation/space'
+import {
+  spaceIdSchema,
+  spaceSchema,
+  type SpaceField,
+  type SpaceInput,
+} from '@/lib/validation/space'
 
 import type { SpaceFormState, SpaceFormValues } from '../actions'
 import { SpaceFormField } from './space-form-field'
+import { VerifiedEditWarningDialog } from './verified-edit-warning-dialog'
 
 type SpaceAction = (state: SpaceFormState, formData: FormData) => Promise<SpaceFormState>
 
@@ -24,7 +31,36 @@ type SpaceFormProps =
       action: SpaceAction
       spaceId: string
       initialValues: SpaceFormValues
+      /** The saved status. A Verified Space warns before an identity edit (V6). */
+      spaceStatus?: SpaceStatus
     }
+
+type SpaceStatus = Database['public']['Enums']['space_status']
+
+// A saved coordinate as the schema reads a typed one: blank is no pin.
+function savedCoordinate(value: string | undefined): number | undefined {
+  const trimmed = (value ?? '').trim()
+  return trimmed === '' ? undefined : Number(trimmed)
+}
+
+/**
+ * Whether a save changes what makes a Space Verified: its name, address or map pin
+ * (V6, STORY-20 design §3, D-079). Name and address compare trimmed, as the schema
+ * and the database store them, and the pin compares as numbers, so "10.31570" is
+ * the same pin as 10.3157. Adding or removing a pin counts as a change. Any other
+ * field (description, hours, wait window, price tier) keeps the Space Verified (V4).
+ */
+export function identityFieldsChanged(
+  saved: SpaceFormValues,
+  next: Pick<SpaceInput, 'name' | 'address' | 'latitude' | 'longitude'>,
+): boolean {
+  return (
+    (saved.name ?? '').trim() !== next.name ||
+    (saved.address ?? '').trim() !== next.address ||
+    savedCoordinate(saved.latitude) !== (next.latitude ?? undefined) ||
+    savedCoordinate(saved.longitude) !== (next.longitude ?? undefined)
+  )
+}
 
 // The Input primitive's look, for the one multi-line field. STORY-02 ships no
 // Textarea, and this story does not add one (design §0).
@@ -73,6 +109,11 @@ export function SpaceForm(props: SpaceFormProps) {
         : createDefaults),
   )
   const formRef = useRef<HTMLFormElement>(null)
+  const submitRef = useRef<HTMLButtonElement>(null)
+  // The V6 warning (STORY-20 design §3): open while the Host decides, and confirmed
+  // for exactly the one submit it lets through.
+  const [warningOpen, setWarningOpen] = useState(false)
+  const warningConfirmed = useRef(false)
 
   // The value and change handler that tie one field to `values`.
   function bind(field: SpaceField) {
@@ -106,6 +147,20 @@ export function SpaceForm(props: SpaceFormProps) {
         : undefined
     if (fields.success && !idError) {
       setClientState(undefined)
+      const confirmed = warningConfirmed.current
+      warningConfirmed.current = false
+      // A Verified Space's name, address or pin change pauses for the warning first
+      // (V6). Any other edit saves at once (V4). Without JavaScript there is no
+      // warning, and the edit page's subtitle says what such a change does.
+      if (
+        props.mode === 'edit' &&
+        props.spaceStatus === 'verified' &&
+        !confirmed &&
+        identityFieldsChanged(props.initialValues, fields.data)
+      ) {
+        event.preventDefault()
+        setWarningOpen(true)
+      }
       return
     }
     event.preventDefault()
@@ -313,6 +368,7 @@ export function SpaceForm(props: SpaceFormProps) {
       </fieldset>
       <div className="flex flex-wrap gap-3 pt-2">
         <Button
+          ref={submitRef}
           type="submit"
           disabled={pending}
           focusableWhenDisabled
@@ -338,6 +394,18 @@ export function SpaceForm(props: SpaceFormProps) {
           </Link>
         )}
       </div>
+      {props.mode === 'edit' && props.spaceStatus === 'verified' && (
+        <VerifiedEditWarningDialog
+          open={warningOpen}
+          onOpenChange={setWarningOpen}
+          returnFocusTo={submitRef}
+          onConfirm={() => {
+            warningConfirmed.current = true
+            setWarningOpen(false)
+            formRef.current?.requestSubmit()
+          }}
+        />
+      )}
     </form>
   )
 }

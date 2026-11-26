@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { SpaceForm } from './space-form'
+import { identityFieldsChanged, SpaceForm } from './space-form'
 
 describe('SpaceForm component (STORY-05, STORY-09 TSK-09.7)', () => {
   const dummyAction = vi.fn(async () => ({}))
@@ -109,5 +109,79 @@ describe('SpaceForm component (STORY-05, STORY-09 TSK-09.7)', () => {
     expect(html).toContain('value="123.8854"')
     expect(html).toMatch(/<input[^>]*name="priceTier"[^>]*checked=""[^>]*value="premium"/)
     expect(html).not.toMatch(/checked=""[^>]*value="budget"/)
+  })
+})
+
+describe('identityFieldsChanged: what sends a Verified Space back to Pending (STORY-20, V4, V6)', () => {
+  const saved = {
+    name: 'Kapihan Study Hall',
+    address: '12 Mabini St',
+    description: 'Quiet',
+    opensAt: '08:00',
+    closesAt: '22:00',
+    latitude: '10.3157',
+    longitude: '123.8854',
+  }
+  const same = {
+    name: 'Kapihan Study Hall',
+    address: '12 Mabini St',
+    latitude: 10.3157,
+    longitude: 123.8854,
+  }
+
+  it('is false when the name, address and pin are unchanged (V4)', () => {
+    expect(identityFieldsChanged(saved, same)).toBe(false)
+  })
+
+  it('compares as the database stores: trimmed text, and the pin as numbers', () => {
+    expect(identityFieldsChanged({ ...saved, name: '  Kapihan Study Hall ' }, same)).toBe(
+      false,
+    )
+    expect(identityFieldsChanged({ ...saved, latitude: '10.31570' }, same)).toBe(false)
+  })
+
+  it('is true when the name, the address or either coordinate changes (V6)', () => {
+    expect(identityFieldsChanged(saved, { ...same, name: 'Kapihan Annex' })).toBe(true)
+    expect(identityFieldsChanged(saved, { ...same, address: '14 Mabini St' })).toBe(true)
+    expect(identityFieldsChanged(saved, { ...same, latitude: 10.3158 })).toBe(true)
+    expect(identityFieldsChanged(saved, { ...same, longitude: 123.8855 })).toBe(true)
+  })
+
+  it('counts adding or removing a pin as a change (D-084)', () => {
+    const noPin = { ...saved, latitude: '', longitude: '' }
+    expect(identityFieldsChanged(noPin, same)).toBe(true)
+    expect(
+      identityFieldsChanged(saved, {
+        ...same,
+        latitude: undefined,
+        longitude: undefined,
+      }),
+    ).toBe(true)
+    expect(
+      identityFieldsChanged(noPin, {
+        ...same,
+        latitude: undefined,
+        longitude: undefined,
+      }),
+    ).toBe(false)
+  })
+})
+
+describe('SpaceForm on a Verified Space (STORY-20, V6)', () => {
+  const dummyAction = vi.fn(async () => ({}))
+  const initialValues = { name: 'Kapihan Study Hall', address: '12 Mabini St' }
+
+  it('keeps the warning closed until a save needs it', () => {
+    const html = renderToStaticMarkup(
+      <SpaceForm
+        mode="edit"
+        action={dummyAction}
+        spaceId="e0000000-0000-4000-8000-000000000001"
+        spaceStatus="verified"
+        initialValues={initialValues}
+      />,
+    )
+    expect(html).toContain('Save changes')
+    expect(html).not.toContain('Send Space back to Pending verification?')
   })
 })

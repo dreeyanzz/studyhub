@@ -109,7 +109,7 @@ only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
 search, tags, reservation, check-in, Stripe webhook, Space photo, review, admin and reservation history rules), `scripts/`,
 `supabase/` (config, migrations, tests and seed), `e2e/` (STORY-06's Playwright smoke
-test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-13's reviews journey test, STORY-14's administration console test, STORY-19's route-wide accessibility sweep, STORY-21's Google OAuth onboarding test, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
+test, the form-values test from #146, STORY-15's space-verification test, STORY-12's host-occupancy test, STORY-08's discovery accessibility test, STORY-10's check-in journey test, STORY-13's reviews journey test, STORY-14's administration console test, STORY-16's reservation history test, STORY-19's route-wide accessibility sweep, STORY-21's Google OAuth onboarding test, and the Host setup and Seeker journey tests, with shared Playwright helpers and the Stripe stub in `e2e/support/`) and `docs/`. The other route groups and
 `app/api/` routes, other `components/<domain>/` folders, and `hooks/` arrive with the stories that need them.
 
 ## Commands
@@ -132,6 +132,7 @@ npm run db:new <name>  # new migration file
 npm run db:check-order # verify migrations are append-only and newer than origin/main (D-066, D-096)
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
+npm run db:promote-admin -- <email>  # promote a confirmed production account to Administrator (Adrian only, D-091)
 npm run stripe:listen  # forward Stripe sandbox events to the local webhook (Stripe CLI, D-070)
 npm run webhook:simulate -- <reservation-id>  # send a signed test payment event to the local webhook
 npm run docs:docx      # regenerate the course .docx files (needs pandoc)

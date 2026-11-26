@@ -169,13 +169,15 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         </CardContent>
 
         <CardFooter className="pt-2">
+          {/* h-auto, min-w-0 and whitespace-normal let the label wrap in the narrow right
+              column at 200% text, so the button stays inside its card (#434). */}
           <Button
             type="submit"
             variant="default"
             size="default"
             disabled={isPending}
             focusableWhenDisabled
-            className="w-full rounded-full font-semibold sm:w-auto sm:px-6"
+            className="h-auto min-h-12 w-full max-w-full min-w-12 rounded-full py-2 font-semibold whitespace-normal sm:w-auto sm:px-6"
           >
             {isPending ? 'Saving changes…' : 'Save Profile'}
           </Button>

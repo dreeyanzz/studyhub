@@ -28,6 +28,8 @@ import type { Database } from '@/lib/supabase/database.types'
 import { formatDateTime, formatOpeningHours } from '@/lib/space/format'
 import { cn } from '@/lib/utils'
 
+import { ResubmitSpaceButton } from './resubmit-space-button'
+
 type SpaceRow = Database['public']['Tables']['spaces']['Row']
 type SpaceStatus = Database['public']['Enums']['space_status']
 
@@ -41,6 +43,7 @@ export type SpaceListItem = Pick<
   | 'opens_at'
   | 'closes_at'
   | 'status'
+  | 'status_reason'
   | 'updated_at'
 >
 
@@ -53,7 +56,7 @@ export const statusBadges: Record<
   pending: { label: 'Pending verification', variant: 'secondary' },
   verified: { label: 'Verified', variant: 'default' },
   rejected: { label: 'Rejected', variant: 'destructive' },
-  // STORY-20 (D-084). TSK-20.2 adds its reason and Resubmit.
+  // STORY-20 (D-084).
   taken_down: { label: 'Taken down', variant: 'destructive' },
 }
 
@@ -62,6 +65,34 @@ export interface SpaceSetupStatus {
   hasUnits: boolean
   hasPhotos: boolean
   hasTags: boolean
+}
+
+/**
+ * What the Administrator's reason is called on a Host's card, or null when there is
+ * none to show (STORY-20 design §3, D-084). A Pending Space with a reason was
+ * resubmitted (V8), which keeps the last reason. A Verified Space never has one
+ * (N12), and a Pending Space without one is new or was edited (V1, V6).
+ */
+export function statusReasonLabel(
+  status: SpaceStatus,
+  reason: string | null,
+): string | null {
+  if (!reason) return null
+  switch (status) {
+    case 'rejected':
+      return 'Rejection reason:'
+    case 'taken_down':
+      return 'Take-down reason:'
+    case 'pending':
+      return 'Previous reason:'
+    case 'verified':
+      return null
+  }
+}
+
+/** Only a Rejected or Taken down Space can be resubmitted (V8, N11). */
+export function canResubmit(status: SpaceStatus): boolean {
+  return status === 'rejected' || status === 'taken_down'
 }
 
 function SpaceSetupChecklist({
@@ -141,6 +172,7 @@ function SpaceSetupChecklist({
 
 function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupStatus }) {
   const status = statusBadges[space.status]
+  const reasonLabel = statusReasonLabel(space.status, space.status_reason)
   const showChecklist =
     setup !== undefined &&
     (space.status === 'pending' || !setup.hasUnits || !setup.hasPhotos || !setup.hasTags)
@@ -175,6 +207,16 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
             {space.description}
           </p>
         ) : null}
+        {/* The Administrator's reason, as plain text: React escapes it as it does the
+            description (STORY-20 design §3, D-084). */}
+        {reasonLabel ? (
+          <div className="rounded-xl border-l-4 border-destructive bg-destructive/5 px-3.5 py-2.5">
+            <p className="text-sm font-semibold text-destructive">{reasonLabel}</p>
+            <p className="text-sm wrap-anywhere whitespace-pre-line text-foreground/90">
+              {space.status_reason}
+            </p>
+          </div>
+        ) : null}
         <dl className="grid gap-2 rounded-xl border border-border/60 bg-muted/40 p-3 text-sm sm:grid-cols-2">
           <div className="flex items-start gap-2">
             <Clock
@@ -200,6 +242,11 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
         ) : null}
       </CardContent>
       <CardFooter className="flex flex-col items-stretch gap-3 border-t border-border/60 bg-muted/20 pt-4">
+        {/* First, so the one thing a Rejected or Taken down Space waits on comes
+            before the everyday links (V8). */}
+        {canResubmit(space.status) ? (
+          <ResubmitSpaceButton spaceId={space.id} spaceName={space.name} />
+        ) : null}
         {/* The hidden name completes each link's accessible name, so every card's
             "Edit" and "Delete" say which Space they act on (design §3.2). */}
         <div className="flex flex-wrap gap-2">
