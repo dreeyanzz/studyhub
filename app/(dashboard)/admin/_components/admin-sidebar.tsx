@@ -77,7 +77,8 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
         >
           <Link
             href="/admin"
-            aria-label="Worq Administrator home"
+            aria-label={isCollapsed ? 'Worq Administrator home' : undefined}
+            title={isCollapsed ? 'Worq Administrator home' : undefined}
             className={cn(
               'flex min-h-12 min-w-12 items-center rounded-xl transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
               isCollapsed ? 'justify-center p-1' : 'gap-3 px-1.5 py-1',

@@ -37,7 +37,6 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin"
-          aria-label="Worq Administrator home"
           className="flex min-h-[48px] min-w-[48px] items-center gap-2.5 rounded-xl px-1 py-1 transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           <div className="relative">

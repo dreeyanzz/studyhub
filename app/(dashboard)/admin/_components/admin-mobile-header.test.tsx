@@ -15,7 +15,6 @@ describe('AdminMobileHeader (STORY-17)', () => {
 
     expect(html).toContain('Admin Jane')
     expect(html).toContain('Verification (3)')
-    expect(html).toContain('aria-label="Worq Administrator home"')
     expect(html).toContain('href="/admin"')
     expect(html).toContain('href="/admin/moderation"')
     expect(html).toContain('href="/admin/payments"')
