@@ -139,7 +139,7 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
           <AlertTitle>No units available</AlertTitle>
           <AlertDescription className="space-y-2">
             <p>
-              No units are currently Available. Check back later or{' '}
+              No units are currently available. Check back later or{' '}
               <Link
                 href={DISCOVERY_HREF}
                 className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
