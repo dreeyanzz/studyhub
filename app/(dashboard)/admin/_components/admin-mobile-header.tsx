@@ -2,7 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CreditCard, LogOut, MessageSquare, ShieldCheck } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CreditCard,
+  LogOut,
+  MapPin,
+  MessageSquare,
+  ShieldCheck,
+} from 'lucide-react'
 
 import { signOut } from '@/app/(auth)/actions'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +35,11 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
   return (
     <header className="sticky top-0 z-20 border-b border-border/80 bg-card/95 px-4 py-3 shadow-2xs backdrop-blur-md lg:hidden">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
+        <Link
+          href="/admin"
+          aria-label="Worq Administrator home"
+          className="flex min-h-[48px] min-w-[48px] items-center gap-2.5 rounded-xl px-1 py-1 transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+        >
           <div className="relative">
             <div
               aria-hidden="true"
@@ -50,18 +61,33 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
             </div>
             <p className="text-xs text-muted-foreground">Administrator Console</p>
           </div>
-        </div>
+        </Link>
 
-        <form action={signOut}>
-          <Button
-            variant="outline"
-            type="submit"
-            className="min-h-[48px] min-w-[48px] gap-1.5 rounded-xl border-border/80 text-xs font-semibold hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/spaces"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View Discovery Map (opens in new tab)"
+            title="View Discovery Map"
+            className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            <LogOut className="size-3.5" aria-hidden="true" />
-            <span>Log out</span>
-          </Button>
-        </form>
+            <MapPin className="size-3.5 text-primary" aria-hidden="true" />
+            <span className="hidden sm:inline">Map</span>
+            <ArrowUpRight className="size-3 text-muted-foreground" aria-hidden="true" />
+          </Link>
+
+          <form action={signOut}>
+            <Button
+              variant="outline"
+              type="submit"
+              className="min-h-[48px] min-w-[48px] gap-1.5 rounded-xl border-border/80 text-xs font-semibold hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
+            >
+              <LogOut className="size-3.5" aria-hidden="true" />
+              <span>Log out</span>
+            </Button>
+          </form>
+        </div>
       </div>
 
       {/* Mobile Tab Bar */}

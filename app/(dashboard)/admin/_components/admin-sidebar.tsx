@@ -75,8 +75,13 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
             isCollapsed ? 'flex-col gap-2.5' : 'justify-between gap-2',
           )}
         >
-          <div
-            className={cn('flex items-center', isCollapsed ? 'justify-center' : 'gap-3')}
+          <Link
+            href="/admin"
+            aria-label="Worq Administrator home"
+            className={cn(
+              'flex min-h-12 min-w-12 items-center rounded-xl transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+              isCollapsed ? 'justify-center p-1' : 'gap-3 px-1.5 py-1',
+            )}
           >
             <div
               aria-hidden="true"
@@ -103,7 +108,7 @@ export function AdminSidebar({ displayName, pendingCount }: AdminSidebarProps) {
                 </p>
               </div>
             )}
-          </div>
+          </Link>
           <Button
             type="button"
             variant="outline"

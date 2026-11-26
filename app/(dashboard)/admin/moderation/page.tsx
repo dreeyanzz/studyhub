@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { buttonVariants } from '@/components/ui/button'
 import { dashboardFor } from '@/lib/auth/role-guard'
 import {
   getModerationHistory,
@@ -72,34 +71,46 @@ export default async function AdminModerationPage({
   if (!queue || !historyMap) {
     return (
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <div className="border-b border-border/70 pb-5">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Review Moderation
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
             Review reported content, restore hidden reviews, or remove them permanently.
           </p>
         </div>
 
         <nav aria-label="Review moderation lists" className="flex flex-wrap gap-2">
-          {LIST_TABS.map((tab) => (
-            <Link
-              key={tab.value}
-              href={`/admin/moderation?list=${tab.value}`}
-              aria-current={list === tab.value ? 'page' : undefined}
-              className={cn(
-                buttonVariants({ variant: list === tab.value ? 'default' : 'outline' }),
-                'h-auto min-h-12 min-w-12 py-2 whitespace-normal',
-              )}
-            >
-              {tab.label}
-            </Link>
-          ))}
+          {LIST_TABS.map((tab) => {
+            const active = list === tab.value
+            return (
+              <Link
+                key={tab.value}
+                href={`/admin/moderation?list=${tab.value}`}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  active
+                    ? 'border-primary bg-primary text-primary-foreground shadow-2xs'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted',
+                )}
+              >
+                {tab.label}
+              </Link>
+            )
+          })}
         </nav>
 
-        <Alert variant="destructive" role="alert" data-testid="moderation-load-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="moderation-load-error"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
-          <AlertTitle>Error loading moderation queue</AlertTitle>
+          <AlertTitle className="font-semibold">
+            Error loading moderation queue
+          </AlertTitle>
           <AlertDescription>
             We couldn&apos;t load the moderation queue. Refresh the page to try again.
           </AlertDescription>

@@ -6,11 +6,11 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 export default function AdminPaymentsLoading() {
   return (
     <div className="space-y-6" aria-busy="true" aria-live="polite">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="border-b border-border/70 pb-5">
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Payment Records
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="mt-1 text-sm font-medium text-muted-foreground">
           Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose hold
           ended without a check-in.
         </p>
@@ -20,7 +20,7 @@ export default function AdminPaymentsLoading() {
         {[1, 2, 3, 4, 5].map((tabId) => (
           <div
             key={tabId}
-            className="h-12 w-24 animate-pulse rounded-lg bg-muted"
+            className="h-12 w-24 animate-pulse rounded-xl bg-muted"
             aria-hidden="true"
           />
         ))}
@@ -28,7 +28,10 @@ export default function AdminPaymentsLoading() {
 
       <div className="space-y-4">
         {[1, 2, 3].map((placeholderId) => (
-          <Card key={placeholderId} className="animate-pulse bg-muted/50">
+          <Card
+            key={placeholderId}
+            className="animate-pulse overflow-hidden rounded-2xl border-border/70 bg-card shadow-xs"
+          >
             <CardHeader className="space-y-2">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="h-6 w-48 rounded bg-muted" />
