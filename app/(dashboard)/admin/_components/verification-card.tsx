@@ -1,8 +1,19 @@
 'use client'
 
-import { useState } from 'react'
-import { Calendar, CheckCircle2, Clock, MapPin, User, XCircle } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import {
+  Calendar,
+  CheckCircle2,
+  Clock,
+  EyeOff,
+  MapPin,
+  RefreshCw,
+  RotateCcw,
+  User,
+  XCircle,
+} from 'lucide-react'
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,57 +24,117 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import type { VerificationSpace } from '@/lib/data/verification'
 import { formatDateTime, formatOpeningHours } from '@/lib/space/format'
+import { SpaceEventsList, SPACE_STATUS_LABELS } from './space-events-list'
 
-export type VerificationCardItem = {
-  id: string
-  name: string
-  description: string | null
-  address: string
-  opens_at: string
-  closes_at: string
-  status: 'pending' | 'verified' | 'rejected' | 'taken_down'
-  created_at: string
-  updated_at: string
-  host_name: string | null
-  photos?: string[] | null
-}
+export type VerificationCardItem = VerificationSpace
+
+/** What a card's buttons ask for: V2, V3, V7, V9 and V10 (STORY-20 design §2). */
+export type VerificationAction = 'approve' | 'reject' | 'take_down' | 'undo' | 'put_back'
 
 interface VerificationCardProps {
   space: VerificationCardItem
-  onDecision: (
-    space: VerificationCardItem,
-    status: 'verified' | 'rejected',
-  ) => Promise<void>
+  onAction: (space: VerificationCardItem, action: VerificationAction) => Promise<void>
   onInspect?: (space: VerificationCardItem) => void
+  /** A Host changed this Space since it loaded: decisions wait for a reload (D-086). */
+  stale?: boolean
+  onReload?: () => void
+}
+
+const TIMESTAMP_LABELS = {
+  pending: 'Waiting since:',
+  verified: 'Verified:',
+  rejected: 'Rejected:',
+  taken_down: 'Taken down:',
+} as const
+
+const BUTTON =
+  'min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl px-5 font-semibold sm:w-auto'
+const DESTRUCTIVE_OUTLINE =
+  'border-destructive/40 bg-destructive/5 text-destructive shadow-2xs hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive'
+
+function ReasonCallout({ label, reason }: { label: string; reason: string }) {
+  return (
+    <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
+      <p className="text-xs font-bold tracking-wider text-destructive uppercase">
+        {label}
+      </p>
+      <p className="mt-1 text-sm leading-relaxed wrap-anywhere whitespace-pre-line text-foreground">
+        {reason}
+      </p>
+    </div>
+  )
+}
+
+function ActionButton({
+  label,
+  spaceName,
+  icon,
+  onClick,
+  disabled,
+  busy,
+  className,
+  variant,
+}: {
+  label: string
+  spaceName: string
+  icon: ReactNode
+  onClick: () => void
+  disabled: boolean
+  busy?: boolean
+  className: string
+  variant?: 'outline' | 'default'
+}) {
+  return (
+    <Button
+      type="button"
+      variant={variant ?? 'outline'}
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+      aria-busy={busy || undefined}
+    >
+      {icon}
+      <span>{label}</span>
+      <span className="sr-only"> {spaceName}</span>
+    </Button>
+  )
 }
 
 /**
- * Individual pending Space card within the verification queue (STORY-15 design §3).
- * Renders Space name, address, hours, host name, creation timestamp, and
- * accessible Inspect, Approve, and Reject action buttons with 48x48 px minimum touch targets (D-031).
+ * One Space on `/admin` (STORY-15 design §3, STORY-20 design §3, screen 1). Shows the
+ * Space, its status in words, how a Pending Space got there, its reason, its list of
+ * changes, and the buttons its list allows. Every button is at least 48 × 48 px and
+ * names the Space for screen readers (D-031). When a Host has changed the Space since it
+ * loaded, an "Updated by Host" notice replaces the decision until a reload (D-086).
  */
 export function VerificationCard({
   space,
-  onDecision,
+  onAction,
   onInspect,
+  stale = false,
+  onReload,
 }: VerificationCardProps) {
-  const [isPending, setIsPending] = useState(false)
-  const [activeDecision, setActiveDecision] = useState<'verified' | 'rejected' | null>(
-    null,
-  )
+  const [approving, setApproving] = useState(false)
   const hostDisplay = space.host_name?.trim() || 'Unnamed'
+  const disabled = stale || approving
 
-  async function handleAction(status: 'verified' | 'rejected') {
-    setIsPending(true)
-    setActiveDecision(status)
+  async function approve() {
+    setApproving(true)
     try {
-      await onDecision(space, status)
+      await onAction(space, 'approve')
     } finally {
-      setIsPending(false)
-      setActiveDecision(null)
+      setApproving(false)
     }
   }
+
+  const reasonLabel =
+    space.status === 'pending'
+      ? 'Previous reason:'
+      : space.status === 'rejected' || space.status === 'taken_down'
+        ? 'Reason:'
+        : null
 
   return (
     <Card className="group relative h-full overflow-visible rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md">
@@ -88,16 +159,67 @@ export function VerificationCard({
               </CardDescription>
             </div>
           </div>
-          <Badge
-            variant="secondary"
-            className="rounded-full px-3 py-1 text-xs font-semibold"
-          >
-            Pending verification
-          </Badge>
+          <div className="flex flex-wrap gap-2">
+            {space.origin === 'edited' ? (
+              <Badge
+                variant="outline"
+                className="rounded-full px-3 py-1 text-xs font-semibold"
+              >
+                Edited
+              </Badge>
+            ) : null}
+            {space.origin === 'resubmitted' ? (
+              <Badge
+                variant="outline"
+                className="rounded-full px-3 py-1 text-xs font-semibold"
+              >
+                Resubmitted
+              </Badge>
+            ) : null}
+            <Badge
+              variant={
+                space.status === 'rejected' || space.status === 'taken_down'
+                  ? 'destructive'
+                  : 'secondary'
+              }
+              className="rounded-full px-3 py-1 text-xs font-semibold"
+            >
+              {SPACE_STATUS_LABELS[space.status]}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 space-y-4 pt-0">
+        {stale ? (
+          <Alert
+            role="status"
+            aria-live="polite"
+            className="rounded-xl border-primary/40"
+          >
+            <RefreshCw className="size-4 shrink-0" aria-hidden="true" />
+            <AlertTitle className="font-semibold">Updated by Host</AlertTitle>
+            <AlertDescription className="space-y-3 text-sm">
+              <p className="wrap-anywhere">
+                {space.name} was just changed. Reload to inspect the latest details and
+                list of changes before deciding.
+              </p>
+              <Button
+                type="button"
+                className="min-h-[48px] min-w-[48px] rounded-xl font-semibold"
+                onClick={onReload}
+              >
+                Reload latest version
+                <span className="sr-only"> {space.name}</span>
+              </Button>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
+        {reasonLabel && space.status_reason ? (
+          <ReasonCallout label={reasonLabel} reason={space.status_reason} />
+        ) : null}
+
         {space.description ? (
           <div className="rounded-xl border border-border/70 bg-muted/20 px-4 py-3">
             <p className="text-xs font-bold tracking-wider text-muted-foreground uppercase">
@@ -133,17 +255,21 @@ export function VerificationCard({
           <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
             <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
               <Calendar className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
-              Submitted:{' '}
+              {TIMESTAMP_LABELS[space.status]}{' '}
             </dt>
             <dd className="mt-1 block font-bold wrap-anywhere text-foreground">
-              <time dateTime={space.created_at}>{formatDateTime(space.created_at)}</time>
+              <time dateTime={space.status_changed_at}>
+                {formatDateTime(space.status_changed_at)}
+              </time>
             </dd>
           </div>
         </dl>
+
+        <SpaceEventsList events={space.events} />
       </CardContent>
 
       <CardFooter className="flex flex-wrap justify-end gap-3 rounded-b-2xl border-t border-border/70 bg-muted/25 px-4 py-4 sm:px-6">
-        {onInspect && (
+        {onInspect ? (
           <Button
             type="button"
             variant="outline"
@@ -153,36 +279,54 @@ export function VerificationCard({
             <span>Inspect</span>
             <span className="sr-only"> {space.name}</span>
           </Button>
-        )}
+        ) : null}
 
-        <Button
-          type="button"
-          variant="outline"
-          className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-5 font-semibold text-destructive shadow-2xs transition-all duration-200 hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive active:scale-[0.98] sm:w-auto"
-          onClick={() => handleAction('rejected')}
-          disabled={isPending}
-          aria-busy={isPending && activeDecision === 'rejected'}
-        >
-          <XCircle className="size-4 shrink-0" aria-hidden="true" />
-          <span>
-            {isPending && activeDecision === 'rejected' ? 'Rejecting...' : 'Reject'}
-          </span>
-          <span className="sr-only"> {space.name}</span>
-        </Button>
+        {space.status === 'pending' ? (
+          <>
+            <ActionButton
+              label="Reject"
+              spaceName={space.name}
+              icon={<XCircle className="size-4 shrink-0" aria-hidden="true" />}
+              onClick={() => void onAction(space, 'reject')}
+              disabled={disabled}
+              className={`${BUTTON} ${DESTRUCTIVE_OUTLINE}`}
+            />
+            <ActionButton
+              label={approving ? 'Approving...' : 'Approve'}
+              spaceName={space.name}
+              icon={<CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />}
+              onClick={() => void approve()}
+              disabled={disabled}
+              busy={approving}
+              variant="default"
+              className={`${BUTTON} bg-primary px-6 text-primary-foreground shadow-sm hover:bg-primary/90`}
+            />
+          </>
+        ) : null}
 
-        <Button
-          type="button"
-          className="min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] sm:w-auto"
-          onClick={() => handleAction('verified')}
-          disabled={isPending}
-          aria-busy={isPending && activeDecision === 'verified'}
-        >
-          <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
-          <span>
-            {isPending && activeDecision === 'verified' ? 'Approving...' : 'Approve'}
-          </span>
-          <span className="sr-only"> {space.name}</span>
-        </Button>
+        {space.status === 'verified' ? (
+          <ActionButton
+            label="Take down"
+            spaceName={space.name}
+            icon={<EyeOff className="size-4 shrink-0" aria-hidden="true" />}
+            onClick={() => void onAction(space, 'take_down')}
+            disabled={disabled}
+            className={`${BUTTON} ${DESTRUCTIVE_OUTLINE}`}
+          />
+        ) : null}
+
+        {space.status === 'rejected' || space.status === 'taken_down' ? (
+          <ActionButton
+            label={space.status === 'rejected' ? 'Undo' : 'Put back'}
+            spaceName={space.name}
+            icon={<RotateCcw className="size-4 shrink-0" aria-hidden="true" />}
+            onClick={() =>
+              void onAction(space, space.status === 'rejected' ? 'undo' : 'put_back')
+            }
+            disabled={disabled}
+            className={`${BUTTON} border-border/80 text-foreground hover:bg-muted`}
+          />
+        ) : null}
       </CardFooter>
     </Card>
   )
