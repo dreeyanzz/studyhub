@@ -206,6 +206,13 @@ tests and `db:types` (D-066; auto-pushed to `studyhub-dev` on merge, D-096); the
 email through the team Gmail account (D-089); and the history page, Hold again, and
 "Leave a review", with their tests.
 
+> **Update, Thu 26 Nov: STORY-16 is done** (#387, #407, #415, #435, #437). A Seeker
+> reads every reservation they paid for on `/seeker/reservations`, with how it ended and
+> what happened to the fee; Hold again opens the Space profile and says why when the unit
+> can't be held; a checked-in visit can be reviewed or its review edited from there; and a
+> confirmed payment emails the Seeker once through the team Gmail account. The design's
+> manual email check is still to do (design §9).
+
 **Your app.** For STORY-20: `lib/data/`, `lib/validation/`, Server Actions, pages and
 components, and their tests: the reason on Reject, the "Edited" mark, Take down, and the
 Host's reason, Resubmit and edit warning.
