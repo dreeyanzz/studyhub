@@ -227,35 +227,39 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
       </div>
 
       {hasSpaces && spaces ? (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))] gap-4">
+          <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
               <Building2 className="size-5" aria-hidden="true" />
             </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Total Spaces</p>
+            <div className="min-w-0">
+              <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
+                Total Spaces
+              </p>
               <p className="font-heading text-2xl font-bold text-foreground">
                 {spaces.length}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+          <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
               <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
             </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">Verified & live</p>
+            <div className="min-w-0">
+              <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
+                Verified & live
+              </p>
               <p className="font-heading text-2xl font-bold text-foreground">
                 {verifiedCount}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
+          <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
             <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f0c95c]/25 text-[#173c2d]">
               <Clock className="size-5" aria-hidden="true" />
             </div>
-            <div>
-              <p className="text-xs font-medium text-muted-foreground">
+            <div className="min-w-0">
+              <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
                 Pending verification
               </p>
               <p className="font-heading text-2xl font-bold text-foreground">

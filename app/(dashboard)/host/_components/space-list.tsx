@@ -218,21 +218,18 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
           </div>
         ) : null}
         <dl className="grid gap-2 rounded-xl border border-border/60 bg-muted/40 p-3 text-sm sm:grid-cols-2">
-          <div className="flex items-start gap-2">
-            <Clock
-              className="mt-0.5 size-4 shrink-0 text-primary/70"
-              aria-hidden="true"
-            />
-            <div>
-              <dt className="text-xs font-medium text-muted-foreground">Daily hours</dt>
-              <dd className="font-medium text-foreground">
-                {formatOpeningHours(space.opens_at, space.closes_at)}
-              </dd>
-            </div>
+          <div className="min-w-0">
+            <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <Clock className="size-3.5 shrink-0 text-primary/70" aria-hidden="true" />
+              Daily hours
+            </dt>
+            <dd className="mt-0.5 font-medium text-foreground">
+              {formatOpeningHours(space.opens_at, space.closes_at)}
+            </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="text-xs font-medium text-muted-foreground">Last updated</dt>
-            <dd className="font-medium text-foreground">
+            <dd className="mt-0.5 font-medium text-foreground">
               <time dateTime={space.updated_at}>{formatDateTime(space.updated_at)}</time>
             </dd>
           </div>
