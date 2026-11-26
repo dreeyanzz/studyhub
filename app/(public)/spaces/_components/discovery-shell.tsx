@@ -241,6 +241,52 @@ export function filterSpacesClientSide(
   return results
 }
 
+export type DiscoverySortOption = 'default' | 'open_now' | 'rating' | 'nearest'
+
+/**
+ * Sorts already-filtered Spaces according to the Seeker's chosen sort order (STORY-17).
+ * Preserves relative order on ties.
+ */
+export function sortSpacesClientSide(
+  spaces: VerifiedSpaceSearchResult[],
+  sortBy: DiscoverySortOption,
+  now: Date = new Date(),
+): VerifiedSpaceSearchResult[] {
+  if (sortBy === 'default' || spaces.length <= 1) {
+    return spaces
+  }
+
+  const sorted = [...spaces]
+
+  if (sortBy === 'open_now') {
+    const currentManilaMinutes = getManilaMinutesFromDate(now)
+    sorted.sort((a, b) => {
+      const aOpen = isSpaceOpenNow(a.opens_at, a.closes_at, currentManilaMinutes) ? 1 : 0
+      const bOpen = isSpaceOpenNow(b.opens_at, b.closes_at, currentManilaMinutes) ? 1 : 0
+      return bOpen - aOpen
+    })
+    return sorted
+  }
+
+  if (sortBy === 'rating') {
+    sorted.sort((a, b) => {
+      const aRating = a.avg_overall ?? -1
+      const bRating = b.avg_overall ?? -1
+      if (bRating !== aRating) return bRating - aRating
+      return b.review_count - a.review_count
+    })
+    return sorted
+  }
+
+  // sortBy === 'nearest'
+  sorted.sort((a, b) => {
+    const aDist = a.distance_km ?? Number.POSITIVE_INFINITY
+    const bDist = b.distance_km ?? Number.POSITIVE_INFINITY
+    return aDist - bDist
+  })
+  return sorted
+}
+
 /**
  * Bridges client-side URL updates to Next.js App Router when mounted inside a route.
  * Skipped during isolated `renderToStaticMarkup` unit tests where AppRouterContext is absent.
@@ -294,6 +340,7 @@ export function DiscoveryShell({
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null)
   const [hoveredSpaceId, setHoveredSpaceId] = useState<string | null>(null)
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
+  const [sortBy, setSortBy] = useState<DiscoverySortOption>('default')
 
   const applyNextQuery = (nextQuery: DiscoverySearchQuery) => {
     setQuery(nextQuery)
@@ -370,8 +417,8 @@ export function DiscoveryShell({
   }
 
   const displayedSpaces = useMemo(
-    () => filterSpacesClientSide(spaces, query),
-    [spaces, query],
+    () => sortSpacesClientSide(filterSpacesClientSide(spaces, query), sortBy),
+    [spaces, query, sortBy],
   )
 
   const { center: mapCenter, zoom: mapZoom } = useMemo(
@@ -456,6 +503,28 @@ export function DiscoveryShell({
             mobileView === 'map' ? 'hidden lg:block' : 'block',
           )}
         >
+          {displayedSpaces.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+              <label
+                htmlFor="discovery-sort"
+                className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+              >
+                Sort by
+              </label>
+              <select
+                id="discovery-sort"
+                data-testid="discovery-sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as DiscoverySortOption)}
+                className="min-h-12 max-w-full min-w-12 rounded-full border border-border/80 bg-card px-4 py-2 text-sm font-medium text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                <option value="default">Recommended</option>
+                <option value="open_now">Open now first</option>
+                <option value="rating">Highest rated</option>
+                <option value="nearest">Nearest</option>
+              </select>
+            </div>
+          )}
           <SpaceCardList
             spaces={displayedSpaces}
             activeSpaceId={activeSpaceId}

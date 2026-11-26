@@ -4,7 +4,11 @@ import Link from 'next/link'
 import { ReviewRating } from '@/components/review/review-rating'
 import { PriceTierBadge } from './price-tier-badge'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
-import { isSpaceOpen24h } from '@/lib/data/spaces'
+import {
+  getManilaMinutesFromDate,
+  isSpaceOpen24h,
+  isSpaceOpenNow,
+} from '@/lib/data/spaces'
 import { formatDescriptionSnippet } from '@/lib/space/format'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +16,8 @@ interface SpaceCardProps {
   space: VerifiedSpaceSearchResult
   isActive?: boolean
   isHovered?: boolean
+  /** Optional override for deterministic rendering/tests; defaults to live Manila time. */
+  isOpen?: boolean
   onHover?: (id: string | null) => void
   onSelect?: (id: string) => void
   className?: string
@@ -38,12 +44,16 @@ export function SpaceCard({
   space,
   isActive = false,
   isHovered = false,
+  isOpen,
   onHover,
   onSelect,
   className,
 }: SpaceCardProps) {
   const snippet = space.description ? formatDescriptionSnippet(space.description) : ''
   const hoursLabel = formatHours(space.opens_at, space.closes_at)
+  const openNow =
+    isOpen ??
+    isSpaceOpenNow(space.opens_at, space.closes_at, getManilaMinutesFromDate(new Date()))
 
   return (
     <article
@@ -199,9 +209,28 @@ export function SpaceCard({
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/15 bg-[#153528]/92 px-4 py-3 text-white backdrop-blur-md">
           <div className="min-w-0 space-y-0.5">
             <span className="block text-xs text-white/85">Operating hours</span>
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-white">
-              <Clock className="size-3.5 shrink-0 text-accent" aria-hidden="true" />
-              <span>{hoursLabel}</span>
+            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-white">
+              <span className="flex items-center gap-1.5">
+                <Clock className="size-3.5 shrink-0 text-accent" aria-hidden="true" />
+                <span>{hoursLabel}</span>
+              </span>
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                  openNow
+                    ? 'bg-emerald-400/20 text-emerald-100 ring-1 ring-emerald-300/35'
+                    : 'bg-white/12 text-white/85 ring-1 ring-white/20',
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'size-1.5 shrink-0 rounded-full',
+                    openNow ? 'bg-emerald-300' : 'bg-white/60',
+                  )}
+                />
+                <span>{openNow ? 'Open now' : 'Closed'}</span>
+              </span>
             </div>
           </div>
 

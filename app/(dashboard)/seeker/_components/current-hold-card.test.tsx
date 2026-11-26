@@ -83,6 +83,8 @@ describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
     expect(plain).toContain('Booking token ABCD- EFGH- JKMN')
     expect(plain).toContain('Copy code')
     expect(plain).toContain('Get directions')
+    expect(plain).toContain('View Space details')
+    expect(raw).toContain(`href="/spaces/${hold.spaceId}"`)
     expect(raw).toContain('https://www.google.com/maps/search/?api=1&amp;query=')
     expect(plain).toContain(
       'Present this QR code to the host or recite your code upon arrival.',
