@@ -332,6 +332,16 @@ export default async function SpaceProfilePage({
                   You can&apos;t hold that unit while the Space is closed.
                 </p>
               )}
+              {availability.availableUnits > 0 && (
+                <div>
+                  <Link
+                    href={DISCOVERY_HREF}
+                    className="inline-flex min-h-12 items-center rounded-xs font-medium text-primary underline underline-offset-4 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+                  >
+                    Explore other spaces
+                  </Link>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         )}

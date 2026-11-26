@@ -32,7 +32,7 @@ export function AuthShell({
               href="/"
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
-                'rounded-full px-4 font-heading text-base font-semibold text-primary',
+                'min-h-12 min-w-12 rounded-full px-4 font-heading text-base font-semibold text-primary',
               )}
             >
               Worq

@@ -305,6 +305,7 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
       'You can review seats and amenities; reservations open during operating hours.',
     )
     expect(html).toContain('Closed · Opens tomorrow at 01:00')
+    expect(html).toContain('Explore other spaces')
     expect(html).toContain('data-testid="seeker-space-closed"')
     expect(html).not.toContain('href="/"')
   })
