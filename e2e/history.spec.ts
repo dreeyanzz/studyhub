@@ -2,11 +2,11 @@ import { expect, test, type Browser, type Locator, type Page } from '@playwright
 import postgres from 'postgres'
 
 /**
- * Reservation history E2E journey (STORY-16 design A4, TSK-16.5, #386, D-077, D-081).
+ * Reservation history E2E journey (STORY-16 design §4, TSK-16.5, #386, D-077, D-081).
  *
  * Creates its own Spaces, units, and paid, finished visits as postgres, and removes them
  * in afterAll, as e2e/seeker-journey.spec.ts and e2e/reviews.spec.ts do. Every account
- * is @example.test, so no confirmation email is ever sent (STORY-16 design A1).
+ * is @example.test, so no confirmation email is ever sent (STORY-16 design §2, D-013).
  */
 
 const SEED_PASSWORD = 'Worq-demo-2026'
@@ -346,14 +346,14 @@ test.describe('Reservation history journey (STORY-16, TSK-16.5)', () => {
 
       await expect(dialog).not.toBeVisible()
       await expect(row.getByTestId('review-live-status')).toContainText('Review updated.')
-      // Closing the dialog returns focus to its trigger (Radix, design A3 Screen 4).
+      // Closing the dialog returns focus to its trigger (Radix, design §3 Screen 4).
       await expect(editButton).toBeFocused()
 
       // 3. The edit reached Postgres: the profile shows it, marked Edited
       await page.goto(`/spaces/${listedSpaceId}`)
       const authorGroup = page.getByTestId('author-reviews-group')
       await expect(authorGroup).toContainText('Edited from my history.')
-      await expect(authorGroup).toContainText('Edited')
+      await expect(authorGroup.getByText('Edited', { exact: true })).toBeVisible()
     } finally {
       await context.close().catch(() => undefined)
     }
