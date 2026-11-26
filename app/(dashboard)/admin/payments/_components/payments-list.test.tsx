@@ -82,6 +82,27 @@ describe('PaymentsList and RefundForm (STORY-14, TSK-14.4)', () => {
     expect(html).toContain('aria-live="polite"')
   })
 
+  it('names the Refund button after its payment, so repeated cards stay distinguishable (#431, D-031)', () => {
+    const html = renderToStaticMarkup(
+      <PaymentsList
+        items={[samplePayment()]}
+        filter="refundable"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    const button =
+      html.match(
+        new RegExp(
+          `<button\\b[^>]*data-testid="payment-refund-trigger-${PAYMENT_1}"[^>]*>.*?</button>`,
+        ),
+      )?.[0] ?? ''
+
+    expect(button).toContain(
+      '>Refund<span class="sr-only"> Kapihan Study Hall · S4, paid by Sam Dela Cruz</span></button>',
+    )
+  })
+
   it('renders empty state and Show more / 100-item cap copy', () => {
     expect(
       renderToStaticMarkup(
