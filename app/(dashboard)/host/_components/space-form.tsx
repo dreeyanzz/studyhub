@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { Database } from '@/lib/supabase/database.types'
+import { cn } from '@/lib/utils'
 import { WAIT_WINDOW_OPTIONS } from '@/lib/validation/reservation'
 import type { PriceTier } from '@/lib/validation/search'
 import {
@@ -365,8 +366,14 @@ export function SpaceForm(props: SpaceFormProps) {
           </SpaceFormField>
         </div>
       </fieldset>
-      <div className="flex flex-wrap gap-3">
-        <Button ref={submitRef} type="submit" disabled={pending} focusableWhenDisabled>
+      <div className="flex flex-wrap gap-3 pt-2">
+        <Button
+          ref={submitRef}
+          type="submit"
+          disabled={pending}
+          focusableWhenDisabled
+          className="h-auto min-h-12 rounded-full bg-[#f0c95c] px-6 py-2.5 font-semibold text-[#173c2d] shadow-xs hover:bg-[#f0c95c]/90"
+        >
           {creating
             ? pending
               ? 'Creating Space…'
@@ -376,7 +383,13 @@ export function SpaceForm(props: SpaceFormProps) {
               : 'Save changes'}
         </Button>
         {!creating && (
-          <Link href="/host" className={buttonVariants({ variant: 'outline' })}>
+          <Link
+            href="/host"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'h-auto min-h-12 rounded-full px-5 py-2.5',
+            )}
+          >
             Cancel
           </Link>
         )}

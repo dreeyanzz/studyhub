@@ -113,6 +113,46 @@ describe('SpaceList component (STORY-05, STORY-11 TSK-11.2)', () => {
     expect(html).toContain('You have no Spaces')
     expect(html).toContain('Spaces belong to the Hosts who create them.')
   })
+
+  it('links verified Spaces to their public Space page, and omits it for pending Spaces (STORY-17)', () => {
+    const html = renderToStaticMarkup(<SpaceList spaces={mockSpaces} canCreate={true} />)
+
+    expect(html).toContain('href="/spaces/e0000000-0000-4000-8000-000000000001"')
+    expect(html).toContain(
+      'View public Space<span class="sr-only"> for Kapihan Study Hub</span>',
+    )
+    expect(html).not.toContain('href="/spaces/e0000000-0000-4000-8000-000000000002"')
+  })
+
+  it('shows setup checklist items for incomplete or pending Spaces (STORY-17)', () => {
+    const html = renderToStaticMarkup(
+      <SpaceList
+        spaces={mockSpaces}
+        canCreate={true}
+        setupBySpaceId={{
+          'e0000000-0000-4000-8000-000000000001': {
+            hasUnits: true,
+            hasPhotos: true,
+            hasTags: true,
+          },
+          'e0000000-0000-4000-8000-000000000002': {
+            hasUnits: true,
+            hasPhotos: false,
+            hasTags: false,
+          },
+        }}
+      />,
+    )
+
+    expect(html).toContain('Setup checklist')
+    expect(html).toContain('Done')
+    expect(html).toContain(
+      'Add photos<span class="sr-only"> for Night Owls Coworking</span>',
+    )
+    expect(html).toContain(
+      'Add tags<span class="sr-only"> for Night Owls Coworking</span>',
+    )
+  })
 })
 
 describe('Verification reasons and Resubmit on /host (STORY-20 TSK-20.2, D-084)', () => {

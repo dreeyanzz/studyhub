@@ -5,6 +5,7 @@ import { useActionState, type FormEvent } from 'react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 import { deleteSpace } from '../actions'
 
@@ -31,7 +32,13 @@ export function DeleteSpaceForm({ spaceId }: { spaceId: string }) {
       )}
       <input type="hidden" name="spaceId" value={spaceId} />
       <div className="flex flex-wrap gap-3">
-        <Link href="/host" className={buttonVariants({ variant: 'outline' })}>
+        <Link
+          href="/host"
+          className={cn(
+            buttonVariants({ variant: 'outline' }),
+            'h-auto min-h-12 rounded-full px-5 py-2.5',
+          )}
+        >
           Cancel
         </Link>
         <Button
@@ -39,6 +46,7 @@ export function DeleteSpaceForm({ spaceId }: { spaceId: string }) {
           variant="destructive"
           disabled={pending}
           focusableWhenDisabled
+          className="h-auto min-h-12 rounded-full px-5 py-2.5"
         >
           {pending ? 'Deleting Space…' : 'Delete Space'}
         </Button>
