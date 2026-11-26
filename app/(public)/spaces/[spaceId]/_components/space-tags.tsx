@@ -42,12 +42,15 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
     <section
       aria-label="Amenities and Tags"
       data-testid="space-tags"
-      className={cn('min-w-0 space-y-3', className)}
+      className={cn(
+        'h-full min-w-0 space-y-5 rounded-3xl border border-l-4 border-border/60 border-l-primary bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]',
+        className,
+      )}
     >
       {/* Curated Amenity Tags */}
       {hasCurated && (
-        <div className="min-w-0 space-y-1.5" data-testid="curated-tags">
-          <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        <div className="min-w-0 space-y-3" data-testid="curated-tags">
+          <h2 className="text-xs font-semibold tracking-wider text-primary uppercase">
             Curated Amenities
           </h2>
           <div
@@ -62,7 +65,7 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
                 <div
                   key={tag.id}
                   role="listitem"
-                  className="inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium wrap-anywhere text-primary shadow-xs"
+                  className="inline-flex max-w-full min-w-0 items-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 px-3.5 py-2 text-xs font-medium wrap-anywhere text-primary"
                 >
                   <Icon className="size-3.5 shrink-0" aria-hidden="true" />
                   <span className="min-w-0 wrap-anywhere">{tag.label}</span>
@@ -75,7 +78,13 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
 
       {/* Host Custom Tags (D-006) */}
       {hasCustom && (
-        <div className="min-w-0 space-y-1.5" data-testid="custom-tags">
+        <div
+          className={cn(
+            'min-w-0 space-y-2.5',
+            hasCurated && 'border-t border-dashed border-border/80 pt-4',
+          )}
+          data-testid="custom-tags"
+        >
           <h2 className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
             Host custom tags
           </h2>
@@ -88,7 +97,7 @@ export function SpaceTags({ curatedTags, customTags, className }: SpaceTagsProps
               <span
                 key={tag}
                 role="listitem"
-                className="inline-flex max-w-full min-w-0 items-center rounded-full border border-muted-foreground/30 bg-muted/40 px-2.5 py-0.5 text-xs wrap-anywhere text-muted-foreground select-none"
+                className="inline-flex max-w-full min-w-0 items-center rounded-full border border-muted-foreground/30 bg-muted/40 px-3 py-1 text-xs wrap-anywhere text-muted-foreground select-none"
               >
                 <span className="min-w-0 wrap-anywhere">
                   {/* Visual only: screen readers would read it as "number" before each tag. */}

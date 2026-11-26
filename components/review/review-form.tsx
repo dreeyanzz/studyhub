@@ -96,7 +96,12 @@ export function ReviewForm({
       {reviewId && <input type="hidden" name="reviewId" value={reviewId} />}
 
       {state.status === 'error' && state.message && (
-        <Alert variant="destructive" role="alert" data-testid="review-form-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="review-form-error"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
           <AlertDescription>{state.message}</AlertDescription>
         </Alert>
@@ -128,11 +133,11 @@ export function ReviewForm({
                     <label
                       key={value}
                       className={cn(
-                        'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-lg border px-3 text-sm font-semibold transition-colors select-none',
+                        'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-semibold shadow-2xs transition-all select-none',
                         'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background',
                         isSelected
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'border-border bg-background text-foreground hover:bg-muted',
+                          ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                          : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-accent/40',
                         isPending && 'pointer-events-none opacity-50',
                       )}
                     >
@@ -168,7 +173,10 @@ export function ReviewForm({
       </div>
 
       <div className="space-y-2">
-        <label htmlFor={commentId} className="block text-sm font-medium text-foreground">
+        <label
+          htmlFor={commentId}
+          className="block px-1 text-sm font-medium text-foreground"
+        >
           Comment (optional)
         </label>
         <textarea
@@ -182,9 +190,9 @@ export function ReviewForm({
           aria-describedby={commentCountId}
           aria-invalid={state.fieldErrors?.comment ? 'true' : undefined}
           placeholder="Share how quiet, reliable, clean, and comfortable the Space felt."
-          className="min-h-24 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
+          className="min-h-24 w-full rounded-2xl border border-input bg-muted/60 px-4 py-3 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
         />
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
           <p id={commentCountId} className="text-xs text-muted-foreground">
             {remainingChars} / {REVIEW_COMMENT_MAX_LENGTH} characters remaining
           </p>
@@ -199,7 +207,7 @@ export function ReviewForm({
           type="submit"
           disabled={isPending}
           aria-busy={isPending}
-          className="h-auto min-h-12 py-2 whitespace-normal"
+          className="h-auto min-h-12 rounded-full px-6 py-2 font-semibold whitespace-normal"
         >
           {isPending ? 'Saving...' : submitLabel}
         </Button>
@@ -209,7 +217,7 @@ export function ReviewForm({
             variant="outline"
             onClick={onCancel}
             disabled={isPending}
-            className="h-auto min-h-12 py-2 whitespace-normal"
+            className="h-auto min-h-12 rounded-full px-5 py-2 whitespace-normal"
           >
             Cancel
           </Button>

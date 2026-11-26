@@ -43,11 +43,12 @@ const text = (html: string) =>
     .trim()
 
 describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
-  it('shows an unpaid hold: the unit, Pending Payment, and when to pay by', () => {
+  it('shows an unpaid hold: the unit, Pending Payment, live countdown, and when to pay by', () => {
     const html = renderToStaticMarkup(<CurrentHoldCard hold={hold} />)
     expect(text(html)).toContain('S4 at Kapihan Study Hall')
     expect(text(html)).toContain('Pending Payment')
     expect(text(html)).toContain('Pay by 3:42 PM')
+    expect(text(html)).toContain('min left)')
     expect(html).toContain(`href="/seeker/reservations/${hold.id}"`)
     expect(text(html)).toContain('View your hold')
   })
@@ -80,6 +81,8 @@ describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
     expect(raw).toContain('aria-label="Booking QR code for token ABCD-EFGH-JKMN"')
     expect(plain).toContain('Booking token ABCD- EFGH- JKMN')
     expect(plain).toContain('Copy code')
+    expect(plain).toContain('Get directions')
+    expect(raw).toContain('https://www.google.com/maps/search/?api=1&amp;query=')
     expect(plain).toContain(
       'Present this QR code to the host or recite your code upon arrival.',
     )
@@ -121,13 +124,12 @@ describe('CurrentHoldCard (STORY-09 & STORY-10 design §3)', () => {
     expect(
       renderToStaticMarkup(<CurrentHoldCard hold={{ ...hold, status: 'completed' }} />),
     ).toBe('')
-    expect(
-      text(
-        renderToStaticMarkup(
-          <CurrentHoldCard hold={{ ...hold, status: 'completed' }} showEnded />,
-        ),
-      ),
-    ).toContain('Visit completed')
+    const completedHtml = renderToStaticMarkup(
+      <CurrentHoldCard hold={{ ...hold, status: 'completed' }} showEnded />,
+    )
+    expect(text(completedHtml)).toContain('Visit completed')
+    expect(completedHtml).toContain(`href="/spaces/${hold.spaceId}#reviews-heading"`)
+    expect(text(completedHtml)).toContain('Leave a review')
     expect(
       text(
         renderToStaticMarkup(

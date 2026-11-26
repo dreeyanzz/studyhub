@@ -96,4 +96,22 @@ describe('SpaceProfileHeader (STORY-11, TSK-11.3)', () => {
 
     expect(html).not.toContain('A cozy corner')
   })
+
+  it('shows the upfront hold fee when holdFeeAmount is provided', () => {
+    const html = renderToStaticMarkup(
+      <SpaceProfileHeader
+        space={baseSpace}
+        operatingStatus={{
+          isOpen: true,
+          displayText: 'Open now · Closes at 22:00',
+          opensAt: '08:00',
+          closesAt: '22:00',
+          is24Hours: false,
+        }}
+        holdFeeAmount={5000}
+      />,
+    )
+
+    expect(html).toContain('Hold fee: ₱50.00')
+  })
 })
