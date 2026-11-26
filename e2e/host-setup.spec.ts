@@ -124,6 +124,48 @@ function adminCard(admin: Page, name: string) {
   })
 }
 
+/** V2, from the Pending list. */
+async function approveSpace(admin: Page, name: string) {
+  await admin.goto('/admin')
+  await adminCard(admin, name)
+    .getByRole('button', { name: `Approve ${name}` })
+    .click()
+  await expect(admin.getByRole('status')).toContainText(`${name} has been approved.`)
+}
+
+/** V3, from the Pending list, with the reason N10 requires. */
+async function rejectSpace(admin: Page, name: string, reason: string) {
+  await admin.goto('/admin')
+  await adminCard(admin, name)
+    .getByRole('button', { name: `Reject ${name}` })
+    .click()
+  const dialog = admin.getByRole('dialog', { name: `Reject Space - ${name}` })
+  await dialog.getByLabel('Reason').fill(reason)
+  await dialog.getByRole('button', { name: 'Confirm rejection' }).click()
+  await expect(admin.getByRole('status')).toContainText(`${name} has been rejected.`)
+}
+
+/** V7, from the Verified list, with the reason N10 requires. */
+async function takeDownSpace(admin: Page, name: string, reason: string) {
+  await admin.goto('/admin?tab=verified')
+  await adminCard(admin, name)
+    .getByRole('button', { name: `Take down ${name}` })
+    .click()
+  const dialog = admin.getByRole('dialog', { name: `Take down Space - ${name}` })
+  await dialog.getByLabel('Reason').fill(reason)
+  await dialog.getByRole('button', { name: 'Take down Space' }).click()
+  await expect(admin.getByRole('status')).toContainText(`${name} has been taken down.`)
+  await expect(dialog).toBeHidden()
+}
+
+/** Search results and the public profile, as a signed-out visitor sees them. */
+async function expectFoundBySeekers(page: Page, id: string, name: string) {
+  await page.goto(`/spaces?q=${encodeURIComponent(name)}`)
+  await expect(page.getByText(name).first()).toBeVisible()
+  await page.goto(`/spaces/${id}`)
+  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible()
+}
+
 /** Search results and the public profile, as a signed-out visitor or a Seeker sees them. */
 async function expectHiddenFromSeekers(page: Page, id: string, name: string) {
   await page.goto(`/spaces?q=${encodeURIComponent(name)}`)
@@ -409,5 +451,152 @@ test.describe('Host setup journey (docs/flows/host-setup-journey.md)', () => {
     expect((await requireSpace(name)).status).toBe('rejected')
 
     await expectHiddenFromSeekers(await newPage(browser), id, name)
+  })
+
+  test('host-edit-returns-pending: a Host renames a Verified Space after a warning, and it waits in the queue marked Edited, hidden from Seekers', async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(90_000)
+    await signIn(page, 'host@example.test', '/host')
+    const name = uniqueName('Edited')
+    const renamed = `${name} renamed`
+    const id = await createSpace(page, name)
+    const admin = await newPage(browser, 'admin@example.test', '/admin')
+    await approveSpace(admin, name)
+    const seeker = await newPage(browser)
+    await expectFoundBySeekers(seeker, id, name)
+
+    // V6: changing the name of a Verified Space asks first.
+    await page.goto(`/host/spaces/${id}/edit`)
+    await page.getByLabel('Space name').fill(renamed)
+    await page.getByRole('button', { name: 'Save changes' }).click()
+    const warning = page.getByRole('alertdialog', {
+      name: 'Send Space back to Pending verification?',
+    })
+    await expect(warning).toBeVisible()
+    await warning.getByRole('button', { name: 'Save and send for review' }).click()
+    await expect(
+      page.getByText(
+        'Space changes saved. It is back to Pending verification until an Administrator reviews it.',
+      ),
+    ).toBeVisible()
+    await expect(hostCard(page, renamed).getByText('Pending verification')).toBeVisible()
+    expect((await requireSpace(renamed)).status).toBe('pending')
+
+    // It waits in the Pending list, marked Edited, with the rename in its list of changes.
+    await admin.goto('/admin')
+    const card = adminCard(admin, renamed)
+    await expect(card.getByText('Edited', { exact: true })).toBeVisible()
+    await expect(card.getByRole('region', { name: 'List of changes' })).toContainText(
+      `Name: ${name}`,
+    )
+    await expect(card.getByRole('button', { name: `Approve ${renamed}` })).toBeVisible()
+
+    await expectHiddenFromSeekers(seeker, id, renamed)
+  })
+
+  test('host-resubmits-space: a Host resubmits a Rejected Space, and it waits in the queue marked Resubmitted, with its reason', async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(90_000)
+    await signIn(page, 'host@example.test', '/host')
+    const name = uniqueName('Resubmitted')
+    const reason = 'The opening hours do not match the sign.'
+    const id = await createSpace(page, name)
+    const admin = await newPage(browser, 'admin@example.test', '/admin')
+    await rejectSpace(admin, name, reason)
+
+    // V8: the Host resubmits it from their list.
+    await page.goto('/host')
+    await hostCard(page, name)
+      .getByRole('button', { name: `Resubmit ${name}` })
+      .click()
+    await expect(page.getByText('Space resubmitted for verification.')).toBeVisible()
+    const card = hostCard(page, name)
+    await expect(card.getByText('Pending verification')).toBeVisible()
+    await expect(card.getByText('Previous reason:')).toBeVisible()
+    await expect(card.getByText(reason)).toBeVisible()
+    await expect(card.getByRole('button', { name: `Resubmit ${name}` })).toHaveCount(0)
+    expect((await requireSpace(name)).status).toBe('pending')
+
+    // The Administrator sees it back in the Pending list, marked Resubmitted.
+    await admin.goto('/admin')
+    const queued = adminCard(admin, name)
+    await expect(queued.getByText('Resubmitted', { exact: true })).toBeVisible()
+    await expect(queued.getByText('Previous reason:')).toBeVisible()
+    await expect(queued.getByText(reason).first()).toBeVisible()
+    await expect(queued.getByRole('button', { name: `Approve ${name}` })).toBeVisible()
+
+    await expectHiddenFromSeekers(await newPage(browser), id, name)
+  })
+
+  test('host-admin-takes-down-space: an Administrator takes a Verified Space down; Seekers can no longer find it, and its Host sees the reason', async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(90_000)
+    await signIn(page, 'host@example.test', '/host')
+    const name = uniqueName('Taken down')
+    const reason = 'The Space has closed for repairs.'
+    const id = await createSpace(page, name)
+    const admin = await newPage(browser, 'admin@example.test', '/admin')
+    await approveSpace(admin, name)
+    const seeker = await newPage(browser)
+    await expectFoundBySeekers(seeker, id, name)
+
+    // V7, with a reason.
+    await takeDownSpace(admin, name, reason)
+    expect((await requireSpace(name)).status).toBe('taken_down')
+    await admin.goto('/admin?tab=taken_down')
+    const listed = adminCard(admin, name)
+    await expect(listed.getByText('Taken down', { exact: true })).toBeVisible()
+    await expect(listed.getByText(reason).first()).toBeVisible()
+
+    await expectHiddenFromSeekers(seeker, id, name)
+
+    await page.goto('/host')
+    const card = hostCard(page, name)
+    await expect(card.getByText('Taken down', { exact: true })).toBeVisible()
+    await expect(card.getByText('Take-down reason:')).toBeVisible()
+    await expect(card.getByText(reason)).toBeVisible()
+    await expect(card.getByRole('button', { name: `Resubmit ${name}` })).toBeVisible()
+  })
+
+  test('host-admin-restores-space: an Administrator puts a Taken down Space back, and Seekers find it again', async ({
+    page,
+    browser,
+  }) => {
+    test.setTimeout(90_000)
+    await signIn(page, 'host@example.test', '/host')
+    const name = uniqueName('Restored')
+    const id = await createSpace(page, name)
+    const admin = await newPage(browser, 'admin@example.test', '/admin')
+    await approveSpace(admin, name)
+    await takeDownSpace(admin, name, 'A Seeker reported the wrong address.')
+    const seeker = await newPage(browser)
+    await expectHiddenFromSeekers(seeker, id, name)
+
+    // V10: put it back, after a confirmation.
+    await admin.goto('/admin?tab=taken_down')
+    await adminCard(admin, name)
+      .getByRole('button', { name: `Put back ${name}` })
+      .click()
+    const confirm = admin.getByRole('alertdialog', { name: 'Put Space back?' })
+    await confirm.getByRole('button', { name: 'Put back', exact: true }).click()
+    await expect(admin.getByRole('status')).toContainText(
+      `${name} has been put back and is now Verified.`,
+    )
+    await expect(confirm).toBeHidden()
+    expect((await requireSpace(name)).status).toBe('verified')
+
+    await expectFoundBySeekers(seeker, id, name)
+
+    // Its Host sees Verified, with no reason left on the card (N12).
+    await page.goto('/host')
+    const card = hostCard(page, name)
+    await expect(card.getByText('Verified', { exact: true })).toBeVisible()
+    await expect(card.getByText('Take-down reason:')).toHaveCount(0)
   })
 })

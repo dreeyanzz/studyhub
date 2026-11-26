@@ -157,6 +157,25 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     role: 'admin',
     path: '/admin',
   },
+  // STORY-20's other verification lists (design §3, D-084).
+  {
+    id: 'admin-verification-verified',
+    label: 'Admin Verified Spaces list',
+    role: 'admin',
+    path: '/admin?tab=verified',
+  },
+  {
+    id: 'admin-verification-rejected',
+    label: 'Admin Rejected Spaces list',
+    role: 'admin',
+    path: '/admin?tab=rejected',
+  },
+  {
+    id: 'admin-verification-taken-down',
+    label: 'Admin Taken down Spaces list',
+    role: 'admin',
+    path: '/admin?tab=taken_down',
+  },
   {
     id: 'admin-moderation',
     label: 'Admin review moderation',
