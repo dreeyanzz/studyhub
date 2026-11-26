@@ -22,8 +22,18 @@ const STRIPE_REFUSED_MESSAGE = "Stripe didn't accept the refund, so nothing chan
 const NOTHING_RECORDED_MESSAGE = 'Nothing was recorded. Try again.'
 const UNAUTHORIZED_MESSAGE = 'You are not authorized to issue refunds.'
 
+// A 4xx answer means Stripe refused the refund, except a 409. Stripe sends a 409 when a
+// request with the same Idempotency-Key (`refund-<paymentId>`) is still in flight, for
+// example after a double submit or a retry right after a timeout. That first request may
+// still succeed, so "nothing changed" could be false. A 409 is an unknown result, like a
+// timeout or a 5xx answer (STORY-14 design §1, #389, #432).
 function isStripeClientRefusal(error: unknown): boolean {
-  return error instanceof StripeApiError && error.status >= 400 && error.status < 500
+  return (
+    error instanceof StripeApiError &&
+    error.status >= 400 &&
+    error.status < 500 &&
+    error.status !== 409
+  )
 }
 
 /**
