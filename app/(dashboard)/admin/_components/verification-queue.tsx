@@ -171,6 +171,7 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
     action: VerificationAction,
     reason?: string,
   ): Promise<SetSpaceStatusResult> {
+    let decided = false
     setDeciding((prev) => new Set(prev).add(space.id))
     let result: SetSpaceStatusResult
     try {
@@ -180,12 +181,17 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
         updatedAt: space.updated_at,
         reason,
       })
+      decided = result.success
     } finally {
-      setDeciding((prev) => {
-        const next = new Set(prev)
-        next.delete(space.id)
-        return next
-      })
+      // Keep the Space marked as deciding through the 250 ms removal fade so the
+      // Administrator's own Realtime UPDATE never flashes "Updated by Host" (D-086).
+      if (!decided) {
+        setDeciding((prev) => {
+          const next = new Set(prev)
+          next.delete(space.id)
+          return next
+        })
+      }
     }
 
     if (result.success) {
@@ -200,6 +206,11 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
       setTimeout(() => {
         setSpaces((prev) => prev.filter((item) => item.id !== space.id))
         setRemovingId(null)
+        setDeciding((prev) => {
+          const next = new Set(prev)
+          next.delete(space.id)
+          return next
+        })
       }, 250)
     } else if (action === 'approve') {
       // A refusal from a dialog shows inside that dialog instead.
@@ -382,14 +393,16 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
       </div>
 
       {spaces.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/60 p-12 text-center shadow-xs">
+        // p-6 below sm, and words may wrap: at 360 px and 200% text, p-12 left the
+        // heading too little room and "No rejected spaces" overflowed the card (D-031).
+        <Card className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/60 p-6 text-center shadow-xs sm:p-12">
           <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-xs">
             <Inbox className="size-7 text-primary" aria-hidden="true" />
           </div>
-          <h2 className="font-heading text-xl font-bold text-foreground">
+          <h2 className="max-w-full font-heading text-xl font-bold wrap-anywhere text-foreground">
             {EMPTY[tab].title}
           </h2>
-          <p className="mt-1.5 max-w-md text-sm font-medium text-muted-foreground">
+          <p className="mt-1.5 max-w-full text-sm font-medium wrap-anywhere text-muted-foreground sm:max-w-md">
             {EMPTY[tab].body}
           </p>
         </Card>

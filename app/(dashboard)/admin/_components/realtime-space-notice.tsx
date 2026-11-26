@@ -33,6 +33,62 @@ interface RealtimeSpaceNoticeProps {
   onStale: (spaceId: string) => void
 }
 
+interface RealtimeSpaceClient {
+  realtime: { setAuth: () => Promise<void> }
+  channel: (name: string) => {
+    on: (
+      type: 'postgres_changes',
+      filter: { event: 'UPDATE'; schema: 'public'; table: 'spaces' },
+      callback: (payload: { new: unknown }) => void,
+    ) => { subscribe: () => unknown }
+  }
+  removeChannel: (channel: never) => Promise<unknown>
+}
+
+/**
+ * Authenticates the Realtime socket with the signed-in Administrator's JWT before
+ * joining the `public.spaces` listener, returning a cleanup function. Subscribing
+ * synchronously sends `phx_join` without `access_token`, and if the async auth fetch
+ * finishes before `phx_reply`, Realtime keeps the listener as `anon` and RLS silently
+ * drops updates on non-Verified Spaces (D-086).
+ */
+export function startSpaceUpdateListener(
+  supabase: RealtimeSpaceClient,
+  onUpdate: (row: { id?: unknown; updated_at?: unknown }) => void,
+): () => void {
+  let active = true
+  let channel: unknown = null
+
+  async function subscribe() {
+    try {
+      await supabase.realtime.setAuth()
+    } catch {
+      // N9 still refuses stale decisions if Realtime cannot authenticate.
+      return
+    }
+    if (!active) return
+    channel = supabase
+      .channel('admin-verification-spaces')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'spaces' },
+        (payload) => {
+          onUpdate((payload.new ?? {}) as { id?: unknown; updated_at?: unknown })
+        },
+      )
+      .subscribe()
+  }
+
+  void subscribe()
+
+  return () => {
+    active = false
+    if (channel) {
+      void supabase.removeChannel(channel as never)
+    }
+  }
+}
+
 /**
  * Listens for Host edits to the Spaces on screen (STORY-20 design §3, D-086). It
  * subscribes to every `UPDATE` on `public.spaces` (an `in` filter is capped at 100 ids)
@@ -57,26 +113,14 @@ export function RealtimeSpaceNotice({
 
   useEffect(() => {
     const supabase = createClient()
-    const channel = supabase
-      .channel('admin-verification-spaces')
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'spaces' },
-        (payload) => {
-          const row = payload.new as { id?: unknown; updated_at?: unknown }
-          if (typeof row.id !== 'string') return
-          if (decidingRef.current.has(row.id)) return
-          const shown = spacesRef.current.find((space) => space.id === row.id)
-          if (shown && isNewerVersion(shown.updated_at, row.updated_at)) {
-            onStaleRef.current(row.id)
-          }
-        },
-      )
-      .subscribe()
-
-    return () => {
-      void supabase.removeChannel(channel)
-    }
+    return startSpaceUpdateListener(supabase, (row) => {
+      if (typeof row.id !== 'string') return
+      if (decidingRef.current.has(row.id)) return
+      const shown = spacesRef.current.find((space) => space.id === row.id)
+      if (shown && isNewerVersion(shown.updated_at, row.updated_at)) {
+        onStaleRef.current(row.id)
+      }
+    })
   }, [])
 
   return null
