@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CurrentHoldCard } from './_components/current-hold-card'
 import { FindSpaceCard } from './_components/find-space-card'
 import { ProfileForm } from './_components/profile-form'
+import { ReservationHistoryCard } from './_components/reservation-history-card'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -74,6 +75,7 @@ export default async function SeekerPage({
             checkOutError={checkOutError}
           />
           {!hasHold && <FindSpaceCard />}
+          <ReservationHistoryCard />
         </div>
         <ProfileForm profile={profile} />
       </div>
