@@ -107,6 +107,9 @@ export function CurrentHoldCard({
 
         <div className="flex flex-wrap gap-3 pt-1">
           <DirectionsLink spaceName={hold.spaceName} spaceAddress={hold.spaceAddress} />
+          <Link href={`/spaces/${hold.spaceId}`} className={buttonLinkClass('outline')}>
+            View Space details
+          </Link>
           <Link
             href={`/seeker/reservations/${hold.id}?cancel=1`}
             className={buttonLinkClass('outline')}

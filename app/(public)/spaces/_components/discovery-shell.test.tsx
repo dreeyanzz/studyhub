@@ -6,6 +6,7 @@ import {
   filterSpacesClientSide,
   normalizeDiscoveryQuery,
   resolveDiscoveryMapCenter,
+  sortSpacesClientSide,
 } from './discovery-shell'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 
@@ -140,5 +141,33 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
     )
     expect(gpsCenter.center).toEqual([10.32, 123.9])
     expect(gpsCenter.zoom).toBe(15)
+  })
+
+  it('renders an accessible 48px sort control and sorts by open_now, rating, and nearest (STORY-17)', () => {
+    const html = renderToStaticMarkup(<DiscoveryShell spaces={mockSpaces} />)
+    expect(html).toContain('data-testid="discovery-sort"')
+    expect(html).toContain('min-h-12')
+    expect(html).toContain('Open now first')
+    expect(html).toContain('Highest rated')
+    expect(html).toContain('Nearest')
+
+    // 15:30 UTC = 23:30 Asia/Manila (space-1 closes at 23:00, space-2 is 24h)
+    const nowManila2330 = new Date('2026-11-11T15:30:00Z')
+    const openFirst = sortSpacesClientSide(mockSpaces, 'open_now', nowManila2330)
+    expect(openFirst.map((s) => s.id)).toEqual(['space-2', 'space-1'])
+
+    const byRating = sortSpacesClientSide(
+      [mockSpaces[1]!, mockSpaces[0]!],
+      'rating',
+      nowManila2330,
+    )
+    expect(byRating.map((s) => s.id)).toEqual(['space-1', 'space-2'])
+
+    const byNearest = sortSpacesClientSide(
+      [mockSpaces[1]!, mockSpaces[0]!],
+      'nearest',
+      nowManila2330,
+    )
+    expect(byNearest.map((s) => s.id)).toEqual(['space-1', 'space-2'])
   })
 })
