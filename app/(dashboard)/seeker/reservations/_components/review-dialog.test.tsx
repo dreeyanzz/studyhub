@@ -32,6 +32,11 @@ describe('ReviewDialog (STORY-16 design §3 Screen 4, TSK-16.4)', () => {
     expect(html).toContain('Leave a review')
     expect(html).toMatch(/\bmin-h-12\b/)
     expect(html).toMatch(/\bmin-w-12\b/)
+    // Button's `shrink-0` would keep the label on one line and clip it at 200% text.
+    const buttonClasses = html.match(/<button[^>]*class="([^"]*)"/)?.[1]?.split(' ') ?? []
+    expect(buttonClasses).toContain('shrink')
+    expect(buttonClasses).not.toContain('shrink-0')
+    expect(buttonClasses).toContain('max-w-full')
     expect(html).toMatch(
       /<span role="status" aria-live="polite" data-testid="review-live-status" class="sr-only"><\/span>/,
     )

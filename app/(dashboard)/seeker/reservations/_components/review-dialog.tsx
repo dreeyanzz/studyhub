@@ -56,7 +56,7 @@ export function ReviewDialog(props: ReviewDialogProps) {
   const testIdSuffix = props.mode === 'create' ? props.reservationId : props.reviewId
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex max-w-full min-w-0 flex-wrap items-center gap-2">
       <span
         role="status"
         aria-live="polite"
@@ -74,7 +74,9 @@ export function ReviewDialog(props: ReviewDialogProps) {
           setAnnouncement('')
           setOpen(true)
         }}
-        className="h-auto min-h-12 min-w-12 rounded-full px-4 py-2 whitespace-normal"
+        // `shrink` overrides Button's `shrink-0`, so the label wraps inside its card
+        // instead of being clipped at 360 px with text at 200% (design §3 Accessibility).
+        className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-full px-4 py-2 whitespace-normal"
       >
         {mode === 'create' ? (
           <Star className="size-4 shrink-0" aria-hidden="true" />
