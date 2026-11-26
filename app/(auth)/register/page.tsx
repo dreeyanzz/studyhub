@@ -70,7 +70,7 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
             href={loginHref}
             className={cn(
               buttonVariants({ variant: 'link' }),
-              'px-1.5 font-semibold text-foreground',
+              'min-h-12 min-w-12 px-2 font-semibold text-foreground',
             )}
           >
             Log in

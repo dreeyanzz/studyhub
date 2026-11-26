@@ -55,20 +55,24 @@ export default async function ReservationHistoryPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link
-          href="/seeker"
-          className="inline-flex min-h-12 min-w-12 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:underline"
-        >
-          <ArrowLeft aria-hidden="true" className="size-4" />
-          Back to dashboard
-        </Link>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Reservation history
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Every reservation you paid for after it ended, newest first.
-        </p>
+      <div className="space-y-4">
+        <nav aria-label="Breadcrumb">
+          <Link
+            href="/seeker"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <ArrowLeft aria-hidden="true" className="size-4 shrink-0 text-primary" />
+            <span>Back to dashboard</span>
+          </Link>
+        </nav>
+        <div className="space-y-1">
+          <h1 className="font-heading text-2xl font-semibold tracking-tight wrap-anywhere text-foreground sm:text-4xl">
+            Reservation history
+          </h1>
+          <p className="text-base text-muted-foreground">
+            Every reservation you paid for after it ended, newest first.
+          </p>
+        </div>
       </div>
 
       <div className="max-w-2xl space-y-4">
@@ -82,7 +86,7 @@ export default async function ReservationHistoryPage({
         ) : history.items.length === 0 ? (
           <section
             aria-labelledby="empty-history-heading"
-            className="space-y-4 rounded-xl border border-border bg-card p-6 text-center"
+            className="space-y-4 rounded-3xl border border-border/60 bg-card p-8 text-center shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
           >
             <div className="space-y-1">
               <h2
