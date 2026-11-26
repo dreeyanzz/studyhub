@@ -5,14 +5,14 @@ are in [`AGENTS.md`](../AGENTS.md); this page is the practical side.
 
 ## Accounts and services
 
-| Service                                 | For                                               | Owner                                                              | Status                         |
-| --------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------ |
-| GitHub `dreeyanzz/studyhub`             | Code, pull requests, issues, the board            | Adrian (admin); teammates have write                               | Active                         |
-| Supabase: cloud dev project             | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)                                  | Active (`studyhub-dev`)        |
-| Supabase: production project            | The deployed app                                  | Adrian only, in its own organization (D-090)                       | Created before the Final phase |
-| Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app      |
-| Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                         |
-| Google Cloud (`Worq`, OAuth 2.0, D-095) | Continue with Google sign-in and sign-up          | Team Gmail (`worq.team.ph@gmail.com`); Adrian manages credentials  | Active (In production)         |
+| Service                                 | For                                               | Owner                                                              | Status                                        |
+| --------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------- |
+| GitHub `dreeyanzz/studyhub`             | Code, pull requests, issues, the board            | Adrian (admin); teammates have write                               | Active                                        |
+| Supabase: cloud dev project             | Shared database for teammates and Vercel previews | Adrian; teammates invited (D-065)                                  | Active (`studyhub-dev`)                       |
+| Supabase: production project            | The deployed app                                  | Adrian only, in its own organization (D-090)                       | Ready for switch day (`studyhub-prod`, D-090) |
+| Vercel (Hobby)                          | Hosting: `main` to production, PRs to previews    | Adrian                                                             | Active: worqph.vercel.app                     |
+| Payment sandbox: Stripe sandbox (D-070) | Reservation fees                                  | Adrian (the sandbox); teammates who test payments get its test key | Active                                        |
+| Google Cloud (`Worq`, OAuth 2.0, D-095) | Continue with Google sign-in and sign-up          | Team Gmail (`worq.team.ph@gmail.com`); Adrian manages credentials  | Active (In production)                        |
 
 The Vercel project is `studyhub`, in Adrian's account. Until the production project
 exists, its production deployment (worqph.vercel.app) and its previews use the cloud dev
@@ -65,6 +65,9 @@ and is gitignored.
 | `GMAIL_USER`                           | Optional, server only, in `lib/email/transport.ts`. The team Gmail address that sends STORY-16's hold confirmation email. In Vercel Production and optional in `.env.local` (D-089)                                                                                                                           |
 | `GMAIL_APP_PASSWORD`                   | Optional, server only, in `lib/email/transport.ts`. The team Gmail account's app password. In Vercel Production and Adrian's `.env.local` only; never in Preview, CI, code or chat (D-089)                                                                                                                    |
 | `SUPABASE_DEV_DB_URL`                  | GitHub Actions repository secret only, used by `.github/workflows/db-push-dev.yml` (D-096). `studyhub-dev`'s **Session Pooler** URI (port `5432`, IPv4-compatible on GitHub-hosted runners — not the direct IPv6-only URI and not Transaction Pooler `6543`). Never holds `studyhub-prod` credentials (D-090) |
+| `PRODUCTION_DB_URL`                    | Adrian's `.env.local` only. `studyhub-prod`'s Postgres connection string for `npx supabase db push --db-url "$PRODUCTION_DB_URL"` and `npx supabase migration list --db-url "$PRODUCTION_DB_URL"` (D-090). Never in Vercel, GitHub Actions, code, or chat                                                     |
+| `PRODUCTION_SUPABASE_URL`              | Adrian's `.env.local` only. `studyhub-prod`'s project URL, read only by `npm run db:promote-admin` so it cannot target cloud dev by mistake (D-090, D-091)                                                                                                                                                    |
+| `PRODUCTION_SECRET_KEY`                | Adrian's `.env.local` only. `studyhub-prod`'s secret key, read only by `npm run db:promote-admin` (D-090, D-091). Bypasses RLS: never `NEXT_PUBLIC_`, never shared, never in client code or chat                                                                                                              |
 
 `proxy.ts` reads the two `NEXT_PUBLIC_` variables on every page request (STORY-03), so
 without them every page, the landing page included, fails with an error that names them.
@@ -73,7 +76,7 @@ without them every page, the landing page included, fails with an error that nam
 
 - Adrian sends each teammate a ready `.env.local` privately: never in the group chat, an issue or a PR. It holds the same values as Adrian's: the cloud dev URL, the publishable key, both test passwords and the secret key.
 - The secret key bypasses Row-Level Security, so treat the whole file as a secret: keep it out of commits, screenshots and AI chats. `npm run db:accounts` uses the key to promote the cloud dev project's Administrator (D-061), and the Stripe webhook route uses it to call `confirm_payment` (STORY-09).
-- These are the cloud dev project's values only. The production project's keys are decided when it is created (D-017).
+- These are the cloud dev project's values only. The production project's keys stay on Adrian's machine (and in Vercel Production on the switch day), in its own Supabase organization with Adrian as its only member (D-090).
 - If a secret key is ever committed or posted publicly, Adrian or Luke **rotates it** in the Supabase dashboard, then Adrian sends everyone a new `.env.local`. Deleting the line is not enough.
 - GitHub push protection is on and blocks many keys automatically.
 
@@ -233,6 +236,109 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
   - Local `supabase/config.toml` keeps `[auth.external.google]` disabled by default so Docker
     and CI never require Google secrets; automated tests cover OAuth onboarding via pgTAP
     (`supabase/tests/13-google-oauth.sql`), Vitest and Playwright (`e2e/google-oauth.spec.ts`).
+
+## The production project (database owner, D-090, D-091)
+
+`studyhub-prod` is kept ready to run `https://worqph.vercel.app` on any day Adrian chooses
+(D-090, [STORY-19 design](design/STORY-19-final-hardening.md)). Every step below runs on
+Adrian's machine or in the service dashboards — agents never run `supabase db push`,
+`supabase link`, or touch a shared database (`AGENTS.md`).
+
+### One-time setup (`TSK-19.1`)
+
+1. **Supabase organization and project.** Create `studyhub-prod` in a Supabase organization
+   of its own with Adrian as its only member, in the same region as `studyhub-dev`. On the
+   Supabase Free plan, an organization role covers every project in it (so keeping it out of
+   `lamph-org` keeps production Adrian-only, D-090), and the account allows two active
+   projects (`studyhub-dev` and `studyhub-prod`; keep `vesper-org` projects paused).
+2. **Local credentials (Adrian only).** Put `studyhub-prod`'s `PRODUCTION_DB_URL`,
+   `PRODUCTION_SUPABASE_URL` and `PRODUCTION_SECRET_KEY` in Adrian's `.env.local` only.
+   Never run `supabase link` against `studyhub-prod`, and never put production keys in
+   Vercel Preview, GitHub Actions, code, or chat.
+3. **Push merged migrations from `main`.** From a clean, up-to-date `main` branch:
+   ```bash
+   npx supabase db push --db-url "$PRODUCTION_DB_URL"
+   npx supabase migration list --db-url "$PRODUCTION_DB_URL"
+   ```
+   Verify that the migration list matches `studyhub-dev` and that the public `space-photos`
+   Storage bucket exists. Never pass `--include-seed`: `supabase/seed.sql` holds a public
+   password and synthetic accounts (D-013, D-028).
+4. **Supabase Auth settings on `studyhub-prod`:**
+   - **Site URL:** `https://worqph.vercel.app`
+   - **Redirect URLs:** `https://worqph.vercel.app/**` (accepts `/api/auth/callback`)
+   - **Email confirmation:** **On** (every new user confirms by email before signing in)
+   - **Password rules:** at least 8 characters, with a number and a symbol (matches STORY-03)
+   - **Custom SMTP (D-089):** host `smtp.gmail.com`, port `465`, team Gmail account
+     (`worq.team.ph@gmail.com`) and its app password, sender name `Worq`
+   - **Google OAuth (STORY-21, D-095):** add
+     `https://<studyhub-prod-ref>.supabase.co/auth/v1/callback` to Google Cloud's `Worq Web`
+     OAuth 2.0 client Authorized redirect URIs, and enable **Authentication → Providers →
+     Google** on `studyhub-prod` with that Client ID and Client Secret.
+
+### Until the switch day
+
+Whenever a migration PR merges to `main`, `.github/workflows/db-push-dev.yml` pushes it to
+`studyhub-dev` automatically (D-096). Adrian then pulls `main` and runs:
+
+```bash
+npx supabase db push --db-url "$PRODUCTION_DB_URL"
+npx supabase migration list --db-url "$PRODUCTION_DB_URL"
+```
+
+so `studyhub-prod` always matches `studyhub-dev`.
+
+### Switch-day checklist (Adrian's call, D-090, D-091)
+
+Real production accounts are created only after `worqph.vercel.app` runs on `studyhub-prod`
+so their sign-up writes go to production and their confirmation links resolve on `worqph`.
+
+1. [ ] Confirm `studyhub-prod`'s migration list matches `studyhub-dev`
+       (`npx supabase migration list --db-url "$PRODUCTION_DB_URL"`).
+2. [ ] In Vercel **Project Settings → Environment Variables**, update **Production** only
+       (keep **Preview** pointed at `studyhub-dev`):
+   - `NEXT_PUBLIC_SUPABASE_URL` → `studyhub-prod` URL
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` → `studyhub-prod` publishable key
+   - `SUPABASE_SECRET_KEY` → `studyhub-prod` secret key
+   - Verify `GMAIL_USER` and `GMAIL_APP_PASSWORD` are set on **Production** only (D-089)
+   - Leave `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` on the Stripe sandbox (D-005,
+     D-070)
+3. [ ] Redeploy `main` to Vercel **Production** (`https://worqph.vercel.app`).
+4. [ ] Register the three real role accounts on `https://worqph.vercel.app/register` and
+       confirm each from the team Gmail inbox (D-091):
+   - **Host:** `worq.team.ph+host@gmail.com` (sign up as Host)
+   - **Seeker:** `worq.team.ph+seeker@gmail.com` (sign up as Seeker)
+   - **Administrator:** `worq.team.ph+admin@gmail.com` (sign up as Seeker first)
+     Choose strong unique passwords, keep them out of the repository and chat, and share them
+     privately with teammates for rehearsals (D-029).
+5. [ ] Promote the Administrator account from Adrian's machine:
+   ```bash
+   npm run db:promote-admin -- worq.team.ph+admin@gmail.com
+   ```
+   The script prints the target production host, refuses `@example.test` addresses, refuses
+   to run if `PRODUCTION_SUPABASE_URL` matches `NEXT_PUBLIC_SUPABASE_URL`, requires the
+   account's email to be confirmed, sets `profiles.role = 'admin'` and
+   `profiles.role_confirmed = true`, and reads the row back to verify.
+6. [ ] Verify role boundaries on `https://worqph.vercel.app`: confirm `+seeker` and `+host`
+       cannot open `/admin`, and `+admin` can.
+7. [ ] Rehearse the full product flow on `https://worqph.vercel.app`: create and approve a
+       Space, hold a Unit, pay in the Stripe sandbox, confirm STORY-16's hold confirmation email
+       arrives, check in at the Host desk, post a review, moderate a reported review, and refund
+       an eligible payment.
+8. [ ] Build the demo Spaces, seat maps, photos, tags, and approvals through the app
+       (never run `seed.sql` on production, D-028, D-091).
+
+**Ongoing operational notes after the switch:**
+
+- **Preview payments:** Stripe's sandbox sends events to one webhook endpoint
+  (`https://worqph.vercel.app/api/webhooks/stripe`). After the switch, a sandbox payment on
+  a Vercel Preview reaches `studyhub-prod`, which logs an unknown reservation (`not_found`)
+  and answers `200`, leaving the preview hold unpaid until it lapses. Test payments locally
+  with `npm run stripe:listen` or `npm run webhook:simulate`.
+- **Deleting Host accounts:** Before deleting a Host account in the Supabase dashboard,
+  delete their Spaces in the app or empty each `space-photos/<space_id>` folder in Storage
+  first (D-092).
+- **Waking before a pitch:** Supabase's free plan pauses an inactive project after about a
+  week; open `https://worqph.vercel.app` the day before any demo or pitch.
 
 ## Scheduled work
 
