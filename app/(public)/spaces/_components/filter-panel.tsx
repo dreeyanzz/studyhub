@@ -374,7 +374,7 @@ export function FilterPanel({
       aria-label="Curated space filters"
       data-testid="filter-panel"
       className={cn(
-        'rounded-2xl border border-border/60 bg-card/90 px-4 py-3.5 shadow-xs backdrop-blur-md',
+        'relative z-40 rounded-2xl border border-border/60 bg-card/90 px-4 py-3.5 shadow-xs backdrop-blur-md',
         className,
       )}
     >

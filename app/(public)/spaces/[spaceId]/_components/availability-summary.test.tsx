@@ -94,7 +94,7 @@ describe('AvailabilitySummary (STORY-11, TSK-11.5)', () => {
 
     expect(html).toContain('data-testid="seeker-profile-no-available-unit"')
     expect(html).toContain('No units available')
-    expect(html).toContain('No units are currently Available. Check back later or')
+    expect(html).toContain('No units are currently available. Check back later or')
     expect(html).toContain('explore other spaces')
     expect(html).toContain('href="/spaces"')
   })

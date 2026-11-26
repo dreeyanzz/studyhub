@@ -43,7 +43,7 @@ export async function SeekerHeader() {
       <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
-            href="/"
+            href="/seeker"
             aria-label="Worq home"
             className={cn(
               buttonVariants({ variant: 'ghost' }),
