@@ -34,6 +34,12 @@ export interface MyReservation {
   checkoutUrl: string | null
   checkedInAt: string | null
   endedAt: string | null
+  /**
+   * The hold was cancelled because an Administrator took the Space down, or rejected
+   * it after an edit (R13, R14, STORY-20 design §2, D-085). Only ever true while
+   * `status` is `cancelled`.
+   */
+  cancelledByTakeDown: boolean
 }
 
 /**
@@ -77,6 +83,7 @@ export async function getMyReservation(
     checkoutUrl: data.checkout_url ?? null,
     checkedInAt: data.checked_in_at ?? null,
     endedAt: data.ended_at ?? null,
+    cancelledByTakeDown: data.cancelled_by_take_down,
   }
 }
 

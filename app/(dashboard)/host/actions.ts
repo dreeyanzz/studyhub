@@ -1,7 +1,7 @@
 'use server'
 
-// Server Actions for the Host portal: create, update and delete a Space (STORY-05
-// design §2.5 and §2.6, D-010). An action can be called directly, so each one checks
+// Server Actions for the Host portal: create, update, delete and resubmit a Space
+// (STORY-05 design §2.5 and §2.6, STORY-20 design §3, D-010). An action can be called directly, so each one checks
 // the session and the input itself. proxy.ts only routes, and RLS stays the security
 // boundary (D-007).
 import { revalidatePath } from 'next/cache'
@@ -15,6 +15,7 @@ import {
   type SpaceField,
   type SpaceInput,
 } from '@/lib/validation/space'
+import { resubmitSpaceSchema } from '@/lib/validation/verification'
 
 export type SpaceFormValues = Partial<Record<SpaceField, string>>
 
@@ -112,6 +113,18 @@ export async function updateSpace(
     return { fieldErrors: z.flattenError(parsed.error).fieldErrors, values }
   }
 
+  // The status before the save, so the page can say when the save sent a Verified
+  // Space back to Pending (V6, STORY-20 design §3). The trigger
+  // reverify_on_identity_edit makes that move; this read only notices it. A Space
+  // that is gone or another Host's reads as nothing, and the update below then
+  // refuses it with the usual message.
+  const { data: before } = await supabase
+    .from('spaces')
+    .select('status')
+    .eq('id', spaceId.data)
+    .eq('host_id', user.id)
+    .maybeSingle()
+
   // Scoped to the caller's own Space here as well as by RLS. Asking for the id back
   // tells one updated row from none, and "none" gets the same message whether the
   // Space is gone or belongs to another Host (STORY-05 design §1.3).
@@ -120,7 +133,7 @@ export async function updateSpace(
     .update(spaceColumns(parsed.data))
     .eq('id', spaceId.data)
     .eq('host_id', user.id)
-    .select('id')
+    .select('id, status')
     .maybeSingle()
   if (error || !updated) {
     if (error?.code === 'P0001' && error?.hint === 'hours_cut_hold') {
@@ -139,7 +152,43 @@ export async function updateSpace(
   revalidatePath('/host')
   revalidatePath('/spaces')
   revalidatePath(`/spaces/${spaceId.data}`)
-  redirect('/host?notice=updated')
+  // A name, address or map pin change can move the Space between /admin's lists
+  // (V6), and any edit changes the details an Administrator reads there.
+  revalidatePath('/admin')
+  const reverified = before?.status === 'verified' && updated.status === 'pending'
+  redirect(reverified ? '/host?notice=reverify' : '/host?notice=updated')
+}
+
+export type ResubmitSpaceState = {
+  formError?: string
+}
+
+// Every refusal reads the same (design §3): a Space that is no longer Rejected or
+// Taken down (not_resubmittable), one that isn't the caller's (42501), or anything
+// else. Refreshing shows the Space's real status.
+const resubmitFailed = 'We could not resubmit this Space. Refresh the page and try again.'
+
+/**
+ * V8 (D-084): the Host sends a Rejected or Taken down Space back to Pending
+ * verification. public.resubmit_space makes every check (N4, N11) and keeps the last
+ * reason, so /admin shows it beside "Resubmitted".
+ */
+export async function resubmitSpaceAction(
+  _state: ResubmitSpaceState,
+  formData: FormData,
+): Promise<ResubmitSpaceState> {
+  const { supabase } = await signedInClient()
+  const parsed = resubmitSpaceSchema.safeParse({ spaceId: formData.get('spaceId') })
+  if (!parsed.success) return { formError: resubmitFailed }
+
+  const { error } = await supabase.rpc('resubmit_space', {
+    p_space_id: parsed.data.spaceId,
+  })
+  if (error) return { formError: resubmitFailed }
+
+  revalidatePath('/host')
+  revalidatePath('/admin')
+  redirect('/host?notice=resubmitted')
 }
 
 // Every failed delete says the same, whatever the cause: a Space that is gone, one

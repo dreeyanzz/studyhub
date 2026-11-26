@@ -35,6 +35,7 @@ const hold: MyReservation = {
   checkoutUrl: null,
   checkedInAt: null,
   endedAt: null,
+  cancelledByTakeDown: false,
 }
 const text = (html: string) =>
   html

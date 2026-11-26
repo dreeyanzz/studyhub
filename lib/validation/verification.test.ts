@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   SPACE_STATUS_REASON_MAX_LENGTH,
+  resubmitSpaceSchema,
   spaceStatusReasonSchema,
   spaceVerificationDecisionSchema,
   verifySpaceSchema,
@@ -190,5 +191,25 @@ describe('a rejection reason (STORY-20, TSK-20.1, N10)', () => {
 
   it('spaceStatusReasonSchema refuses a value that is not text', () => {
     expect(spaceStatusReasonSchema.safeParse(42).success).toBe(false)
+  })
+})
+
+describe('resubmitSpaceSchema (STORY-20, TSK-20.2, V8)', () => {
+  const spaceId = 'e0000000-0000-4000-8000-000000000001'
+
+  it('accepts a Space id', () => {
+    expect(resubmitSpaceSchema.parse({ spaceId })).toEqual({ spaceId })
+  })
+
+  it('refuses a missing or malformed id', () => {
+    expect(resubmitSpaceSchema.safeParse({}).success).toBe(false)
+    expect(resubmitSpaceSchema.safeParse({ spaceId: null }).success).toBe(false)
+    expect(resubmitSpaceSchema.safeParse({ spaceId: 'not-a-uuid' }).success).toBe(false)
+  })
+
+  it('drops anything else the form carries, such as a status', () => {
+    expect(resubmitSpaceSchema.parse({ spaceId, status: 'verified' })).toEqual({
+      spaceId,
+    })
   })
 })
