@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
-import { AlertCircle, ArrowLeft, Camera, Clock } from 'lucide-react'
+import { AlertCircle, ArrowLeft, Camera, Clock, Info } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getHoldTerms, getHoldViewer } from '@/lib/data/reservations'
@@ -16,6 +16,7 @@ import {
 } from '@/lib/data/reviews'
 import { getSeatMap } from '@/lib/data/seat-map'
 import { holdRefusalMessage, parseHoldRefusalReason } from '@/lib/payments/refusals'
+import type { SeatMapUnit, SeatState } from '@/lib/seat-map/grid'
 import { computeSpaceAvailability } from '@/lib/space/availability'
 import { computeOperatingStatus } from '@/lib/space/format'
 import { createClient } from '@/lib/supabase/server'
@@ -65,6 +66,45 @@ const getVerifiedSpace = cache(async (rawSpaceId: string) => {
 
   return space?.status === 'verified' ? space : null
 })
+
+// The seat map's state words (space-seat-map-view.tsx), for the Hold again notice.
+// That file is a Client Component, so its constant can't be imported into this one.
+const SEAT_STATE_LABELS: Record<SeatState, string> = {
+  available: 'Available',
+  pending_payment: 'Pending Payment',
+  reserved: 'Reserved',
+  occupied: 'Occupied',
+}
+
+/**
+ * Why a unit from the reservation history can't be held right now (STORY-16 design §3
+ * Screen 3, D-077), or null when there is nothing to say: the unit is Available (the hold
+ * panel opens as usual), no unit was named, or the Space is closed (its closed alert
+ * says so instead, so only one closed alert appears).
+ */
+function holdAgainNoticeMessage({
+  isOpen,
+  unitRemoved,
+  unitParam,
+  selectedUnit,
+}: {
+  isOpen: boolean
+  unitRemoved: boolean
+  unitParam: string | undefined
+  selectedUnit: SeatMapUnit | undefined
+}): string | null {
+  if (!isOpen) {
+    return null
+  }
+  if (unitRemoved || (unitParam !== undefined && !selectedUnit)) {
+    return 'The unit you held before was removed. Pick another Available unit below.'
+  }
+  if (selectedUnit && selectedUnit.seatState !== 'available') {
+    const stateLabel = SEAT_STATE_LABELS[selectedUnit.seatState] ?? selectedUnit.seatState
+    return `${selectedUnit.label} is taken right now (${stateLabel}). Pick another Available unit below.`
+  }
+  return null
+}
 
 export async function generateMetadata({
   params,
@@ -217,6 +257,20 @@ export default async function SpaceProfilePage({
     />
   ) : null
 
+  // STORY-16's Hold again (design §3 Screen 3, D-077): the history links here with
+  // `from=history`, and the profile says why the unit can't be held using today's state.
+  // It never holds anything by itself (D-001). A closed Space keeps its one closed alert,
+  // with a line added below, so it gets no second notice.
+  const fromHistory = resolvedSearchParams.from === 'history'
+  const holdAgainNotice = fromHistory
+    ? holdAgainNoticeMessage({
+        isOpen: operatingStatus.isOpen,
+        unitRemoved: resolvedSearchParams.unit_removed === '1',
+        unitParam,
+        selectedUnit,
+      })
+    : null
+
   const hasTags = curatedTags.length > 0 || customTags.length > 0
 
   return (
@@ -273,6 +327,11 @@ export default async function SpaceProfilePage({
                 You can review seats and amenities; reservations open during operating
                 hours.
               </p>
+              {fromHistory && (
+                <p data-testid="hold-again-closed">
+                  You can&apos;t hold that unit while the Space is closed.
+                </p>
+              )}
               <div>
                 <Link
                   href={DISCOVERY_HREF}
@@ -296,6 +355,17 @@ export default async function SpaceProfilePage({
           >
             <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
             <AlertDescription>{refusalMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        {holdAgainNotice && (
+          <Alert
+            role="status"
+            data-testid="hold-again-notice"
+            className="rounded-2xl border-primary/30 bg-primary/5"
+          >
+            <Info className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <AlertDescription>{holdAgainNotice}</AlertDescription>
           </Alert>
         )}
 

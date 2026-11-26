@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
 import type { Database } from '@/lib/supabase/database.types'
 import {
@@ -86,4 +87,60 @@ export async function getReservationHistory(
   }))
 
   return { items, hasMore }
+}
+
+/** The ratings and comment of one of the caller's visible reviews, to prefill Edit your review. */
+export interface HistoryReviewValues {
+  quietness: number
+  wifiReliability: number
+  cleanliness: number
+  comfort: number
+  comment: string | null
+}
+
+const HISTORY_REVIEW_ID_SCHEMA = z.uuid()
+
+/**
+ * Server-only query helper (STORY-16 design §3 Screens 2 & 4, TSK-16.4).
+ * Reads the current values of the caller's own **visible** reviews among `reviewIds`
+ * (the rows the history page shows), so Edit your review opens prefilled. One query,
+ * filtered by `author_id` so RLS never mixes in another Seeker's visible review.
+ * Hidden and removed reviews can't be edited (D-080), so they are left out.
+ * Returns an empty Map when there is nothing to read, and `null` on a database error.
+ */
+export async function getMyHistoryReviewValues(
+  supabase: SupabaseClient<Database>,
+  authorId: string,
+  reviewIds: readonly string[],
+): Promise<Map<string, HistoryReviewValues> | null> {
+  const ids = [...new Set(reviewIds)].filter(
+    (id) => HISTORY_REVIEW_ID_SCHEMA.safeParse(id).success,
+  )
+  if (ids.length === 0 || !HISTORY_REVIEW_ID_SCHEMA.safeParse(authorId).success) {
+    return new Map()
+  }
+
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('id, quietness, wifi_reliability, cleanliness, comfort, comment')
+    .in('id', ids)
+    .eq('author_id', authorId)
+    .eq('status', 'visible')
+
+  if (error || !data) {
+    return null
+  }
+
+  return new Map(
+    data.map((row) => [
+      row.id,
+      {
+        quietness: row.quietness,
+        wifiReliability: row.wifi_reliability,
+        cleanliness: row.cleanliness,
+        comfort: row.comfort,
+        comment: row.comment ?? null,
+      },
+    ]),
+  )
 }
