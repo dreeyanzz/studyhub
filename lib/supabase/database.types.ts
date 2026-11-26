@@ -160,6 +160,7 @@ export type Database = {
       reservations: {
         Row: {
           booking_token: string | null
+          cancelled_by_take_down: boolean
           checked_in_at: string | null
           checked_out_at: string | null
           created_at: string
@@ -177,6 +178,7 @@ export type Database = {
         }
         Insert: {
           booking_token?: string | null
+          cancelled_by_take_down?: boolean
           checked_in_at?: string | null
           checked_out_at?: string | null
           created_at?: string
@@ -194,6 +196,7 @@ export type Database = {
         }
         Update: {
           booking_token?: string | null
+          cancelled_by_take_down?: boolean
           checked_in_at?: string | null
           checked_out_at?: string | null
           created_at?: string
@@ -478,6 +481,75 @@ export type Database = {
           },
         ]
       }
+      space_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          from_status: Database["public"]["Enums"]["space_status"] | null
+          id: string
+          new_address: string | null
+          new_latitude: number | null
+          new_longitude: number | null
+          new_name: string | null
+          old_address: string | null
+          old_latitude: number | null
+          old_longitude: number | null
+          old_name: string | null
+          reason: string | null
+          space_id: string
+          to_status: Database["public"]["Enums"]["space_status"] | null
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["space_status"] | null
+          id?: string
+          new_address?: string | null
+          new_latitude?: number | null
+          new_longitude?: number | null
+          new_name?: string | null
+          old_address?: string | null
+          old_latitude?: number | null
+          old_longitude?: number | null
+          old_name?: string | null
+          reason?: string | null
+          space_id: string
+          to_status?: Database["public"]["Enums"]["space_status"] | null
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          from_status?: Database["public"]["Enums"]["space_status"] | null
+          id?: string
+          new_address?: string | null
+          new_latitude?: number | null
+          new_longitude?: number | null
+          new_name?: string | null
+          old_address?: string | null
+          old_latitude?: number | null
+          old_longitude?: number | null
+          old_name?: string | null
+          reason?: string | null
+          space_id?: string
+          to_status?: Database["public"]["Enums"]["space_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "space_events_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "space_events_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spaces: {
         Row: {
           address: string
@@ -493,6 +565,9 @@ export type Database = {
           opens_at: string
           price_tier: Database["public"]["Enums"]["price_tier"]
           status: Database["public"]["Enums"]["space_status"]
+          status_changed_at: string
+          status_changed_by: string | null
+          status_reason: string | null
           updated_at: string
         }
         Insert: {
@@ -509,6 +584,9 @@ export type Database = {
           opens_at: string
           price_tier?: Database["public"]["Enums"]["price_tier"]
           status?: Database["public"]["Enums"]["space_status"]
+          status_changed_at?: string
+          status_changed_by?: string | null
+          status_reason?: string | null
           updated_at?: string
         }
         Update: {
@@ -525,12 +603,22 @@ export type Database = {
           opens_at?: string
           price_tier?: Database["public"]["Enums"]["price_tier"]
           status?: Database["public"]["Enums"]["space_status"]
+          status_changed_at?: string
+          status_changed_by?: string | null
+          status_reason?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "spaces_host_id_fkey"
             columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "spaces_status_changed_by_fkey"
+            columns: ["status_changed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -761,6 +849,7 @@ export type Database = {
         Args: { p_reservation_id?: string }
         Returns: {
           booking_token: string
+          cancelled_by_take_down: boolean
           checked_in_at: string
           checkout_session_id: string
           checkout_url: string
@@ -816,13 +905,15 @@ export type Database = {
         Args: { p_space_id: string; p_zone_ids: string[] }
         Returns: undefined
       }
+      resubmit_space: { Args: { p_space_id: string }; Returns: Json }
       set_space_status: {
         Args: {
+          p_reason?: string
           p_space_id: string
           p_status: Database["public"]["Enums"]["space_status"]
           p_updated_at: string
         }
-        Returns: undefined
+        Returns: Json
       }
       set_unit_state: {
         Args: {
@@ -893,7 +984,7 @@ export type Database = {
       review_report_outcome: "dismissed" | "hidden" | "removed"
       review_report_reason: "spam" | "offensive" | "not_about_space" | "other"
       review_status: "visible" | "hidden" | "removed"
-      space_status: "pending" | "verified" | "rejected"
+      space_status: "pending" | "verified" | "rejected" | "taken_down"
       unit_type: "seat" | "standing_desk" | "room"
       user_role: "seeker" | "host" | "admin"
     }
@@ -1041,7 +1132,7 @@ export const Constants = {
       review_report_outcome: ["dismissed", "hidden", "removed"],
       review_report_reason: ["spam", "offensive", "not_about_space", "other"],
       review_status: ["visible", "hidden", "removed"],
-      space_status: ["pending", "verified", "rejected"],
+      space_status: ["pending", "verified", "rejected", "taken_down"],
       unit_type: ["seat", "standing_desk", "room"],
       user_role: ["seeker", "host", "admin"],
     },

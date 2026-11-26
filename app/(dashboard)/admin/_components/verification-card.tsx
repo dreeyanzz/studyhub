@@ -22,7 +22,7 @@ export type VerificationCardItem = {
   address: string
   opens_at: string
   closes_at: string
-  status: 'pending' | 'verified' | 'rejected'
+  status: 'pending' | 'verified' | 'rejected' | 'taken_down'
   created_at: string
   updated_at: string
   host_name: string | null

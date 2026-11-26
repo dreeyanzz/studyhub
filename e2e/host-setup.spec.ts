@@ -391,7 +391,12 @@ test.describe('Host setup journey (docs/flows/host-setup-journey.md)', () => {
     await adminCard(admin, name)
       .getByRole('button', { name: `Reject ${name}` })
       .click()
+    // A rejection needs a reason (STORY-20, N10).
+    const reasonDialog = admin.getByRole('dialog', { name: `Reject Space — ${name}` })
+    await reasonDialog.getByLabel('Reason').fill('The photos show a different building.')
+    await reasonDialog.getByRole('button', { name: 'Confirm rejection' }).click()
     await expect(admin.getByRole('status')).toContainText(`${name} has been rejected.`)
+    await expect(reasonDialog).toBeHidden()
 
     await page.reload()
     const card = hostCard(page, name)

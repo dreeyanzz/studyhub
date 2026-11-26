@@ -33,11 +33,13 @@ export default async function AdminPage() {
     redirect(profile ? dashboardFor(profile.role) : '/login')
   }
 
-  // Load Pending spaces oldest-first embedding profiles(full_name) (Task #224, FR-5.1)
+  // Load Pending spaces oldest-first embedding the Host's profiles(full_name) (Task #224,
+  // FR-5.1). spaces has two foreign keys to profiles since STORY-20 (host_id and
+  // status_changed_by), so the embed names the Host's.
   const { data: spaces, error } = await supabase
     .from('spaces')
     .select(
-      'id, name, description, address, opens_at, closes_at, status, created_at, updated_at, host_id, profiles(full_name)',
+      'id, name, description, address, opens_at, closes_at, status, created_at, updated_at, host_id, profiles!spaces_host_id_fkey(full_name)',
     )
     .eq('status', 'pending')
     .order('created_at', { ascending: true })

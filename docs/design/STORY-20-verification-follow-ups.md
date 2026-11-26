@@ -181,6 +181,9 @@ Index:
 
 - `spaces_status_changed_at_idx on public.spaces (status, status_changed_at asc)` — serves
   the Pending queue (oldest waiting first) and the Rejected / Taken down lists.
+- `spaces_status_changed_by_idx on public.spaces (status_changed_by)` — so deleting a
+  profile can set `status_changed_by` to null without scanning every Space (added in
+  TSK-20.1, as STORY-14 indexed `payments.refunded_by`).
 
 #### `public.space_events` (the list of changes, D-086)
 
@@ -202,8 +205,10 @@ Index:
 | `actor_id`      | `uuid`                | Nullable, references `public.profiles(id)` `on delete set null`                |
 | `created_at`    | `timestamptz`         | Not null, default `clock_timestamp()`                                          |
 
-Check constraint:
+Check constraints:
 
+- `space_events_status_pair`: `(from_status is null) = (to_status is null)`, so a status
+  move has both ends and an identity edit with no move has neither (added in TSK-20.1).
 - `space_events_has_change`: either `(from_status is not null and to_status is not null)`
   or at least one of `(old_name is distinct from new_name)`, `(old_address is distinct from new_address)`, `(old_latitude is distinct from new_latitude)`, `(old_longitude is distinct from new_longitude)` is true.
 
@@ -273,10 +278,14 @@ from `public`, `anon`, and `authenticated`, and grant execute to `authenticated`
      raises `P0001` hint `invalid_transition` (N5).
    - For V3 and V7, trims `p_reason` (`regexp_replace(..., '^[[:space:]]+|[[:space:]]+$', '', 'g')`);
      if null or length not in `1..500`, raises `P0001` hint `invalid_reason` (N10).
-   - For V3 and V7, records lapses first (`private.record_lapses` for the Space's units,
-     D-047), then locks the Space's units in `id` order, then locks its `pending_payment`
-     and `reserved` reservations and their payments (keeping the reservation lifecycle's
-     lock order: units → reservations → payments). Cancels those holds (`status = 'cancelled'`,
+   - For V3 and V7, locks the Space's units in `id` order, then records their lapses under
+     that lock (`private.record_lapses`, D-047), as `confirm_payment` and
+     `check_space_hours_on_update` do, then locks its `pending_payment` and `reserved`
+     reservations and their payments (keeping the reservation lifecycle's lock order:
+     units → reservations → payments). TSK-20.1 put the lock before the lapses:
+     `record_lapses` locks only the units that lapsed, so recording first and then locking
+     every unit would take them out of `id` order and could deadlock with another call
+     that locks the same units. Cancels those holds (`status = 'cancelled'`,
      `ended_at = v_now`, `cancelled_by_take_down = true`) and leaves `occupied` holds
      untouched (D-085). Collects each cancelled hold's `reservation_id`, `previous_status`,
      `payment_id`, `payment_status`, `checkout_session_id`, and `payment_intent_id` (from
