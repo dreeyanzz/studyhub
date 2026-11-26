@@ -334,6 +334,30 @@ export function EndedView({
     </Link>
   )
 
+  if (reservation.status === 'cancelled' && reservation.cancelledByTakeDown) {
+    // R13 and R14 (STORY-20 design §3, D-085): an Administrator took the Space down,
+    // or rejected it after an edit. The link is to every Space, not this one, because
+    // a hidden Space reads as not found (D-055).
+    const takeDownFeeLine =
+      reservation.paymentStatus === 'refunded'
+        ? `Your ${fee} payment was refunded.`
+        : reservation.paymentStatus === 'paid'
+          ? // The automatic refund failed and waits on /admin/payments (D-085).
+            `Your ${fee} payment was recorded, and an Administrator will finish refunding it.`
+          : 'Nothing was charged.'
+    return (
+      <EndedMessage title="This Space was taken down" {...heading}>
+        <p>
+          An Administrator took {reservation.spaceName} down, so your hold on {unit} was
+          cancelled. {takeDownFeeLine}
+        </p>
+        <Link href="/spaces" className={buttonLinkClass()}>
+          Find another Space
+        </Link>
+      </EndedMessage>
+    )
+  }
+
   if (reservation.status === 'expired' && reservation.paymentStatus === 'paid') {
     // P2 (D-064): the payment came after the window. Recorded, never a unit.
     return (

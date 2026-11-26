@@ -6,7 +6,7 @@ import { spaceIdSchema } from '@/lib/validation/space'
 // Validates Space ID, target verification status and the raw ISO timestamp string used
 // for optimistic concurrency control.
 // STORY-20: a rejection or a take-down needs a reason (N10, D-084). TSK-20.1 added the
-// reason; TSK-20.3 adds 'taken_down' and the `?tab` rule of the design's §2.
+// reason, TSK-20.2 resubmitSpaceSchema; TSK-20.3 adds 'taken_down' and the `?tab` rule of the design's §2.
 
 /** The longest reason public.set_space_status and spaces.status_reason accept (N10). */
 export const SPACE_STATUS_REASON_MAX_LENGTH = 500
@@ -64,6 +64,15 @@ export const verifySpaceSchema = z
   })
 
 export type VerifySpaceInput = z.input<typeof verifySpaceSchema>
+
+/**
+ * A Host resubmitting a Rejected or Taken down Space (V8, D-084). Only the id is
+ * sent: public.resubmit_space checks the caller owns the Space and that its status
+ * can be resubmitted (N11), so the form carries nothing else to trust.
+ */
+export const resubmitSpaceSchema = z.object({ spaceId: spaceIdSchema })
+
+export type ResubmitSpaceInput = z.input<typeof resubmitSpaceSchema>
 
 /** The four lists on `/admin` (STORY-20 design §3, screen 1). */
 export const VERIFICATION_QUEUE_TABS = [

@@ -34,7 +34,7 @@ export default async function EditSpacePage({
   const { data: space } = await supabase
     .from('spaces')
     .select(
-      'id, name, description, address, opens_at, closes_at, max_wait_window, latitude, longitude, price_tier',
+      'id, name, description, address, opens_at, closes_at, max_wait_window, latitude, longitude, price_tier, status',
     )
     .eq('id', spaceId.data)
     .eq('host_id', user.id)
@@ -47,8 +47,12 @@ export default async function EditSpacePage({
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Edit Space
         </h1>
+        {/* V6 and V4 (STORY-20 design §3, D-079). The form also warns before such a
+            save, and this line says it even without JavaScript. */}
         <p className="text-sm wrap-anywhere text-muted-foreground">
-          Saving changes to {space.name} doesn&apos;t change its Verification status.
+          {space.status === 'verified'
+            ? "Changing this Space's name, address, or map pin sends it back to Pending verification. Other edits keep it Verified."
+            : `Saving changes to ${space.name} doesn't change its Verification status.`}
         </p>
       </div>
       <Card>
@@ -57,6 +61,7 @@ export default async function EditSpacePage({
             mode="edit"
             action={updateSpace}
             spaceId={space.id}
+            spaceStatus={space.status}
             initialValues={{
               name: space.name,
               description: space.description ?? '',

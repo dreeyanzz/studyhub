@@ -153,6 +153,54 @@ describe('ModerationQueue (STORY-14, TSK-14.3)', () => {
     expect(removedHtml).not.toContain(`data-testid="moderation-dismiss-${REVIEW_ID}"`)
   })
 
+  it('names every action button after its review, so repeated cards stay distinguishable (#431, D-031)', () => {
+    const OTHER_ID = '55555555-5555-4555-8555-555555555555'
+    const buttonHtml = (html: string, testId: string) =>
+      html.match(
+        new RegExp(`<button\\b[^>]*data-testid="${testId}"[^>]*>.*?</button>`),
+      )?.[0] ?? ''
+    const identity =
+      '<span class="sr-only"> Kapihan Study Hall, review by Rina Bautista</span>'
+
+    const reportedHtml = renderToStaticMarkup(
+      <ModerationQueue
+        items={[sampleItem(), sampleItem({ reviewId: OTHER_ID })]}
+        historyByReviewId={{}}
+        list="reported"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    for (const [action, label] of [
+      ['dismiss', 'Dismiss reports'],
+      ['hide', 'Hide'],
+      ['remove', 'Remove'],
+    ] as const) {
+      for (const id of [REVIEW_ID, OTHER_ID]) {
+        const button = buttonHtml(reportedHtml, `moderation-${action}-${id}`)
+        expect(button).toContain(`>${label}${identity}</button>`)
+      }
+    }
+
+    const hiddenHtml = renderToStaticMarkup(
+      <ModerationQueue
+        items={[sampleItem({ status: 'hidden' })]}
+        historyByReviewId={{}}
+        list="hidden"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    for (const [action, label] of [
+      ['restore', 'Restore'],
+      ['remove', 'Remove'],
+    ] as const) {
+      expect(buttonHtml(hiddenHtml, `moderation-${action}-${REVIEW_ID}`)).toContain(
+        `>${label}${identity}</button>`,
+      )
+    }
+  })
+
   it('lists only open reports on Reported, and every report with its outcome on Hidden', () => {
     const closedReport = {
       ...sampleItem().reports[0]!,

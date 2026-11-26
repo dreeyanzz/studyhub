@@ -101,6 +101,19 @@ export interface ModerationQueueProps {
   hasMore: boolean
 }
 
+/**
+ * Hidden text that says which review a card's action buttons act on, so a screen
+ * reader's list of buttons doesn't repeat the same names (D-031, #431).
+ */
+function ReviewIdentity({ item }: { item: AdminReviewQueueItem }) {
+  return (
+    <span className="sr-only">
+      {' '}
+      {item.spaceName}, review by {item.authorFullName}
+    </span>
+  )
+}
+
 interface PendingDialog {
   item: AdminReviewQueueItem
   action: ReviewModerationAction
@@ -494,6 +507,7 @@ export function ModerationQueue({
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Dismiss reports
+                          <ReviewIdentity item={item} />
                         </Button>
                         <Button
                           type="button"
@@ -505,6 +519,7 @@ export function ModerationQueue({
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Hide
+                          <ReviewIdentity item={item} />
                         </Button>
                         <Button
                           type="button"
@@ -516,6 +531,7 @@ export function ModerationQueue({
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Remove
+                          <ReviewIdentity item={item} />
                         </Button>
                       </>
                     )}
@@ -532,6 +548,7 @@ export function ModerationQueue({
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Restore
+                          <ReviewIdentity item={item} />
                         </Button>
                         <Button
                           type="button"
@@ -543,6 +560,7 @@ export function ModerationQueue({
                           className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                         >
                           Remove
+                          <ReviewIdentity item={item} />
                         </Button>
                       </>
                     )}

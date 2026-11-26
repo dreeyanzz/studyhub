@@ -287,8 +287,9 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
         </div>
       </div>
 
-      {/* Overview metric cards */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      {/* Overview metric cards. Columns follow the container's width, not the
+          viewport's, so they stack beside the sidebar at 200% text (#430). */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-3">
         <div className="group relative flex items-center gap-3.5 rounded-2xl border border-primary/40 bg-card p-4.5 shadow-xs ring-1 ring-primary/20 transition-all duration-300 hover:border-primary">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
             <Clock className="size-5" aria-hidden="true" />

@@ -138,7 +138,7 @@ export function VerificationCard({
 
   return (
     <Card className="group relative h-full overflow-visible rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md">
-      <CardHeader className="gap-3 pb-4">
+      <CardHeader className="min-w-0 grid-cols-[minmax(0,1fr)] gap-3 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3.5">
             <div
@@ -163,7 +163,7 @@ export function VerificationCard({
             {space.origin === 'edited' ? (
               <Badge
                 variant="outline"
-                className="rounded-full px-3 py-1 text-xs font-semibold"
+                className="h-auto max-w-full rounded-full px-3 py-1 text-xs font-semibold whitespace-normal"
               >
                 Edited
               </Badge>
@@ -171,7 +171,7 @@ export function VerificationCard({
             {space.origin === 'resubmitted' ? (
               <Badge
                 variant="outline"
-                className="rounded-full px-3 py-1 text-xs font-semibold"
+                className="h-auto max-w-full rounded-full px-3 py-1 text-xs font-semibold whitespace-normal"
               >
                 Resubmitted
               </Badge>
@@ -182,7 +182,7 @@ export function VerificationCard({
                   ? 'destructive'
                   : 'secondary'
               }
-              className="rounded-full px-3 py-1 text-xs font-semibold"
+              className="h-auto max-w-full rounded-full px-3 py-1 text-xs font-semibold whitespace-normal"
             >
               {SPACE_STATUS_LABELS[space.status]}
             </Badge>
@@ -231,9 +231,12 @@ export function VerificationCard({
           </div>
         ) : null}
 
-        <dl className="grid grid-cols-1 gap-2.5 lg:grid-cols-3">
-          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
-            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+        {/* Columns follow the card's own width, not the viewport's (#430): beside the
+            sidebar at 200% text the card is narrower than 1024 px, so lg:grid-cols-3
+            forced three tiles into about 250 px and pushed the page sideways. */}
+        <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,10rem),1fr))] gap-2.5">
+          <div className="flex min-w-0 flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
               <User className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
               Host:{' '}
             </dt>
@@ -242,8 +245,8 @@ export function VerificationCard({
             </dd>
           </div>
 
-          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
-            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+          <div className="flex min-w-0 flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
               <Clock className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
               Daily hours:{' '}
             </dt>
@@ -252,8 +255,8 @@ export function VerificationCard({
             </dd>
           </div>
 
-          <div className="flex flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
-            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+          <div className="flex min-w-0 flex-col justify-center rounded-xl border border-border/80 bg-card p-3.5 shadow-2xs">
+            <dt className="flex items-center gap-2 text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
               <Calendar className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
               {TIMESTAMP_LABELS[space.status]}{' '}
             </dt>

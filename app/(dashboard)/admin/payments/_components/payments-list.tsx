@@ -234,6 +234,10 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
                       className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
                     >
                       Refund
+                      <span className="sr-only">
+                        {' '}
+                        {item.spaceName} · {item.unitLabel}, paid by {item.seekerFullName}
+                      </span>
                     </Button>
                   </CardFooter>
                 )}
