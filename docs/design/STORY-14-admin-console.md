@@ -3,7 +3,7 @@
 > **Adrian builds this story end to end (D-094).** On 23 November its owners changed:
 > every task below is Adrian's, so where this doc says Luke builds a part, read Adrian.
 
-**Status:** approved 2026-11-22 · **Owner:** @dreeyanzz, end to end (D-094) · **Story:** #79 · **FR:** FR-5.2, FR-5.3 · **Depends on:** STORY-09, STORY-10,
+**Status:** implemented 2026-11-26 · **Owner:** @dreeyanzz, end to end (D-094) · **Story:** #79 · **FR:** FR-5.2, FR-5.3 · **Depends on:** STORY-09, STORY-10,
 STORY-12, STORY-13, STORY-15 · **Flows:** [Review lifecycle](../flows/review-lifecycle.md),
 [Reservation lifecycle](../flows/reservation-lifecycle.md),
 [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md) ·
@@ -498,4 +498,68 @@ None blocking. TSK-14.1 waits for STORY-13's tables (TSK-13.1), which #347's des
 
 ## 9. After the build
 
-Filled in when the story is done.
+Built in six PRs, in the order they merged. The refund half landed first, as §5 allowed,
+and a fix for #420 went in between the moderation function and its page:
+
+1. **#389 (`TSK-14.2`, #365):** `supabase/migrations/20261124051320_refunds.sql` (the four
+   refund columns on `payments`, `private.is_refundable`, `record_refund` and
+   `admin_payment_records`), `supabase/tests/12-refunds.sql` (69 pgTAP cases),
+   `createRefund` and `findRefund` in `lib/payments/stripe.ts` with their Vitest tests, and
+   `db:types`.
+2. **#402 (`TSK-14.1`, #364):** `supabase/migrations/20261124053742_review_moderation.sql`
+   (the action type, `review_moderation_events`, `moderate_review` and
+   `admin_review_queue`), `supabase/tests/14-review-moderation.sql`, and `db:types`.
+3. **#422 (#420's fix):** `supabase/migrations/20261125171324_moderation_stale_check.sql`.
+   `moderate_review` also takes the newest moderation log entry the Administrator saw, and
+   refuses with `stale_version` when another Administrator acted since (N18). With its
+   cases, `14-review-moderation.sql` has 89. The flow and §2 changed first, in #421.
+4. **#409 (`TSK-14.3`, #366):** the moderation page (`/admin/moderation`): its lists,
+   confirmations, `moderateReviewAction`, form rules, reads and Vitest tests. It sends the
+   newest log entry it read, for N18.
+5. **#410 (`TSK-14.4`, #367):** the Payments page (`/admin/payments`): its list, filter,
+   `RefundDialog`, `refundPaymentAction`, form rules, reads and Vitest tests, and
+   `EndedView`'s "Your ₱50.00 payment was refunded." (§0).
+6. **#428 (`TSK-14.5`, #368):** `e2e/admin-console.spec.ts` and the Stripe stub's
+   `POST /v1/refunds`.
+
+STORY-20's take-down cleanup (`lib/payments/take-down.ts`, #427) reuses `createRefund`,
+`findRefund` and `record_refund`, as D-085 planned.
+
+### What differed from the original plan, and why
+
+- **A review moderated since it was read (#420, #421, #422, #409):** Luke's review of #409
+  found that hiding, restoring or dismissing doesn't raise a review's version, so N9 alone
+  let a second Administrator act on a review another had just moderated. The review
+  lifecycle gained N18, and `moderate_review` now compares the newest moderation log entry
+  too. §2 was changed in #421, before the fix.
+- **The pages merged in the other order:** §6 put the Payments page (row 4) before the
+  moderation page (row 5). #409 merged first, so #410 merged `main` and combined the files
+  both add (`admin-nav.tsx`, `lib/data/admin.ts`, `lib/validation/admin.ts`, and their
+  tests).
+- **The portal navigation isn't shown:** §3's screen 1 was built (`AdminHeader` with
+  `AdminNav`), but STORY-17's admin portal draft (#414) replaced `AdminHeader` in the layout
+  with `AdminSidebar`, which links to all three pages. So `AdminHeader` and `AdminNav` aren't
+  rendered anywhere. Maria and James decide whether to delete them (D-074).
+
+### Acceptance criteria coverage (#79)
+
+| Criterion                                                                                  | Proven by                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A moderation queue lists reported reviews, with hide and remove; they leave the aggregates | `14-review-moderation.sql` ("admin_review_queue lists reported reviews oldest open report first", `RV4`, `RV5`: "a hidden review leaves the Space's averages", "a removed review leaves the Space's averages"); `moderation-queue.test.tsx`; `e2e/admin-console.spec.ts` (`RV5`: 3.0 over two reviews to 5.0 over one) |
+| An Administrator reads sandbox payment records: paid, forfeited and refunded               | `12-refunds.sql` ("admin_payment_records lists paid, forfeited and refunded payments, newest payment first"); `lib/data/admin.test.ts`; `payments-list.test.tsx`                                                                                                                                                       |
+| A refund when a Host can't honour a paid hold, and the Seeker sees the new status          | `12-refunds.sql` (`P1`, "a Host's override leaves a refundable fee (R9)", "a Seeker's own reservation reads a refunded payment as refunded"); `payments/actions.test.ts`; `reservation-status-view.test.tsx`; `e2e/admin-console.spec.ts` (`P1`)                                                                       |
+| A Seeker or Host gets 0 rows from the admin queues and can't moderate or refund (pgTAP)    | `14-review-moderation.sql` (`N7`, `N14`, "a Seeker cannot run admin_review_queue", "a Host cannot run admin_review_queue"); `12-refunds.sql` ("a Seeker cannot record a refund, of their own fee either", "a Host cannot run admin_payment_records"); `e2e/admin-console.spec.ts` (redirects)                          |
+
+### Still open / follow-up
+
+- **§4's two manual rows:** the moderation and Payments pages at 360, 768 and 1024 px, with
+  text at 200% and with the keyboard alone; and a real test-mode refund through
+  `npm run stripe:listen`, seen in the Stripe Dashboard and on `/admin/payments`.
+- **The moderation buttons' names:** each card's "Dismiss reports", "Hide" and "Remove" has
+  no hidden Space name, so a screen reader hears the same labels on every card. STORY-20's
+  design asks for that pattern on `/admin`.
+- **A 409 from Stripe:** #389 noted that a 409 (the same idempotency key still in flight) is
+  a 4xx, so `refundPaymentAction` says "Stripe didn't accept the refund" although the
+  refund may still go through. §1 drew the 4xx rule, and #410 kept it.
+- **STORY-17:** Maria and James review the moderation and Payments screens (D-073).
+- The acceptance-criteria checkboxes on #79 are left for Adrian to tick when closing it.

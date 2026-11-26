@@ -1,6 +1,6 @@
 # Review lifecycle
 
-**Status:** approved 2026-11-19 · **Moderation change (#420):** approved 2026-11-26 ·
+**Status:** implemented 2026-11-26 · **Moderation change (#420):** implemented 2026-11-26 ·
 **Owner:** @dreeyanzz · **Approved by:** @JamesNino-Mandawe; the moderation change,
 @dreeyanzz, who merged it ·
 **Stories:** STORY-13, STORY-14, STORY-16 · **Decisions:** D-009, D-052, D-055, D-073,

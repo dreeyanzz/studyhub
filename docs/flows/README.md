@@ -15,7 +15,7 @@ own part. It never changes a shared flow: that is a pull request to the flow doc
 | [Check-in](check-in.md)                                         | #176  | Sequence | Luke     | Adrian, Maria                      | Reservation lifecycle | implemented 2026-11-15                                             |
 | [Host setup journey](host-setup-journey.md)                     | #177  | Swimlane | Maria    | Adrian                             | No other flow         | implemented 2026-11-15; Sprint 3 change (#340) approved 2026-11-22 |
 | [Seeker journey](seeker-journey.md)                             | #178  | Swimlane | Maria    | Adrian, Luke                       | No other flow         | implemented 2026-11-15                                             |
-| [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James; the #420 change, Adrian     | Reservation lifecycle | approved 2026-11-19; moderation change (#420) approved 2026-11-26  |
+| [Review lifecycle](review-lifecycle.md)                         | #339  | State    | Adrian   | James; the #420 change, Adrian     | Reservation lifecycle | implemented 2026-11-26, with the moderation change (#420)          |
 | [Google OAuth](google-oauth.md)                                 | #379  | Sequence | Adrian   | Adrian                             | No other flow         | implemented 2026-11-24                                             |
 
 **Sprint 3 adds one flow and changes one** (D-075). Adrian draws both, and Luke and Maria
