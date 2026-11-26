@@ -124,17 +124,6 @@ function adminCard(admin: Page, name: string) {
   })
 }
 
-/**
- * An open dialog on /admin, found by its heading. Not by its accessible name: in CI the
- * Reject and Take down dialogs sometimes opened without one when clicked right after the
- * page loaded (PR #444's first run).
- */
-function openDialog(admin: Page, role: 'dialog' | 'alertdialog', title: string) {
-  return admin
-    .getByRole(role)
-    .filter({ has: admin.getByRole('heading', { name: title }) })
-}
-
 /** V2, from the Pending list. */
 async function approveSpace(admin: Page, name: string) {
   await admin.goto('/admin')
@@ -150,7 +139,7 @@ async function rejectSpace(admin: Page, name: string, reason: string) {
   await adminCard(admin, name)
     .getByRole('button', { name: `Reject ${name}` })
     .click()
-  const dialog = openDialog(admin, 'dialog', `Reject Space - ${name}`)
+  const dialog = admin.getByRole('dialog', { name: `Reject Space — ${name}` })
   await dialog.getByLabel('Reason').fill(reason)
   await dialog.getByRole('button', { name: 'Confirm rejection' }).click()
   await expect(admin.getByRole('status')).toContainText(`${name} has been rejected.`)
@@ -162,7 +151,7 @@ async function takeDownSpace(admin: Page, name: string, reason: string) {
   await adminCard(admin, name)
     .getByRole('button', { name: `Take down ${name}` })
     .click()
-  const dialog = openDialog(admin, 'dialog', `Take down Space - ${name}`)
+  const dialog = admin.getByRole('dialog', { name: `Take down Space — ${name}` })
   await dialog.getByLabel('Reason').fill(reason)
   await dialog.getByRole('button', { name: 'Take down Space' }).click()
   await expect(admin.getByRole('status')).toContainText(`${name} has been taken down.`)
@@ -594,7 +583,7 @@ test.describe('Host setup journey (docs/flows/host-setup-journey.md)', () => {
     await adminCard(admin, name)
       .getByRole('button', { name: `Put back ${name}` })
       .click()
-    const confirm = openDialog(admin, 'alertdialog', 'Put Space back?')
+    const confirm = admin.getByRole('alertdialog', { name: 'Put Space back?' })
     await confirm.getByRole('button', { name: 'Put back', exact: true }).click()
     await expect(admin.getByRole('status')).toContainText(
       `${name} has been put back and is now Verified.`,

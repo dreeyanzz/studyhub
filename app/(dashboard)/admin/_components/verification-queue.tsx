@@ -171,6 +171,7 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
     action: VerificationAction,
     reason?: string,
   ): Promise<SetSpaceStatusResult> {
+    let decided = false
     setDeciding((prev) => new Set(prev).add(space.id))
     let result: SetSpaceStatusResult
     try {
@@ -180,12 +181,17 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
         updatedAt: space.updated_at,
         reason,
       })
+      decided = result.success
     } finally {
-      setDeciding((prev) => {
-        const next = new Set(prev)
-        next.delete(space.id)
-        return next
-      })
+      // Keep the Space marked as deciding through the 250 ms removal fade so the
+      // Administrator's own Realtime UPDATE never flashes "Updated by Host" (D-086).
+      if (!decided) {
+        setDeciding((prev) => {
+          const next = new Set(prev)
+          next.delete(space.id)
+          return next
+        })
+      }
     }
 
     if (result.success) {
@@ -200,6 +206,11 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
       setTimeout(() => {
         setSpaces((prev) => prev.filter((item) => item.id !== space.id))
         setRemovingId(null)
+        setDeciding((prev) => {
+          const next = new Set(prev)
+          next.delete(space.id)
+          return next
+        })
       }, 250)
     } else if (action === 'approve') {
       // A refusal from a dialog shows inside that dialog instead.
