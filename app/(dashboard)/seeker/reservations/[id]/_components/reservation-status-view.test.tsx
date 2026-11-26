@@ -40,6 +40,7 @@ const base: MyReservation = {
   checkoutUrl: null,
   checkedInAt: null,
   endedAt: null,
+  cancelledByTakeDown: false,
 }
 const text = (html: string) => html.replace(/<[^>]+>/g, '').replace(/&#x27;/g, "'")
 
@@ -97,6 +98,11 @@ describe('Labels that wrap on a phone (design §3, Accessibility)', () => {
       />
     ),
     'a cancelled hold': <EndedView reservation={{ ...base, status: 'cancelled' }} />,
+    'a take-down cancellation': (
+      <EndedView
+        reservation={{ ...base, status: 'cancelled', cancelledByTakeDown: true }}
+      />
+    ),
   }
 
   for (const [name, view] of Object.entries(views)) {
@@ -240,6 +246,63 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
       'Your ₱50.00 payment was refunded.',
     )
     expect(ended({ status: 'cancelled' })).toContain('Your hold on S4 has ended.')
+  })
+})
+
+describe('EndedView after a take-down (R13, R14, STORY-20 design §3, D-085)', () => {
+  const takenDown = (overrides: Partial<MyReservation>) =>
+    renderToStaticMarkup(
+      <EndedView
+        reservation={{
+          ...base,
+          status: 'cancelled',
+          cancelledByTakeDown: true,
+          ...overrides,
+        }}
+      />,
+    )
+
+  it('says the Space was taken down and which hold was cancelled', () => {
+    const html = text(takenDown({}))
+    expect(html).toContain('This Space was taken down')
+    expect(html).toContain(
+      'An Administrator took Kapihan Study Hall down, so your hold on S4 was cancelled.',
+    )
+    expect(html).not.toContain('Your hold on S4 has ended.')
+  })
+
+  it('says what happened to the fee', () => {
+    // R13: an unpaid hold.
+    expect(text(takenDown({ paymentStatus: 'pending' }))).toContain(
+      'Nothing was charged.',
+    )
+    // R14: refunded automatically.
+    expect(text(takenDown({ paymentStatus: 'refunded' }))).toContain(
+      'Your ₱50.00 payment was refunded.',
+    )
+    // R14: the automatic refund failed and waits on /admin/payments.
+    expect(text(takenDown({ paymentStatus: 'paid' }))).toContain(
+      'Your ₱50.00 payment was recorded, and an Administrator will finish refunding it.',
+    )
+  })
+
+  it('links to every Space, never to the hidden one (D-055)', () => {
+    const html = takenDown({})
+    expect(text(html)).toContain('Find another Space')
+    expect(html).toContain('href="/spaces"')
+    expect(html).not.toContain(`href="/spaces/${base.spaceId}"`)
+  })
+
+  it('is the h1 on the hold page, and the h2 the /seeker card asks for', () => {
+    expect(takenDown({})).toContain('<h1 class="font-heading text-2xl')
+    const inCard = renderToStaticMarkup(
+      <EndedView
+        reservation={{ ...base, status: 'cancelled', cancelledByTakeDown: true }}
+        headingLevel="h2"
+        headingId="card-heading"
+      />,
+    )
+    expect(inCard).toContain('<h2 id="card-heading"')
   })
 })
 

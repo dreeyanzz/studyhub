@@ -379,7 +379,7 @@ test.describe('Host setup journey (docs/flows/host-setup-journey.md)', () => {
     expect((await requireSpace(name)).status).toBe('verified')
   })
 
-  test('host-admin-rejects-space, host-sees-rejected: an Administrator rejects a Space; its Host sees Rejected without a reason, and Seekers still cannot find it', async ({
+  test('host-admin-rejects-space, host-sees-rejected: an Administrator rejects a Space with a reason; its Host sees the reason, and Seekers still cannot find it', async ({
     page,
     browser,
   }) => {
@@ -401,8 +401,11 @@ test.describe('Host setup journey (docs/flows/host-setup-journey.md)', () => {
     await page.reload()
     const card = hostCard(page, name)
     await expect(card.getByText('Rejected', { exact: true })).toBeVisible()
-    await expect(card.getByText(/reason/i)).toHaveCount(0)
-    await expect(card.getByRole('button', { name: /resubmit/i })).toHaveCount(0)
+    // STORY-20 TSK-20.2 (D-084): the Host reads the reason and can resubmit.
+    // TSK-20.4 covers resubmitting (host-resubmits-space).
+    await expect(card.getByText('Rejection reason:')).toBeVisible()
+    await expect(card.getByText('The photos show a different building.')).toBeVisible()
+    await expect(card.getByRole('button', { name: `Resubmit ${name}` })).toBeVisible()
     expect((await requireSpace(name)).status).toBe('rejected')
 
     await expectHiddenFromSeekers(await newPage(browser), id, name)

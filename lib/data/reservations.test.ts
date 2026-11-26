@@ -26,6 +26,7 @@ const row = {
   created_at: '2026-11-14T07:32:00+00:00',
   checked_in_at: null,
   ended_at: null,
+  cancelled_by_take_down: false,
 }
 
 function client(answer: { data: unknown; error: unknown }) {
@@ -61,6 +62,26 @@ describe('getMyReservation', () => {
       id,
     )
     expect(checkedIn?.checkedInAt).toBe('2026-11-14T08:00:00+00:00')
+  })
+
+  it('says when a take-down cancelled the hold (R13, R14, STORY-20, D-085)', async () => {
+    expect(
+      (await getMyReservation(client({ data: row, error: null }).supabase, id))
+        ?.cancelledByTakeDown,
+    ).toBe(false)
+    const takenDown = await getMyReservation(
+      client({
+        data: {
+          ...row,
+          status: 'cancelled',
+          ended_at: '2026-11-14T07:40:00+00:00',
+          cancelled_by_take_down: true,
+        },
+        error: null,
+      }).supabase,
+      id,
+    )
+    expect(takenDown).toMatchObject({ status: 'cancelled', cancelledByTakeDown: true })
   })
 
   it('asks for the current hold when no id is given', async () => {

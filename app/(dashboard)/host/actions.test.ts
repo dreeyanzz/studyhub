@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createSpace, deleteSpace, updateSpace } from './actions'
+import { createSpace, deleteSpace, resubmitSpaceAction, updateSpace } from './actions'
 
 // --- Mock Next.js dependencies ---
 const mockRevalidatePath = vi.fn()
@@ -340,6 +340,118 @@ describe('Host Space Actions (STORY-05, STORY-09 TSK-09.7)', () => {
       expect(res.formError).toBe(
         'We could not save this Space. It may no longer exist or you may not have access.',
       )
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // updateSpace: a Verified Space back to Pending (STORY-20 TSK-20.2, V6)
+  // ---------------------------------------------------------------------------
+  describe('updateSpace and re-verification (STORY-20, V4 and V6)', () => {
+    // The read before the save answers with the old status; the update answers with
+    // the status the reverify_on_identity_edit trigger left.
+    function statuses(before: string, after: string) {
+      tableResponses.spaces = (op: string) =>
+        op === 'update'
+          ? { data: { id: validSpaceId, status: after }, error: null }
+          : { data: { status: before }, error: null }
+    }
+
+    it('says the Space is back to Pending when a Verified Space moved (V6)', async () => {
+      statuses('verified', 'pending')
+      const fd = createValidSpaceFormData({ spaceId: validSpaceId, name: 'New name' })
+
+      await expect(updateSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=reverify')
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/admin')
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/host')
+    })
+
+    it('says only "saved" when a Verified Space stayed Verified (V4)', async () => {
+      statuses('verified', 'verified')
+      const fd = createValidSpaceFormData({ spaceId: validSpaceId })
+
+      await expect(updateSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=updated')
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/admin')
+    })
+
+    it('says only "saved" for a Space that was Pending already', async () => {
+      statuses('pending', 'pending')
+      const fd = createValidSpaceFormData({ spaceId: validSpaceId, name: 'New name' })
+
+      await expect(updateSpace({}, fd)).rejects.toThrow('REDIRECT:/host?notice=updated')
+    })
+
+    it("reads the status and saves on the caller's own Space only, never sending status", async () => {
+      statuses('verified', 'pending')
+      const fd = createValidSpaceFormData({ spaceId: validSpaceId, status: 'verified' })
+
+      await expect(updateSpace({}, fd)).rejects.toThrow('REDIRECT')
+      expect(capturedUpdates[0]?.filters).toEqual({
+        id: validSpaceId,
+        host_id: 'b0000000-0000-4000-8000-000000000001',
+      })
+      expect(capturedUpdates[0]?.values).not.toHaveProperty('status')
+    })
+  })
+
+  // ---------------------------------------------------------------------------
+  // resubmitSpaceAction (STORY-20 TSK-20.2, V8)
+  // ---------------------------------------------------------------------------
+  describe('resubmitSpaceAction (STORY-20, V8, N11)', () => {
+    const resubmitFailed =
+      'We could not resubmit this Space. Refresh the page and try again.'
+    const formWith = (spaceId: string) => {
+      const fd = new FormData()
+      fd.set('spaceId', spaceId)
+      return fd
+    }
+
+    it('calls resubmit_space, revalidates /host and /admin, and says so on /host', async () => {
+      mockRpcResponse = {
+        data: { space_id: validSpaceId, status: 'pending' },
+        error: null,
+      }
+
+      await expect(resubmitSpaceAction({}, formWith(validSpaceId))).rejects.toThrow(
+        'REDIRECT:/host?notice=resubmitted',
+      )
+      expect(capturedRpcCalls).toEqual([
+        { fn: 'resubmit_space', args: { p_space_id: validSpaceId } },
+      ])
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/host')
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/admin')
+    })
+
+    it('never asks the database about a malformed id', async () => {
+      const res = await resubmitSpaceAction({}, formWith('not-a-uuid'))
+      expect(res).toEqual({ formError: resubmitFailed })
+      expect(capturedRpcCalls).toHaveLength(0)
+    })
+
+    it.each([
+      [
+        'a Space that is not Rejected or Taken down',
+        { code: 'P0001', hint: 'not_resubmittable' },
+      ],
+      [
+        "another Host's Space, or none (42501)",
+        { code: '42501', message: 'permission denied' },
+      ],
+      ['any other failure', { code: '08006', message: 'connection failure' }],
+    ])('refuses %s with one message, and redirects nowhere', async (_name, error) => {
+      mockRpcResponse = { data: null, error }
+
+      const res = await resubmitSpaceAction({}, formWith(validSpaceId))
+      expect(res).toEqual({ formError: resubmitFailed })
+      expect(mockRedirect).not.toHaveBeenCalled()
+      expect(mockRevalidatePath).not.toHaveBeenCalled()
+    })
+
+    it('sends a signed-out caller to sign in', async () => {
+      mockUser = null
+      await expect(resubmitSpaceAction({}, formWith(validSpaceId))).rejects.toThrow(
+        'REDIRECT:/login?returnUrl=%2Fhost',
+      )
+      expect(capturedRpcCalls).toHaveLength(0)
     })
   })
 
