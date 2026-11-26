@@ -38,6 +38,8 @@ export const statusBadges: Record<
   pending: { label: 'Pending verification', variant: 'secondary' },
   verified: { label: 'Verified', variant: 'default' },
   rejected: { label: 'Rejected', variant: 'destructive' },
+  // STORY-20 (D-084). TSK-20.2 adds its reason and Resubmit.
+  taken_down: { label: 'Taken down', variant: 'destructive' },
 }
 
 function SpaceCard({ space }: { space: SpaceListItem }) {

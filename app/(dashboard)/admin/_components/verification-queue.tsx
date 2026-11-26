@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import { CheckCircle2, Clock, ShieldCheck, Sparkles, X } from 'lucide-react'
 
-import { setSpaceStatusAction } from '@/app/(dashboard)/admin/actions'
+import {
+  setSpaceStatusAction,
+  type SetSpaceStatusResult,
+} from '@/app/(dashboard)/admin/actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,6 +14,7 @@ import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { SpaceInspectionDialog } from './space-inspection-dialog'
 import { VerificationCard, type VerificationCardItem } from './verification-card'
+import { VerificationReasonDialog } from './verification-reason-dialog'
 
 export type PendingSpace = VerificationCardItem
 
@@ -35,12 +39,27 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
   const [notice, setNotice] = useState<Notice | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [inspectingSpace, setInspectingSpace] = useState<PendingSpace | null>(null)
+  // A rejection needs a reason (STORY-20, N10), so Reject opens the reason dialog.
+  const [rejectingSpace, setRejectingSpace] = useState<PendingSpace | null>(null)
 
   async function handleDecision(space: PendingSpace, status: 'verified' | 'rejected') {
+    if (status === 'rejected') {
+      setRejectingSpace(space)
+      return
+    }
+    await submitDecision(space, status)
+  }
+
+  async function submitDecision(
+    space: PendingSpace,
+    status: 'verified' | 'rejected',
+    reason?: string,
+  ): Promise<SetSpaceStatusResult> {
     const result = await setSpaceStatusAction({
       spaceId: space.id,
       status,
       updatedAt: space.updated_at,
+      reason,
     })
 
     if (result.success) {
@@ -56,7 +75,8 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
         setSpaces((prev) => prev.filter((item) => item.id !== space.id))
         setRemovingId(null)
       }, 250)
-    } else {
+    } else if (status === 'verified') {
+      // A refused rejection shows inside the reason dialog instead.
       setNotice({
         id: `${space.id}-${Date.now()}`,
         type: 'error',
@@ -64,6 +84,7 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
         message: result.error,
       })
     }
+    return result
   }
 
   return (
@@ -213,6 +234,15 @@ export function VerificationQueue({ initialSpaces }: VerificationQueueProps) {
         onReject={async (s) => {
           await handleDecision(s, 'rejected')
         }}
+      />
+
+      <VerificationReasonDialog
+        space={rejectingSpace}
+        open={!!rejectingSpace}
+        onOpenChange={(open) => {
+          if (!open) setRejectingSpace(null)
+        }}
+        onConfirm={(space, reason) => submitDecision(space, 'rejected', reason)}
       />
     </div>
   )
