@@ -17,10 +17,15 @@ const ADMIN_NAV_LINKS = [
     label: 'Moderation',
     isActive: (pathname: string) => pathname.startsWith('/admin/moderation'),
   },
+  {
+    href: '/admin/payments',
+    label: 'Payments',
+    isActive: (pathname: string) => pathname.startsWith('/admin/payments'),
+  },
 ] as const
 
 /**
- * Administration portal navigation (STORY-14 design §3 Screen 1, TSK-14.3).
+ * Administration portal navigation (STORY-14 design §3 Screen 1, TSK-14.3, TSK-14.4).
  * Uses `usePathname()` so `aria-current="page"` sits strictly on the active route.
  */
 export function AdminNav() {

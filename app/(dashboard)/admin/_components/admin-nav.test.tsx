@@ -14,7 +14,7 @@ function anchorFor(html: string, href: string): string {
   return match?.[0] ?? ''
 }
 
-describe('AdminNav (STORY-14, TSK-14.3)', () => {
+describe('AdminNav (STORY-14, TSK-14.3, TSK-14.4)', () => {
   it('marks only Verification Queue active on /admin', () => {
     usePathnameMock.mockReturnValue('/admin')
     const html = renderToStaticMarkup(<AdminNav />)
@@ -22,6 +22,7 @@ describe('AdminNav (STORY-14, TSK-14.3)', () => {
     expect(html).toContain('aria-label="Administration portal"')
     expect(anchorFor(html, '/admin')).toContain('aria-current="page"')
     expect(anchorFor(html, '/admin/moderation')).not.toContain('aria-current="page"')
+    expect(anchorFor(html, '/admin/payments')).not.toContain('aria-current="page"')
     expect(html).toContain('min-h-12')
     expect(html).toContain('min-w-12')
   })
@@ -32,5 +33,14 @@ describe('AdminNav (STORY-14, TSK-14.3)', () => {
 
     expect(anchorFor(html, '/admin')).not.toContain('aria-current="page"')
     expect(anchorFor(html, '/admin/moderation')).toContain('aria-current="page"')
+  })
+
+  it('marks only Payments active on /admin/payments', () => {
+    usePathnameMock.mockReturnValue('/admin/payments')
+    const html = renderToStaticMarkup(<AdminNav />)
+
+    expect(anchorFor(html, '/admin')).not.toContain('aria-current="page"')
+    expect(anchorFor(html, '/admin/moderation')).not.toContain('aria-current="page"')
+    expect(anchorFor(html, '/admin/payments')).toContain('aria-current="page"')
   })
 })

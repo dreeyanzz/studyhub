@@ -349,6 +349,16 @@ export function EndedView({
     )
   }
 
+  if (reservation.status === 'expired' && reservation.paymentStatus === 'refunded') {
+    // P2 late payment that an Administrator refunded (STORY-14 design §0 & §3 Screen 4, D-088).
+    return (
+      <EndedMessage title="Your payment window ran out" {...heading}>
+        <p>Your {fee} payment was refunded.</p>
+        {backToSpace}
+      </EndedMessage>
+    )
+  }
+
   if (reservation.status === 'expired') {
     return (
       <EndedMessage title="Your payment window ran out" {...heading}>
