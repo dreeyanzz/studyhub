@@ -157,7 +157,7 @@ function SpaceSetupChecklist({
             ) : (
               <Link
                 href={`/host/spaces/${spaceId}/${step.key}`}
-                className="inline-flex min-h-12 items-center text-xs font-semibold text-primary underline underline-offset-4 hover:text-primary/80"
+                className="inline-flex min-h-12 min-w-12 items-center justify-end rounded-sm text-xs font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 {step.todoText}
                 <span className="sr-only"> for {spaceName}</span>
@@ -278,7 +278,7 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
                 className="size-3.5 shrink-0 text-primary"
                 aria-hidden="true"
               />
-              View public listing<span className="sr-only"> for {space.name}</span>
+              View public Space<span className="sr-only"> for {space.name}</span>
             </Link>
           ) : null}
           {/* Only opens the confirmation page; nothing is deleted until it is submitted. */}

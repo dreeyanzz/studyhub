@@ -194,7 +194,10 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
           }}
         >
           <RefreshCw
-            className={cn('size-4 shrink-0', isRefreshing && 'animate-spin')}
+            className={cn(
+              'size-4 shrink-0',
+              isRefreshing && 'animate-spin motion-reduce:animate-none',
+            )}
             aria-hidden="true"
           />
           {isRefreshing ? 'Refreshing…' : 'Refresh'}

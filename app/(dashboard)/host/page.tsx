@@ -247,7 +247,7 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
             </div>
             <div className="min-w-0">
               <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
-                Verified & live
+                Verified
               </p>
               <p className="font-heading text-2xl font-bold text-foreground">
                 {verifiedCount}

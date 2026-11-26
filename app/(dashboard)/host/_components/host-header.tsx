@@ -41,8 +41,8 @@ export async function HostHeader() {
       <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
-            href="/"
-            aria-label="Worq home"
+            href="/host"
+            aria-label="Worq — Host portal"
             className={cn(
               buttonVariants({ variant: 'ghost' }),
               'h-auto min-h-12 max-w-full shrink gap-2 px-2 py-2 font-heading text-xl font-semibold whitespace-normal',
@@ -55,7 +55,7 @@ export async function HostHeader() {
             {/* Every Host page belongs to Spaces, the portal's primary section. */}
             <Link
               href="/host"
-              aria-current="page"
+              aria-current="true"
               className={cn(
                 buttonVariants({ variant: 'ghost' }),
                 'h-auto min-h-12 max-w-full shrink rounded-full px-4 py-2 whitespace-normal aria-[current=page]:bg-secondary aria-[current=page]:text-secondary-foreground',
