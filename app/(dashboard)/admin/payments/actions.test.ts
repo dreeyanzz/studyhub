@@ -180,6 +180,18 @@ describe('refundPaymentAction (STORY-14 design §1 & §4, TSK-14.4)', () => {
       message: "Stripe didn't accept the refund, so nothing changed.",
     })
 
+    // 409 idempotency key still in flight + findRefund returns null -> result unknown,
+    // so Nothing was recorded (#432)
+    createRefundMock.mockRejectedValueOnce(
+      new StripeApiError(409, 'idempotency key in use'),
+    )
+    findRefundMock.mockResolvedValueOnce(null)
+    const conflict409 = await refundPaymentAction(IDLE, makeForm())
+    expect(conflict409).toEqual({
+      status: 'error',
+      message: 'Nothing was recorded. Try again.',
+    })
+
     // 500 server error + findRefund returns null -> Nothing was recorded
     createRefundMock.mockRejectedValueOnce(
       new StripeApiError(500, 'Stripe internal error'),
