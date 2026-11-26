@@ -82,6 +82,12 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     path: '/seeker',
   },
   {
+    id: 'seeker-history',
+    label: 'Seeker reservation history',
+    role: 'seeker',
+    path: '/seeker/reservations',
+  },
+  {
     id: 'seeker-hold',
     label: 'Seeker hold page',
     role: 'seeker',

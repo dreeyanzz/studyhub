@@ -27,6 +27,16 @@ export function formatManilaTime(date: string | Date): string {
   return manilaTimeFormat.format(typeof date === 'string' ? new Date(date) : date)
 }
 
+const manilaDateFormat = new Intl.DateTimeFormat('en-PH', {
+  timeZone: 'Asia/Manila',
+  dateStyle: 'medium',
+})
+
+/** "Nov 18, 2026", in Asia/Manila (D-048). */
+export function formatManilaDate(date: string | Date): string {
+  return manilaDateFormat.format(typeof date === 'string' ? new Date(date) : date)
+}
+
 /**
  * Whole minutes left until `deadline`, rounded up, so "1 min left" shows until the
  * very end and 0 only once it has passed. Uses STORY-10's secondsRemaining, which
