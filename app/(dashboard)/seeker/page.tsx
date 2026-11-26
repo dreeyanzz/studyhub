@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CurrentHoldCard } from './_components/current-hold-card'
 import { FindSpaceCard } from './_components/find-space-card'
 import { ProfileForm } from './_components/profile-form'
+import { ReservationHistoryCard } from './_components/reservation-history-card'
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -56,23 +57,26 @@ export default async function SeekerPage({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+      <div className="space-y-1">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Seeker Dashboard
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base text-muted-foreground">
           See your hold, find a Space, and manage your profile details.
         </p>
       </div>
 
-      <div className="max-w-2xl space-y-8">
-        <CurrentHoldCard
-          hold={hold}
-          showEnded={Boolean(reservationId)}
-          confirmingCheckOut={confirmingCheckOut}
-          checkOutError={checkOutError}
-        />
-        {!hasHold && <FindSpaceCard />}
+      <div className="grid items-start gap-6 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="space-y-6">
+          <CurrentHoldCard
+            hold={hold}
+            showEnded={Boolean(reservationId)}
+            confirmingCheckOut={confirmingCheckOut}
+            checkOutError={checkOutError}
+          />
+          {!hasHold && <FindSpaceCard />}
+          <ReservationHistoryCard />
+        </div>
         <ProfileForm profile={profile} />
       </div>
     </div>

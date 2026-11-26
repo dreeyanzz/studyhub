@@ -11,6 +11,7 @@ const mockNotFound = vi.fn(() => {
 
 vi.mock('next/navigation', () => ({
   notFound: () => mockNotFound(),
+  useRouter: () => ({ refresh: vi.fn() }),
 }))
 
 const VALID_SPACE_ID = 'e0000000-0000-4000-8000-000000000001'
@@ -526,6 +527,80 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     const closedMatches = [...html.matchAll(/data-testid="seeker-space-closed"/g)]
     expect(closedMatches).toHaveLength(1)
     expect(html).toContain('data-testid="selected-unit-space-closed"')
+  })
+
+  describe('Hold again from the reservation history (STORY-16 design §3 Screen 3, D-077)', () => {
+    function setFirstUnitState(seatState: SeatMapZone['units'][number]['seatState']) {
+      const [zone] = mockZones
+      const [unit] = zone!.units
+      zone!.units = [{ ...unit!, seatState }]
+    }
+
+    async function renderFromHistory(query: Record<string, string>) {
+      const page = await SpaceProfilePage({
+        params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+        searchParams: Promise.resolve({ from: 'history', ...query }),
+      })
+      return renderToStaticMarkup(page)
+    }
+
+    it('shows no notice and opens the hold panel when the unit is Available', async () => {
+      const html = await renderFromHistory({ unit: 'u1' })
+      expect(html).not.toContain('data-testid="hold-again-notice"')
+      expect(html).toContain('Selected Unit: D1')
+    })
+
+    it('says the unit is taken, with its state in words, when it is not Available', async () => {
+      setFirstUnitState('reserved')
+      const html = await renderFromHistory({ unit: 'u1' })
+      expect(html).toContain('data-testid="hold-again-notice"')
+      expect(html).toContain(
+        'D1 is taken right now (Reserved). Pick another Available unit below.',
+      )
+    })
+
+    it('says the unit was removed for unit_removed=1', async () => {
+      const html = await renderFromHistory({ unit_removed: '1' })
+      expect(html).toContain('data-testid="hold-again-notice"')
+      expect(html).toContain(
+        'The unit you held before was removed. Pick another Available unit below.',
+      )
+    })
+
+    it('says the unit was removed when ?unit= matches no unit on the seat map', async () => {
+      const html = await renderFromHistory({ unit: 'u-gone' })
+      expect(html).toContain(
+        'The unit you held before was removed. Pick another Available unit below.',
+      )
+    })
+
+    it('announces the notice as a status', async () => {
+      const html = await renderFromHistory({ unit_removed: '1' })
+      expect(html).toMatch(
+        /<div[^>]*role="status"[^>]*data-testid="hold-again-notice"|<div[^>]*data-testid="hold-again-notice"[^>]*role="status"/,
+      )
+    })
+
+    it('adds a line to the one closed alert instead of a second notice when the Space is closed', async () => {
+      mockSpace = { ...mockSpace!, opens_at: '01:00:00', closes_at: '02:00:00' }
+      setFirstUnitState('reserved')
+      const html = await renderFromHistory({ unit: 'u1' })
+
+      expect([...html.matchAll(/data-testid="seeker-space-closed"/g)]).toHaveLength(1)
+      expect(html).toContain('You can&#x27;t hold that unit while the Space is closed.')
+      expect(html).not.toContain('data-testid="hold-again-notice"')
+    })
+
+    it('shows neither the notice nor the closed line without from=history', async () => {
+      mockSpace = { ...mockSpace!, opens_at: '01:00:00', closes_at: '02:00:00' }
+      const closedPage = await SpaceProfilePage({
+        params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+        searchParams: Promise.resolve({ unit: 'u-gone', unit_removed: '1' }),
+      })
+      const closedHtml = renderToStaticMarkup(closedPage)
+      expect(closedHtml).not.toContain('data-testid="hold-again-closed"')
+      expect(closedHtml).not.toContain('data-testid="hold-again-notice"')
+    })
   })
 
   it('renders the Reviews section below the seat map and passes validated sort/reviews params (STORY-13, TSK-13.4)', async () => {

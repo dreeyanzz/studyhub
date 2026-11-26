@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 
-// The Server Actions are only form targets here.
+// WaitCountdown uses useRouter(); the Server Actions are only form targets here.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
+}))
 vi.mock('../actions', () => ({ startCheckout: vi.fn(), cancelHold: vi.fn() }))
 
 import type { MyReservation } from '@/lib/data/reservations'
@@ -37,6 +40,7 @@ const base: MyReservation = {
   checkoutUrl: null,
   checkedInAt: null,
   endedAt: null,
+  cancelledByTakeDown: false,
 }
 const text = (html: string) => html.replace(/<[^>]+>/g, '').replace(/&#x27;/g, "'")
 
@@ -88,7 +92,17 @@ describe('Labels that wrap on a phone (design §3, Accessibility)', () => {
     'a late payment': (
       <EndedView reservation={{ ...base, status: 'expired', paymentStatus: 'paid' }} />
     ),
+    'a refunded late payment': (
+      <EndedView
+        reservation={{ ...base, status: 'expired', paymentStatus: 'refunded' }}
+      />
+    ),
     'a cancelled hold': <EndedView reservation={{ ...base, status: 'cancelled' }} />,
+    'a take-down cancellation': (
+      <EndedView
+        reservation={{ ...base, status: 'cancelled', cancelledByTakeDown: true }}
+      />
+    ),
   }
 
   for (const [name, view] of Object.entries(views)) {
@@ -132,7 +146,7 @@ describe('ReservedView', () => {
     waitWindowEndsAt: '2026-11-14T08:42:00Z',
   }
 
-  it('shows the unit, QR code above the token, and the check-in time in Manila', () => {
+  it('shows the unit, QR code above the token, copy button, countdown, directions, and check-in time', () => {
     const raw = renderToStaticMarkup(
       <ReservedView reservation={reserved} confirmingCancel={false} />,
     )
@@ -141,7 +155,11 @@ describe('ReservedView', () => {
     expect(raw).toContain('aria-label="Booking QR code for token ABCD-EFGH-JKMN"')
     expect(raw.indexOf('role="img"')).toBeLessThan(raw.indexOf('ABCD'))
     expect(html).toContain('ABCD-EFGH-JKMN')
+    expect(html).toContain('Copy code')
+    expect(html).toContain('Time remaining to check in:')
     expect(html).toContain('Check in by 4:42 PM.')
+    expect(html).toContain('Get directions')
+    expect(raw).toContain('https://www.google.com/maps/search/?api=1&amp;query=')
     expect(html).toContain('Cancel reservation')
   })
 
@@ -181,7 +199,7 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
   it("is the hold page's h1 unless the /seeker card asks for an h2", () => {
     const expired = { ...base, status: 'expired' as const }
     expect(renderToStaticMarkup(<EndedView reservation={expired} />)).toContain(
-      '<h1 class="text-2xl',
+      '<h1 class="font-heading text-2xl',
     )
     const inCard = renderToStaticMarkup(
       <EndedView reservation={expired} headingLevel="h2" headingId="card-heading" />,
@@ -196,6 +214,14 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
       'Your payment window ran out before Stripe confirmed your payment, so S4 was released. Your ₱50.00 payment was recorded, and an Administrator can refund it.',
     )
     expect(html).toContain('Find another Space')
+  })
+
+  it('a refunded late payment (P2 + P1): says the fee was refunded (STORY-14 §0, §3 Screen 4)', () => {
+    const html = ended({ status: 'expired', paymentStatus: 'refunded' })
+    expect(html).toContain('Your payment window ran out')
+    expect(html).toContain('Your ₱50.00 payment was refunded.')
+    expect(html).not.toContain('nothing was charged')
+    expect(html).toContain('Back to Kapihan Study Hall')
   })
 
   it('a lapse with no payment: nothing was charged', () => {
@@ -216,7 +242,67 @@ describe('EndedView (flow §5, states 3 to 5)', () => {
     expect(ended({ status: 'cancelled', paymentStatus: 'paid' })).toContain(
       'Your ₱50.00 payment was recorded, and an Administrator can refund it.',
     )
+    expect(ended({ status: 'cancelled', paymentStatus: 'refunded' })).toContain(
+      'Your ₱50.00 payment was refunded.',
+    )
     expect(ended({ status: 'cancelled' })).toContain('Your hold on S4 has ended.')
+  })
+})
+
+describe('EndedView after a take-down (R13, R14, STORY-20 design §3, D-085)', () => {
+  const takenDown = (overrides: Partial<MyReservation>) =>
+    renderToStaticMarkup(
+      <EndedView
+        reservation={{
+          ...base,
+          status: 'cancelled',
+          cancelledByTakeDown: true,
+          ...overrides,
+        }}
+      />,
+    )
+
+  it('says the Space was taken down and which hold was cancelled', () => {
+    const html = text(takenDown({}))
+    expect(html).toContain('This Space was taken down')
+    expect(html).toContain(
+      'An Administrator took Kapihan Study Hall down, so your hold on S4 was cancelled.',
+    )
+    expect(html).not.toContain('Your hold on S4 has ended.')
+  })
+
+  it('says what happened to the fee', () => {
+    // R13: an unpaid hold.
+    expect(text(takenDown({ paymentStatus: 'pending' }))).toContain(
+      'Nothing was charged.',
+    )
+    // R14: refunded automatically.
+    expect(text(takenDown({ paymentStatus: 'refunded' }))).toContain(
+      'Your ₱50.00 payment was refunded.',
+    )
+    // R14: the automatic refund failed and waits on /admin/payments.
+    expect(text(takenDown({ paymentStatus: 'paid' }))).toContain(
+      'Your ₱50.00 payment was recorded, and an Administrator will finish refunding it.',
+    )
+  })
+
+  it('links to every Space, never to the hidden one (D-055)', () => {
+    const html = takenDown({})
+    expect(text(html)).toContain('Find another Space')
+    expect(html).toContain('href="/spaces"')
+    expect(html).not.toContain(`href="/spaces/${base.spaceId}"`)
+  })
+
+  it('is the h1 on the hold page, and the h2 the /seeker card asks for', () => {
+    expect(takenDown({})).toContain('<h1 class="font-heading text-2xl')
+    const inCard = renderToStaticMarkup(
+      <EndedView
+        reservation={{ ...base, status: 'cancelled', cancelledByTakeDown: true }}
+        headingLevel="h2"
+        headingId="card-heading"
+      />,
+    )
+    expect(inCard).toContain('<h2 id="card-heading"')
   })
 })
 

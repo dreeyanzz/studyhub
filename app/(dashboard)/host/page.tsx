@@ -17,15 +17,21 @@ import { SpaceList } from './_components/space-list'
 
 export const metadata: Metadata = { title: 'Manage Spaces' }
 
-// The Server Actions redirect here with one of these three values after a save
-// (STORY-05 design §2.6). Anything else in the query string is ignored, so the page
-// never echoes text someone put in a link.
+// The Server Actions redirect here with one of these values after a save (STORY-05
+// design §2.6, STORY-20 design §3). Anything else in the query string is ignored, so
+// the page never echoes text someone put in a link.
 function noticeText(notice: string | string[] | undefined) {
   switch (notice) {
     case 'created':
       return 'Space created. It is pending verification.'
     case 'updated':
       return 'Space changes saved.'
+    // V6: a Verified Space's name, address or map pin changed (D-079).
+    case 'reverify':
+      return 'Space changes saved. It is back to Pending verification until an Administrator reviews it.'
+    // V8 (D-084).
+    case 'resubmitted':
+      return 'Space resubmitted for verification.'
     case 'deleted':
       return 'Space deleted.'
     default:
@@ -62,7 +68,9 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
   // whom RLS lets read every Space (design §1.1 and §2.7).
   const { data: spaces, error } = await supabase
     .from('spaces')
-    .select('id, name, description, address, opens_at, closes_at, status, updated_at')
+    .select(
+      'id, name, description, address, opens_at, closes_at, status, status_reason, updated_at',
+    )
     .eq('host_id', user.id)
     .order('updated_at', { ascending: false })
     .order('name', { ascending: true })

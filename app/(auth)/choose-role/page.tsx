@@ -2,11 +2,11 @@ import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { landingPathFor } from '@/lib/auth/role-guard'
 import { createClient } from '@/lib/supabase/server'
 import { parseRegistrationRole, sanitizeReturnUrl } from '@/lib/validation/auth'
 
+import { AuthShell } from '../_components/auth-shell'
 import { signOut } from '../actions'
 import { ChooseRoleForm } from './_components/choose-role-form'
 
@@ -43,20 +43,19 @@ export default async function ChooseRolePage({
   }
 
   return (
-    <Card className="w-full max-w-md min-w-0 self-start">
-      <CardHeader>
-        <h1 className="font-heading text-3xl font-semibold">
-          Finish setting up your account
-        </h1>
-        <p className="text-base text-muted-foreground">
+    <AuthShell
+      title="Finish setting up your account"
+      subtitle={
+        <>
           Signed in as{' '}
           <span className="font-medium break-all text-foreground">
             {user.email ?? 'your Google account'}
           </span>
           . Confirm your name and choose how you will use Worq.
-        </p>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-5">
+        </>
+      }
+    >
+      <div className="flex flex-col gap-5">
         <ChooseRoleForm
           defaultFullName={profile.full_name ?? ''}
           defaultRole={defaultRole}
@@ -71,7 +70,7 @@ export default async function ChooseRolePage({
             Log out and use a different account
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </AuthShell>
   )
 }

@@ -57,6 +57,18 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     expect(html).toContain('border-primary')
   })
 
+  it('shortens a long description by characters and clamps no lines (#372)', () => {
+    const description = `${'Quiet tables with strong wifi. '.repeat(10)}Last words.`
+    const html = renderToStaticMarkup(<SpaceCard space={{ ...mockSpace, description }} />)
+
+    expect(html).toContain('Quiet tables with strong wifi. Quiet tables')
+    expect(html).toContain('…</p>')
+    expect(html).not.toContain('Last words.')
+    // A line clamp hides more of the text as it grows, which the 200% text check
+    // in e2e/accessibility.spec.ts reports as clipping.
+    expect(html).not.toContain('line-clamp')
+  })
+
   it('handles 24 hours format properly', () => {
     const space24h: VerifiedSpaceSearchResult = {
       ...mockSpace,
@@ -67,5 +79,20 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     const html = renderToStaticMarkup(<SpaceCard space={space24h} />)
     expect(html).toContain('Open 24 Hours')
     expect(html).not.toContain('km away')
+  })
+
+  it('clips the decorative blurred cover-photo backdrop inside its rounded wrapper', () => {
+    const html = renderToStaticMarkup(
+      <SpaceCard
+        space={{
+          ...mockSpace,
+          cover_photo_url:
+            'https://example.supabase.co/storage/v1/object/public/space-photos/a/1.jpg',
+        }}
+      />,
+    )
+    expect(html).toContain(
+      'pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]',
+    )
   })
 })

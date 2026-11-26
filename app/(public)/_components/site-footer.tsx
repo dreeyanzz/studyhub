@@ -5,7 +5,7 @@ import { buttonVariants } from '@/components/ui/button'
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-muted">
-      <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-5">
+      <div className="flex w-full flex-col gap-6 px-4 py-10 sm:px-6 lg:px-10">
         <div className="flex flex-wrap items-start justify-between gap-8">
           <div className="max-w-sm min-w-0 space-y-2">
             <Link

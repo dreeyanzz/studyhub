@@ -65,8 +65,8 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
           </Link>
         </div>
 
-        {/* The Badge primitive is one fixed-height line; these may wrap, so they fit a
-            360 px screen at 200% text (design §3, Accessibility: Responsive design). */}
+        {/* The Badge primitive keeps its text on one line; these may wrap, so they fit
+            a 360 px screen at 200% text (design §3, Accessibility: Responsive design). */}
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Badge
             variant="secondary"

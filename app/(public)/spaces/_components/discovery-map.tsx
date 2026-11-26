@@ -1,10 +1,11 @@
 'use client'
 
 import type * as LeafletType from 'leaflet'
+import { LocateFixed } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { PRICE_TIER_LABELS } from '@/components/discovery/price-tier-badge'
 import { formatReviewRating } from '@/components/review/review-rating'
-import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
+import { isSpaceOpen24h, type VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 import type { PriceTier } from '@/lib/validation/search'
 
 interface DiscoveryMapProps {
@@ -36,26 +37,42 @@ function getPinColor(tier: PriceTier): string {
 }
 
 /**
- * Creates an SVG map pin DivIcon to avoid broken default PNG asset paths in Next.js bundlers.
+ * Creates an SVG map pin DivIcon with a floating dark-green name + rating pill
+ * beside the pin (STORY-17).
  */
 function createSvgPin(
   L: typeof LeafletType,
-  tier: PriceTier,
+  space: Pick<
+    VerifiedSpaceSearchResult,
+    'name' | 'price_tier' | 'avg_overall' | 'review_count'
+  >,
   isActive: boolean,
   isHovered: boolean,
 ) {
-  const color = getPinColor(tier)
+  const color = getPinColor(space.price_tier)
   const isElevated = isActive || isHovered
-  const scale = isActive ? 1.3 : isHovered ? 1.15 : 1.0
+  const scale = isActive ? 1.15 : isHovered ? 1.08 : 1.0
   const zIndex = isActive ? 1000 : isHovered ? 900 : 500
+  const ratingText =
+    space.review_count > 0 && space.avg_overall !== null
+      ? `${space.avg_overall.toFixed(1)} ★`
+      : 'New'
+  const pillBg = isActive ? '#f0c95c' : '#153528'
+  const pillText = isActive ? '#173c2d' : '#ffffff'
+  const pillStarColor = isActive ? '#173c2d' : '#f0c95c'
+  const pillBorder = isElevated ? '#ffffff' : 'rgba(255,255,255,0.22)'
 
   const svg = `
-    <div style="width: 48px; height: 48px; transform: scale(${scale}); transform-origin: 50% 100%; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+    <div style="position: relative; width: 48px; height: 48px; transform: scale(${scale}); transform-origin: 24px 46px; transition: transform 0.15s ease-out; z-index: ${zIndex}; cursor: pointer; display: flex; align-items: center; justify-content: center;">
       <svg width="34" height="44" viewBox="0 0 34 44" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 3px 4px rgba(0,0,0,0.35));">
         <path d="M17 0C7.611 0 0 7.611 0 17C0 28.5 17 44 17 44C17 44 34 28.5 34 17C34 7.611 26.389 0 17 0Z" fill="${color}" stroke="${isElevated ? '#ffffff' : 'rgba(255,255,255,0.7)'}" stroke-width="${isElevated ? '2.5' : '1.5'}"/>
         <circle cx="17" cy="16" r="8" fill="#ffffff"/>
         <circle cx="17" cy="16" r="5" fill="${color}"/>
       </svg>
+      <div style="position: absolute; left: 42px; top: 4px; display: inline-flex; flex-direction: column; gap: 1px; max-width: 160px; padding: 4px 9px; border-radius: 10px; background: ${pillBg}; color: ${pillText}; border: 1.5px solid ${pillBorder}; box-shadow: 0 4px 12px rgba(0,0,0,0.28); backdrop-filter: blur(6px); pointer-events: auto;">
+        <span style="font-size: 11px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(space.name)}</span>
+        <span style="font-size: 10px; font-weight: 600; line-height: 1.2; color: ${pillStarColor}; white-space: nowrap;">${escapeHtml(ratingText)}</span>
+      </div>
     </div>
   `
 
@@ -97,35 +114,44 @@ export function buildPopupHtml(
     | 'curated_tags'
     | 'review_count'
     | 'avg_overall'
-  >,
+  > & { opens_at?: string; closes_at?: string },
 ): string {
   const rating = formatReviewRating(space.avg_overall, space.review_count)
   const ratingHtml = `<div style="font-size: 12px; color: ${rating.hasReviews ? 'var(--foreground)' : 'var(--muted-foreground)'}; font-weight: ${rating.hasReviews ? '600' : '400'}; margin-top: 4px;">${escapeHtml(rating.text)}</div>`
   const distance =
     space.distance_km !== null
-      ? `<div style="font-size: 12px; color: var(--foreground); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
+      ? `<div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: 2px;">${escapeHtml(String(space.distance_km))} km away</div>`
+      : ''
+  const hours =
+    space.opens_at && space.closes_at
+      ? `<div style="font-size: 11px; color: var(--muted-foreground); margin-top: 2px;">Hours: ${escapeHtml(
+          isSpaceOpen24h(space.opens_at, space.closes_at)
+            ? 'Open 24 Hours'
+            : `${space.opens_at.slice(0, 5)} - ${space.closes_at.slice(0, 5)}`,
+        )}</div>`
       : ''
   const tags =
     space.curated_tags.length > 0
       ? `<div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">${space.curated_tags
           .map(
             (tag) =>
-              `<span style="font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); background: var(--secondary); color: var(--secondary-foreground);">${escapeHtml(tag.label)}</span>`,
+              `<span style="font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--border); background: var(--secondary); color: var(--secondary-foreground);">${escapeHtml(tag.label)}</span>`,
           )
           .join('')}</div>`
       : ''
   return `
-    <div style="font-family: inherit; min-width: 190px; padding: 2px;">
+    <div style="font-family: inherit; min-width: 210px; padding: 2px;">
       <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--foreground); line-height: 1.2;">${escapeHtml(space.name)}</h3>
-        <span style="font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 9999px; background: var(--muted); color: var(--foreground);">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
+        <h3 style="margin: 0; font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--foreground); line-height: 1.25;">${escapeHtml(space.name)}</h3>
+        <span style="font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; background: var(--secondary); color: var(--secondary-foreground); white-space: nowrap;">${escapeHtml(PRICE_TIER_LABELS[space.price_tier])}</span>
       </div>
-      <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.3;">${escapeHtml(space.address)}</div>
+      <div style="font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.35;">${escapeHtml(space.address)}</div>
+      ${hours}
       ${ratingHtml}
       ${distance}
       ${tags}
       <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
-        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--primary); color: var(--primary-foreground); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none;">View Space</a>
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: #f0c95c; color: #173c2d; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-decoration: none;">View Space</a>
       </div>
     </div>
   `
@@ -232,7 +258,7 @@ export default function DiscoveryMap({
 
       const isActive = space.id === activeSpaceId
       const isHovered = space.id === hoveredSpaceId
-      const icon = createSvgPin(L, space.price_tier, isActive, isHovered)
+      const icon = createSvgPin(L, space, isActive, isHovered)
 
       let marker = currentMarkers.get(space.id)
 
@@ -310,12 +336,70 @@ export default function DiscoveryMap({
     map.setView([lat, lng], zoom, { animate: true })
   }, [mapReady, center, zoom])
 
+  const spacesWithCoords = spaces.filter(
+    (s): s is VerifiedSpaceSearchResult & { latitude: number; longitude: number } =>
+      s.latitude !== null && s.longitude !== null,
+  )
+
+  function handleFitAll() {
+    const map = mapRef.current
+    const L = leafletModuleRef.current
+    if (!map || !L || spacesWithCoords.length === 0) return
+    const first = spacesWithCoords[0]
+    if (spacesWithCoords.length === 1 && first) {
+      map.setView([first.latitude, first.longitude], 15, {
+        animate: true,
+      })
+      return
+    }
+    const bounds = L.latLngBounds(
+      spacesWithCoords.map((s) => [s.latitude, s.longitude] as [number, number]),
+    )
+    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15, animate: true })
+  }
+
   return (
-    <div
-      data-testid="discovery-map-container"
-      className={className}
-      ref={containerRef}
-      style={{ minHeight: '360px' }}
-    />
+    <div className="relative h-full w-full">
+      <div
+        data-testid="discovery-map-container"
+        className={className}
+        ref={containerRef}
+        style={{ minHeight: '360px' }}
+      />
+
+      {spacesWithCoords.length > 0 && (
+        <button
+          type="button"
+          onClick={handleFitAll}
+          className="absolute top-3 right-3 z-[400] inline-flex min-h-12 min-w-12 items-center gap-1.5 rounded-full border border-border/80 bg-card/95 px-4 py-2 text-xs font-semibold text-foreground shadow-md backdrop-blur-md transition-colors hover:bg-secondary focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+        >
+          <LocateFixed className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+          <span>Fit all spaces</span>
+        </button>
+      )}
+
+      <div
+        aria-label="Map pin price tiers"
+        className="pointer-events-none absolute bottom-3 left-3 z-[400] flex flex-wrap items-center gap-x-3 gap-y-1 rounded-full border border-border/70 bg-card/92 px-3.5 py-1.5 text-[11px] font-medium text-foreground shadow-sm backdrop-blur-md"
+      >
+        {(
+          [
+            ['free', 'Free'],
+            ['budget', 'Budget'],
+            ['standard', 'Standard'],
+            ['premium', 'Premium'],
+          ] as const
+        ).map(([tier, label]) => (
+          <span key={tier} className="inline-flex items-center gap-1.5">
+            <span
+              aria-hidden="true"
+              className="size-2.5 shrink-0 rounded-full border border-white shadow-2xs"
+              style={{ backgroundColor: getPinColor(tier) }}
+            />
+            <span>{label}</span>
+          </span>
+        ))}
+      </div>
+    </div>
   )
 }
