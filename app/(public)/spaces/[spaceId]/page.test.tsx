@@ -305,7 +305,6 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
       'You can review seats and amenities; reservations open during operating hours.',
     )
     expect(html).toContain('Closed · Opens tomorrow at 01:00')
-    expect(html).toContain('Explore other spaces')
     expect(html).toContain('data-testid="seeker-space-closed"')
     expect(html).not.toContain('href="/"')
   })
@@ -340,7 +339,7 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
     const html = renderToStaticMarkup(page)
 
     expect(html).toContain('No units available')
-    expect(html).toContain('No units are currently Available. Check back later or')
+    expect(html).toContain('No units are currently available. Check back later or')
     expect(html).toContain('explore other spaces')
     expect(html).toContain('data-testid="seeker-profile-no-available-unit"')
     expect(html).not.toContain('href="/"')

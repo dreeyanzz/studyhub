@@ -402,7 +402,10 @@ export function DiscoveryShell({
   }
 
   return (
-    <div className={cn('relative w-full', className)} data-testid="discovery-shell">
+    <div
+      className={cn('relative w-full pb-24 lg:pb-0', className)}
+      data-testid="discovery-shell"
+    >
       {pathname !== null && (
         <DiscoveryRouterBridge pathname={pathname} navigateRef={navigateRef} />
       )}

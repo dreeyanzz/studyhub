@@ -11,6 +11,7 @@ import { spaceIdSchema } from '@/lib/validation/space'
 
 import { cn } from '@/lib/utils'
 
+import { SpaceSubNav } from '../_components/space-sub-nav'
 import type { RemovalTarget } from './_components/confirm-removal'
 import { SeatMapBuilder } from './_components/seat-map-builder'
 import { SeatMapListView } from './_components/seat-map-list-view'
@@ -148,6 +149,7 @@ export default async function SeatMapPage({
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Seat map
         </h1>
+        <SpaceSubNav spaceId={space.id} current="seat-map" />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-base font-medium wrap-anywhere text-foreground">

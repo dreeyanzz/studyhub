@@ -791,8 +791,10 @@ test.describe('Host live occupancy control journeys (STORY-12, TSK-12.7)', () =>
     const s1Reserved = page.getByRole('button', { name: 'Mark S1 as Reserved' })
     const s1Occupied = page.getByRole('button', { name: 'Mark S1 as Occupied' })
 
-    // Tab walks from the toggle into the list: S1 is the first unit, and its three pills
-    // come in order. Nothing has to be selected first.
+    // Tab walks from the toggle past Refresh into the list: S1 is the first unit, and its
+    // three pills come in order. Nothing has to be selected first.
+    await page.keyboard.press('Tab')
+    await expect(page.getByRole('button', { name: 'Refresh' })).toBeFocused()
     await page.keyboard.press('Tab')
     await expect(s1Available).toBeFocused()
     await page.keyboard.press('Tab')

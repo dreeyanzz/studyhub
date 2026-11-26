@@ -135,7 +135,7 @@ test.describe('Check-in, wait-window timers, and unit release (STORY-10 TSK-10.5
         /real[- ]?time|\blive\b/i,
       )
 
-      await hostPage.getByRole('link', { name: 'Check-in desk' }).click()
+      await hostPage.getByRole('link', { name: 'Check-in desk' }).first().click()
       await expect(hostPage).toHaveURL(`/host/spaces/${SULOK_SPACE_ID}/check-in`)
 
       const tokenInput = hostPage.getByLabel('Booking token')

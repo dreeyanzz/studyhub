@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation'
 
 import { updateSpace } from '@/app/(dashboard)/host/actions'
 import { SpaceForm } from '@/app/(dashboard)/host/_components/space-form'
+import { SpaceSubNav } from '../_components/space-sub-nav'
 import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { parseIntervalToMinutes } from '@/lib/validation/reservation'
@@ -42,8 +43,8 @@ export default async function EditSpacePage({
   if (!space) notFound()
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <div className="space-y-1">
+    <div className="space-y-6">
+      <div className="max-w-2xl space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
           Edit Space
         </h1>
@@ -55,7 +56,8 @@ export default async function EditSpacePage({
             : `Saving changes to ${space.name} doesn't change its Verification status.`}
         </p>
       </div>
-      <Card>
+      <SpaceSubNav spaceId={space.id} current="edit" />
+      <Card className="max-w-2xl">
         <CardContent>
           <SpaceForm
             mode="edit"

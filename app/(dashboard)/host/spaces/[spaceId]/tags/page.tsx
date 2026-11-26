@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { spaceIdSchema } from '@/lib/validation/space'
 
+import { SpaceSubNav } from '../_components/space-sub-nav'
 import { TagForm } from './_components/tag-form'
 
 export const metadata: Metadata = { title: 'Amenities & Tags' }
@@ -114,6 +115,8 @@ export default async function SpaceTagsPage({
           Saving tags doesn&apos;t change your Space&apos;s Verification status.
         </p>
       </div>
+
+      <SpaceSubNav spaceId={space.id} current="tags" />
 
       {loadFailed ? (
         // Never the raw Supabase error (STORY-05 design §4.2).

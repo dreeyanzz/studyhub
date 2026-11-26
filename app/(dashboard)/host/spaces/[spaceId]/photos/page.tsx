@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { spaceIdSchema } from '@/lib/validation/space'
 
+import { SpaceSubNav } from '../_components/space-sub-nav'
 import { ConfirmPhotoRemoval } from './_components/confirm-photo-removal'
 import { PhotoGrid, type PhotoItem } from './_components/photo-grid'
 import { PhotoUploadForm } from './_components/photo-upload-form'
@@ -135,6 +136,8 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
           </Link>
         </div>
       </div>
+
+      <SpaceSubNav spaceId={space.id} current="photos" />
 
       {photoToRemove && (
         <ConfirmPhotoRemoval

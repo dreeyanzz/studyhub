@@ -25,16 +25,25 @@ export function SiteHeader() {
           <Link href="/spaces" className={buttonVariants({ variant: 'ghost' })}>
             Find a Space
           </Link>
-          <Link href="/#how-it-works" className={buttonVariants({ variant: 'ghost' })}>
+          <Link
+            href="/#how-it-works"
+            className={cn(buttonVariants({ variant: 'ghost' }), 'hidden sm:inline-flex')}
+          >
             How it works
           </Link>
-          <Link href="/#for-hosts" className={buttonVariants({ variant: 'ghost' })}>
+          <Link
+            href="/#for-hosts"
+            className={cn(buttonVariants({ variant: 'ghost' }), 'hidden sm:inline-flex')}
+          >
             Be a Host
           </Link>
           <Link href="/login" className={buttonVariants({ variant: 'outline' })}>
             Log in
           </Link>
-          <Link href="/register" className={buttonVariants()}>
+          <Link
+            href="/register"
+            className={cn(buttonVariants(), 'hidden sm:inline-flex')}
+          >
             Sign up
           </Link>
         </nav>
