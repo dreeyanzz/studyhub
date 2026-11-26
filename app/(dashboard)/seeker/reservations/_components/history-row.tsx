@@ -10,6 +10,7 @@ import {
 import type {
   HistoryPaymentStatus,
   HistoryReviewStatus,
+  HistoryReviewValues,
   ReservationHistoryItem,
   ReservationHistoryStatus,
 } from '@/lib/data/history'
@@ -17,6 +18,7 @@ import { formatManilaDate, formatPeso } from '@/lib/reservations/format'
 import { formatDateTime } from '@/lib/space/format'
 
 import { buttonLinkClass } from '../[id]/_components/reservation-status-view'
+import { ReviewDialog, type ReviewDialogProps } from './review-dialog'
 
 /**
  * Returns human-readable outcome wording for an ended reservation (STORY-16 design §3).
@@ -79,15 +81,51 @@ export function getReviewStatusLabel(status: HistoryReviewStatus): string {
 
 export interface HistoryRowProps {
   item: ReservationHistoryItem
+  /** The current values of this visit's visible review, to prefill Edit your review. */
+  reviewValues?: HistoryReviewValues | null
+}
+
+/**
+ * Which review dialog a past reservation offers (STORY-16 design §3 Screen 2, D-080, D-081):
+ * Leave a review for a checked-in visit with no review, Edit your review for a visible one
+ * whose values were read, and none otherwise (not checked in, hidden or removed).
+ * A visit to a Space that isn't listed can still be reviewed from here (D-081).
+ */
+export function getReviewDialogProps(
+  item: ReservationHistoryItem,
+  reviewValues: HistoryReviewValues | null | undefined,
+): ReviewDialogProps | null {
+  if (item.checkedInAt === null) {
+    return null
+  }
+  if (item.reviewId === null || item.reviewStatus === null) {
+    return {
+      mode: 'create',
+      spaceId: item.spaceId,
+      spaceName: item.spaceName,
+      reservationId: item.reservationId,
+    }
+  }
+  if (item.reviewStatus === 'visible' && reviewValues) {
+    return {
+      mode: 'edit',
+      spaceId: item.spaceId,
+      spaceName: item.spaceName,
+      reviewId: item.reviewId,
+      initialValues: reviewValues,
+    }
+  }
+  return null
 }
 
 /**
  * Past reservation card (STORY-16 design §3).
  * Server Component displaying one past reservation with its Space name, unit label,
- * Manila timestamp, outcome/fee labels, Hold again link, and review status.
- * Leave a review and Edit your review arrive with ReviewDialog in TSK-16.4 (#385).
+ * Manila timestamp, outcome/fee labels, Hold again link, review status, and the
+ * Leave a review or Edit your review dialog (TSK-16.4, #385).
  */
-export function HistoryRow({ item }: HistoryRowProps) {
+export function HistoryRow({ item, reviewValues }: HistoryRowProps) {
+  const reviewDialogProps = getReviewDialogProps(item, reviewValues)
   const outcomeText = getOutcomeLabel(item.reservationStatus)
   const feeFateText = getFeeFateLabel(item.paymentStatus, item.feeAmount, item.refundedAt)
   const unitLabelText =
@@ -149,10 +187,20 @@ export function HistoryRow({ item }: HistoryRowProps) {
           )}
         </div>
 
-        {item.checkedInAt !== null && item.reviewStatus !== null && (
-          <p className="text-sm font-medium text-muted-foreground">
-            {getReviewStatusLabel(item.reviewStatus)}
-          </p>
+        {item.checkedInAt !== null && (
+          <div
+            data-testid="history-review-actions"
+            className="flex max-w-full min-w-0 flex-wrap items-center gap-3"
+          >
+            {/* The status line and the dialog keep their places in both modes, so React
+                keeps ReviewDialog (and its announcement) through router.refresh(). */}
+            {item.reviewStatus !== null && (
+              <p className="text-sm font-medium text-muted-foreground">
+                {getReviewStatusLabel(item.reviewStatus)}
+              </p>
+            )}
+            {reviewDialogProps && <ReviewDialog {...reviewDialogProps} />}
+          </div>
         )}
       </CardFooter>
     </Card>

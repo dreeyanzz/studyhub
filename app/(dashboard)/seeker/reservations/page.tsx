@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { ArrowLeft, Search } from 'lucide-react'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { getReservationHistory } from '@/lib/data/history'
+import { getMyHistoryReviewValues, getReservationHistory } from '@/lib/data/history'
 import { createClient } from '@/lib/supabase/server'
 import { cn } from '@/lib/utils'
 import { historyPageSchema } from '@/lib/validation/history'
@@ -41,6 +41,17 @@ export default async function ReservationHistoryPage({
   }
 
   const history = await getReservationHistory(supabase, { shown: show })
+
+  // Edit your review opens prefilled (design §3 Screen 4), so read the current values of
+  // the visible reviews on the rows shown. If that read fails, those rows still say
+  // "Reviewed" and simply offer no Edit button.
+  const visibleReviewIds = (history?.items ?? [])
+    .filter((item) => item.reviewStatus === 'visible' && item.reviewId !== null)
+    .map((item) => item.reviewId as string)
+  const reviewValues =
+    visibleReviewIds.length > 0
+      ? await getMyHistoryReviewValues(supabase, user.id, visibleReviewIds)
+      : null
 
   return (
     <div className="space-y-6">
@@ -95,7 +106,13 @@ export default async function ReservationHistoryPage({
           <>
             <div className="space-y-4">
               {history.items.map((item) => (
-                <HistoryRow key={item.reservationId} item={item} />
+                <HistoryRow
+                  key={item.reservationId}
+                  item={item}
+                  reviewValues={
+                    item.reviewId ? (reviewValues?.get(item.reviewId) ?? null) : null
+                  }
+                />
               ))}
             </div>
 

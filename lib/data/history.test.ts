@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import type { Database } from '@/lib/supabase/database.types'
 
-import { getReservationHistory } from './history'
+import { getMyHistoryReviewValues, getReservationHistory } from './history'
 
 describe('getReservationHistory (STORY-16 design §2 & §3)', () => {
   const fakeRow = {
@@ -102,5 +102,81 @@ describe('getReservationHistory (STORY-16 design §2 & §3)', () => {
 
     const result = await getReservationHistory(supabase)
     expect(result).toBeNull()
+  })
+})
+
+describe('getMyHistoryReviewValues (STORY-16 design §3 Screen 4, TSK-16.4)', () => {
+  const AUTHOR_ID = 'c0000000-0000-4000-8000-000000000001'
+  const REVIEW_ID = 'a0000000-0000-4000-8000-000000000001'
+
+  function fakeClient(result: { data: unknown; error: unknown }) {
+    const calls: Array<[string, ...unknown[]]> = []
+    const builder = {
+      select: vi.fn((...args: unknown[]) => {
+        calls.push(['select', ...args])
+        return builder
+      }),
+      in: vi.fn((...args: unknown[]) => {
+        calls.push(['in', ...args])
+        return builder
+      }),
+      eq: vi.fn((...args: unknown[]) => {
+        calls.push(['eq', ...args])
+        return builder
+      }),
+      then: (resolve: (value: typeof result) => unknown) => resolve(result),
+    }
+    const from = vi.fn(() => builder)
+    return { supabase: { from } as unknown as SupabaseClient<Database>, from, calls }
+  }
+
+  it('reads only the caller’s own visible reviews among the ids, once, deduplicated', async () => {
+    const { supabase, from, calls } = fakeClient({
+      data: [
+        {
+          id: REVIEW_ID,
+          quietness: 4,
+          wifi_reliability: 5,
+          cleanliness: 4,
+          comfort: 3,
+          comment: 'Quiet corner',
+        },
+      ],
+      error: null,
+    })
+
+    const result = await getMyHistoryReviewValues(supabase, AUTHOR_ID, [
+      REVIEW_ID,
+      REVIEW_ID,
+      'not-a-uuid',
+    ])
+
+    expect(from).toHaveBeenCalledTimes(1)
+    expect(from).toHaveBeenCalledWith('reviews')
+    expect(calls).toContainEqual(['in', 'id', [REVIEW_ID]])
+    expect(calls).toContainEqual(['eq', 'author_id', AUTHOR_ID])
+    expect(calls).toContainEqual(['eq', 'status', 'visible'])
+    expect(result?.get(REVIEW_ID)).toEqual({
+      quietness: 4,
+      wifiReliability: 5,
+      cleanliness: 4,
+      comfort: 3,
+      comment: 'Quiet corner',
+    })
+  })
+
+  it('returns an empty Map without a query when there are no valid ids', async () => {
+    const { supabase, from } = fakeClient({ data: [], error: null })
+
+    const result = await getMyHistoryReviewValues(supabase, AUTHOR_ID, ['nope'])
+
+    expect(result).toEqual(new Map())
+    expect(from).not.toHaveBeenCalled()
+  })
+
+  it('returns null on a database error', async () => {
+    const { supabase } = fakeClient({ data: null, error: { message: 'db failure' } })
+
+    expect(await getMyHistoryReviewValues(supabase, AUTHOR_ID, [REVIEW_ID])).toBeNull()
   })
 })

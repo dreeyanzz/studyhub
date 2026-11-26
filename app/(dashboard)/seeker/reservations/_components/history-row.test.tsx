@@ -1,9 +1,26 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
-import type { ReservationHistoryItem } from '@/lib/data/history'
+import type { HistoryReviewValues, ReservationHistoryItem } from '@/lib/data/history'
 
-import { HistoryRow } from './history-row'
+import { getReviewDialogProps, HistoryRow } from './history-row'
+
+// ReviewDialog (TSK-16.4) uses the router and STORY-13's Server Actions.
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}))
+vi.mock('@/app/(public)/spaces/[spaceId]/actions', () => ({
+  postReviewAction: vi.fn(),
+  editReviewAction: vi.fn(),
+}))
+
+const reviewValues: HistoryReviewValues = {
+  quietness: 4,
+  wifiReliability: 5,
+  cleanliness: 4,
+  comfort: 3,
+  comment: 'Quiet corner by the window.',
+}
 
 describe('HistoryRow (STORY-16 design §3)', () => {
   const baseItem: ReservationHistoryItem = {
@@ -22,6 +39,12 @@ describe('HistoryRow (STORY-16 design §3)', () => {
     refundedAt: null,
     reviewId: null,
     reviewStatus: null,
+  }
+
+  const visibleReviewItem: ReservationHistoryItem & { reviewId: string } = {
+    ...baseItem,
+    reviewId: 'a0000000-0000-4000-8000-000000000001',
+    reviewStatus: 'visible',
   }
 
   it('renders Space name as a link when spaceListed is true', () => {
@@ -127,25 +150,46 @@ describe('HistoryRow (STORY-16 design §3)', () => {
     expect(html).not.toContain('Reviewed')
   })
 
-  it('shows no review controls before TSK-16.4 wires ReviewDialog (#385)', () => {
+  it('offers Leave a review for a checked-in visit with no review (TSK-16.4)', () => {
     const html = renderToStaticMarkup(<HistoryRow item={baseItem} />)
-    expect(html).not.toContain('Leave a review')
+    expect(html).toContain('Leave a review')
+    expect(html).toContain(`data-testid="leave-review-${baseItem.reservationId}"`)
     expect(html).not.toContain('Edit your review')
-    expect(html).not.toContain('<button')
+    expect(html).not.toContain('Reviewed')
   })
 
-  it('renders Reviewed, without an edit control, when review is visible', () => {
+  it('offers Leave a review for a visit to a Space that is not listed (D-081)', () => {
     const html = renderToStaticMarkup(
-      <HistoryRow
-        item={{
-          ...baseItem,
-          reviewId: 'r0000000-0000-4000-8000-000000000001',
-          reviewStatus: 'visible',
-        }}
-      />,
+      <HistoryRow item={{ ...baseItem, spaceListed: false }} />,
+    )
+    expect(html).toContain('This Space isn&#x27;t listed right now')
+    expect(html).toContain('Leave a review')
+  })
+
+  it('gives the review button a 48 px target that can wrap', () => {
+    const html = renderToStaticMarkup(<HistoryRow item={baseItem} />)
+    expect(html).toMatch(
+      /<button[^>]*class="[^"]*min-h-12[^"]*min-w-12[^"]*whitespace-normal[^"]*"[^>]*data-testid="leave-review-|<button[^>]*data-testid="leave-review-[^"]*"[^>]*class="[^"]*min-h-12[^"]*min-w-12[^"]*whitespace-normal/,
+    )
+  })
+
+  it('renders Reviewed and Edit your review when the review is visible and its values were read', () => {
+    const html = renderToStaticMarkup(
+      <HistoryRow item={visibleReviewItem} reviewValues={reviewValues} />,
+    )
+    expect(html).toContain('Reviewed')
+    expect(html).toContain('Edit your review')
+    expect(html).toContain(`data-testid="edit-review-${visibleReviewItem.reviewId}"`)
+    expect(html).not.toContain('Leave a review')
+  })
+
+  it('renders Reviewed without an edit control when the review values could not be read', () => {
+    const html = renderToStaticMarkup(
+      <HistoryRow item={visibleReviewItem} reviewValues={null} />,
     )
     expect(html).toContain('Reviewed')
     expect(html).not.toContain('Edit your review')
+    expect(html).not.toContain('Leave a review')
   })
 
   it('renders hidden or removed notice when review was moderated', () => {
@@ -172,5 +216,46 @@ describe('HistoryRow (STORY-16 design §3)', () => {
     )
     expect(removedHtml).toContain('Review removed by an Administrator')
     expect(removedHtml).not.toContain('Edit your review')
+    expect(removedHtml).not.toContain('Leave a review')
+  })
+
+  describe('getReviewDialogProps (design §3 Screen 2, D-080)', () => {
+    it('returns null when the visit was never checked in', () => {
+      expect(getReviewDialogProps({ ...baseItem, checkedInAt: null }, null)).toBeNull()
+    })
+
+    it('returns create mode with the reservation for an unreviewed visit', () => {
+      expect(getReviewDialogProps(baseItem, null)).toEqual({
+        mode: 'create',
+        spaceId: baseItem.spaceId,
+        spaceName: baseItem.spaceName,
+        reservationId: baseItem.reservationId,
+      })
+    })
+
+    it('returns edit mode with the current values for a visible review', () => {
+      expect(getReviewDialogProps(visibleReviewItem, reviewValues)).toEqual({
+        mode: 'edit',
+        spaceId: baseItem.spaceId,
+        spaceName: baseItem.spaceName,
+        reviewId: visibleReviewItem.reviewId,
+        initialValues: reviewValues,
+      })
+    })
+
+    it('returns null for a hidden or removed review, even with values', () => {
+      expect(
+        getReviewDialogProps(
+          { ...visibleReviewItem, reviewStatus: 'hidden' },
+          reviewValues,
+        ),
+      ).toBeNull()
+      expect(
+        getReviewDialogProps(
+          { ...visibleReviewItem, reviewStatus: 'removed' },
+          reviewValues,
+        ),
+      ).toBeNull()
+    })
   })
 })

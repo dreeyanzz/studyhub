@@ -12,6 +12,13 @@ const mockRedirect = vi.fn((url: string) => {
 
 vi.mock('next/navigation', () => ({
   redirect: (url: string) => mockRedirect(url),
+  useRouter: () => ({ refresh: vi.fn() }),
+}))
+
+// HistoryRow's ReviewDialog (TSK-16.4) imports STORY-13's Server Actions.
+vi.mock('@/app/(public)/spaces/[spaceId]/actions', () => ({
+  postReviewAction: vi.fn(),
+  editReviewAction: vi.fn(),
 }))
 
 let mockUser: { id: string } | null = { id: 'c0000000-0000-4000-8000-000000000001' }
@@ -97,6 +104,64 @@ describe('ReservationHistoryPage (STORY-16 design §3)', () => {
     expect(html).toContain('Kapihan Study Hall')
     expect(html).toContain('Visit completed')
     expect(html).toContain('Desk 1')
+  })
+
+  it('reads only the visible reviews on the rows shown and offers Edit your review (TSK-16.4)', async () => {
+    const visibleItem: ReservationHistoryItem = {
+      ...fakeItem,
+      reviewId: 'a0000000-0000-4000-8000-000000000001',
+      reviewStatus: 'visible',
+    }
+    const hiddenItem: ReservationHistoryItem = {
+      ...fakeItem,
+      reservationId: '10000000-0000-4000-8000-000000000002',
+      reviewId: 'a0000000-0000-4000-8000-000000000002',
+      reviewStatus: 'hidden',
+    }
+    vi.spyOn(historyData, 'getReservationHistory').mockResolvedValue({
+      items: [visibleItem, hiddenItem],
+      hasMore: false,
+    })
+    const valuesSpy = vi.spyOn(historyData, 'getMyHistoryReviewValues').mockResolvedValue(
+      new Map([
+        [
+          'a0000000-0000-4000-8000-000000000001',
+          {
+            quietness: 4,
+            wifiReliability: 5,
+            cleanliness: 4,
+            comfort: 3,
+            comment: null,
+          },
+        ],
+      ]),
+    )
+
+    const html = renderToStaticMarkup(await ReservationHistoryPage({}))
+
+    expect(valuesSpy).toHaveBeenCalledWith(expect.anything(), mockUser!.id, [
+      'a0000000-0000-4000-8000-000000000001',
+    ])
+    expect(html).toContain(
+      'data-testid="edit-review-a0000000-0000-4000-8000-000000000001"',
+    )
+    expect(html).toContain('Review hidden by an Administrator')
+    expect(html).not.toContain(
+      'data-testid="edit-review-a0000000-0000-4000-8000-000000000002"',
+    )
+  })
+
+  it('skips the review read when no row has a visible review', async () => {
+    vi.spyOn(historyData, 'getReservationHistory').mockResolvedValue({
+      items: [fakeItem],
+      hasMore: false,
+    })
+    const valuesSpy = vi.spyOn(historyData, 'getMyHistoryReviewValues')
+
+    const html = renderToStaticMarkup(await ReservationHistoryPage({}))
+
+    expect(valuesSpy).not.toHaveBeenCalled()
+    expect(html).toContain('Leave a review')
   })
 
   it('renders Show more link when hasMore is true and show < 100', async () => {
