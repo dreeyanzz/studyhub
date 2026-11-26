@@ -30,6 +30,7 @@ blob-report/
 # Environment and secrets (.env.example is the committed template)
 .env*
 !.env.example
+.local
 *.pem
 
 # Supabase local state

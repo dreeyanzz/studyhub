@@ -103,15 +103,17 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
               </Link>
               <span aria-hidden="true"> /</span>
             </li>
-            <li aria-current="page" className="wrap-anywhere">
+            <li className="wrap-anywhere">
               {space.name}
+              <span aria-hidden="true"> /</span>
             </li>
+            <li aria-current="page">Space Photos</li>
           </ol>
         </nav>
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
               Space Photos
             </h1>
             <div className="mt-1 flex flex-wrap items-center gap-2">
