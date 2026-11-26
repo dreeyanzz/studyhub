@@ -79,25 +79,35 @@ function escapeRegExp(text: string) {
 }
 
 /**
- * Resolves once Realtime tells the page its listener on `public.spaces` is live
- * ("Subscribed to PostgreSQL"), so the Host's edit cannot land before /admin is
- * listening and the test cannot pass or fail by timing. Call it before the page loads
- * /admin, so the websocket is caught as it opens.
+ * Watches the page's Realtime websocket. `subscribed` resolves once Realtime says the
+ * listener on `public.spaces` is live ("Subscribed to PostgreSQL"), so the Host's edit
+ * cannot land before /admin is listening and the test cannot pass or fail by timing.
+ * `frames` keeps every message, tokens redacted, for the failure report. Call it before
+ * the page loads /admin, so the websocket is caught as it opens.
  */
-function realtimeSubscribed(page: Page, timeoutMs = 30_000): Promise<void> {
-  return new Promise((resolve, reject) => {
+function watchRealtime(page: Page, timeoutMs = 30_000) {
+  const frames: string[] = []
+  const record = (direction: string, payload: string | Buffer) => {
+    const text = typeof payload === 'string' ? payload : '<binary>'
+    frames.push(
+      `${direction} ${text.replace(/("(?:access_token|user_token)":)"[^"]*"/g, '$1"<redacted>"').slice(0, 600)}`,
+    )
+  }
+  const subscribed = new Promise<void>((resolve, reject) => {
     const timer = setTimeout(
       () =>
         reject(
           new Error(
-            'Realtime never confirmed /admin is listening. Is Realtime running in the local stack?',
+            `Realtime never confirmed /admin is listening. Is Realtime running in the local stack?\n${frames.join('\n')}`,
           ),
         ),
       timeoutMs,
     )
     page.on('websocket', (socket) => {
       if (!socket.url().includes('/realtime/')) return
+      socket.on('framesent', ({ payload }) => record('sent', payload))
       socket.on('framereceived', ({ payload }) => {
+        record('received', payload)
         if (typeof payload === 'string' && payload.includes('Subscribed to PostgreSQL')) {
           clearTimeout(timer)
           resolve()
@@ -105,6 +115,39 @@ function realtimeSubscribed(page: Page, timeoutMs = 30_000): Promise<void> {
       })
     })
   })
+  return { subscribed, frames }
+}
+
+/**
+ * What Realtime holds for the listeners on `public.spaces`: the role each one runs as
+ * decides, through row level security, which changes it is sent (D-086).
+ */
+async function realtimeListeners() {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    return await sql<
+      { role: string | null; sub: string | null; app_role: string | null }[]
+    >`
+      select claims_role::text as role, claims ->> 'sub' as sub, claims ->> 'role' as app_role
+      from realtime.subscription
+      where entity = 'public.spaces'::regclass
+    `
+  } finally {
+    await sql.end()
+  }
+}
+
+async function inPublication() {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    const rows = await sql`
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'spaces'
+    `
+    return rows.length > 0
+  } finally {
+    await sql.end()
+  }
 }
 
 test.describe('Space verification portal (STORY-15)', () => {
@@ -328,11 +371,11 @@ test.describe('The live notice (STORY-20, D-086)', () => {
 
     // The Administrator opens it, and waits until Realtime is listening.
     const admin = await newPage(browser)
-    const listening = realtimeSubscribed(admin)
+    const realtime = watchRealtime(admin)
     await logIn(admin, 'admin@example.test', '/admin')
     const card = verificationCard(admin, name)
     await expect(card).toBeVisible()
-    await listening
+    await realtime.subscribed
 
     // The Host renames it while the Administrator still has the old version on screen.
     await host.goto(`/host/spaces/${id}/edit`)
@@ -340,8 +383,23 @@ test.describe('The live notice (STORY-20, D-086)', () => {
     await host.getByRole('button', { name: 'Save changes' }).click()
     await expect.poll(async () => (await readSpace(id))?.name).toBe(renamed)
 
-    // At once, with no reload: the notice, and no decision on the old version.
-    await expect(card.getByText('Updated by Host')).toBeVisible()
+    // At once, with no reload: the notice, and no decision on the old version. If it
+    // never comes, the report says what Realtime sent and which role it listened as.
+    try {
+      await expect(card.getByText('Updated by Host')).toBeVisible({ timeout: 15_000 })
+    } catch (error) {
+      const report = [
+        `spaces in supabase_realtime: ${await inPublication()}`,
+        `listeners: ${JSON.stringify(await realtimeListeners())}`,
+        'frames:',
+        ...realtime.frames,
+      ].join('\n')
+      await test
+        .info()
+        .attach('realtime-report', { body: report, contentType: 'text/plain' })
+      console.log(`Realtime report for the live notice test:\n${report}`)
+      throw error
+    }
     await expect(card.getByRole('button', { name: `Approve ${name}` })).toBeDisabled()
     await expect(card.getByRole('button', { name: `Reject ${name}` })).toBeDisabled()
 
