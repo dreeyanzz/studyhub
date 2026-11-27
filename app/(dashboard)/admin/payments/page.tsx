@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation'
 import { AlertCircle } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { buttonVariants } from '@/components/ui/button'
 import { dashboardFor } from '@/lib/auth/role-guard'
 import { getPaymentRecords } from '@/lib/data/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -63,35 +62,45 @@ export default async function AdminPaymentsPage({
   if (!records) {
     return (
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <div className="border-b border-border/70 pb-5">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             Payment Records
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-sm font-medium text-muted-foreground">
             Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose
             hold ended without a check-in.
           </p>
         </div>
 
         <nav aria-label="Payment filters" className="flex flex-wrap gap-2">
-          {FILTER_TABS.map((tab) => (
-            <Link
-              key={tab.value}
-              href={`/admin/payments?status=${tab.value}`}
-              aria-current={status === tab.value ? 'page' : undefined}
-              className={cn(
-                buttonVariants({ variant: status === tab.value ? 'default' : 'outline' }),
-                'h-auto min-h-12 min-w-12 py-2 whitespace-normal',
-              )}
-            >
-              {tab.label}
-            </Link>
-          ))}
+          {FILTER_TABS.map((tab) => {
+            const active = status === tab.value
+            return (
+              <Link
+                key={tab.value}
+                href={`/admin/payments?status=${tab.value}`}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  active
+                    ? 'border-primary bg-primary text-primary-foreground shadow-2xs'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted',
+                )}
+              >
+                {tab.label}
+              </Link>
+            )
+          })}
         </nav>
 
-        <Alert variant="destructive" role="alert" data-testid="payments-load-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="payments-load-error"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
-          <AlertTitle>Error loading payment records</AlertTitle>
+          <AlertTitle className="font-semibold">Error loading payment records</AlertTitle>
           <AlertDescription>
             We couldn&apos;t load payment records. Refresh the page to try again.
           </AlertDescription>

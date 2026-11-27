@@ -3,10 +3,11 @@
 import { useRef, useState, useTransition } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { AlertCircle, Flag, History, Inbox } from 'lucide-react'
+import { AlertCircle, Flag, History, Inbox, ShieldCheck } from 'lucide-react'
 
 import { formatReviewScore } from '@/components/review/review-rating'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,6 +41,18 @@ const LIST_TABS: ReadonlyArray<{ value: ReviewQueueList; label: string }> = [
   { value: 'hidden', label: 'Hidden' },
   { value: 'removed', label: 'Removed' },
 ]
+
+/**
+ * The count beside the heading, worded like `/admin`'s "3 pending". It counts the reviews
+ * on screen, so it adds "+" when Show more has more to load (#448 review).
+ */
+export function queueCountLabel(
+  shownCount: number,
+  hasMore: boolean,
+  list: ReviewQueueList,
+) {
+  return `${shownCount}${hasMore ? '+' : ''} ${list}`
+}
 
 const EMPTY_HEADINGS: Record<ReviewQueueList, string> = {
   reported: 'No reported reviews',
@@ -187,17 +200,26 @@ export function ModerationQueue({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1
-          ref={headingRef}
-          tabIndex={-1}
-          className="text-2xl font-bold tracking-tight text-foreground outline-none"
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/70 pb-5">
+        <div className="space-y-1">
+          <h1
+            ref={headingRef}
+            tabIndex={-1}
+            className="font-heading text-2xl font-bold tracking-tight text-foreground outline-none sm:text-3xl"
+          >
+            Review Moderation
+          </h1>
+          <p className="text-sm font-medium text-muted-foreground">
+            Review reported content, restore hidden reviews, or remove them permanently.
+          </p>
+        </div>
+        <Badge
+          variant="secondary"
+          data-testid="moderation-count"
+          className="rounded-xl border border-border/80 bg-secondary/80 px-3.5 py-1.5 text-sm font-bold text-foreground shadow-2xs"
         >
-          Review Moderation
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Review reported content, restore hidden reviews, or remove them permanently.
-        </p>
+          {queueCountLabel(items.length, hasMore, list)}
+        </Badge>
       </div>
 
       <nav aria-label="Review moderation lists" className="flex flex-wrap gap-2">
@@ -210,8 +232,10 @@ export function ModerationQueue({
               aria-current={active ? 'page' : undefined}
               data-testid={`moderation-tab-${tab.value}`}
               className={cn(
-                buttonVariants({ variant: active ? 'default' : 'outline' }),
-                'h-auto min-h-12 min-w-12 py-2 whitespace-normal',
+                'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                active
+                  ? 'border-primary bg-primary text-primary-foreground shadow-2xs'
+                  : 'border-border/80 bg-card text-foreground hover:bg-muted',
               )}
             >
               {tab.label}
@@ -220,6 +244,19 @@ export function ModerationQueue({
         })}
       </nav>
 
+      {/* Moderation Guidance Banner */}
+      <div className="flex items-start gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
+        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-2xs">
+          <ShieldCheck className="size-4" aria-hidden="true" />
+        </div>
+        <div className="text-sm leading-relaxed text-foreground">
+          <strong className="font-bold text-foreground">Moderation Guide:</strong> Hide
+          takes a review off the Space&apos;s profile and out of its averages, and Restore
+          brings it back. Remove does the same for good: it can&apos;t be restored.
+          Dismiss reports closes the open reports and leaves the review up.
+        </div>
+      </div>
+
       {/* Persistent polite status region for screen-reader announcements (design §3) */}
       <div
         role="status"
@@ -227,7 +264,7 @@ export function ModerationQueue({
         data-testid="moderation-live-status"
         className={cn(
           announcement && !errorBanner
-            ? 'rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm font-medium text-foreground'
+            ? 'rounded-2xl border border-border/80 bg-muted/40 px-4 py-3 text-sm font-medium text-foreground shadow-2xs'
             : 'sr-only',
         )}
       >
@@ -235,9 +272,14 @@ export function ModerationQueue({
       </div>
 
       {errorBanner && (
-        <Alert variant="destructive" role="alert" data-testid="moderation-action-error">
+        <Alert
+          variant="destructive"
+          role="alert"
+          data-testid="moderation-action-error"
+          className="rounded-2xl border-destructive/30 shadow-xs"
+        >
           <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
-          <AlertTitle>Action could not be completed</AlertTitle>
+          <AlertTitle className="font-semibold">Action could not be completed</AlertTitle>
           <AlertDescription>{errorBanner}</AlertDescription>
         </Alert>
       )}
@@ -245,18 +287,20 @@ export function ModerationQueue({
       {items.length === 0 ? (
         <Card
           data-testid="moderation-empty-state"
-          className="flex min-w-0 flex-col items-center justify-center p-6 text-center sm:p-8"
+          className="flex min-w-0 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/80 bg-card/60 p-6 text-center shadow-xs sm:p-12"
         >
-          <Inbox className="mb-4 size-12 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-lg font-semibold wrap-anywhere text-foreground">
+          <div className="mb-4 flex size-14 items-center justify-center rounded-2xl bg-secondary text-secondary-foreground shadow-xs">
+            <Inbox className="size-7 text-primary" aria-hidden="true" />
+          </div>
+          <h2 className="max-w-full font-heading text-xl font-bold wrap-anywhere text-foreground">
             {EMPTY_HEADINGS[list]}
           </h2>
-          <p className="mt-1 text-sm wrap-anywhere text-muted-foreground">
+          <p className="mt-1.5 max-w-full text-sm font-medium wrap-anywhere text-muted-foreground sm:max-w-md">
             {EMPTY_BODIES[list]}
           </p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {items.map((item) => {
             const history = historyByReviewId[item.reviewId] ?? []
             const isCardBusy = isPending && activeReviewId === item.reviewId
@@ -276,7 +320,7 @@ export function ModerationQueue({
               <Card
                 key={item.reviewId}
                 data-testid={`moderation-review-${item.reviewId}`}
-                className="min-w-0"
+                className="min-w-0 overflow-hidden rounded-2xl border-border/80 bg-card shadow-xs"
               >
                 <CardHeader className="min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
                   <div className="flex flex-wrap items-start justify-between gap-2">
@@ -494,7 +538,7 @@ export function ModerationQueue({
                 </CardContent>
 
                 {list !== 'removed' && (
-                  <CardFooter className="flex min-w-0 flex-wrap justify-end gap-2">
+                  <CardFooter className="flex min-w-0 flex-wrap justify-end gap-2 border-t border-border/40 bg-muted/15 px-6 py-4">
                     {list === 'reported' && (
                       <>
                         <Button
@@ -504,7 +548,7 @@ export function ModerationQueue({
                           aria-busy={isCardBusy}
                           data-testid={`moderation-dismiss-${item.reviewId}`}
                           onClick={() => openDialog(item, 'dismiss')}
-                          className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
+                          className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-xl py-2 whitespace-normal"
                         >
                           Dismiss reports
                           <ReviewIdentity item={item} />
@@ -516,7 +560,7 @@ export function ModerationQueue({
                           aria-busy={isCardBusy}
                           data-testid={`moderation-hide-${item.reviewId}`}
                           onClick={() => openDialog(item, 'hide')}
-                          className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
+                          className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-xl py-2 whitespace-normal"
                         >
                           Hide
                           <ReviewIdentity item={item} />
@@ -528,7 +572,7 @@ export function ModerationQueue({
                           aria-busy={isCardBusy}
                           data-testid={`moderation-remove-${item.reviewId}`}
                           onClick={() => openDialog(item, 'remove')}
-                          className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
+                          className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-xl py-2 whitespace-normal"
                         >
                           Remove
                           <ReviewIdentity item={item} />
@@ -545,7 +589,7 @@ export function ModerationQueue({
                           aria-busy={isCardBusy}
                           data-testid={`moderation-restore-${item.reviewId}`}
                           onClick={() => openDialog(item, 'restore')}
-                          className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
+                          className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-xl py-2 whitespace-normal"
                         >
                           Restore
                           <ReviewIdentity item={item} />
@@ -557,7 +601,7 @@ export function ModerationQueue({
                           aria-busy={isCardBusy}
                           data-testid={`moderation-remove-${item.reviewId}`}
                           onClick={() => openDialog(item, 'remove')}
-                          className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
+                          className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-xl py-2 whitespace-normal"
                         >
                           Remove
                           <ReviewIdentity item={item} />

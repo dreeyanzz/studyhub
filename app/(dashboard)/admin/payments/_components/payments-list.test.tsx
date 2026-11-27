@@ -10,7 +10,7 @@ vi.mock('../actions', () => ({
 }))
 
 import type { AdminPaymentRecordItem } from '@/lib/data/admin'
-import { PaymentsList } from './payments-list'
+import { PaymentsList, paymentsCountLabel } from './payments-list'
 import { RefundForm } from './refund-dialog'
 
 const PAYMENT_1 = '11111111-1111-4111-8111-111111111111'
@@ -143,5 +143,17 @@ describe('PaymentsList and RefundForm (STORY-14, TSK-14.4)', () => {
     expect(html).toContain('Cancel')
     expect(html).toContain('min-h-12')
     expect(html).toContain(`value="${PAYMENT_1}"`)
+  })
+
+  it('words the count like /admin, never "3 all", and adds + when Show more has more (#448)', () => {
+    expect(paymentsCountLabel(3, false, 'all')).toBe('3 payments')
+    expect(paymentsCountLabel(1, false, 'all')).toBe('1 payment')
+    expect(paymentsCountLabel(25, true, 'all')).toBe('25+ payments')
+    expect(paymentsCountLabel(1, false, 'refundable')).toBe('1 refundable')
+
+    const html = renderToStaticMarkup(
+      <PaymentsList items={[samplePayment()]} filter="all" shown={25} hasMore={false} />,
+    )
+    expect(html).toMatch(/data-testid="payments-count"[^>]*>1 payment</)
   })
 })
