@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'framer-motion'
 import {
   Armchair,
   CheckCircle,
@@ -12,6 +13,7 @@ import {
   User,
 } from 'lucide-react'
 
+import { EDITORIAL_EASE, EDITORIAL_SPRING } from '@/components/motion/editorial-motion'
 import type { SeatState, UnitType } from '@/lib/seat-map/grid'
 import { cn } from '@/lib/utils'
 
@@ -38,6 +40,12 @@ const TYPE_META: Record<UnitType, { label: string; icon: typeof Armchair }> = {
 
 type CheckInStage = 'reserved' | 'occupied' | 'available'
 
+const CHECKIN_STAGES: readonly { id: CheckInStage; label: string }[] = [
+  { id: 'reserved', label: 'Reserved' },
+  { id: 'occupied', label: 'Checked in' },
+  { id: 'available', label: 'Checked out' },
+]
+
 /**
  * Interactive illustrative Host Front Desk preview for `/for-hosts` (STORY-17).
  * Demonstrates STORY-12 one-tap walk-in occupancy updates (D-002, D-051) and
@@ -46,10 +54,13 @@ type CheckInStage = 'reserved' | 'occupied' | 'available'
 export function HostDeskPreview() {
   const [units, setUnits] = useState<DeskUnit[]>(() => [...INITIAL_DESK_UNITS])
   const [freshnessLabel, setFreshnessLabel] = useState<string>('Host-updated · 4 min ago')
+  const [freshnessTick, setFreshnessTick] = useState<number>(0)
   const [deskAnnouncement, setDeskAnnouncement] = useState<string>('')
   const [checkInStage, setCheckInStage] = useState<CheckInStage>('reserved')
+  const prefersReducedMotion = useReducedMotion()
 
   const openCount = units.filter((u) => u.state === 'available').length
+  const availabilityRatio = units.length > 0 ? openCount / units.length : 0
 
   function toggleWalkInUnit(unitId: string) {
     const target = units.find((u) => u.id === unitId)
@@ -61,6 +72,7 @@ export function HostDeskPreview() {
       current.map((unit) => (unit.id === unitId ? { ...unit, state: nextState } : unit)),
     )
     setFreshnessLabel('Host-updated · just now')
+    setFreshnessTick((tick) => tick + 1)
     setDeskAnnouncement(
       `Unit ${target.label} marked ${nextState === 'available' ? 'Available' : 'Occupied'}.`,
     )
@@ -70,12 +82,14 @@ export function HostDeskPreview() {
     if (checkInStage === 'reserved') {
       setCheckInStage('occupied')
       setFreshnessLabel('Host-updated · just now')
+      setFreshnessTick((tick) => tick + 1)
       setDeskAnnouncement('Booking token WRQ-4821 verified. Unit A3 is now Occupied.')
       return
     }
     if (checkInStage === 'occupied') {
       setCheckInStage('available')
       setFreshnessLabel('Host-updated · just now')
+      setFreshnessTick((tick) => tick + 1)
       setDeskAnnouncement('Unit A3 checked out and returned to Available.')
       return
     }
@@ -89,7 +103,7 @@ export function HostDeskPreview() {
       className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8"
     >
       {/* Panel A: One-Tap Walk-In Occupancy (STORY-12) */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_14px_34px_-28px_rgba(23,60,45,0.28)] sm:p-6 lg:col-span-7">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)] sm:p-6 lg:col-span-7">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-4">
           <div>
             <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
@@ -99,23 +113,45 @@ export function HostDeskPreview() {
               Walk-in floor control
             </h3>
           </div>
-          <span
+          <motion.span
+            key={freshnessTick}
             data-testid="host-preview-freshness"
+            initial={
+              freshnessTick > 0 && !prefersReducedMotion
+                ? { scale: 0.96, opacity: 0.7 }
+                : false
+            }
+            animate={{ scale: 1, opacity: 1 }}
+            transition={EDITORIAL_SPRING}
             className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 font-mono text-xs font-medium text-foreground"
           >
             <Clock className="size-3.5 text-primary" aria-hidden="true" />
             {freshnessLabel}
-          </span>
+          </motion.span>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
-          <p>
-            Tap any Unit below when a walk-in arrives or leaves. Your Space&apos;s
-            freshness timestamp updates immediately.
-          </p>
-          <p className="shrink-0 font-mono text-xs font-semibold text-foreground">
-            {openCount} of {units.length} Available
-          </p>
+        <div className="mt-4 space-y-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+            <p>
+              Tap any Unit below when a walk-in arrives or leaves. Your Space&apos;s
+              freshness timestamp updates immediately.
+            </p>
+            <p className="shrink-0 font-mono text-xs font-semibold text-foreground">
+              {openCount} of {units.length} Available
+            </p>
+          </div>
+          {/* GPU-accelerated availability meter */}
+          <div
+            aria-hidden="true"
+            className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+          >
+            <motion.div
+              className="h-full origin-left rounded-full bg-primary"
+              initial={false}
+              animate={{ scaleX: availabilityRatio }}
+              transition={EDITORIAL_SPRING}
+            />
+          </div>
         </div>
 
         <ul className="mt-5 divide-y divide-border border-y border-border">
@@ -131,9 +167,13 @@ export function HostDeskPreview() {
                 className="flex flex-wrap items-center justify-between gap-3 py-3.5"
               >
                 <div className="flex items-center gap-3">
-                  <span
+                  <motion.span
+                    key={`${unit.id}-${unit.state}`}
+                    initial={prefersReducedMotion ? false : { scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={EDITORIAL_SPRING}
                     className={cn(
-                      'inline-flex size-10 shrink-0 items-center justify-center rounded-xl border',
+                      'inline-flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors',
                       isAvailable
                         ? 'border-emerald-700/35 bg-emerald-50 text-emerald-800'
                         : 'border-amber-600/35 bg-amber-50 text-amber-800',
@@ -141,7 +181,7 @@ export function HostDeskPreview() {
                     aria-hidden="true"
                   >
                     <TypeIcon className="size-4" />
-                  </span>
+                  </motion.span>
                   <div>
                     <p className="font-semibold text-foreground">
                       Unit {unit.label}{' '}
@@ -151,7 +191,7 @@ export function HostDeskPreview() {
                     </p>
                     <p
                       className={cn(
-                        'mt-0.5 inline-flex items-center gap-1 text-xs font-medium',
+                        'mt-0.5 inline-flex items-center gap-1 text-xs font-medium transition-colors',
                         isAvailable ? 'text-emerald-900' : 'text-amber-900',
                       )}
                     >
@@ -168,19 +208,22 @@ export function HostDeskPreview() {
                   </div>
                 </div>
 
-                <button
+                <motion.button
                   type="button"
                   onClick={() => toggleWalkInUnit(unit.id)}
                   aria-label={`${nextActionLabel} for Unit ${unit.label}`}
+                  whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+                  whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
+                  transition={EDITORIAL_SPRING}
                   className={cn(
-                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    'inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
                     isAvailable
-                      ? 'border-border bg-background text-foreground hover:bg-muted'
+                      ? 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted'
                       : 'border-primary bg-secondary text-secondary-foreground hover:bg-accent',
                   )}
                 >
                   {nextActionLabel}
-                </button>
+                </motion.button>
               </li>
             )
           })}
@@ -192,7 +235,7 @@ export function HostDeskPreview() {
       </div>
 
       {/* Panel B: QR Check-In Desk (STORY-10) */}
-      <div className="rounded-2xl border border-border bg-card shadow-[0_14px_34px_-28px_rgba(23,60,45,0.28)] lg:col-span-5">
+      <div className="rounded-2xl border border-border bg-card shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)] lg:col-span-5">
         <div className="rounded-t-2xl bg-foreground px-5 py-4 text-background sm:px-6">
           <p className="font-mono text-xs font-semibold tracking-widest text-[#f0c95c] uppercase">
             Illustrative Check-In Desk
@@ -203,28 +246,70 @@ export function HostDeskPreview() {
         </div>
 
         <div className="space-y-4 p-5 sm:p-6">
+          {/* 3-Stage Check-In Flow Indicator */}
+          <LayoutGroup id="host-checkin-stepper">
+            <ol
+              aria-label="Check-in lifecycle"
+              className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/50 p-1"
+            >
+              {CHECKIN_STAGES.map((stage) => {
+                const active = stage.id === checkInStage
+                return (
+                  <li
+                    key={stage.id}
+                    aria-current={active ? 'step' : undefined}
+                    className={cn(
+                      'relative rounded-lg px-2 py-1.5 text-center font-mono text-[11px] font-semibold transition-colors',
+                      active ? 'text-foreground' : 'text-muted-foreground',
+                    )}
+                  >
+                    {active && (
+                      <motion.span
+                        layoutId="host-checkin-step"
+                        transition={EDITORIAL_SPRING}
+                        aria-hidden="true"
+                        className="absolute inset-0 rounded-lg border border-border bg-card shadow-xs"
+                      />
+                    )}
+                    <span className="relative z-10">{stage.label}</span>
+                  </li>
+                )
+              })}
+            </ol>
+          </LayoutGroup>
+
           <div className="rounded-xl border border-border bg-muted/60 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 font-mono text-sm font-semibold text-foreground">
                 <QrCode className="size-4 text-primary" aria-hidden="true" />
                 WRQ-4821
               </span>
-              <span
-                data-testid="host-checkin-stage-badge"
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 font-mono text-xs font-semibold',
-                  checkInStage === 'reserved' &&
-                    'border-blue-600/35 bg-blue-50 text-blue-950',
-                  checkInStage === 'occupied' &&
-                    'border-amber-600/35 bg-amber-50 text-amber-950',
-                  checkInStage === 'available' &&
-                    'border-emerald-700/35 bg-emerald-50 text-emerald-950',
-                )}
-              >
-                {checkInStage === 'reserved' && 'Reserved'}
-                {checkInStage === 'occupied' && 'Occupied · Checked in'}
-                {checkInStage === 'available' && 'Available · Checked out'}
-              </span>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={checkInStage}
+                  data-testid="host-checkin-stage-badge"
+                  initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -4 }}
+                  transition={{
+                    duration: prefersReducedMotion ? 0.01 : 0.18,
+                    ease: EDITORIAL_EASE,
+                  }}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 font-mono text-xs font-semibold',
+                    checkInStage === 'reserved' &&
+                      'border-blue-600/35 bg-blue-50 text-blue-950',
+                    checkInStage === 'occupied' &&
+                      'border-amber-600/35 bg-amber-50 text-amber-950',
+                    checkInStage === 'available' &&
+                      'border-emerald-700/35 bg-emerald-50 text-emerald-950',
+                  )}
+                >
+                  {checkInStage === 'reserved' && 'Reserved'}
+                  {checkInStage === 'occupied' && 'Occupied · Checked in'}
+                  {checkInStage === 'available' && 'Available · Checked out'}
+                </motion.span>
+              </AnimatePresence>
             </div>
 
             <dl className="mt-3 space-y-1.5 text-sm">
@@ -245,11 +330,14 @@ export function HostDeskPreview() {
             </dl>
           </div>
 
-          <button
+          <motion.button
             type="button"
             onClick={advanceCheckIn}
+            whileHover={prefersReducedMotion ? undefined : { y: -1 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
+            transition={EDITORIAL_SPRING}
             className={cn(
-              'inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl px-5 py-3 text-center text-sm font-semibold whitespace-normal transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+              'inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-center text-sm font-semibold whitespace-normal shadow-xs transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
               checkInStage === 'reserved' &&
                 'bg-[#f0c95c] text-[#173c2d] hover:bg-[#e5bc49]',
               checkInStage === 'occupied' &&
@@ -266,7 +354,7 @@ export function HostDeskPreview() {
                 Reset check-in demo
               </>
             )}
-          </button>
+          </motion.button>
 
           <p className="text-xs leading-relaxed text-muted-foreground">
             If a Seeker does not arrive before their wait window ends, Worq releases the

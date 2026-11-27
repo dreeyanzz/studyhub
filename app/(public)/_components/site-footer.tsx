@@ -99,15 +99,8 @@ export function SiteFooter() {
             </div>
           </nav>
         </div>
-        {/* Honest about payments (D-005) and about who keeps availability current (D-002). */}
         <div className="flex flex-col justify-between gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
-          <p>
-            Payments run in sandbox mode, so no real money moves. Each Host updates their
-            own Space&apos;s availability.
-          </p>
-          <p className="shrink-0 font-mono text-xs font-medium tracking-wider text-foreground uppercase">
-            Worq · Metro Cebu
-          </p>
+          <p>&copy; 2026 Worq</p>
         </div>
       </div>
     </footer>

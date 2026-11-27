@@ -11,10 +11,11 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { ProposalBaseline } from './proposal-baseline'
 import { ProposalCommandFinder } from './proposal-command-finder'
+import { ProposalCuratedHybrid } from './proposal-curated-hybrid'
 import { ProposalFloorplanFirst } from './proposal-floorplan-first'
 import { ProposalQuietMonograph } from './proposal-quiet-monograph'
 
-export type LandingVariantKey = 'A' | 'B' | 'C' | 'D'
+export type LandingVariantKey = 'A' | 'B' | 'C' | 'D' | 'E'
 
 interface VariantMeta {
   key: LandingVariantKey
@@ -43,6 +44,11 @@ const VARIANTS: readonly VariantMeta[] = [
     name: 'Editorial Split (Baseline)',
     reference: 'Current committed c026835',
   },
+  {
+    key: 'E',
+    name: 'Curated Hybrid',
+    reference: 'Command Hero + Manifesto + Session Tabs + Colophon',
+  },
 ] as const
 
 const DEFAULT_VARIANT: LandingVariantKey = 'D'
@@ -50,7 +56,7 @@ const VARIANT_EVENT = 'worq:prototype-variant-change'
 
 function parseVariantFromSearch(search: string): LandingVariantKey {
   const raw = new URLSearchParams(search).get('variant')?.toUpperCase()
-  if (raw === 'A' || raw === 'B' || raw === 'C' || raw === 'D') {
+  if (raw === 'A' || raw === 'B' || raw === 'C' || raw === 'D' || raw === 'E') {
     return raw
   }
   return DEFAULT_VARIANT
@@ -137,11 +143,12 @@ export function LandingPrototypeSwitcher({
       {activeKey === 'B' && <ProposalQuietMonograph />}
       {activeKey === 'C' && <ProposalFloorplanFirst />}
       {activeKey === 'D' && <ProposalBaseline />}
+      {activeKey === 'E' && <ProposalCuratedHybrid />}
 
       {showSwitcher && (
         <aside
           aria-label="Landing page prototype variant switcher"
-          className="fixed bottom-4 left-1/2 z-50 w-[min(calc(100vw-1.5rem),42rem)] -translate-x-1/2 rounded-2xl border border-[#f0c95c]/45 bg-[#11241c]/95 px-3 py-2 text-[#f8f9f3] shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
+          className="fixed bottom-4 left-1/2 z-50 w-[min(calc(100vw-1.5rem),46rem)] -translate-x-1/2 rounded-2xl border border-[#f0c95c]/45 bg-[#11241c]/95 px-3 py-2 text-[#f8f9f3] shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">

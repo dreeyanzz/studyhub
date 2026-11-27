@@ -3,6 +3,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight, ShieldCheck } from 'lucide-react'
 
+import {
+  EditorialInteractive,
+  EditorialReveal,
+  EditorialStagger,
+  EditorialStaggerItem,
+} from '@/components/motion/editorial-motion'
+
 import { HostDeskPreview } from './_components/host-desk-preview'
 
 export const metadata: Metadata = {
@@ -67,60 +74,80 @@ export default function ForHostsPage() {
       >
         <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-12 lg:px-10 lg:py-20">
           <div className="space-y-6 lg:col-span-7">
-            <div className="flex items-center gap-3">
-              <span className="h-px w-8 bg-primary" aria-hidden="true" />
-              <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
-                For study &amp; co-working Hosts · Metro Cebu
+            <EditorialReveal immediate y={10}>
+              <div className="flex items-center gap-3">
+                <span className="h-px w-8 bg-primary" aria-hidden="true" />
+                <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+                  For study &amp; co-working Hosts · Metro Cebu
+                </p>
+              </div>
+            </EditorialReveal>
+
+            <EditorialReveal immediate delay={0.07} y={14}>
+              <h1
+                id="hosts-hero-title"
+                className="max-w-[16ch] font-heading text-4xl leading-[1.06] font-normal tracking-[-0.03em] text-balance text-foreground sm:text-5xl lg:text-[3.5rem]"
+              >
+                Your Space, mapped{' '}
+                <em className="font-normal text-primary italic">for focused work.</em>
+              </h1>
+            </EditorialReveal>
+
+            <EditorialReveal immediate delay={0.13} y={12}>
+              <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Turn empty desks into reliable Visits. Publish a 6-column Seat map, update
+                walk-in occupancy in one tap, and verify Seeker holds at your front desk
+                with QR check-in.
               </p>
-            </div>
+            </EditorialReveal>
 
-            <h1
-              id="hosts-hero-title"
-              className="max-w-[16ch] font-heading text-4xl leading-[1.06] font-normal tracking-[-0.03em] text-balance text-foreground sm:text-5xl lg:text-[3.5rem]"
-            >
-              Your Space, mapped{' '}
-              <em className="font-normal text-primary italic">for focused work.</em>
-            </h1>
+            <EditorialReveal immediate delay={0.19} y={10}>
+              <div className="flex flex-wrap items-center gap-3">
+                <EditorialInteractive lift={-1.5}>
+                  <Link
+                    href="/register?role=host"
+                    className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  >
+                    Become a Host
+                    <ArrowRight
+                      className="size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </EditorialInteractive>
+                <EditorialInteractive lift={-1.5}>
+                  <Link
+                    href="/login"
+                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold whitespace-normal text-foreground transition-colors hover:bg-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  >
+                    Host sign in
+                  </Link>
+                </EditorialInteractive>
+              </div>
+            </EditorialReveal>
 
-            <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Turn empty desks into reliable Visits. Publish a 6-column Seat map, update
-              walk-in occupancy in one tap, and verify Seeker holds at your front desk
-              with QR check-in.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/register?role=host"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                Become a Host
-                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
-              </Link>
-              <Link
-                href="/login"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold whitespace-normal text-foreground transition-colors hover:bg-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                Host sign in
-              </Link>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-5">
-              <Link
-                href="/spaces"
-                className="inline-flex min-h-12 min-w-12 items-center gap-1.5 text-sm font-semibold whitespace-normal text-primary underline-offset-4 hover:underline focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-              >
-                See Verified Spaces on the map
-                <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
-              </Link>
-              {/* Honest about verification (D-037) and sandbox payments (D-005). */}
-              <p className="text-sm text-muted-foreground">
-                Reviewed by an Administrator before going public. Reservation fees run in
-                sandbox mode, so no real money moves.
-              </p>
-            </div>
+            <EditorialReveal immediate delay={0.24} y={8}>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-5">
+                <Link
+                  href="/spaces"
+                  className="group inline-flex min-h-12 min-w-12 items-center gap-1.5 text-sm font-semibold whitespace-normal text-primary underline-offset-4 hover:underline focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                >
+                  See Verified Spaces on the map
+                  <ArrowRight
+                    className="size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                    aria-hidden="true"
+                  />
+                </Link>
+                {/* Honest about verification (D-037) and sandbox payments (D-005). */}
+                <p className="text-sm text-muted-foreground">
+                  Reviewed by an Administrator before going public. Reservation fees run
+                  in sandbox mode, so no real money moves.
+                </p>
+              </div>
+            </EditorialReveal>
           </div>
 
-          <div className="lg:col-span-5">
+          <EditorialReveal immediate delay={0.12} y={18} className="lg:col-span-5">
             <figure className="rounded-2xl border border-border bg-card p-3 shadow-[0_24px_48px_-32px_rgba(23,60,45,0.32)]">
               <div className="overflow-hidden rounded-xl bg-secondary">
                 <Image
@@ -130,7 +157,7 @@ export default function ForHostsPage() {
                   height={1067}
                   sizes="(min-width: 64rem) 40vw, 100vw"
                   loading="eager"
-                  className="aspect-[4/3] w-full object-cover lg:aspect-[4/5]"
+                  className="aspect-[4/3] w-full object-cover transition-transform duration-500 hover:scale-[1.02] lg:aspect-[4/5]"
                 />
               </div>
               <figcaption className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-border pt-3">
@@ -149,14 +176,14 @@ export default function ForHostsPage() {
                 </span>
               </figcaption>
             </figure>
-          </div>
+          </EditorialReveal>
         </div>
       </section>
 
       {/* Section 2: Interactive Host Front-Desk Preview */}
       <section aria-labelledby="host-desk-title" className="py-16 lg:py-24">
         <div className="mx-auto w-full max-w-7xl space-y-12 px-4 sm:px-6 lg:px-10">
-          <div className="grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
+          <EditorialReveal className="grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
             <div className="space-y-3 lg:col-span-7">
               <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
                 01 / The Host portal
@@ -172,9 +199,11 @@ export default function ForHostsPage() {
               Worq pairs automatic Seeker holds with fast manual overrides for walk-ins.
               Try toggling a walk-in seat or verifying a booking token below.
             </p>
-          </div>
+          </EditorialReveal>
 
-          <HostDeskPreview />
+          <EditorialReveal delay={0.08}>
+            <HostDeskPreview />
+          </EditorialReveal>
         </div>
       </section>
 
@@ -184,7 +213,7 @@ export default function ForHostsPage() {
         className="border-y border-border bg-muted/60 py-16 lg:py-24"
       >
         <div className="mx-auto w-full max-w-7xl space-y-12 px-4 sm:px-6 lg:px-10">
-          <div className="space-y-3">
+          <EditorialReveal className="space-y-3">
             <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
               02 / From sign-up to Verified
             </p>
@@ -194,12 +223,17 @@ export default function ForHostsPage() {
             >
               Four steps to welcome your first Seeker.
             </h2>
-          </div>
+          </EditorialReveal>
 
-          <ol className="grid grid-cols-1 gap-8 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
+          <EditorialStagger
+            as="ol"
+            stagger={0.08}
+            className="grid grid-cols-1 gap-8 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0"
+          >
             {ONBOARDING_STEPS.map((step, index) => (
-              <li
+              <EditorialStaggerItem
                 key={step.number}
+                as="li"
                 className={
                   index > 0
                     ? 'space-y-2.5 border-t border-border pt-6 sm:border-t-0 sm:pt-0 lg:border-l lg:pl-7'
@@ -218,16 +252,16 @@ export default function ForHostsPage() {
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   {step.text}
                 </p>
-              </li>
+              </EditorialStaggerItem>
             ))}
-          </ol>
+          </EditorialStagger>
         </div>
       </section>
 
       {/* Section 4: Honest Host Ground Rules / FAQ */}
       <section aria-labelledby="host-faq-title" className="py-16 lg:py-24">
         <div className="mx-auto w-full max-w-7xl space-y-10 px-4 sm:px-6 lg:px-10">
-          <div className="space-y-3">
+          <EditorialReveal className="space-y-3">
             <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
               03 / Ground rules
             </p>
@@ -237,20 +271,24 @@ export default function ForHostsPage() {
             >
               Straight answers before you list.
             </h2>
-          </div>
+          </EditorialReveal>
 
-          <dl className="grid grid-cols-1 gap-8 border-t border-border pt-8 md:grid-cols-2 md:gap-x-12 md:gap-y-10">
+          <EditorialStagger
+            as="dl"
+            stagger={0.07}
+            className="grid grid-cols-1 gap-8 border-t border-border pt-8 md:grid-cols-2 md:gap-x-12 md:gap-y-10"
+          >
             {HOST_FAQ.map((item) => (
-              <div key={item.question} className="space-y-2.5">
+              <EditorialStaggerItem key={item.question} className="space-y-2.5">
                 <dt className="font-heading text-xl font-semibold text-foreground">
                   {item.question}
                 </dt>
                 <dd className="text-sm leading-relaxed text-muted-foreground">
                   {item.answer}
                 </dd>
-              </div>
+              </EditorialStaggerItem>
             ))}
-          </dl>
+          </EditorialStagger>
         </div>
       </section>
 
@@ -259,7 +297,7 @@ export default function ForHostsPage() {
         aria-labelledby="hosts-cta-title"
         className="bg-foreground py-16 text-background lg:py-20"
       >
-        <div className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-8 px-4 sm:px-6 lg:flex-row lg:items-center lg:px-10">
+        <EditorialReveal className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-8 px-4 sm:px-6 lg:flex-row lg:items-center lg:px-10">
           <div className="max-w-2xl space-y-3">
             <p className="font-mono text-xs font-semibold tracking-widest text-[#f0c95c] uppercase">
               Ready to host
@@ -277,21 +315,28 @@ export default function ForHostsPage() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <Link
-              href="/register?role=host"
-              className="inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
-            >
-              Create your Host account
-              <ArrowRight className="size-4 shrink-0" aria-hidden="true" />
-            </Link>
-            <Link
-              href="/spaces"
-              className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-background/45 px-5 py-3 text-sm font-semibold whitespace-normal text-background transition-colors hover:bg-background/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-background"
-            >
-              Explore Seeker map
-            </Link>
+            <EditorialInteractive lift={-1.5}>
+              <Link
+                href="/register?role=host"
+                className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
+              >
+                Create your Host account
+                <ArrowRight
+                  className="size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
+              </Link>
+            </EditorialInteractive>
+            <EditorialInteractive lift={-1.5}>
+              <Link
+                href="/spaces"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-background/45 px-5 py-3 text-sm font-semibold whitespace-normal text-background transition-colors hover:bg-background/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-background"
+              >
+                Explore Seeker map
+              </Link>
+            </EditorialInteractive>
           </div>
-        </div>
+        </EditorialReveal>
       </section>
     </div>
   )
