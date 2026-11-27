@@ -165,7 +165,7 @@ export function ProposalCuratedHybrid() {
         </div>
 
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-10 lg:py-24">
-          <div className="overflow-hidden pb-1">
+          <div className="-mb-2 overflow-hidden pb-2">
             <motion.h1
               id="hero-title"
               initial={
@@ -178,7 +178,7 @@ export function ProposalCuratedHybrid() {
                 duration: prefersReducedMotion ? 0.01 : 0.62,
                 ease: EXPO_OUT,
               }}
-              className="max-w-[16ch] font-[family-name:var(--font-display)] text-[clamp(2.5rem,5.4vw,4.25rem)] leading-[1.03] font-normal tracking-[-0.03em] text-balance text-background"
+              className="max-w-[16ch] pb-2 font-[family-name:var(--font-display)] text-[clamp(2.5rem,5.4vw,4.25rem)] leading-[1.1] font-normal tracking-[-0.03em] text-balance text-background"
             >
               Find an open seat and hold it{' '}
               <em className="font-normal text-[#f0c95c] italic">right now.</em>
