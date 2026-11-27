@@ -1,9 +1,9 @@
 'use client'
 
 /**
- * PROTOTYPE: Four structurally distinct Seeker landing page proposals switchable
- * via `?variant=A|B|C|D` on `/` (with a dev-only floating bottom bar and ←/→
- * keyboard shortcuts). Remove this folder once a winning direction is chosen.
+ * PROTOTYPE: Structurally distinct Seeker landing page proposals switchable
+ * via `?variant=A|B|D|E|F` on `/` (with a dev/preview floating bottom bar and
+ * ←/→ keyboard shortcuts). Remove this folder once a winning direction is chosen.
  */
 
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
@@ -12,10 +12,10 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProposalBaseline } from './proposal-baseline'
 import { ProposalCommandFinder } from './proposal-command-finder'
 import { ProposalCuratedHybrid } from './proposal-curated-hybrid'
-import { ProposalFloorplanFirst } from './proposal-floorplan-first'
 import { ProposalQuietMonograph } from './proposal-quiet-monograph'
+import { ProposalReadingRoom } from './proposal-reading-room'
 
-export type LandingVariantKey = 'A' | 'B' | 'C' | 'D' | 'E'
+export type LandingVariantKey = 'A' | 'B' | 'D' | 'E' | 'F'
 
 interface VariantMeta {
   key: LandingVariantKey
@@ -35,11 +35,6 @@ const VARIANTS: readonly VariantMeta[] = [
     reference: 'NeueHouse / Fosbury & Sons / Resy',
   },
   {
-    key: 'C',
-    name: 'Floorplan First',
-    reference: 'SeatGeek / Workfrom / Swiss Blueprint',
-  },
-  {
     key: 'D',
     name: 'Editorial Split (Baseline)',
     reference: 'Current committed c026835',
@@ -49,6 +44,11 @@ const VARIANTS: readonly VariantMeta[] = [
     name: 'Curated Hybrid',
     reference: 'Command Hero + Manifesto + Session Tabs + Colophon',
   },
+  {
+    key: 'F',
+    name: 'Reading Room Atelier',
+    reference: 'Fraunces + Warm Linen/Cypress + Interactive Desk Hold',
+  },
 ] as const
 
 const DEFAULT_VARIANT: LandingVariantKey = 'D'
@@ -56,7 +56,7 @@ const VARIANT_EVENT = 'worq:prototype-variant-change'
 
 function parseVariantFromSearch(search: string): LandingVariantKey {
   const raw = new URLSearchParams(search).get('variant')?.toUpperCase()
-  if (raw === 'A' || raw === 'B' || raw === 'C' || raw === 'D' || raw === 'E') {
+  if (raw === 'A' || raw === 'B' || raw === 'D' || raw === 'E' || raw === 'F') {
     return raw
   }
   return DEFAULT_VARIANT
@@ -135,20 +135,23 @@ export function LandingPrototypeSwitcher({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [cycleVariant, showSwitcher])
 
-  const activeMeta = VARIANTS.find((v) => v.key === activeKey) ?? VARIANTS[3]!
+  const activeMeta =
+    VARIANTS.find((v) => v.key === activeKey) ??
+    VARIANTS.find((v) => v.key === DEFAULT_VARIANT) ??
+    VARIANTS[0]!
 
   return (
     <>
       {activeKey === 'A' && <ProposalCommandFinder />}
       {activeKey === 'B' && <ProposalQuietMonograph />}
-      {activeKey === 'C' && <ProposalFloorplanFirst />}
       {activeKey === 'D' && <ProposalBaseline />}
       {activeKey === 'E' && <ProposalCuratedHybrid />}
+      {activeKey === 'F' && <ProposalReadingRoom />}
 
       {showSwitcher && (
         <aside
           aria-label="Landing page prototype variant switcher"
-          className="fixed bottom-4 left-1/2 z-50 w-[min(calc(100vw-1.5rem),46rem)] -translate-x-1/2 rounded-2xl border border-[#f0c95c]/45 bg-[#11241c]/95 px-3 py-2 text-[#f8f9f3] shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
+          className="fixed bottom-4 left-1/2 z-50 w-[min(calc(100vw-1.5rem),48rem)] -translate-x-1/2 rounded-2xl border border-[#f0c95c]/45 bg-[#11241c]/95 px-3 py-2 text-[#f8f9f3] shadow-[0_18px_40px_rgba(0,0,0,0.45)] backdrop-blur-md"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">

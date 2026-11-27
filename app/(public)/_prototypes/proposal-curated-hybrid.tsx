@@ -4,7 +4,7 @@ import { useState, type KeyboardEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'framer-motion'
-import { ArrowRight, MapPin, Search } from 'lucide-react'
+import { ArrowRight, Check, MapPin, Search } from 'lucide-react'
 
 import {
   EDITORIAL_EASE,
@@ -26,7 +26,6 @@ const WORK_MODES = [
   {
     id: 'solo',
     tab: 'Solo deep work',
-    eyebrow: 'Quiet desks & focused rooms',
     headline: 'Lock in a quiet desk before you head out.',
     description:
       'Filter Verified Spaces for quiet zones and individual seats, check when the Host last updated availability, and hold your desk while you commute.',
@@ -38,13 +37,11 @@ const WORK_MODES = [
     ctaLabel: 'Browse open desks now',
     ctaHref: '/spaces?unitType=seat&hours=open_now',
     image: '/images/public-landing/library.webp',
-    width: 1600,
-    height: 1067,
+    imageAlt: 'Quiet reading room with wooden study desks and natural daylight',
   },
   {
     id: 'cafe',
     tab: 'Café & laptop',
-    eyebrow: 'Daylight tables & late-night pours',
     headline: 'Skip circling full cafés hoping a table opens up.',
     description:
       'Discover work-friendly cafés open late or 24 hours, check curated tags for power outlets and Wi-Fi reliability, and claim an open seat before ordering.',
@@ -56,13 +53,11 @@ const WORK_MODES = [
     ctaLabel: 'Find Spaces open late',
     ctaHref: '/spaces?hours=open_late',
     image: '/images/public-landing/cafe.webp',
-    width: 1600,
-    height: 2387,
+    imageAlt: 'Warm sunlit café interior with timber tables suited for laptop work',
   },
   {
     id: 'group',
     tab: 'Team & private rooms',
-    eyebrow: 'Enclosed rooms with clear capacity',
     headline: 'Hold a private room for sprints, calls, or group sessions.',
     description:
       'Find Spaces offering multi-seat Room units on their snap-grid map, confirm capacity before rallying everyone, and check in with one booking token.',
@@ -74,8 +69,7 @@ const WORK_MODES = [
     ctaLabel: 'Find Spaces with rooms',
     ctaHref: '/spaces?unitType=room',
     image: '/images/public-landing/workspace.webp',
-    width: 1600,
-    height: 1067,
+    imageAlt: 'Bright co-working floor with shared tables and enclosed meeting rooms',
   },
 ] as const
 
@@ -92,10 +86,19 @@ export function ProposalCuratedHybrid() {
   const activeMode = WORK_MODES.find((mode) => mode.id === activeModeId) ?? WORK_MODES[0]
 
   function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
+    let nextIndex: number | null = null
+    if (event.key === 'ArrowRight') {
+      nextIndex = (index + 1) % WORK_MODES.length
+    } else if (event.key === 'ArrowLeft') {
+      nextIndex = (index - 1 + WORK_MODES.length) % WORK_MODES.length
+    } else if (event.key === 'Home') {
+      nextIndex = 0
+    } else if (event.key === 'End') {
+      nextIndex = WORK_MODES.length - 1
+    }
+    if (nextIndex === null) return
     event.preventDefault()
-    const delta = event.key === 'ArrowRight' ? 1 : -1
-    const nextMode = WORK_MODES[(index + delta + WORK_MODES.length) % WORK_MODES.length]!
+    const nextMode = WORK_MODES[nextIndex]!
     setActiveModeId(nextMode.id)
     document.getElementById(`mode-tab-${nextMode.id}`)?.focus()
   }
@@ -241,24 +244,19 @@ export function ProposalCuratedHybrid() {
         className="scroll-mt-4 border-t border-border bg-muted/45 py-16 lg:py-24"
       >
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-10">
-          <EditorialReveal className="flex flex-wrap items-end justify-between gap-6">
-            <div className="space-y-2">
-              <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
-                Tailored to your session
-              </p>
-              <h2
-                id="intent-title"
-                className="font-heading text-3xl leading-tight font-normal tracking-[-0.02em] text-foreground sm:text-4xl"
-              >
-                How are you working today?
-              </h2>
-            </div>
+          <EditorialReveal className="flex flex-col justify-between gap-5 border-b border-border pb-4 md:flex-row md:items-end md:pb-0">
+            <h2
+              id="intent-title"
+              className="font-heading text-3xl leading-[1.1] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-4xl md:pb-4"
+            >
+              How are you working today?
+            </h2>
 
             <LayoutGroup id="curated-hybrid-modes">
               <div
                 role="tablist"
                 aria-label="Work session modes"
-                className="inline-flex flex-wrap gap-1.5 rounded-2xl border border-border bg-card p-1.5"
+                className="flex flex-wrap items-center gap-1 sm:gap-2"
               >
                 {WORK_MODES.map((mode, index) => {
                   const selected = mode.id === activeMode.id
@@ -275,19 +273,19 @@ export function ProposalCuratedHybrid() {
                       onKeyDown={(event) => handleTabKeyDown(event, index)}
                       className={
                         selected
-                          ? 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-xl px-5 py-2.5 text-sm font-semibold whitespace-normal text-background transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
-                          : 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-xl px-5 py-2.5 text-sm font-medium whitespace-normal text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+                          ? 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center px-3.5 pt-2 pb-3.5 text-sm font-semibold whitespace-normal text-foreground transition-colors focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+                          : 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center px-3.5 pt-2 pb-3.5 text-sm font-medium whitespace-normal text-muted-foreground transition-colors hover:text-foreground focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
                       }
                     >
+                      <span>{mode.tab}</span>
                       {selected && (
                         <motion.span
                           layoutId="curated-hybrid-active-tab"
                           transition={EDITORIAL_SPRING}
-                          className="absolute inset-0 rounded-xl bg-foreground"
+                          className="absolute right-0 -bottom-px left-0 h-0.5 bg-foreground"
                           aria-hidden="true"
                         />
                       )}
-                      <span className="relative z-10">{mode.tab}</span>
                     </button>
                   )
                 })}
@@ -300,56 +298,57 @@ export function ProposalCuratedHybrid() {
               id={`mode-panel-${activeMode.id}`}
               role="tabpanel"
               aria-labelledby={`mode-tab-${activeMode.id}`}
-              className="overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-8"
+              className="overflow-hidden rounded-xl border border-border bg-card"
             >
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={activeMode.id}
-                  initial={{ opacity: 0, y: prefersReducedMotion ? 0 : 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: prefersReducedMotion ? 0 : -8 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   transition={{
-                    duration: prefersReducedMotion ? 0.01 : 0.28,
+                    duration: prefersReducedMotion ? 0.01 : 0.24,
                     ease: EDITORIAL_EASE,
                   }}
-                  className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12"
+                  className="grid grid-cols-1 lg:min-h-[460px] lg:grid-cols-12"
                 >
-                  <div className="space-y-5 lg:col-span-6">
-                    <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
-                      {activeMode.eyebrow}
-                    </p>
-                    <h3 className="font-heading text-2xl leading-snug font-semibold text-foreground sm:text-3xl">
-                      {activeMode.headline}
-                    </h3>
-                    <p className="text-base leading-relaxed text-muted-foreground">
-                      {activeMode.description}
-                    </p>
-                    <ul className="space-y-2.5 border-t border-border pt-4 text-sm text-foreground">
+                  <div className="flex flex-col justify-between gap-7 p-6 sm:p-10 lg:col-span-6 lg:p-12">
+                    <div className="space-y-4">
+                      <h3 className="max-w-[22ch] font-heading text-2xl leading-[1.16] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-[2rem]">
+                        {activeMode.headline}
+                      </h3>
+                      <p className="max-w-[50ch] text-base leading-relaxed text-muted-foreground">
+                        {activeMode.description}
+                      </p>
+                    </div>
+
+                    <ul className="space-y-3 border-t border-border pt-6 text-sm leading-relaxed text-foreground">
                       {activeMode.bullets.map((bullet, bulletIndex) => (
                         <motion.li
                           key={bullet}
-                          initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -8 }}
+                          initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -6 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{
-                            duration: prefersReducedMotion ? 0.01 : 0.24,
-                            delay: prefersReducedMotion ? 0 : 0.04 + bulletIndex * 0.045,
+                            duration: prefersReducedMotion ? 0.01 : 0.22,
+                            delay: prefersReducedMotion ? 0 : 0.04 + bulletIndex * 0.04,
                             ease: EDITORIAL_EASE,
                           }}
-                          className="flex items-start gap-2.5"
+                          className="flex items-start gap-3"
                         >
-                          <span
+                          <Check
+                            className="mt-0.5 size-4 shrink-0 text-primary"
                             aria-hidden="true"
-                            className="mt-2 size-1.5 shrink-0 rounded-full bg-primary"
                           />
                           <span>{bullet}</span>
                         </motion.li>
                       ))}
                     </ul>
-                    <div className="pt-2">
+
+                    <div className="pt-1">
                       <EditorialInteractive lift={-1.5} className="inline-block">
                         <Link
                           href={activeMode.ctaHref}
-                          className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                          className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-lg bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
                         >
                           {activeMode.ctaLabel}
                           <ArrowRight
@@ -361,22 +360,22 @@ export function ProposalCuratedHybrid() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-xl bg-secondary lg:col-span-6">
+                  <div className="relative min-h-[260px] overflow-hidden border-t border-border bg-secondary sm:min-h-[340px] lg:col-span-6 lg:min-h-full lg:border-t-0 lg:border-l">
                     <motion.div
-                      initial={{ scale: prefersReducedMotion ? 1 : 1.03 }}
+                      initial={{ scale: prefersReducedMotion ? 1 : 1.025 }}
                       animate={{ scale: 1 }}
                       transition={{
-                        duration: prefersReducedMotion ? 0.01 : 0.5,
+                        duration: prefersReducedMotion ? 0.01 : 0.48,
                         ease: EDITORIAL_EASE,
                       }}
+                      className="relative h-full min-h-[260px] w-full sm:min-h-[340px] lg:min-h-full"
                     >
                       <Image
                         src={activeMode.image}
-                        alt=""
-                        width={activeMode.width}
-                        height={activeMode.height}
-                        sizes="(min-width: 64rem) 45vw, 100vw"
-                        className="aspect-[4/3] w-full object-cover"
+                        alt={activeMode.imageAlt}
+                        fill
+                        sizes="(min-width: 64rem) 50vw, 100vw"
+                        className="object-cover"
                       />
                     </motion.div>
                   </div>
