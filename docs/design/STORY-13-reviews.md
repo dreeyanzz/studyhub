@@ -528,7 +528,8 @@ Built in five PRs in §6 order:
 
 ### Still open / follow-up
 
-- `docs/flows/review-lifecycle.md` stays `approved` until STORY-14 (#79) finishes the
-  moderation half of the flow (`RV4`–`RV8`, `RP2`).
+- **Done since:** `docs/flows/review-lifecycle.md` is `implemented 2026-11-26`. STORY-14
+  (#79) finished the moderation half of the flow (`RV4`–`RV8`, `RP2`), and #429 changed its
+  status.
 - Maria and James review the new screens under STORY-17 (`D-073`).
 - The acceptance-criteria checkboxes on `#78` are left for Adrian to tick when closing `#78`.

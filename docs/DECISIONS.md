@@ -1465,3 +1465,19 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Dropping required peer approvals to `0` (removes GitHub-enforced peer review required by CPEPE361 and the Sprint DoD); keeping Adrian as the sole merger with Luke as backup (still bottlenecks on one or two people); using `SUPABASE_ACCESS_TOKEN` in GitHub Actions (account-wide scope reaches `studyhub-prod`'s separate organization, violating D-090); leaving `studyhub-dev` migrations manual after teammates can merge (Vercel deploys `main` immediately, leaving the live app ahead of the schema).
 
 **Revisit if:** Peer-merged pull requests break `main` or miss domain approvals, or `studyhub-dev` auto-pushes hit migration collisions.
+
+## D-097 · Sprint 3's merges without a standing approval are an accepted deviation
+
+**Found by STORY-19's Definition of Done check (TSK-19.2, #354).**
+
+**Decision:**
+
+- 43 of Sprint 3's 69 merged pull requests had no approval standing when they merged. STORY-19's §9 lists each one. They are recorded as a deviation from the Definition of Done's peer review check, and accepted. Nobody reviews them after the merge.
+- The record keeps them apart: 6 that Luke reviewed, but whose approval was dismissed by a later push or whose request for changes still stood, and 37 that no teammate reviewed. Of the 37, 19 change code: 11 merged before D-096 and 8 after it, and 7 of the 19 change `supabase/`. All but one are Adrian's, merged with the Repository Admin bypass (D-014). The other, Maria's #417, was reverted 26 minutes later.
+- Every other check still applies to them, and they pass: the four required CI checks on each one, and the pgTAP tests that each Sprint 3 migration shipped with.
+
+**Why:** Adrian decided it on 27 November, during the check. Until 24 November, D-014 let him bypass a review "during rapid iteration", and Sprint 3 holds 40 points in 20 days, with the last merge on 5 December. The cost is that 19 code pull requests had no second reader, and the 8 merged after D-096 went against its "emergencies only".
+
+**Rejected:** Asking Luke to review the 19 code pull requests after the merge, the 7 migrations first, and recording what he finds. Recording the list now and deciding later.
+
+**Revisit if:** The course's Final asks for review evidence on these pull requests, or a defect is traced to one of them.

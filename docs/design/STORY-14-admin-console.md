@@ -555,11 +555,10 @@ STORY-20's take-down cleanup (`lib/payments/take-down.ts`, #427) reuses `createR
 - **§4's two manual rows:** the moderation and Payments pages at 360, 768 and 1024 px, with
   text at 200% and with the keyboard alone; and a real test-mode refund through
   `npm run stripe:listen`, seen in the Stripe Dashboard and on `/admin/payments`.
-- **The moderation buttons' names:** each card's "Dismiss reports", "Hide" and "Remove" has
-  no hidden Space name, so a screen reader hears the same labels on every card. STORY-20's
-  design asks for that pattern on `/admin`.
-- **A 409 from Stripe:** #389 noted that a 409 (the same idempotency key still in flight) is
-  a 4xx, so `refundPaymentAction` says "Stripe didn't accept the refund" although the
-  refund may still go through. §1 drew the 4xx rule, and #410 kept it.
+- **Done since, in #438:** the moderation buttons now carry the Space and the reviewer as
+  hidden text, and the Payments page's Refund button the Space, the unit and the payer, so a
+  screen reader hears a different name on every card (#431). A 409 from Stripe (the same idempotency key still in flight)
+  now says "Nothing was recorded. Try again." instead of "Stripe didn't accept the refund",
+  since the refund may still go through (#432).
 - **STORY-17:** Maria and James review the moderation and Payments screens (D-073).
 - The acceptance-criteria checkboxes on #79 are left for Adrian to tick when closing it.
