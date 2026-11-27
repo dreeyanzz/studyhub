@@ -1,19 +1,25 @@
 'use client'
 
-import { useState, type KeyboardEvent } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'framer-motion'
+import {
+  AnimatePresence,
+  LayoutGroup,
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from 'framer-motion'
 import { ArrowRight, Check, MapPin, Search } from 'lucide-react'
 
-import {
-  EDITORIAL_EASE,
-  EDITORIAL_SPRING,
-  EditorialInteractive,
-  EditorialReveal,
-  EditorialStagger,
-  EditorialStaggerItem,
-} from '@/components/motion/editorial-motion'
+const EXPO_OUT = [0.16, 1, 0.3, 1] as const
+const TAB_INDICATOR_SPRING = {
+  type: 'spring' as const,
+  stiffness: 420,
+  damping: 36,
+  mass: 0.85,
+}
 
 const QUICK_FILTERS = [
   { label: 'Open now', href: '/spaces?hours=open_now' },
@@ -77,13 +83,38 @@ type WorkModeId = (typeof WORK_MODES)[number]['id']
 
 /**
  * PROTOTYPE VARIANT E — "Curated Hybrid (Command Hero + Manifesto + Session Tabs)"
- * Combines the user's four selected sections from Variants A & B, written for
- * remote workers, freelancers, builders, and students alike (D-026).
+ * Motion thesis:
+ * - Focal entrance: quiet architectural aperture settle on the hero plate paired with
+ *   a crisp masked display reveal and anchored search bar.
+ * - Continuity: directional clip-path curtain wipe + sliding underline indicator in the
+ *   session-mode explorer that tracks left/right tab order.
+ * - Scroll relationship: gentle ink focus progression on the manifesto pull-quote
+ *   (always readable in default state, never hidden).
+ * - Hover discipline: outer pointer targets stay anchored; inner child elements carry
+ *   subtle feedback so controls never shift out from under the cursor.
  */
 export function ProposalCuratedHybrid() {
   const [activeModeId, setActiveModeId] = useState<WorkModeId>('solo')
+  const [tabDirection, setTabDirection] = useState<1 | -1>(1)
   const prefersReducedMotion = useReducedMotion()
-  const activeMode = WORK_MODES.find((mode) => mode.id === activeModeId) ?? WORK_MODES[0]
+
+  const manifestoRef = useRef<HTMLElement>(null)
+  const { scrollYProgress: manifestoProgress } = useScroll({
+    target: manifestoRef,
+    offset: ['start 0.92', 'center 0.58'],
+  })
+  const manifestoOpacity = useTransform(manifestoProgress, [0, 1], [0.58, 1])
+
+  const activeIndex = WORK_MODES.findIndex((mode) => mode.id === activeModeId)
+  const safeIndex = activeIndex === -1 ? 0 : activeIndex
+  const activeMode = WORK_MODES[safeIndex]!
+
+  function selectMode(nextModeId: WorkModeId) {
+    if (nextModeId === activeModeId) return
+    const nextIndex = WORK_MODES.findIndex((mode) => mode.id === nextModeId)
+    setTabDirection(nextIndex >= safeIndex ? 1 : -1)
+    setActiveModeId(nextModeId)
+  }
 
   function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
     let nextIndex: number | null = null
@@ -99,6 +130,7 @@ export function ProposalCuratedHybrid() {
     if (nextIndex === null) return
     event.preventDefault()
     const nextMode = WORK_MODES[nextIndex]!
+    setTabDirection(nextIndex >= index ? 1 : -1)
     setActiveModeId(nextMode.id)
     document.getElementById(`mode-tab-${nextMode.id}`)?.focus()
   }
@@ -108,45 +140,74 @@ export function ProposalCuratedHybrid() {
       {/* Section 1: Centered Full-Bleed Dark-Forest Command Hero */}
       <section
         aria-labelledby="hero-title"
-        className="relative isolate border-b border-border bg-foreground text-background"
+        className="relative isolate overflow-hidden border-b border-border bg-foreground text-background"
       >
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 overflow-hidden"
         >
-          <Image
-            src="/images/public-landing/workspace.webp"
-            alt=""
-            fill
-            sizes="100vw"
-            loading="eager"
-            className="object-cover opacity-35"
-          />
+          <motion.div
+            initial={prefersReducedMotion ? false : { scale: 1.05, opacity: 0.22 }}
+            animate={{ scale: 1, opacity: 0.35 }}
+            transition={{ duration: prefersReducedMotion ? 0.01 : 0.75, ease: EXPO_OUT }}
+            className="relative h-full w-full"
+          >
+            <Image
+              src="/images/public-landing/workspace.webp"
+              alt=""
+              fill
+              sizes="100vw"
+              loading="eager"
+              className="object-cover"
+            />
+          </motion.div>
           <div className="absolute inset-0 bg-gradient-to-b from-[#173c2d]/85 via-[#173c2d]/78 to-[#173c2d]/95" />
         </div>
 
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-20 lg:px-10 lg:py-24">
-          <EditorialReveal immediate y={14}>
-            <h1
+          <div className="overflow-hidden pb-1">
+            <motion.h1
               id="hero-title"
-              className="max-w-[18ch] font-heading text-4xl leading-[1.05] font-normal tracking-[-0.03em] text-balance text-background sm:text-5xl lg:text-[3.85rem]"
+              initial={
+                prefersReducedMotion
+                  ? false
+                  : { clipPath: 'inset(0 0 100% 0)', y: 16, opacity: 0.4 }
+              }
+              animate={{ clipPath: 'inset(0 0 0% 0)', y: 0, opacity: 1 }}
+              transition={{
+                duration: prefersReducedMotion ? 0.01 : 0.62,
+                ease: EXPO_OUT,
+              }}
+              className="max-w-[16ch] font-[family-name:var(--font-display)] text-[clamp(2.5rem,5.4vw,4.25rem)] leading-[1.03] font-normal tracking-[-0.03em] text-balance text-background"
             >
-              Find an open seat and hold it right now.
-            </h1>
-          </EditorialReveal>
+              Find an open seat and hold it{' '}
+              <em className="font-normal text-[#f0c95c] italic">right now.</em>
+            </motion.h1>
+          </div>
 
-          <EditorialReveal immediate delay={0.08} y={12}>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-background/85 sm:text-lg">
-              Search Verified co-working Spaces, cafés, and reading rooms across Cebu by
-              area, Unit type, and hours—then claim your exact desk on the seat map.
-            </p>
-          </EditorialReveal>
+          <motion.p
+            initial={prefersReducedMotion ? false : { opacity: 0.25, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0.01 : 0.5,
+              delay: prefersReducedMotion ? 0 : 0.08,
+              ease: EXPO_OUT,
+            }}
+            className="mt-5 max-w-[54ch] text-base leading-[1.65] tracking-[0.008em] text-pretty text-background/90 sm:text-[1.125rem]"
+          >
+            Search Verified co-working Spaces, cafés, and reading rooms across Cebu by
+            area, Unit type, and hours — then claim your exact desk on the seat map.
+          </motion.p>
 
           {/* Single-Field Plain-GET Search Bar wired to /spaces */}
-          <EditorialReveal
-            immediate
-            delay={0.14}
-            y={14}
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0.35, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0.01 : 0.52,
+              delay: prefersReducedMotion ? 0 : 0.14,
+              ease: EXPO_OUT,
+            }}
             className="mt-8 w-full max-w-2xl"
           >
             <form
@@ -154,7 +215,7 @@ export function ProposalCuratedHybrid() {
               method="get"
               role="search"
               aria-label="Search study Spaces"
-              className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-card p-2 text-left text-foreground shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] sm:flex-row sm:items-center"
+              className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-card p-2 text-left text-foreground shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] transition-shadow duration-200 focus-within:shadow-[0_28px_68px_-20px_rgba(0,0,0,0.72)] sm:flex-row sm:items-center"
             >
               <label htmlFor="hero-search-input" className="sr-only">
                 Search by area, city, or Space name
@@ -170,71 +231,80 @@ export function ProposalCuratedHybrid() {
                   type="search"
                   maxLength={100}
                   placeholder="Area, city, or Space name (e.g. IT Park, Lahug)"
-                  className="min-h-12 w-full rounded-xl bg-transparent py-2 pr-3 pl-10 text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none sm:text-base"
+                  className="min-h-12 w-full rounded-xl bg-transparent py-2 pr-3 pl-10 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none"
                 />
               </div>
 
-              <motion.button
+              <button
                 type="submit"
-                whileHover={prefersReducedMotion ? undefined : { scale: 1.015 }}
-                whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
-                transition={EDITORIAL_SPRING}
-                className="inline-flex min-h-12 shrink-0 cursor-pointer items-center justify-center rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                className="group inline-flex min-h-12 shrink-0 cursor-pointer items-center justify-center rounded-xl focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                Search
-              </motion.button>
+                <span className="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold tracking-[-0.005em] whitespace-normal text-[#173c2d] transition-[background-color,transform] duration-150 group-hover:bg-[#e5bc49] group-active:scale-[0.98]">
+                  Search
+                </span>
+              </button>
             </form>
-          </EditorialReveal>
+          </motion.div>
 
-          {/* Compact Filter Shortcuts */}
-          <EditorialStagger
-            immediate
-            delayChildren={0.2}
-            stagger={0.035}
+          {/* Compact Filter Shortcuts (stationary hit targets; subtle staggered list reveal) */}
+          <motion.div
+            initial={prefersReducedMotion ? false : { opacity: 0.4, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: prefersReducedMotion ? 0.01 : 0.45,
+              delay: prefersReducedMotion ? 0 : 0.2,
+              ease: EXPO_OUT,
+            }}
             className="mt-4 flex max-w-2xl flex-wrap items-center justify-center gap-2"
           >
             {QUICK_FILTERS.map((pill) => (
-              <EditorialStaggerItem key={pill.label} y={8}>
-                <EditorialInteractive lift={-1.5}>
-                  <Link
-                    href={pill.href}
-                    className="inline-flex min-h-12 min-w-12 items-center rounded-full border border-background/20 px-4 py-2 text-sm font-medium whitespace-normal text-background/90 transition-colors hover:border-[#f0c95c] hover:bg-background/10 hover:text-background focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
-                  >
-                    {pill.label}
-                  </Link>
-                </EditorialInteractive>
-              </EditorialStaggerItem>
+              <Link
+                key={pill.label}
+                href={pill.href}
+                className="group inline-flex min-h-12 min-w-12 items-center rounded-full focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
+              >
+                <span className="inline-flex min-h-12 items-center rounded-full border border-background/25 px-4 py-2 text-sm font-medium tracking-[0.01em] whitespace-normal text-background/95 transition-[border-color,background-color,color,transform] duration-150 group-hover:border-[#f0c95c] group-hover:bg-background/10 group-hover:text-background group-active:scale-[0.98]">
+                  {pill.label}
+                </span>
+              </Link>
             ))}
-          </EditorialStagger>
+          </motion.div>
 
-          <EditorialReveal immediate delay={0.28} y={8} className="mt-5">
+          <div className="mt-5">
             <Link
               href="/spaces"
-              className="group inline-flex min-h-12 min-w-12 items-center gap-1.5 text-sm font-semibold text-[#f0c95c] underline-offset-4 hover:underline focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
+              className="group inline-flex min-h-12 min-w-12 items-center gap-1.5 text-sm font-semibold tracking-[0.005em] text-[#f0c95c] decoration-[#f0c95c]/60 underline-offset-[5px] hover:underline focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
             >
               <MapPin className="size-4 shrink-0" aria-hidden="true" />
               Find a Space
               <ArrowRight
-                className="size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                className="size-4 shrink-0 transition-transform duration-150 group-hover:translate-x-1"
                 aria-hidden="true"
               />
             </Link>
-          </EditorialReveal>
+          </div>
         </div>
       </section>
 
-      {/* Section 2: Centered Literary Manifesto Pull-Quote */}
-      <section aria-label="Editorial manifesto" className="py-16 lg:py-24">
-        <EditorialReveal className="mx-auto max-w-4xl space-y-5 px-4 text-center sm:px-6">
-          <p className="font-heading text-2xl leading-[1.32] font-normal text-balance text-foreground sm:text-4xl">
+      {/* Section 2: Centered Literary Manifesto Pull-Quote (scroll-linked ink focus) */}
+      <section
+        ref={manifestoRef}
+        aria-label="Editorial manifesto"
+        className="py-18 lg:py-24"
+      >
+        <motion.div
+          style={prefersReducedMotion ? undefined : { opacity: manifestoOpacity }}
+          className="mx-auto flex max-w-4xl flex-col items-center space-y-6 px-4 text-center sm:px-6"
+        >
+          <blockquote className="max-w-[34ch] font-[family-name:var(--font-display)] text-[clamp(1.625rem,3.1vw,2.5rem)] leading-[1.24] font-normal tracking-[-0.02em] text-balance text-foreground">
             &ldquo;Finding a quiet place to focus, ship work, or read shouldn&rsquo;t mean
             gambling on Cebu traffic and hoping an outlet desk happens to be free.&rdquo;
-          </p>
-          <p className="mx-auto max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+          </blockquote>
+          <p className="max-w-[52ch] text-base leading-[1.65] text-pretty text-muted-foreground">
             Every Space on Worq is Administrator-verified, mapped to individual desks and
             rooms, and honest about when its Host last checked walk-in occupancy.
           </p>
-        </EditorialReveal>
+        </motion.div>
       </section>
 
       {/* Section 3: Interactive "How are you working today?" Tabbed Explorer */}
@@ -244,10 +314,10 @@ export function ProposalCuratedHybrid() {
         className="scroll-mt-4 border-t border-border bg-muted/45 py-16 lg:py-24"
       >
         <div className="mx-auto w-full max-w-7xl space-y-8 px-4 sm:px-6 lg:px-10">
-          <EditorialReveal className="flex flex-col justify-between gap-5 border-b border-border pb-4 md:flex-row md:items-end md:pb-0">
+          <div className="flex flex-col justify-between gap-5 border-b border-border pb-4 md:flex-row md:items-end md:pb-0">
             <h2
               id="intent-title"
-              className="font-heading text-3xl leading-[1.1] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-4xl md:pb-4"
+              className="font-[family-name:var(--font-display)] text-[clamp(1.85rem,3vw,2.5rem)] leading-[1.1] font-normal tracking-[-0.025em] text-balance text-foreground md:pb-4"
             >
               How are you working today?
             </h2>
@@ -269,19 +339,23 @@ export function ProposalCuratedHybrid() {
                       aria-selected={selected}
                       aria-controls={`mode-panel-${mode.id}`}
                       tabIndex={selected ? 0 : -1}
-                      onClick={() => setActiveModeId(mode.id)}
+                      onClick={() => selectMode(mode.id)}
                       onKeyDown={(event) => handleTabKeyDown(event, index)}
                       className={
                         selected
-                          ? 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center px-3.5 pt-2 pb-3.5 text-sm font-semibold whitespace-normal text-foreground transition-colors focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
-                          : 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center px-3.5 pt-2 pb-3.5 text-sm font-medium whitespace-normal text-muted-foreground transition-colors hover:text-foreground focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+                          ? 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center px-3.5 pt-2 pb-3.5 text-sm font-semibold tracking-[-0.005em] whitespace-normal text-foreground transition-colors duration-150 focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
+                          : 'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center px-3.5 pt-2 pb-3.5 text-sm font-medium tracking-[-0.005em] whitespace-normal text-muted-foreground transition-colors duration-150 hover:text-foreground focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring'
                       }
                     >
                       <span>{mode.tab}</span>
                       {selected && (
                         <motion.span
                           layoutId="curated-hybrid-active-tab"
-                          transition={EDITORIAL_SPRING}
+                          transition={
+                            prefersReducedMotion
+                              ? { duration: 0.01 }
+                              : TAB_INDICATOR_SPRING
+                          }
                           className="absolute right-0 -bottom-px left-0 h-0.5 bg-foreground"
                           aria-hidden="true"
                         />
@@ -291,98 +365,145 @@ export function ProposalCuratedHybrid() {
                 })}
               </div>
             </LayoutGroup>
-          </EditorialReveal>
+          </div>
 
-          <EditorialReveal>
-            <div
-              id={`mode-panel-${activeMode.id}`}
-              role="tabpanel"
-              aria-labelledby={`mode-tab-${activeMode.id}`}
-              className="overflow-hidden rounded-xl border border-border bg-card"
-            >
-              <AnimatePresence mode="wait" initial={false}>
+          <div
+            id={`mode-panel-${activeMode.id}`}
+            role="tabpanel"
+            aria-labelledby={`mode-tab-${activeMode.id}`}
+            className="overflow-hidden rounded-xl border border-border bg-card"
+          >
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={activeMode.id}
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  transition: {
+                    duration: prefersReducedMotion ? 0.14 : 0.24,
+                    ease: EXPO_OUT,
+                  },
+                }}
+                exit={{
+                  opacity: 0,
+                  transition: {
+                    duration: prefersReducedMotion ? 0.1 : 0.15,
+                    ease: 'easeIn',
+                  },
+                }}
+                className="grid grid-cols-1 lg:min-h-[460px] lg:grid-cols-12"
+              >
                 <motion.div
-                  key={activeMode.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    duration: prefersReducedMotion ? 0.01 : 0.24,
-                    ease: EDITORIAL_EASE,
+                  initial={
+                    prefersReducedMotion ? false : { opacity: 0, x: tabDirection * 14 }
+                  }
+                  animate={{
+                    opacity: 1,
+                    x: 0,
+                    transition: {
+                      duration: prefersReducedMotion ? 0.14 : 0.3,
+                      ease: EXPO_OUT,
+                    },
                   }}
-                  className="grid grid-cols-1 lg:min-h-[460px] lg:grid-cols-12"
+                  exit={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          opacity: 0,
+                          x: tabDirection * -10,
+                          transition: { duration: 0.14, ease: 'easeIn' },
+                        }
+                  }
+                  className="flex flex-col justify-between gap-7 p-6 sm:p-10 lg:col-span-6 lg:p-12"
                 >
-                  <div className="flex flex-col justify-between gap-7 p-6 sm:p-10 lg:col-span-6 lg:p-12">
-                    <div className="space-y-4">
-                      <h3 className="max-w-[22ch] font-heading text-2xl leading-[1.16] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-[2rem]">
-                        {activeMode.headline}
-                      </h3>
-                      <p className="max-w-[50ch] text-base leading-relaxed text-muted-foreground">
-                        {activeMode.description}
-                      </p>
-                    </div>
-
-                    <ul className="space-y-3 border-t border-border pt-6 text-sm leading-relaxed text-foreground">
-                      {activeMode.bullets.map((bullet, bulletIndex) => (
-                        <motion.li
-                          key={bullet}
-                          initial={{ opacity: 0, x: prefersReducedMotion ? 0 : -6 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{
-                            duration: prefersReducedMotion ? 0.01 : 0.22,
-                            delay: prefersReducedMotion ? 0 : 0.04 + bulletIndex * 0.04,
-                            ease: EDITORIAL_EASE,
-                          }}
-                          className="flex items-start gap-3"
-                        >
-                          <Check
-                            className="mt-0.5 size-4 shrink-0 text-primary"
-                            aria-hidden="true"
-                          />
-                          <span>{bullet}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
-
-                    <div className="pt-1">
-                      <EditorialInteractive lift={-1.5} className="inline-block">
-                        <Link
-                          href={activeMode.ctaHref}
-                          className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-lg bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                        >
-                          {activeMode.ctaLabel}
-                          <ArrowRight
-                            className="size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
-                            aria-hidden="true"
-                          />
-                        </Link>
-                      </EditorialInteractive>
-                    </div>
+                  <div className="space-y-4">
+                    <h3 className="max-w-[23ch] font-[family-name:var(--font-display)] text-[clamp(1.5rem,2.2vw,1.95rem)] leading-[1.18] font-normal tracking-[-0.02em] text-balance text-foreground">
+                      {activeMode.headline}
+                    </h3>
+                    <p className="max-w-[48ch] text-base leading-[1.65] text-pretty text-muted-foreground">
+                      {activeMode.description}
+                    </p>
                   </div>
 
-                  <div className="relative min-h-[260px] overflow-hidden border-t border-border bg-secondary sm:min-h-[340px] lg:col-span-6 lg:min-h-full lg:border-t-0 lg:border-l">
-                    <motion.div
-                      initial={{ scale: prefersReducedMotion ? 1 : 1.025 }}
-                      animate={{ scale: 1 }}
-                      transition={{
-                        duration: prefersReducedMotion ? 0.01 : 0.48,
-                        ease: EDITORIAL_EASE,
-                      }}
-                      className="relative h-full min-h-[260px] w-full sm:min-h-[340px] lg:min-h-full"
+                  <ul className="space-y-3 border-t border-border pt-6 text-[0.9375rem] leading-[1.6] text-foreground">
+                    {activeMode.bullets.map((bullet, bulletIndex) => (
+                      <motion.li
+                        key={bullet}
+                        initial={
+                          prefersReducedMotion
+                            ? false
+                            : { opacity: 0, x: tabDirection * 8 }
+                        }
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{
+                          duration: prefersReducedMotion ? 0.14 : 0.24,
+                          delay: prefersReducedMotion ? 0 : 0.04 + bulletIndex * 0.04,
+                          ease: EXPO_OUT,
+                        }}
+                        className="flex items-start gap-3"
+                      >
+                        <Check
+                          className="mt-1 size-4 shrink-0 text-primary"
+                          aria-hidden="true"
+                        />
+                        <span className="text-pretty">{bullet}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+
+                  <div className="pt-1">
+                    <Link
+                      href={activeMode.ctaHref}
+                      className="group inline-flex min-h-12 min-w-12 items-center justify-center rounded-lg focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
                     >
-                      <Image
-                        src={activeMode.image}
-                        alt={activeMode.imageAlt}
-                        fill
-                        sizes="(min-width: 64rem) 50vw, 100vw"
-                        className="object-cover"
-                      />
-                    </motion.div>
+                      <span className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#f0c95c] px-6 py-3 text-sm font-semibold tracking-[-0.005em] whitespace-normal text-[#173c2d] transition-[background-color,transform] duration-150 group-hover:bg-[#e5bc49] group-active:scale-[0.98]">
+                        {activeMode.ctaLabel}
+                        <ArrowRight
+                          className="size-4 shrink-0 transition-transform duration-150 group-hover:translate-x-1"
+                          aria-hidden="true"
+                        />
+                      </span>
+                    </Link>
                   </div>
                 </motion.div>
-              </AnimatePresence>
-            </div>
-          </EditorialReveal>
+
+                {/* Directional clip-path curtain reveal matching tab movement */}
+                <div className="relative min-h-[260px] overflow-hidden border-t border-border bg-secondary sm:min-h-[340px] lg:col-span-6 lg:min-h-full lg:border-t-0 lg:border-l">
+                  <motion.div
+                    initial={
+                      prefersReducedMotion
+                        ? { opacity: 0 }
+                        : {
+                            clipPath:
+                              tabDirection === 1
+                                ? 'inset(0 0 0 100%)'
+                                : 'inset(0 100% 0 0)',
+                            scale: 1.04,
+                          }
+                    }
+                    animate={
+                      prefersReducedMotion
+                        ? { opacity: 1 }
+                        : { clipPath: 'inset(0 0% 0 0%)', scale: 1 }
+                    }
+                    transition={{
+                      duration: prefersReducedMotion ? 0.16 : 0.46,
+                      ease: EXPO_OUT,
+                    }}
+                    className="relative h-full min-h-[260px] w-full sm:min-h-[340px] lg:min-h-full"
+                  >
+                    <Image
+                      src={activeMode.image}
+                      alt={activeMode.imageAlt}
+                      fill
+                      sizes="(min-width: 64rem) 50vw, 100vw"
+                      className="object-cover"
+                    />
+                  </motion.div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </section>
 
@@ -391,40 +512,41 @@ export function ProposalCuratedHybrid() {
         aria-labelledby="colophon-title"
         className="bg-foreground py-20 text-background lg:py-24"
       >
-        <EditorialReveal className="mx-auto flex max-w-3xl flex-col items-center space-y-6 px-4 text-center sm:px-6">
+        <div className="mx-auto flex max-w-3xl flex-col items-center space-y-6 px-4 text-center sm:px-6">
           <h2
             id="colophon-title"
-            className="font-heading text-3xl leading-[1.12] font-normal tracking-[-0.02em] text-balance sm:text-5xl"
+            className="max-w-[16ch] font-[family-name:var(--font-display)] text-[clamp(2.1rem,4.2vw,3.35rem)] leading-[1.06] font-normal tracking-[-0.025em] text-balance"
           >
-            Settle in with your seat already waiting.
+            Settle in with your seat{' '}
+            <em className="font-normal text-[#f0c95c] italic">already waiting.</em>
           </h2>
-          <p className="max-w-xl text-base leading-relaxed text-background/85">
+          <p className="max-w-[46ch] text-base leading-[1.65] tracking-[0.008em] text-pretty text-background/90 sm:text-[1.0625rem]">
             Browse the map, inspect quietness and Wi-Fi scores from real Visits, and hold
             an open Unit before stepping out the door.
           </p>
           <div className="flex flex-wrap justify-center gap-3 pt-2">
-            <EditorialInteractive lift={-1.5}>
-              <Link
-                href="/spaces"
-                className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
-              >
+            <Link
+              href="/spaces"
+              className="group inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
+            >
+              <span className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold tracking-[-0.005em] whitespace-normal text-[#173c2d] transition-[background-color,transform] duration-150 group-hover:bg-[#e5bc49] group-active:scale-[0.98]">
                 Explore Verified Spaces
                 <ArrowRight
-                  className="size-4 shrink-0 transition-transform duration-200 group-hover:translate-x-1"
+                  className="size-4 shrink-0 transition-transform duration-150 group-hover:translate-x-1"
                   aria-hidden="true"
                 />
-              </Link>
-            </EditorialInteractive>
-            <EditorialInteractive lift={-1.5}>
-              <Link
-                href="/register"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-background/45 px-6 py-3 text-sm font-semibold whitespace-normal text-background transition-colors hover:bg-background/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-background"
-              >
+              </span>
+            </Link>
+            <Link
+              href="/register"
+              className="group inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-background"
+            >
+              <span className="inline-flex min-h-12 items-center justify-center rounded-xl border border-background/45 px-6 py-3 text-sm font-semibold tracking-[0.01em] whitespace-normal text-background transition-[background-color,transform] duration-150 group-hover:bg-background/10 group-active:scale-[0.98]">
                 Create a Seeker account
-              </Link>
-            </EditorialInteractive>
+              </span>
+            </Link>
           </div>
-        </EditorialReveal>
+        </div>
       </section>
     </div>
   )
