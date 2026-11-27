@@ -37,6 +37,12 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     path: '/',
   },
   {
+    id: 'public-for-hosts',
+    label: 'For Hosts page',
+    role: 'anon',
+    path: '/for-hosts',
+  },
+  {
     id: 'public-spaces',
     label: 'Discovery map and list',
     role: 'anon',
