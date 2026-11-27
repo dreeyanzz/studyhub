@@ -82,7 +82,7 @@ const WORK_MODES = [
 type WorkModeId = (typeof WORK_MODES)[number]['id']
 
 /**
- * PROTOTYPE VARIANT E — "Curated Hybrid (Command Hero + Manifesto + Session Tabs)"
+ * Seeker-centered public landing page (STORY-17, D-026).
  * Motion thesis:
  * - Focal entrance: quiet architectural aperture settle on the hero plate paired with
  *   a crisp masked display reveal and anchored search bar.
@@ -93,7 +93,7 @@ type WorkModeId = (typeof WORK_MODES)[number]['id']
  * - Hover discipline: outer pointer targets stay anchored; inner child elements carry
  *   subtle feedback so controls never shift out from under the cursor.
  */
-export function ProposalCuratedHybrid() {
+export function LandingContent() {
   const [activeModeId, setActiveModeId] = useState<WorkModeId>('solo')
   const [tabDirection, setTabDirection] = useState<1 | -1>(1)
   const prefersReducedMotion = useReducedMotion()

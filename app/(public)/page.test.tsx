@@ -14,7 +14,7 @@ describe('public landing page (STORY-02, STORY-17)', () => {
       /<a[^>]*href="\/spaces"[^>]*>Find a Space<\/a>/,
     )
     expect(renderToStaticMarkup(<Home />)).toMatch(
-      /<a[^>]*href="\/spaces"[^>]*>.*?Find a Space<\/a>/,
+      /<a[^>]*href="\/spaces"[^>]*>.*?Find a Space.*?<\/a>/,
     )
   })
 
@@ -33,26 +33,25 @@ describe('public landing page (STORY-02, STORY-17)', () => {
     expect(homeHtml).not.toContain('/register?role=host')
   })
 
-  it('provides a plain GET hero search form to /spaces and Metro Cebu campus shortcuts (SRS §3.7.1, STORY-08, STORY-17)', () => {
+  it('provides a plain GET hero search form to /spaces and quick-filter shortcuts (SRS §3.7.1, STORY-08, STORY-17)', () => {
     const html = renderToStaticMarkup(<Home />)
 
     expect(html).toMatch(/<form[^>]*action="\/spaces"[^>]*method="get"/)
     expect(html).toMatch(/<input[^>]*name="q"/)
-    expect(html).toContain('/spaces?q=USC%20Talamban')
-    expect(html).toContain('/spaces?q=UP%20Cebu')
-    expect(html).toContain('/spaces?q=CIT-U')
+    expect(html).toContain('/spaces?hours=open_now')
+    expect(html).toContain('/spaces?hours=open_late')
+    expect(html).toContain('/spaces?unitType=room')
+    expect(html).toContain('/spaces?price=budget')
   })
 
-  it('includes an illustrative seat-map preview and stays honest about sandbox payments and non-live samples (D-002, D-005, D-033)', () => {
+  it('includes the session-mode explorer and stays honest without placeholder roadmap copy (D-002, D-033)', () => {
     const html = renderToStaticMarkup(<Home />)
 
-    expect(html).toContain('data-testid="landing-seat-map-preview"')
-    expect(html).toContain('Sample only · not a live Space')
-    expect(html).toContain('Illustrative study environments, not live Space listings.')
+    expect(html).toContain('role="tablist"')
+    expect(html).toContain('Solo deep work')
+    expect(html).toContain('Café &amp; laptop')
+    expect(html).toContain('Team &amp; private rooms')
     expect(html).not.toMatch(/Sprint \d/)
     expect(html).not.toContain('coming next')
-    expect(html).toContain(
-      'Reservation fees run in sandbox mode, so no real money moves.',
-    )
   })
 })
