@@ -242,7 +242,7 @@ export function StartupLamp() {
     const minTimer = window.setTimeout(() => {
       minElapsed = true
       maybeStartFade()
-    }, 350)
+    }, 550)
 
     const onLoad = () => {
       pageLoaded = true
