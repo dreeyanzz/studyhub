@@ -206,11 +206,12 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
 
 /**
  * Decorative desk-lamp intro shown on every load/reload of `/` (STORY-17 §3).
- * Renders nothing on the server or without JavaScript, skips under reduced motion,
- * never blocks clicks or Tab, and fades out within ~1 s.
+ * Renders immediately on SSR so the viewport is covered from first paint while
+ * page assets load underneath, skips under reduced motion or no-JS via CSS,
+ * never blocks clicks or Tab, and fades out once loaded.
  */
 export function StartupLamp() {
-  const [phase, setPhase] = useState<'idle' | 'showing' | 'fading'>('idle')
+  const [phase, setPhase] = useState<'showing' | 'fading' | 'done'>('showing')
 
   useEffect(() => {
     const reducedMotion =
@@ -218,25 +219,51 @@ export function StartupLamp() {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
     if (!canShowStartupLamp({ reducedMotion })) {
-      return
+      const frameId = window.requestAnimationFrame(() => setPhase('done'))
+      return () => window.cancelAnimationFrame(frameId)
     }
 
-    let fadeTimer: number | undefined
+    let cancelled = false
+    let minElapsed = false
+    let pageLoaded = document.readyState === 'complete'
+    let fadeStarted = false
     let doneTimer: number | undefined
-    const frameId = window.requestAnimationFrame(() => {
-      setPhase('showing')
-      fadeTimer = window.setTimeout(() => setPhase('fading'), 350)
-      doneTimer = window.setTimeout(() => setPhase('idle'), 1050)
-    })
+    let fallbackTimer: number | undefined
+
+    const maybeStartFade = () => {
+      if (cancelled || fadeStarted || !minElapsed || !pageLoaded) return
+      fadeStarted = true
+      setPhase('fading')
+      doneTimer = window.setTimeout(() => {
+        if (!cancelled) setPhase('done')
+      }, 700)
+    }
+
+    const minTimer = window.setTimeout(() => {
+      minElapsed = true
+      maybeStartFade()
+    }, 350)
+
+    const onLoad = () => {
+      pageLoaded = true
+      maybeStartFade()
+    }
+
+    if (!pageLoaded) {
+      window.addEventListener('load', onLoad, { once: true })
+      fallbackTimer = window.setTimeout(onLoad, 5000)
+    }
 
     return () => {
-      window.cancelAnimationFrame(frameId)
-      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer)
+      cancelled = true
+      window.clearTimeout(minTimer)
+      window.removeEventListener('load', onLoad)
       if (doneTimer !== undefined) window.clearTimeout(doneTimer)
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer)
     }
   }, [])
 
-  if (phase === 'idle') {
+  if (phase === 'done') {
     return null
   }
 

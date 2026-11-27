@@ -4,8 +4,10 @@ import { describe, expect, it } from 'vitest'
 import { canShowStartupLamp, StartupLamp, StartupLampOverlay } from './startup-lamp'
 
 describe('StartupLamp (STORY-17 TSK-17.2)', () => {
-  it('renders nothing on SSR so no-JS visitors and first paint are never blocked', () => {
-    expect(renderToStaticMarkup(<StartupLamp />)).toBe('')
+  it('renders the overlay on SSR so the viewport is covered from first paint', () => {
+    const html = renderToStaticMarkup(<StartupLamp />)
+    expect(html).toContain('class="startup-lamp-overlay"')
+    expect(html).toContain('aria-hidden="true"')
   })
 
   it('skips the overlay when prefers-reduced-motion is enabled', () => {

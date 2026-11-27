@@ -510,3 +510,8 @@
   transform-origin: 185px 118px;
   animation: startup-gentle-sway 4s ease-in-out infinite;
 }
+@media (prefers-reduced-motion: reduce), (scripting: none) {
+  .startup-lamp-overlay {
+    display: none;
+  }
+}
