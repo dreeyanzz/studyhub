@@ -399,6 +399,27 @@ Measured on **23 Nov 2026** against `https://worqph.vercel.app` (running on **cl
 - **Median:** 1,300 ms (`1.30 s`, includes Next.js RSC URL update roundtrip to Vercel + Supabase cloud dev)
 - **Slowest:** 1,468 ms (`USC TC`, Run 1)
 
+### Speed after the restyle (27 Nov)
+
+Measured on **27 Nov 2026** against `https://worqph.vercel.app`, still on cloud dev, at
+`main`'s `e327ee9`. The three measured pages (the landing page, `/spaces` and a Space's
+profile) have had their restyle; STORY-17's open pull requests (#447, #448) change Host and
+Administrator pages only. It ran from a cloud container, not from a laptop in Cebu, so
+the network between them differs from the 23 Nov run.
+
+#### Search & filter latency (`node scripts/measure-search.mjs https://worqph.vercel.app`)
+
+- **Fastest:** 993 ms (`Capitol`)
+- **Median:** 1,102 ms (`1.10 s`), against SRS §3.4's "about 1 second" (1.30 s on 23 Nov)
+- **Slowest:** 2,164 ms (`Cebu City`), one of the two searches that found a Space
+
+#### Page load
+
+_Not run yet:_ Lighthouse isn't a dependency of the repository, and `npx lighthouse` (the
+design's tool, §3) wasn't run from this container. Luke or Adrian runs
+`npx lighthouse <url> --preset=desktop` three times on each page, and records the medians
+here.
+
 ### Definition of Done check (TSK-19.2)
 
 Checked on **27 Nov 2026** by Adrian, with Claude Code, against `main` at `e327ee9` and
@@ -419,15 +440,15 @@ The check runs again before the last merge, for whatever merges after `e327ee9`.
 
 #### Sprint 3's stories
 
-| Story         | Design merged                  | PRs | Approved when merged       | Criteria ticked | Issue  | Manual checks still open                                                                               |
-| ------------- | ------------------------------ | --- | -------------------------- | --------------- | ------ | ------------------------------------------------------------------------------------------------------ |
-| STORY-13 #78  | #347, 22 Nov; code from 24 Nov | 7   | 1 (#413)                   | 0 of 5          | closed | None in its §9. Maria and James review its screens (D-073)                                             |
-| STORY-14 #79  | #349, 22 Nov; code from 24 Nov | 8   | 0                          | 0 of 4          | closed | §4's two manual rows: the pages at three widths, 200% text and keyboard; a real test-mode refund       |
-| STORY-16 #335 | #350, 22 Nov; code from 23 Nov | 7   | 6 (all but #350)           | 0 of 4          | closed | The real confirmation email; the review dialog at three widths                                         |
-| STORY-17 #336 | #352, 23 Nov; code from 23 Nov | 13  | 11 (all but #417 and #438) | 0 of 5          | open   | The restyle goes on: #447 and #448 are open                                                            |
-| STORY-19 #337 | #351, 22 Nov; code from 23 Nov | 6   | 2 (#380, #381)             | 0 of 6          | open   | The final manual pass below, the speed re-run, and the switch to production                            |
-| STORY-20 #338 | #411, 24 Nov; code from 26 Nov | 6   | 4 (all but #411 and #427)  | 0 of 5          | open   | §4's rows: `/host` and `/admin` at three widths; a take-down with a paid hold; the live notice by hand |
-| STORY-21 #392 | #393, 23 Nov; code from 24 Nov | 5   | 0                          | 5 of 5          | closed | None                                                                                                   |
+| Story         | Design merged                  | PRs | Approved when merged       | Criteria ticked | Issue  | Manual checks still open                                                                         |
+| ------------- | ------------------------------ | --- | -------------------------- | --------------- | ------ | ------------------------------------------------------------------------------------------------ |
+| STORY-13 #78  | #347, 22 Nov; code from 24 Nov | 7   | 1 (#413)                   | 0 of 5          | closed | None in its §9. Maria and James review its screens (D-073)                                       |
+| STORY-14 #79  | #349, 22 Nov; code from 24 Nov | 8   | 0                          | 0 of 4          | closed | §4's two manual rows: the pages at three widths, 200% text and keyboard; a real test-mode refund |
+| STORY-16 #335 | #350, 22 Nov; code from 23 Nov | 7   | 6 (all but #350)           | 0 of 4          | closed | The real confirmation email; the review dialog at three widths                                   |
+| STORY-17 #336 | #352, 23 Nov; code from 23 Nov | 13  | 11 (all but #417 and #438) | 0 of 5          | open   | The restyle goes on: #447 and #448 are open                                                      |
+| STORY-19 #337 | #351, 22 Nov; code from 23 Nov | 6   | 2 (#380, #381)             | 5 of 6          | open   | The final manual pass below, Lighthouse after the restyle, and the switch to production          |
+| STORY-20 #338 | #411, 24 Nov; code from 26 Nov | 6   | 4 (all but #411 and #427)  | 5 of 5          | open   | None: §4's rows passed on 27 Nov, recorded by #452, which closes #338                            |
+| STORY-21 #392 | #393, 23 Nov; code from 24 Nov | 5   | 0                          | 5 of 5          | closed | None                                                                                             |
 
 The other 17 pull requests are STORY-00's 12 (2 approved: #341 and #342) and the five fixes
 to Sprint 2 stories on 17 November, #330 to #334 (none approved).
@@ -444,10 +465,10 @@ to Sprint 2 stories on 17 November, #330 to #334 (none approved).
 | CI                            | Met                        | `checks`, `pr-title`, `db` and `e2e` passed on all 69. GitHub shows #349, #350, #393 and #411 as pending only because Vercel's deployment status never finished, and that isn't a required check                                                                                                                                                                                                           |
 | Database integrity, security  | Met                        | Each of Sprint 3's eight migrations shipped with its pgTAP tests in the same pull request: `11-reviews.sql`, `12-refunds.sql`, `13-google-oauth.sql`, `14-review-moderation.sql`, `15-reservation-history.sql` and the rewritten `05-space-verification.sql`. Each story's §9 names its negatives, and they pass in `db:test` above. Only `app/api/webhooks/stripe/route.ts` imports the secret-key client |
 | Accessibility, responsiveness | Met by the sweep           | `e2e/support/known-violations.ts` is empty, and the sweep passes on `main`. The final manual pass and each story's open manual rows (above) are still to do                                                                                                                                                                                                                                                |
-| Verified criteria             | Not met yet                | No box is ticked on #78, #79, #335, #336, #337 or #338. Each story's §9 names the tests that prove each criterion, and each owner ticks what they checked (AGENTS.md rule 6). #337's `db:race` criterion is checked: CI's `db` job runs it                                                                                                                                                                 |
+| Verified criteria             | Not met yet                | #338's five boxes and five of #337's six are ticked, each with a comment there saying how it was checked. #337's production box waits for the switch. No box is ticked yet on #78, #79, #335 or #336: each story's §9 names the tests that prove each criterion, and each owner ticks what they checked (AGENTS.md rule 6)                                                                                 |
 | Peer code review              | Not met: accepted (D-097)  | 43 of the 69 had no approval standing when they merged. See below                                                                                                                                                                                                                                                                                                                                          |
 | Docs                          | Met, with three fixes here | Each story closed out its §9 (#413, #429, #445, #449). This pull request corrects STORY-13's §9 (the review lifecycle is implemented since #429), STORY-14's §9 (#438 fixed #431 and #432) and this doc's journeys note (#444 landed)                                                                                                                                                                      |
-| Tracking                      | Partly                     | #78, #79, #335 and #392 are closed. #336, #337 and #338 are open, and all four of #338's tasks are closed. #336 still has `needs-design`, though its design merged on 23 Nov, and it has no task issues                                                                                                                                                                                                    |
+| Tracking                      | Partly                     | #78, #79, #335 and #392 are closed. #336, #337 and #338 are open. #338 closes when #452 merges. #336 still has `needs-design`, though its design merged on 23 Nov, and it has no task issues                                                                                                                                                                                                               |
 
 **Sprint 2's four checks:**
 
@@ -504,11 +525,13 @@ and refund steps, with the screen reader used and what it found.
 
 - [ ] STORY-17's last restyle merges (#447 and #448 are open), then the final manual pass
       above.
-- [ ] Luke runs the speed measures again after the last restyle (§3). On 23 Nov the median
-      search took 1.30 s, above SRS §3.4's "about 1 second".
+- [ ] Lighthouse on the three pages after the restyle (§3), above. The search re-run is
+      done: a median of 1.10 s on 27 Nov.
 - [ ] #450 is fixed.
 - [ ] Each story's open manual checks (the table above) are done, and recorded in its §9.
-- [ ] Each owner ticks the criteria they checked on #78, #79, #335, #336, #337 and #338.
+      STORY-20's are (#452). STORY-14's and STORY-16's are left.
+- [ ] Each owner ticks the criteria they checked on #78, #79, #335 and #336. #338's are
+      ticked, and so are five of #337's.
 - [ ] Worq moves onto the production project (D-090), so the Final deployment uses it
       (#337's first criterion).
 - [ ] This check runs again for what merges after `e327ee9`.
