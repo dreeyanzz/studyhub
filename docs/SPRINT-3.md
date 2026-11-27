@@ -223,7 +223,7 @@ Host's reason, Resubmit and edit warning.
 > Pending after a warning, marked "Edited"; and `/admin` lists Pending, Verified, Rejected
 > and Taken down Spaces, takes a Space down (cancelling unstarted holds and refunding their
 > fees), undoes either decision, shows each Space's list of changes, and warns live when a
-> Host edits a Space on screen. The design's manual checks are still to do (design §9).
+> Host edits a Space on screen. The design's manual checks passed on 27 Nov (design §9).
 
 For STORY-19: the Playwright journeys for every role, the accessibility sweep, and the
 performance measures against SRS §3.4.

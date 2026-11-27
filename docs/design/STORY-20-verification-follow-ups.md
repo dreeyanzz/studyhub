@@ -673,19 +673,33 @@ Built in four PRs after this design (#411), in the order they merged, following 
 | Only an Administrator moves a Space to Verified or Rejected, and a Host can never verify their own (pgTAP)                                                                     | `05-space-verification.sql` ("a Host cannot approve or reject a Space, their own included", "a Seeker cannot approve or reject a Space", "a signed-out visitor cannot run set_space_status", "an Administrator cannot write status directly", "a Host cannot take their own Verified Space down")                                                                                                                                                                                                                                                                                                                                                                                                             |
 | An Administrator can take a Verified Space down (the last thing cut before email, D-075)                                                                                       | `05-space-verification.sql` ("an Administrator takes a Verified Space down with a reason", "a visit under way keeps running after a take-down", "hold_terms returns nothing for a Taken down Space", "an Administrator puts a Taken down Space back"); `take-down.test.ts`; `admin/actions.test.ts` ("sends a take-down with its reason and cleans up the cancelled holds (V7, D-085)"); `e2e/host-setup.spec.ts` (`host-admin-takes-down-space`, `host-admin-restores-space`)                                                                                                                                                                                                                                |
 
+### §4's manual checks (27 Nov)
+
+Run by Adrian, with Claude Code, on the local stack at `main`'s `e327ee9`, with Realtime on
+and the repository's Stripe stub (`e2e/support/stripe-stub.ts`) in place of Stripe, so no
+real payment moved (D-005). The browser checks were driven by a Playwright script, not by
+hand. Seeded accounts, plus four Spaces added for the check (Rejected, Taken down,
+Resubmitted and Edited) through `set_space_status`, `resubmit_space` and a Host's rename,
+so each has its list of changes. The local database was reset afterwards.
+
+| §4 row                                                                   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/host` at 360, 768 and 1024 px, 100% and 200% text, keyboard only       | Passed. 0 px of horizontal scroll at every width and size. The reasons ("Rejection reason:", "Take-down reason:", "Previous reason:"), the status words and Resubmit all show. At 360 px, every keyboard stop is at least 48 × 48 px, with visible focus                                                                                                                                                                                                                                                                |
+| `/admin`'s four lists and their dialogs, the same widths, sizes and keys | Passed. Pending, Verified, Rejected and Taken down: 0 px of horizontal scroll at every width and size, with the Edited and Resubmitted marks, "Previous reason:" and each list of changes ("Name: old → new", Latest, Since last verified). The Reject, Take down, Undo and Put back dialogs, and the Host's Verified edit warning, fit at 360 and 1024 px with 200% text. Focus starts inside each one, Tab stays inside, and Escape returns focus to the button that opened it. Every keyboard stop has visible focus |
+| A take-down with a paid Reserved hold, checked on `/admin/payments`      | Passed. Taking Sulok Co-working down from `/admin` with a reason announced "Sulok Co-working has been taken down. 1 unstarted hold cancelled; 1 sandbox fee refunded." The hold became `cancelled` with `cancelled_by_take_down`, its payment `refunded` with the reason "Space taken down: …", `/admin/payments?status=refunded` listed it as Refunded, and the Seeker's hold page said "This Space was taken down … Your ₱50.00 payment was refunded."                                                                |
+| The live notice across two real browser sessions                         | Passed, in two separate browser sessions driven by a script. The Administrator's card showed "Updated by Host" 82 ms after the Host saved, without a reload. Approve and Reject stayed disabled until "Reload latest version", which showed the new details. Nobody has checked it by hand                                                                                                                                                                                                                              |
+
+Also exercised through the pages, for #338's criteria: Resubmit on `/host` sent the
+Rejected Space back to Pending with its previous reason, and renaming the Verified Space
+through "Save and send for review" sent it back to Pending, with the rename in its list of
+changes, while a paid hold there stayed `reserved`.
+
+Two things the checks met that were on `main` before STORY-20, and that STORY-20 didn't
+change: at 360 px with 200% text, the Administrator's mobile tab strip scrolls inside itself,
+with "Payments" starting off screen (the keyboard still reaches it); and at 200% text, the
+sidebar cuts the account name short with an ellipsis.
+
 ### Still open / follow-up
 
-- **§4's manual row:** #427 measured the Reject dialog at 360, 768 and 1024 px, with 200%
-  text and by keyboard, and #436 recorded Luke's hand check of the Host side. No PR
-  records the same widths, text size and keyboard check for `/host` or for `/admin`'s four
-  lists and their dialogs. #436 handed the Host-side layout check to Faye and James
-  (D-073, D-074). STORY-17's #438 measured `/admin` before #440 added the four lists.
-- **A take-down with a paid Reserved hold, checked on `/admin/payments`:** #440 left this
-  for the local stack, and no PR records it since. The pgTAP and Vitest tests above cover
-  the cancellation and the refund call.
-- **The live notice across two real browser sessions:** #444's Playwright test now runs it
-  in CI with two browser contexts; no PR records a check by hand.
 - **STORY-17:** Maria and James review how the Host and `/admin` verification screens look
   (D-073, D-074). #441 restyled `space-list.tsx` and kept its reason and Resubmit.
-- The acceptance-criteria checkboxes on #338 are left for its owners to tick when closing
-  it.
