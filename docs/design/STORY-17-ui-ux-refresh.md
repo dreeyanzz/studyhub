@@ -46,11 +46,11 @@ Not applicable: STORY-17 adds or modifies no Postgres tables, columns, enums, Zo
 - **User experience & visual direction** (Maria and James decide, D-042):
   - **Tokens & palette (D-031):** Keep the Worq light-mode-only semantic tokens in `app/globals.css` (forest green `#173c2d` / `#215c3f`, warm cream `#f8f9f3`, sage `#e5eddc` / `#ddebcc`, Georgia headings + Geist body). Do not re-introduce `.dark` overrides.
   - **Public landing & shell pilot (`/`):**
-    - Startup desk lamp overlay (`app/(public)/_components/startup-lamp.tsx`) that introduces the Worq study-space atmosphere on a visitor's first view of `/` in a browser session. Its look is Maria and James's call; it keeps these limits, because `/` is where SRS §3.2.1 starts counting clicks and STORY-19 measures page speed (SRS §3.4):
-      - **It never costs a click or a keypress.** It is decorative: `aria-hidden="true"`, no focusable content, and `pointer-events: none`, so clicks and Tab reach the page underneath from the first moment. It fades out on its own within about a second.
-      - **It never holds back the page.** The hero still renders on the server underneath, so the first and largest paints are the page's own. The lamp is drawn in CSS or inline SVG, adding no image download that could become the largest paint.
-      - **It plays once per browser session.** A `sessionStorage` flag records that it has played. When storage is blocked, the lamp is skipped.
-      - **It is skipped entirely** under `prefers-reduced-motion: reduce`, and visitors without JavaScript never see it.
+    - Startup desk lamp overlay (`app/(public)/_components/startup-lamp.tsx`) that introduces the Worq study-space atmosphere when `/` loads. Its look is Maria and James's call; it keeps these limits, because `/` is where SRS §3.2.1 starts counting clicks and STORY-19 measures page speed (SRS §3.4):
+      - **It never costs a click or a keypress.** It is decorative: `aria-hidden="true"`, no focusable content, and `pointer-events: none`, so clicks and Tab reach the page underneath from the first moment. It waits for page load (plus a brief minimum beat) and fades out on its own.
+      - **It covers the viewport from first paint.** It renders in the initial SSR HTML so `/` is covered while subresources load underneath; the lamp is drawn in CSS and inline SVG so it adds no image download.
+      - **It plays on every load/reload of `/`.** No `sessionStorage` flag blocks repeat views.
+      - **It is skipped entirely** via CSS under `prefers-reduced-motion: reduce` and `@media (scripting: none)` for visitors without JavaScript.
     - Full-bleed workspace hero with an overlapping blurred card for hero copy and primary CTAs, plus refined header (lamp mark + navigation) and footer in `app/(public)/_components/site-header.tsx` and `site-footer.tsx`.
       - **The card's contrast is checked against the photo.** Because the photo shows through the blur, D-031's token-pair check doesn't cover the card's text. The pilot PR measures the text against the card where the photo behind it is darkest and lightest, at 360, 768 and 1024 px, and records the lowest ratio in its PR body (4.5:1 for normal text, 3:1 for large text).
       - **The photo:** the hero keeps the D-033 workspace photo (`/images/public-landing/workspace.webp`). A new photo needs its source page, photographer and licence recorded here, with no identifiable people (D-033).
@@ -69,7 +69,7 @@ Not applicable: STORY-17 adds or modifies no Postgres tables, columns, enums, Zo
     - **Wording:** Follows Glossary strictly (`Space`, `Unit`, `Administrator`, `Visit`).
   - **Audit findings** (`TSK-17.1`) go in an "Audit findings" subsection at the end of this section: one row per route, with the widths, 200% text and keyboard results. Each finding is either a **fix**, linked to the bug issue filed under the story that built the screen, or a **design change**, assigned to one of `TSK-17.4` to `TSK-17.7`. The subsection ends with the re-estimate that decides whether `STORY-18` splits off (§5).
 - **Routes and components:**
-  - `app/(public)/_components/startup-lamp.tsx` — **Client Component** (decorative startup overlay: it renders nothing until it has checked reduced motion and the session flag, §3).
+  - `app/(public)/_components/startup-lamp.tsx` — **Client Component** (decorative startup overlay: renders on SSR to cover first paint, then fades out once loaded or unmounts immediately under reduced motion, §3).
   - `app/(public)/page.tsx`, `app/(public)/_components/site-header.tsx`, `app/(public)/_components/site-footer.tsx` — **Server Components** (keep public shell server-rendered).
   - Restyled portal pages under `app/(dashboard)/{seeker,host,admin}/` keep their existing Server/Client Component boundaries.
 - **Where the files go:**
