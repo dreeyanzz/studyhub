@@ -42,6 +42,18 @@ const LIST_TABS: ReadonlyArray<{ value: ReviewQueueList; label: string }> = [
   { value: 'removed', label: 'Removed' },
 ]
 
+/**
+ * The count beside the heading, worded like `/admin`'s "3 pending". It counts the reviews
+ * on screen, so it adds "+" when Show more has more to load (#448 review).
+ */
+export function queueCountLabel(
+  shownCount: number,
+  hasMore: boolean,
+  list: ReviewQueueList,
+) {
+  return `${shownCount}${hasMore ? '+' : ''} ${list}`
+}
+
 const EMPTY_HEADINGS: Record<ReviewQueueList, string> = {
   reported: 'No reported reviews',
   hidden: 'No hidden reviews',
@@ -203,9 +215,10 @@ export function ModerationQueue({
         </div>
         <Badge
           variant="secondary"
+          data-testid="moderation-count"
           className="rounded-xl border border-border/80 bg-secondary/80 px-3.5 py-1.5 text-sm font-bold text-foreground shadow-2xs"
         >
-          {items.length} {list}
+          {queueCountLabel(items.length, hasMore, list)}
         </Badge>
       </div>
 
@@ -238,8 +251,9 @@ export function ModerationQueue({
         </div>
         <div className="text-sm leading-relaxed text-foreground">
           <strong className="font-bold text-foreground">Moderation Guide:</strong> Hide
-          removes a review from public view and averages (reversible). Remove deletes it
-          permanently and blocks re-reviewing that visit. Dismiss closes open reports.
+          takes a review off the Space&apos;s profile and out of its averages, and Restore
+          brings it back. Remove does the same for good: it can&apos;t be restored.
+          Dismiss reports closes the open reports and leaves the review up.
         </div>
       </div>
 

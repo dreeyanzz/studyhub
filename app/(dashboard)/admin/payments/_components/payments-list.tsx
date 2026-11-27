@@ -28,6 +28,22 @@ const FILTER_TABS: ReadonlyArray<{ value: PaymentRecordFilter; label: string }> 
   { value: 'refundable', label: 'Refundable' },
 ]
 
+/**
+ * The count beside the heading, worded like `/admin`'s "3 pending": "3 payments" on All,
+ * "1 refundable" on a filter. It counts the records on screen, so it adds "+" when Show more
+ * has more to load (#448 review).
+ */
+export function paymentsCountLabel(
+  shownCount: number,
+  hasMore: boolean,
+  filter: PaymentRecordFilter,
+) {
+  const count = `${shownCount}${hasMore ? '+' : ''}`
+  if (filter === 'all')
+    return `${count} ${shownCount === 1 && !hasMore ? 'payment' : 'payments'}`
+  return `${count} ${filter}`
+}
+
 const STATUS_BADGE_STYLES = {
   pending: 'border-border bg-muted text-foreground',
   paid: 'border-emerald-300 bg-emerald-100 text-emerald-950',
@@ -72,9 +88,10 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
         </div>
         <Badge
           variant="secondary"
+          data-testid="payments-count"
           className="rounded-xl border border-border/80 bg-secondary/80 px-3.5 py-1.5 text-sm font-bold text-foreground shadow-2xs"
         >
-          {items.length} {filter}
+          {paymentsCountLabel(items.length, hasMore, filter)}
         </Badge>
       </div>
 

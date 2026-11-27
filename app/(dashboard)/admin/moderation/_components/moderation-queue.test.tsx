@@ -10,7 +10,7 @@ vi.mock('../actions', () => ({
 }))
 
 import type { AdminReviewQueueItem, ModerationEventItem } from '@/lib/data/admin'
-import { ModerationQueue } from './moderation-queue'
+import { ModerationQueue, queueCountLabel } from './moderation-queue'
 
 const REVIEW_ID = '11111111-1111-4111-8111-111111111111'
 const SPACE_ID = '22222222-2222-4222-8222-222222222222'
@@ -323,5 +323,37 @@ describe('ModerationQueue (STORY-14, TSK-14.3)', () => {
     )
     expect(atCap).toContain('Showing the first 100 reviews in this list.')
     expect(atCap).not.toContain('Show more')
+  })
+
+  it('words the count like /admin, and adds + when Show more has more (#448)', () => {
+    expect(queueCountLabel(3, false, 'reported')).toBe('3 reported')
+    expect(queueCountLabel(0, false, 'removed')).toBe('0 removed')
+    expect(queueCountLabel(25, true, 'hidden')).toBe('25+ hidden')
+
+    const html = renderToStaticMarkup(
+      <ModerationQueue
+        items={[sampleItem()]}
+        historyByReviewId={sampleHistory}
+        list="reported"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    expect(html).toMatch(/data-testid="moderation-count"[^>]*>1 reported</)
+  })
+
+  it('says what Hide, Remove and Dismiss reports do, without calling Remove a delete (#448)', () => {
+    const html = renderToStaticMarkup(
+      <ModerationQueue
+        items={[]}
+        historyByReviewId={{}}
+        list="reported"
+        shown={25}
+        hasMore={false}
+      />,
+    )
+    expect(html).toContain('Restore')
+    expect(html).toContain('it can&#x27;t be restored')
+    expect(html).not.toMatch(/delete/i)
   })
 })
