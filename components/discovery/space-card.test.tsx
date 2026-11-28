@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { SpaceCard } from './space-card'
+import { isCardBodyClick, SpaceCard } from './space-card'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
 
 describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
@@ -105,6 +105,51 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     )
     expect(html).toContain(
       'pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]',
+    )
+  })
+})
+
+describe('isCardBodyClick (card click centres the map, FR-1.1)', () => {
+  const target = (closestMatch: object | null) => ({ closest: () => closestMatch })
+
+  it('is true for a click on the card itself', () => {
+    expect(isCardBodyClick(target(null) as unknown as EventTarget)).toBe(true)
+  })
+
+  it('is false for a click on a link or button, which open the profile page instead', () => {
+    expect(isCardBodyClick(target({}) as unknown as EventTarget)).toBe(false)
+  })
+
+  it('is false with no element target', () => {
+    expect(isCardBodyClick(null)).toBe(false)
+    expect(isCardBodyClick({} as EventTarget)).toBe(false)
+  })
+})
+
+describe('SpaceCard selection affordance (FR-1.1)', () => {
+  const space = {
+    id: '11111111-1111-4111-8111-111111111111',
+    name: 'Quiet Nook Cafe',
+    description: null,
+    address: '123 Gorordo Ave, Cebu City',
+    opens_at: '08:00:00',
+    closes_at: '22:00:00',
+    latitude: 10.3157,
+    longitude: 123.8854,
+    price_tier: 'budget',
+    distance_km: null,
+    curated_tags: [],
+    custom_tags: [],
+    review_count: 0,
+    avg_overall: null,
+  } satisfies VerifiedSpaceSearchResult
+
+  it('shows a pointer only when the card can select a Space', () => {
+    expect(
+      renderToStaticMarkup(<SpaceCard space={space} onSelect={() => {}} />),
+    ).toContain('cursor-pointer')
+    expect(renderToStaticMarkup(<SpaceCard space={space} />)).not.toContain(
+      'cursor-pointer',
     )
   })
 })
