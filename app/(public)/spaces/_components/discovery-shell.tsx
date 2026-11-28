@@ -2,8 +2,8 @@
 
 import { List, Map as MapIcon } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FilterDrawer } from './filter-drawer'
 import { FilterPanel, toggleFilterValue } from './filter-panel'
 import { SearchBar } from './search-bar'
@@ -18,11 +18,12 @@ import {
 import { resolveCampusCoordinates } from '@/lib/geo/campuses'
 import { haversineDistance } from '@/lib/geo/haversine'
 import { cn } from '@/lib/utils'
-import type {
-  DiscoverySearchQuery,
-  HoursFilter,
-  PriceTier,
-  UnitTypeFilter,
+import {
+  discoverySearchQuerySchema,
+  type DiscoverySearchQuery,
+  type HoursFilter,
+  type PriceTier,
+  type UnitTypeFilter,
 } from '@/lib/validation/search'
 
 // Dynamic import for Leaflet map with SSR disabled to prevent `window is not defined` errors (D-012)
@@ -99,6 +100,23 @@ export function buildDiscoveryQueryString(query: DiscoverySearchQuery): string {
 }
 
 /**
+ * Parses URLSearchParams into a normalized DiscoverySearchQuery, supporting both
+ * repeated keys (`?tags=a&tags=b`) and comma-separated values (`?tags=a,b`).
+ */
+export function parseDiscoverySearchParams(
+  searchParams: Pick<URLSearchParams, 'keys' | 'getAll'>,
+): DiscoverySearchQuery {
+  const raw: Record<string, string | string[]> = {}
+  for (const key of new Set(searchParams.keys())) {
+    const values = searchParams.getAll(key)
+    raw[key] = values.length > 1 ? values : (values[0] ?? '')
+  }
+
+  const parsed = discoverySearchQuerySchema.safeParse(raw)
+  return parsed.success ? normalizeDiscoveryQuery(parsed.data) : normalizeDiscoveryQuery()
+}
+
+/**
  * Resolves the target map center and zoom level from active geolocation or campus search.
  */
 export function resolveDiscoveryMapCenter(query: DiscoverySearchQuery): {
@@ -169,6 +187,13 @@ export function filterSpacesClientSide(
     // 2. Price tier filter
     if (query.price.length > 0 && !query.price.includes(space.price_tier)) {
       continue
+    }
+
+    // 2b. Unit / room type inventory filter (FR-1.2)
+    if (query.unitType.length > 0) {
+      const spaceUnitTypes = space.unit_types ?? []
+      const matchesUnitType = query.unitType.some((ut) => spaceUnitTypes.includes(ut))
+      if (!matchesUnitType) continue
     }
 
     // 3. Dynamic operating hours filter (Asia/Manila UTC+8, D-048)
@@ -288,27 +313,51 @@ export function sortSpacesClientSide(
 }
 
 /**
- * Bridges client-side URL updates to Next.js App Router when mounted inside a route.
- * Skipped during isolated `renderToStaticMarkup` unit tests where AppRouterContext is absent.
+ * Synchronizes URL query parameters with DiscoveryShell state on the client without
+ * triggering server round-trips on every filter click (STORY-08, Next.js 16 History API).
+ *
+ * Mounted inside its own `<Suspense fallback={null}>` boundary so `useSearchParams()`
+ * never opts the surrounding `DiscoveryShell` out of static/ISR prerendering, and
+ * skipped during isolated `renderToStaticMarkup` unit tests where AppRouterContext is absent.
  */
-function DiscoveryRouterBridge({
+function DiscoveryUrlSync({
   pathname,
+  lastWrittenQsRef,
   navigateRef,
+  onSyncFromUrl,
 }: {
   pathname: string
+  lastWrittenQsRef: React.RefObject<string | null>
   navigateRef: React.RefObject<((queryString: string) => void) | null>
+  onSyncFromUrl: (nextQuery: DiscoverySearchQuery) => void
 }) {
-  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentQs = searchParams.toString()
 
   useEffect(() => {
     navigateRef.current = (queryString: string) => {
       const nextHref = queryString ? `${pathname}?${queryString}` : pathname
-      router.push(nextHref, { scroll: false })
+      lastWrittenQsRef.current = queryString
+      window.history.replaceState(null, '', nextHref)
     }
     return () => {
       navigateRef.current = null
     }
-  }, [pathname, router, navigateRef])
+  }, [pathname, navigateRef, lastWrittenQsRef])
+
+  useEffect(() => {
+    // First mount with no query string: initial state is already empty, nothing to sync.
+    if (lastWrittenQsRef.current === null && currentQs === '') {
+      lastWrittenQsRef.current = ''
+      return
+    }
+    // Ignore updates triggered by our own `window.history.replaceState`.
+    if (lastWrittenQsRef.current === currentQs) {
+      return
+    }
+    lastWrittenQsRef.current = currentQs
+    onSyncFromUrl(parseDiscoverySearchParams(new URLSearchParams(currentQs)))
+  }, [currentQs, lastWrittenQsRef, onSyncFromUrl])
 
   return null
 }
@@ -333,10 +382,14 @@ export function DiscoveryShell({
 }: DiscoveryShellProps) {
   const pathname = usePathname()
   const navigateRef = useRef<((queryString: string) => void) | null>(null)
+  const lastWrittenQsRef = useRef<string | null>(null)
 
   const [query, setQuery] = useState<DiscoverySearchQuery>(() =>
     normalizeDiscoveryQuery(initialQuery),
   )
+  const handleSyncFromUrl = useCallback((nextQuery: DiscoverySearchQuery) => {
+    setQuery(nextQuery)
+  }, [])
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null)
   const [hoveredSpaceId, setHoveredSpaceId] = useState<string | null>(null)
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
@@ -454,7 +507,14 @@ export function DiscoveryShell({
       data-testid="discovery-shell"
     >
       {pathname !== null && (
-        <DiscoveryRouterBridge pathname={pathname} navigateRef={navigateRef} />
+        <Suspense fallback={null}>
+          <DiscoveryUrlSync
+            pathname={pathname}
+            lastWrittenQsRef={lastWrittenQsRef}
+            navigateRef={navigateRef}
+            onSyncFromUrl={handleSyncFromUrl}
+          />
+        </Suspense>
       )}
 
       {/* Search Header: Text Search, Quick Campus Chips & Geolocation Trigger */}

@@ -209,6 +209,7 @@ describe('Host photo management Server Actions (STORY-11, TSK-11.2)', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${VALID_SPACE_ID}/photos`,
       )
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/spaces')
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/spaces/${VALID_SPACE_ID}`)
     })
   })
@@ -265,6 +266,7 @@ describe('Host photo management Server Actions (STORY-11, TSK-11.2)', () => {
       expect(mockRevalidatePath).toHaveBeenCalledWith(
         `/host/spaces/${VALID_SPACE_ID}/photos`,
       )
+      expect(mockRevalidatePath).toHaveBeenCalledWith('/spaces')
       expect(mockRevalidatePath).toHaveBeenCalledWith(`/spaces/${VALID_SPACE_ID}`)
     })
 

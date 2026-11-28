@@ -2,14 +2,15 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getReviewSummaries } from '@/lib/data/reviews'
 import { resolveCampusCoordinates } from '@/lib/geo/campuses'
 import { haversineDistance } from '@/lib/geo/haversine'
-import type { Database } from '@/lib/supabase/database.types'
+import type { Database, Json } from '@/lib/supabase/database.types'
 import {
   discoverySearchQuerySchema,
   type DiscoverySearchInput,
+  type UnitTypeFilter,
 } from '@/lib/validation/search'
 
 /**
- * Result shape returned by searchVerifiedSpaces for discovery map & list (STORY-08, FR-1.1, FR-1.2, STORY-13).
+ * Result shape returned by discovery queries for the map & list (STORY-08, FR-1.1, FR-1.2, STORY-13).
  */
 export interface VerifiedSpaceSearchResult {
   id: string
@@ -28,6 +29,7 @@ export interface VerifiedSpaceSearchResult {
     category: string
   }>
   custom_tags: string[]
+  unit_types?: UnitTypeFilter[]
   review_count: number
   avg_overall: number | null
   cover_photo_url?: string | null
@@ -398,4 +400,90 @@ export async function searchVerifiedSpaces(
   }
 
   return resultsWithDistance
+}
+
+function parseCuratedTagsJson(
+  raw: Json | null | undefined,
+): VerifiedSpaceSearchResult['curated_tags'] {
+  if (!Array.isArray(raw)) {
+    return []
+  }
+
+  const tags: VerifiedSpaceSearchResult['curated_tags'] = []
+  for (const item of raw) {
+    if (
+      item &&
+      typeof item === 'object' &&
+      !Array.isArray(item) &&
+      typeof item.id === 'string' &&
+      typeof item.label === 'string' &&
+      typeof item.category === 'string'
+    ) {
+      tags.push({
+        id: item.id,
+        label: item.label,
+        category: item.category,
+      })
+    }
+  }
+  return tags
+}
+
+function toNullableFiniteNumber(value: unknown): number | null {
+  if (value === null || value === undefined) return null
+  const num = typeof value === 'number' ? value : Number(value)
+  return Number.isFinite(num) ? num : null
+}
+
+/**
+ * Single-RPC server query helper for the ISR `/spaces` discovery catalog
+ * (STORY-08, FR-1.1, FR-1.2, D-055, D-063, D-076).
+ *
+ * Calls `public.discovery_spaces()` once to retrieve all Verified Spaces with
+ * their curated tags, custom tags, distinct unit types, visible review summary,
+ * and earliest non-dotfile cover photo path — eliminating the multi-query and
+ * N+1 Supabase Storage `.list()` waterfall. Returns `[]` cleanly on errors
+ * (including placeholder builds where Supabase is unreachable).
+ */
+export async function getDiscoverySpaces(
+  supabase: SupabaseClient<Database>,
+): Promise<VerifiedSpaceSearchResult[]> {
+  let rows: Database['public']['Functions']['discovery_spaces']['Returns'] | null = null
+  try {
+    const { data, error } = await supabase.rpc('discovery_spaces')
+    if (error || !data) {
+      return []
+    }
+    rows = data
+  } catch {
+    return []
+  }
+
+  return rows.map((row) => {
+    const coverPhotoUrl = row.cover_photo_path
+      ? supabase.storage.from('space-photos').getPublicUrl(row.cover_photo_path).data
+          .publicUrl
+      : null
+
+    return {
+      id: row.id,
+      name: row.name,
+      description: row.description ?? null,
+      address: row.address,
+      opens_at: row.opens_at,
+      closes_at: row.closes_at,
+      latitude: toNullableFiniteNumber(row.latitude),
+      longitude: toNullableFiniteNumber(row.longitude),
+      price_tier: row.price_tier,
+      distance_km: null,
+      curated_tags: parseCuratedTagsJson(row.curated_tags),
+      custom_tags: Array.isArray(row.custom_tags)
+        ? row.custom_tags.filter((tag): tag is string => typeof tag === 'string')
+        : [],
+      unit_types: Array.isArray(row.unit_types) ? row.unit_types : [],
+      review_count: typeof row.review_count === 'number' ? row.review_count : 0,
+      avg_overall: toNullableFiniteNumber(row.avg_overall),
+      cover_photo_url: coverPhotoUrl,
+    }
+  })
 }

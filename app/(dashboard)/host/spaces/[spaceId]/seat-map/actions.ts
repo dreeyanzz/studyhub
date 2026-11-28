@@ -582,6 +582,7 @@ export async function deleteZone(
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)
+  revalidatePath('/spaces')
   return { success: true, data: { id: parsed.data.zoneId } }
 }
 
@@ -673,6 +674,7 @@ export async function addUnit(
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)
+  revalidatePath('/spaces')
   return { success: true, data: createdUnit }
 }
 
@@ -793,6 +795,7 @@ export async function updateUnit(
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)
+  revalidatePath('/spaces')
   return { success: true, data: updatedUnit }
 }
 
@@ -1021,6 +1024,7 @@ export async function deleteUnit(
   }
 
   revalidatePath(`/host/spaces/${parsed.data.spaceId}/seat-map`)
+  revalidatePath('/spaces')
   return { success: true, data: { id: parsed.data.unitId } }
 }
 

@@ -5,12 +5,14 @@
 // Action checks the user itself (D-007, D-010).
 import type { NextRequest } from 'next/server'
 
-import { evaluateRouteAccess } from '@/lib/auth/role-guard'
+import { evaluateRouteAccess, routeNeedsRole } from '@/lib/auth/role-guard'
 import { updateSession } from '@/lib/supabase/proxy'
 
 export async function proxy(request: NextRequest) {
-  const session = await updateSession(request)
   const { pathname, search } = request.nextUrl
+  const session = await updateSession(request, {
+    readRole: routeNeedsRole(pathname, request.method),
+  })
   const access = evaluateRouteAccess(
     pathname,
     session.role,

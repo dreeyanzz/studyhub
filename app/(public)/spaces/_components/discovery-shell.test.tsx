@@ -5,6 +5,7 @@ import {
   buildDiscoveryQueryString,
   filterSpacesClientSide,
   normalizeDiscoveryQuery,
+  parseDiscoverySearchParams,
   resolveDiscoveryMapCenter,
   sortSpacesClientSide,
 } from './discovery-shell'
@@ -28,6 +29,7 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
         { id: 'outlets_all', label: 'Outlets: Every Seat', category: 'power' },
       ],
       custom_tags: ['beanbags'],
+      unit_types: ['seat', 'room'],
       review_count: 2,
       avg_overall: 4.25,
     },
@@ -47,6 +49,7 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
         { id: 'ac_full', label: 'Air Conditioning', category: 'ac' },
       ],
       custom_tags: ['free-coffee'],
+      unit_types: ['standing_desk'],
       review_count: 0,
       avg_overall: null,
     },
@@ -169,5 +172,35 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
       nowManila2330,
     )
     expect(byNearest.map((s) => s.id)).toEqual(['space-1', 'space-2'])
+  })
+
+  it('filters by unitType client-side and parses repeated URLSearchParams', () => {
+    const roomsOnly = filterSpacesClientSide(
+      mockSpaces,
+      normalizeDiscoveryQuery({ unitType: ['room'] }),
+    )
+    expect(roomsOnly.map((s) => s.id)).toEqual(['space-1'])
+
+    const standingOrRoom = filterSpacesClientSide(
+      mockSpaces,
+      normalizeDiscoveryQuery({ unitType: ['standing_desk', 'room'] }),
+    )
+    expect(standingOrRoom.map((s) => s.id)).toEqual(['space-1', 'space-2'])
+
+    const parsed = parseDiscoverySearchParams(
+      new URLSearchParams(
+        'q=Kapihan&tags=wifi_fast&tags=ac_full&price=budget&hours=open_now&unitType=room',
+      ),
+    )
+    expect(parsed).toEqual({
+      q: 'Kapihan',
+      lat: undefined,
+      lng: undefined,
+      radiusKm: 10,
+      tags: ['wifi_fast', 'ac_full'],
+      price: ['budget'],
+      hours: ['open_now'],
+      unitType: ['room'],
+    })
   })
 })

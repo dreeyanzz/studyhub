@@ -816,6 +816,26 @@ export type Database = {
         }
         Returns: Json
       }
+      discovery_spaces: {
+        Args: never
+        Returns: {
+          address: string
+          avg_overall: number
+          closes_at: string
+          cover_photo_path: string
+          curated_tags: Json
+          custom_tags: string[]
+          description: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          opens_at: string
+          price_tier: Database["public"]["Enums"]["price_tier"]
+          review_count: number
+          unit_types: Database["public"]["Enums"]["unit_type"][]
+        }[]
+      }
       hold_terms: {
         Args: { p_space_id: string }
         Returns: {
