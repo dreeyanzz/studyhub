@@ -27,7 +27,7 @@ export function holdPath(reservation: Pick<MyReservation, 'id'>): string {
  * h-12, shrink-0 and whitespace-nowrap, as on the Host's photos page.
  */
 export const WRAPPING_BUTTON =
-  'h-auto min-h-12 max-w-full shrink rounded-full px-5 py-2 text-center font-semibold whitespace-normal'
+  'h-auto min-h-12 max-w-full shrink rounded-xl px-5 py-2 text-center font-semibold whitespace-normal'
 
 /** A link styled as a button, whose label wraps. */
 export function buttonLinkClass(variant: 'default' | 'outline' = 'default'): string {
@@ -102,13 +102,7 @@ export function BookingToken({ token }: { token: string }) {
 export function ContinueToPaymentForm({ reservation }: { reservation: MyReservation }) {
   return (
     <form action={startCheckout.bind(null, reservation.id)}>
-      <Button
-        type="submit"
-        className={cn(
-          WRAPPING_BUTTON,
-          'bg-[#f0c95c] text-foreground shadow-sm hover:bg-[#e5ba45]',
-        )}
-      >
+      <Button type="submit" variant="brass" className={WRAPPING_BUTTON}>
         Continue to payment
       </Button>
     </form>
@@ -212,10 +206,8 @@ export function DirectionsLink({
 /** Shared QR code + copyable booking token card for Reserved holds (STORY-10, STORY-17). */
 export function ReservedQrCard({ token }: { token: string }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/25 bg-secondary/50 p-5 text-center">
-      <div className="rounded-xl border border-white/90 bg-white p-2.5 shadow-xs">
-        <BookingQrCode token={token} />
-      </div>
+    <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-primary/25 bg-surface-subtle/85 p-5 text-center">
+      <BookingQrCode token={token} />
       <div className="flex flex-wrap items-center justify-center gap-3">
         <BookingToken token={token} />
         <CopyTokenButton token={token} />
@@ -242,16 +234,16 @@ export function ReservedView({
         reservation.bookingToken && 'md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]',
       )}
     >
-      <section className="flex flex-col justify-between gap-5 rounded-3xl border border-border/60 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]">
+      <section className="flex flex-col justify-between gap-5 rounded-3xl border border-border/80 bg-card p-6 shadow-float">
         <div className="space-y-5">
           <div className="space-y-2">
             <HoldStatusBadge status="reserved" />
-            <h1 className="font-heading text-2xl font-bold tracking-tight">
+            <h1 className="font-heading text-3xl font-bold tracking-[-0.03em]">
               Reserved: {reservation.unitLabel}
             </h1>
             <HoldPlace reservation={reservation} />
           </div>
-          <div className="space-y-2 rounded-2xl bg-muted/65 px-4 py-3.5">
+          <div className="space-y-2 rounded-2xl border border-border/70 bg-surface-subtle px-4 py-3.5">
             {reservation.waitWindowEndsAt && (
               <>
                 <WaitCountdown
@@ -294,13 +286,11 @@ export function ReservedView({
       </section>
 
       {reservation.bookingToken && (
-        <section className="flex flex-col items-center justify-center gap-4 rounded-3xl border-2 border-dashed border-primary/30 bg-secondary/70 p-6 text-center">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+        <section className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed border-primary/30 bg-surface-subtle p-6 text-center shadow-card">
+          <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
             Check-in pass
           </p>
-          <div className="rounded-2xl border border-white/90 bg-white p-3.5 shadow-sm">
-            <BookingQrCode token={reservation.bookingToken} />
-          </div>
+          <BookingQrCode token={reservation.bookingToken} />
           <BookingToken token={reservation.bookingToken} />
           <CopyTokenButton token={reservation.bookingToken} />
         </section>

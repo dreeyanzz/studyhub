@@ -107,8 +107,8 @@ export function FilterDrawer({
           className={cn(
             'inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold shadow-2xs transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none active:scale-[0.98]',
             activeCount > 0
-              ? 'border-primary bg-primary/10 text-primary'
-              : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-accent/40',
+              ? 'border-foreground bg-foreground text-background'
+              : 'border-border bg-card text-foreground hover:border-foreground/45 hover:bg-surface-subtle',
           )}
         >
           <SlidersHorizontal className="size-4" aria-hidden="true" />
@@ -116,7 +116,7 @@ export function FilterDrawer({
           {activeCount > 0 && (
             <span
               data-testid="mobile-active-filter-count"
-              className="inline-flex size-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground"
+              className="inline-flex size-5 items-center justify-center rounded-full bg-brass font-mono text-xs font-bold text-brass-foreground"
             >
               {activeCount}
             </span>
@@ -145,7 +145,7 @@ export function FilterDrawer({
             aria-label="Close filter drawer overlay"
             data-testid="filter-drawer-backdrop"
             onClick={closeDrawer}
-            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
+            className="fixed inset-0 bg-forest-deep/45 backdrop-blur-xs"
           />
           <div
             ref={dialogRef}
@@ -154,14 +154,14 @@ export function FilterDrawer({
             aria-modal="true"
             aria-labelledby="filter-drawer-title"
             data-testid="filter-drawer-dialog"
-            className="relative z-10 flex max-h-[85vh] w-full flex-col rounded-t-3xl border-t border-border/80 bg-card shadow-2xl"
+            className="relative z-10 flex max-h-[85vh] w-full flex-col rounded-t-3xl border-t border-border/80 bg-card shadow-hero"
           >
             {/* Drawer Header */}
-            <div className="flex items-center justify-between border-b border-border/70 bg-muted/25 px-5 py-4">
+            <div className="flex items-center justify-between border-b border-border bg-surface-subtle px-5 py-4">
               <div>
                 <h2
                   id="filter-drawer-title"
-                  className="font-heading text-base font-bold text-foreground"
+                  className="font-heading text-xl font-medium text-foreground"
                 >
                   Filter Study Spaces
                 </h2>

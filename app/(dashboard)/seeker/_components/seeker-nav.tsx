@@ -46,9 +46,10 @@ export function reservationsCurrent(pathname: string): 'page' | 'true' | undefin
 // min-h-12 min-w-12: a 48 x 48 px target (SRS §3.2.2).
 const linkClass = cn(
   buttonVariants({ variant: 'ghost' }),
-  'min-h-12 min-w-12 rounded-full px-4',
+  'h-auto min-h-12 min-w-12 max-w-full rounded-xl px-4 py-2 whitespace-normal wrap-anywhere text-muted-foreground hover:bg-surface-subtle hover:text-foreground',
 )
-const currentClass = 'bg-secondary text-secondary-foreground'
+const currentClass =
+  'bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover hover:text-primary-foreground'
 
 export function SeekerNav() {
   const pathname = usePathname()
@@ -56,7 +57,10 @@ export function SeekerNav() {
   const reservations = reservationsCurrent(pathname)
 
   return (
-    <nav aria-label="Seeker portal" className="flex flex-wrap items-center gap-1">
+    <nav
+      aria-label="Seeker portal"
+      className="flex max-w-full min-w-0 flex-wrap items-center gap-1"
+    >
       <Link
         href="/seeker"
         aria-current={dashboard}

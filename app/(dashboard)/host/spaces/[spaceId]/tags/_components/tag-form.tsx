@@ -133,7 +133,7 @@ export function TagForm({
         <div className="space-y-1">
           <h2
             id="curated-tags-heading"
-            className="text-xl font-semibold tracking-tight text-foreground"
+            className="font-heading text-2xl font-semibold tracking-tight text-foreground"
           >
             Amenities
           </h2>
@@ -153,13 +153,13 @@ export function TagForm({
             return (
               <fieldset
                 key={category.id}
-                className="flex min-w-0 flex-col gap-2 rounded-lg border border-border p-4"
+                className="flex min-w-0 flex-col gap-2 rounded-2xl border border-border/80 bg-card p-5 shadow-card"
               >
                 <legend className="px-1 text-sm font-medium">{category.heading}</legend>
                 {options.map((tag) => (
                   <label
                     key={tag.id}
-                    className="flex min-h-12 cursor-pointer items-start gap-3 rounded-md px-2 py-2 hover:bg-muted"
+                    className="flex min-h-12 cursor-pointer items-start gap-3 rounded-xl px-2.5 py-2 transition-colors hover:bg-surface-subtle"
                   >
                     <input
                       type="checkbox"
@@ -185,11 +185,14 @@ export function TagForm({
         </div>
       </section>
 
-      <section aria-labelledby="custom-tags-heading" className="space-y-4">
+      <section
+        aria-labelledby="custom-tags-heading"
+        className="space-y-4 rounded-2xl border border-border/80 bg-card p-6 shadow-card"
+      >
         <div className="space-y-1">
           <h2
             id="custom-tags-heading"
-            className="text-xl font-semibold tracking-tight text-foreground"
+            className="font-heading text-2xl font-semibold tracking-tight text-foreground"
           >
             Custom display tags
           </h2>
@@ -260,11 +263,23 @@ export function TagForm({
         )}
       </section>
 
-      <div className="sticky bottom-0 flex flex-wrap gap-3 border-t border-border bg-background py-4">
-        <Button type="submit" disabled={pending} focusableWhenDisabled>
+      <div className="sticky bottom-0 flex flex-wrap gap-3 border-t border-border/80 bg-background/95 py-4 backdrop-blur-md">
+        <Button
+          type="submit"
+          variant="brass"
+          disabled={pending}
+          focusableWhenDisabled
+          className="rounded-full px-6"
+        >
           {pending ? 'Saving tags…' : 'Save tags'}
         </Button>
-        <Link href="/host" className={buttonVariants({ variant: 'outline' })}>
+        <Link
+          href="/host"
+          className={buttonVariants({
+            variant: 'outline',
+            className: 'rounded-full px-5',
+          })}
+        >
           Discard changes
         </Link>
       </div>

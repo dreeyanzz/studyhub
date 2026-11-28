@@ -27,40 +27,44 @@ export function SeatMapLegend({
       role="region"
       aria-label="Seat map legend"
       className={cn(
-        'rounded-md border border-border bg-card p-3 text-xs text-foreground',
+        'rounded-2xl border border-border/80 bg-surface-subtle/85 p-3.5 text-xs text-foreground shadow-2xs',
         className,
       )}
     >
       <div className="flex flex-col gap-2.5">
         <div>
-          <span className="font-semibold text-foreground">States:</span>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <span className="inline-flex items-center gap-1.5 text-emerald-950">
+          <span className="font-semibold tracking-wide text-foreground uppercase">
+            States:
+          </span>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-600/25 bg-emerald-50 px-2.5 py-0.5 font-medium text-emerald-950">
               <CheckCircle
                 className="size-3.5 shrink-0 text-emerald-700"
                 aria-hidden="true"
               />
               <span>Available</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 text-purple-950">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-600/25 bg-purple-50 px-2.5 py-0.5 font-medium text-purple-950">
               <Hourglass
                 className="size-3.5 shrink-0 text-purple-700"
                 aria-hidden="true"
               />
               <span>Pending Payment</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 text-blue-950">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-600/25 bg-blue-50 px-2.5 py-0.5 font-medium text-blue-950">
               <Clock className="size-3.5 shrink-0 text-blue-700" aria-hidden="true" />
               <span>Reserved</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 text-amber-950">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-600/25 bg-amber-50 px-2.5 py-0.5 font-medium text-amber-950">
               <User className="size-3.5 shrink-0 text-amber-700" aria-hidden="true" />
               <span>Occupied</span>
             </span>
           </div>
         </div>
-        <div className="border-t border-border/60 pt-2">
-          <span className="font-semibold text-foreground">Types:</span>
+        <div className="border-t border-border/70 pt-2.5">
+          <span className="font-semibold tracking-wide text-foreground uppercase">
+            Types:
+          </span>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <Armchair

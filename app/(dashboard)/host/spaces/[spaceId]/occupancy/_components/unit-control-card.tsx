@@ -146,11 +146,11 @@ export function UnitControlCard({
   const TypeIcon = typeInfo.icon
 
   return (
-    <Card className={cn('h-full transition-shadow', className)}>
+    <Card className={cn('h-full rounded-3xl shadow-card transition-shadow', className)}>
       <CardHeader className="pb-3">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
-            <CardTitle className="text-lg font-semibold tracking-tight text-foreground">
+            <CardTitle className="font-heading text-xl font-semibold tracking-tight text-foreground">
               {displayLabel}
             </CardTitle>
             <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -188,7 +188,7 @@ export function UnitControlCard({
                   disabled={isPending}
                   focusableWhenDisabled
                   className={cn(
-                    'h-12 min-w-12 px-4 py-2 text-xs font-medium transition-all sm:text-sm',
+                    'h-12 min-w-12 rounded-full px-4 py-2 text-xs font-semibold transition-all sm:text-sm',
                     isActive && 'ring-2 ring-primary ring-offset-2',
                   )}
                   onClick={() => {

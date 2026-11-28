@@ -88,7 +88,7 @@ export default async function HostCheckInPage({
               href={`/host/spaces/${space.id}/occupancy`}
               className={cn(
                 buttonVariants({ variant: 'outline' }),
-                'h-auto min-h-12 max-w-full px-4 py-2 text-center whitespace-normal',
+                'h-auto min-h-12 max-w-full rounded-full border-border/80 bg-card px-4 py-2 text-center whitespace-normal shadow-2xs hover:border-primary/45 hover:bg-surface-subtle',
               )}
             >
               Occupancy
@@ -97,10 +97,10 @@ export default async function HostCheckInPage({
               href="/host"
               className={cn(
                 buttonVariants({ variant: 'outline' }),
-                'h-auto min-h-12 max-w-full gap-2 px-4 py-2 text-center whitespace-normal',
+                'h-auto min-h-12 max-w-full gap-2 rounded-full border-border/80 bg-card px-4 py-2 text-center whitespace-normal shadow-2xs hover:border-primary/45 hover:bg-surface-subtle',
               )}
             >
-              <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
+              <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
               Back to Spaces
             </Link>
           </div>

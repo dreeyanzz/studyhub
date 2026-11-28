@@ -141,14 +141,14 @@ export function SeatMapGrid({
             <section
               key={zone.id}
               aria-labelledby={`zone-heading-${zone.id}`}
-              className="space-y-2"
+              className="space-y-2.5 sm:rounded-2xl sm:border sm:border-border/75 sm:bg-surface-subtle/50 sm:p-4"
             >
               {renderZoneActions ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <h3
                     id={`zone-heading-${zone.id}`}
                     tabIndex={-1}
-                    className="mr-auto text-base font-semibold tracking-tight wrap-anywhere text-foreground"
+                    className="mr-auto font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground"
                   >
                     {zone.name}
                   </h3>
@@ -158,13 +158,13 @@ export function SeatMapGrid({
                 <h3
                   id={`zone-heading-${zone.id}`}
                   tabIndex={-1}
-                  className="min-w-0 text-base font-semibold tracking-tight wrap-anywhere text-foreground"
+                  className="min-w-0 font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground"
                 >
                   {zone.name}
                 </h3>
               )}
               <div
-                className="grid gap-1"
+                className="grid gap-1 sm:gap-1.5"
                 style={{
                   gridTemplateColumns: 'repeat(6, minmax(48px, 1fr))',
                 }}

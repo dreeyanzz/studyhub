@@ -103,10 +103,10 @@ export function HostDeskPreview() {
       className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-8"
     >
       {/* Panel A: One-Tap Walk-In Occupancy (STORY-12) */}
-      <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)] sm:p-6">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-4">
+      <div className="min-w-0 rounded-3xl border border-border/80 bg-card p-5 shadow-card sm:p-7">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/80 pb-4">
           <div>
-            <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+            <p className="font-mono text-xs font-semibold tracking-wider text-primary uppercase">
               Interactive preview · one-tap occupancy
             </p>
             <h3 className="mt-1 font-heading text-xl font-semibold text-foreground">
@@ -123,7 +123,7 @@ export function HostDeskPreview() {
             }
             animate={{ scale: 1, opacity: 1 }}
             transition={EDITORIAL_SPRING}
-            className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 font-mono text-xs font-medium text-foreground"
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary/75 px-3 py-1 font-mono text-xs font-medium text-foreground"
           >
             <Clock className="size-3.5 text-primary" aria-hidden="true" />
             {freshnessLabel}
@@ -216,10 +216,10 @@ export function HostDeskPreview() {
                   whileTap={prefersReducedMotion ? undefined : { scale: 0.97 }}
                   transition={EDITORIAL_SPRING}
                   className={cn(
-                    'inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+                    'inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-full border px-4 py-2 text-sm font-medium whitespace-normal transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
                     isAvailable
-                      ? 'border-border bg-background text-foreground hover:border-primary/40 hover:bg-muted'
-                      : 'border-primary bg-secondary text-secondary-foreground hover:bg-accent',
+                      ? 'border-border/80 bg-background text-foreground hover:border-primary/45 hover:bg-surface-subtle'
+                      : 'border-primary/25 bg-accent text-accent-foreground hover:bg-secondary',
                   )}
                 >
                   {nextActionLabel}
@@ -235,12 +235,12 @@ export function HostDeskPreview() {
       </div>
 
       {/* Panel B: QR Check-In Desk (STORY-10) */}
-      <div className="min-w-0 rounded-2xl border border-border bg-card shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)]">
-        <div className="rounded-t-2xl bg-foreground px-5 py-4 text-background sm:px-6">
-          <p className="font-mono text-xs font-semibold tracking-widest text-[#f0c95c] uppercase">
+      <div className="min-w-0 overflow-hidden rounded-3xl border border-border/80 bg-card shadow-card">
+        <div className="bg-forest-deep px-5 py-5 text-white sm:px-6">
+          <p className="font-mono text-xs font-semibold tracking-widest text-brass uppercase">
             Illustrative Check-In Desk
           </p>
-          <h3 className="mt-1 font-heading text-xl font-semibold text-background">
+          <h3 className="mt-1 font-heading text-xl font-semibold text-white">
             Scan or verify a booking token
           </h3>
         </div>
@@ -250,7 +250,7 @@ export function HostDeskPreview() {
           <LayoutGroup id="host-checkin-stepper">
             <ol
               aria-label="Check-in lifecycle"
-              className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/50 p-1"
+              className="grid grid-cols-3 gap-1.5 rounded-full border border-border/80 bg-surface-subtle p-1"
             >
               {CHECKIN_STAGES.map((stage) => {
                 const active = stage.id === checkInStage
@@ -259,7 +259,7 @@ export function HostDeskPreview() {
                     key={stage.id}
                     aria-current={active ? 'step' : undefined}
                     className={cn(
-                      'relative rounded-lg px-2 py-1.5 text-center font-mono text-[11px] font-semibold transition-colors',
+                      'relative rounded-full px-2 py-1.5 text-center font-mono text-[11px] font-semibold transition-colors',
                       active ? 'text-foreground' : 'text-muted-foreground',
                     )}
                   >
@@ -268,7 +268,7 @@ export function HostDeskPreview() {
                         layoutId="host-checkin-step"
                         transition={EDITORIAL_SPRING}
                         aria-hidden="true"
-                        className="absolute inset-0 rounded-lg border border-border bg-card shadow-xs"
+                        className="absolute inset-0 rounded-full border border-border bg-card shadow-xs"
                       />
                     )}
                     <span className="relative z-10">{stage.label}</span>
@@ -278,7 +278,7 @@ export function HostDeskPreview() {
             </ol>
           </LayoutGroup>
 
-          <div className="rounded-xl border border-border bg-muted/60 p-4">
+          <div className="rounded-2xl border border-border/80 bg-surface-subtle/80 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="inline-flex items-center gap-1.5 font-mono text-sm font-semibold text-foreground">
                 <QrCode className="size-4 text-primary" aria-hidden="true" />
@@ -337,13 +337,13 @@ export function HostDeskPreview() {
             whileTap={prefersReducedMotion ? undefined : { scale: 0.98 }}
             transition={EDITORIAL_SPRING}
             className={cn(
-              'inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-center text-sm font-semibold whitespace-normal shadow-xs transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
+              'inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-3 text-center text-sm font-bold whitespace-normal shadow-sm transition-colors focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring',
               checkInStage === 'reserved' &&
-                'bg-[#f0c95c] text-[#173c2d] hover:bg-[#e5bc49]',
+                'bg-brass text-brass-foreground hover:bg-brass-hover',
               checkInStage === 'occupied' &&
-                'bg-primary text-primary-foreground hover:bg-primary/90',
+                'bg-gradient-to-r from-primary to-forest-mid text-white hover:from-primary-hover hover:to-forest-deep',
               checkInStage === 'available' &&
-                'border border-border bg-background text-foreground hover:bg-muted',
+                'border border-border bg-background text-foreground hover:border-primary/45 hover:bg-surface-subtle',
             )}
           >
             {checkInStage === 'reserved' && 'Verify check-in'}

@@ -272,16 +272,18 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
-        className={`flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors sm:p-8 ${
+        className={`flex flex-col items-center justify-center rounded-3xl border-2 border-dashed p-6 text-center shadow-card transition-colors sm:p-8 ${
           isDragging
-            ? 'border-primary bg-primary/5'
-            : 'border-muted-foreground/25 bg-card hover:border-muted-foreground/50'
+            ? 'border-primary bg-primary/8'
+            : 'border-border bg-surface-subtle/75 hover:border-primary/45'
         }`}
       >
-        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-card text-primary shadow-2xs">
           <UploadCloud className="h-6 w-6" aria-hidden="true" />
         </div>
-        <h2 className="text-base font-semibold text-foreground">Upload Space Photos</h2>
+        <h2 className="font-heading text-lg font-semibold text-foreground">
+          Upload Space Photos
+        </h2>
         <p className="mt-1 max-w-md text-sm text-muted-foreground">
           Drag and drop images here, or browse files from your device. Up to 5 MB per
           photo (JPEG, PNG, WebP). Maximum 10 photos per upload.
@@ -310,7 +312,7 @@ export function PhotoUploadForm({ spaceId }: PhotoUploadFormProps) {
             disabled={isPending}
             onClick={() => fileInputRef.current?.click()}
             // Wraps at 200% text instead of running past the drop zone's edge.
-            className="h-auto min-h-12 max-w-full min-w-12 shrink px-5 py-2 text-sm font-medium whitespace-normal"
+            className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-full px-6 py-2 text-sm font-semibold whitespace-normal"
           >
             {isPending ? (
               <>

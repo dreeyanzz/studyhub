@@ -70,16 +70,16 @@ export default async function DeleteSpacePage({
             href="/host"
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              'h-auto min-h-12 max-w-full min-w-12 shrink px-4 py-2 text-sm font-medium whitespace-normal',
+              'h-auto min-h-12 max-w-full min-w-12 shrink gap-2 rounded-full border-border/80 bg-card px-4 py-2 text-sm font-medium whitespace-normal text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle',
             )}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
-            Back to Spaces
+            <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>Back to Spaces</span>
           </Link>
         </div>
       </div>
-      <Card>
-        <CardContent className="space-y-5">
+      <Card className="rounded-3xl border-destructive/30 shadow-card">
+        <CardContent className="space-y-5 pt-6">
           <p className="text-base wrap-anywhere">
             You&apos;re about to permanently delete <strong>{space.name}</strong>. This
             can&apos;t be undone.

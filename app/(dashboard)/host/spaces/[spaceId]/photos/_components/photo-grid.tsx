@@ -31,12 +31,12 @@ function formatBytes(bytes?: number): string {
 export function PhotoGrid({ spaceId, spaceName, photos }: PhotoGridProps) {
   if (photos.length === 0) {
     return (
-      <Card className="border-dashed">
+      <Card className="rounded-3xl border-2 border-dashed border-border bg-surface-subtle/75 shadow-card">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl border border-border/80 bg-card text-primary shadow-2xs">
             <ImageOff className="h-6 w-6" aria-hidden="true" />
           </div>
-          <h2 className="text-base font-semibold text-foreground">
+          <h2 className="font-heading text-lg font-semibold text-foreground">
             No Space photos uploaded yet
           </h2>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
@@ -51,22 +51,22 @@ export function PhotoGrid({ spaceId, spaceName, photos }: PhotoGridProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+        <h2 className="font-heading text-xl font-semibold tracking-tight text-foreground">
           Uploaded Photos ({photos.length})
         </h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {photos.map((photo, index) => (
-          <Card key={photo.name} className="overflow-hidden">
-            <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          <Card key={photo.name} className="gap-0 rounded-3xl py-0 shadow-card">
+            <div className="relative aspect-video w-full overflow-hidden rounded-t-3xl bg-surface-subtle">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={photo.url}
                 // Design §2/§3: generic alt text, numbered in upload order. No "Photo of":
                 // screen readers already say "image" (jsx-a11y/img-redundant-alt).
                 alt={`${spaceName}, ${index + 1} of ${photos.length}`}
-                className="h-full w-full object-cover transition-transform duration-200 hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                 loading="lazy"
               />
             </div>
@@ -92,7 +92,7 @@ export function PhotoGrid({ spaceId, spaceName, photos }: PhotoGridProps) {
                   className={buttonVariants({
                     variant: 'destructive',
                     className:
-                      'h-12 w-full min-w-12 justify-center px-4 text-sm font-medium',
+                      'h-auto min-h-12 w-full min-w-12 justify-center rounded-full px-4 py-2 text-sm font-semibold whitespace-normal',
                   })}
                 >
                   <Trash2 className="mr-2 h-4 w-4" aria-hidden="true" />

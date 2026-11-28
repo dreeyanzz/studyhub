@@ -1,106 +1,135 @@
 import Link from 'next/link'
 
 import { WorqMark } from '@/components/brand/worq-mark'
-import { buttonVariants } from '@/components/ui/button'
 
+/**
+ * Airy luminous pearl-white studio footer (STORY-02, STORY-17).
+ * Honest about sandbox payments (D-005) and preserves Find a Space discovery entry (FR-1.1).
+ */
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-muted">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-10">
-        <div className="flex flex-wrap items-start justify-between gap-10">
-          <div className="max-w-sm min-w-0 space-y-3">
+    <footer className="relative mt-auto border-t border-border bg-card text-foreground">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+      />
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid gap-10 pb-10 wrap-anywhere md:grid-cols-[minmax(0,1.5fr)_minmax(0,3fr)]">
+          {/* Brand Column */}
+          <div className="space-y-4">
             <Link
               href="/"
-              className="inline-flex min-h-12 min-w-12 items-center gap-2 font-heading text-2xl font-semibold tracking-tight text-foreground focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              className="inline-flex min-h-12 items-center gap-2.5 font-heading text-2xl font-bold tracking-[-0.03em] text-foreground transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               <WorqMark className="size-8" />
-              Worq
+              <span>Worq</span>
             </Link>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Discover Verified study and co-working Spaces across Metro Cebu and hold an
-              open seat now.
+            <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+              Discover verified study and co-working Spaces across Metro Cebu, inspect
+              Host-updated seat maps, and hold an open seat before you commute.
+            </p>
+            <p className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-subtle px-3 py-1 text-xs font-medium text-muted-foreground">
+              <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+              <span>Metro Cebu · Verified Spaces</span>
             </p>
           </div>
 
-          <nav
-            aria-label="Footer"
-            className="flex min-w-0 flex-wrap gap-x-10 gap-y-6 sm:gap-x-14"
-          >
-            <div className="flex min-w-0 flex-col gap-1">
-              <p className="px-3 font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+          {/* The link columns stay one Footer landmark (STORY-02, STORY-21 privacy link). */}
+          <nav aria-label="Footer" className="grid gap-10 sm:grid-cols-3">
+            {/* Explore */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
                 Explore
               </p>
-              <Link
-                href="/spaces"
-                className={buttonVariants({
-                  variant: 'link',
-                  className:
-                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
-                })}
-              >
-                Find a Space
-              </Link>
-              <Link
-                href="/#how-it-works"
-                className={buttonVariants({
-                  variant: 'link',
-                  className:
-                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
-                })}
-              >
-                How it works
-              </Link>
-              <Link
-                href="/for-hosts"
-                className={buttonVariants({
-                  variant: 'link',
-                  className:
-                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
-                })}
-              >
-                For Hosts
-              </Link>
+              <ul className="space-y-0.5 text-sm">
+                <li>
+                  <Link
+                    href="/spaces"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Find a Space
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/#how-it-works"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    How it works
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/for-hosts"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    For Hosts
+                  </Link>
+                </li>
+              </ul>
             </div>
 
-            <div className="flex min-w-0 flex-col gap-1">
-              <p className="px-3 font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+            {/* Account */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
                 Account
               </p>
-              <Link
-                href="/login"
-                className={buttonVariants({
-                  variant: 'link',
-                  className:
-                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
-                })}
-              >
-                Log in
-              </Link>
-              <Link
-                href="/register"
-                className={buttonVariants({
-                  variant: 'link',
-                  className:
-                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
-                })}
-              >
-                Sign up
-              </Link>
-              <Link
-                href="/privacy"
-                className={buttonVariants({
-                  variant: 'link',
-                  className:
-                    'h-auto min-h-12 justify-start py-3 text-left whitespace-normal',
-                })}
-              >
-                Privacy policy
-              </Link>
+              <ul className="space-y-0.5 text-sm">
+                <li>
+                  <Link
+                    href="/login"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Log in
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/register"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Sign up
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/register?role=host"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Become a Host
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Trust & Legal */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+                Trust
+              </p>
+              <ul className="space-y-0.5 text-sm">
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Privacy policy
+                  </Link>
+                </li>
+              </ul>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Every listed Space is reviewed and verified by an Administrator before it
+                appears on the map.
+              </p>
             </div>
           </nav>
         </div>
-        <div className="flex flex-col justify-between gap-2 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center">
-          <p>&copy; 2026 Worq</p>
+
+        <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground">
+          <p className="rounded-full bg-surface-subtle px-3.5 py-1.5 font-medium text-foreground">
+            Reservation fees run in sandbox mode, so no real money moves.
+          </p>
+          <p>&copy; 2026 Worq · Study &amp; Co-Working Discovery</p>
         </div>
       </div>
     </footer>

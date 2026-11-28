@@ -55,27 +55,27 @@ export default async function ReservationHistoryPage({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4">
+      <div className="space-y-3">
         <nav aria-label="Breadcrumb">
           <Link
             href="/seeker"
-            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <ArrowLeft aria-hidden="true" className="size-4 shrink-0 text-primary" />
             <span>Back to dashboard</span>
           </Link>
         </nav>
         <div className="space-y-1">
-          <h1 className="font-heading text-2xl font-semibold tracking-tight wrap-anywhere text-foreground sm:text-4xl">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight wrap-anywhere text-foreground sm:text-4xl">
             Reservation history
           </h1>
-          <p className="text-base text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Every reservation you paid for after it ended, newest first.
           </p>
         </div>
       </div>
 
-      <div className="max-w-2xl space-y-4">
+      <div className="max-w-3xl space-y-4">
         {history === null ? (
           <Alert variant="destructive" role="alert">
             <AlertDescription>
@@ -86,12 +86,12 @@ export default async function ReservationHistoryPage({
         ) : history.items.length === 0 ? (
           <section
             aria-labelledby="empty-history-heading"
-            className="space-y-4 rounded-3xl border border-border/60 bg-card p-8 text-center shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
+            className="space-y-4 rounded-3xl border border-dashed border-border bg-surface-subtle/75 p-8 text-center shadow-card"
           >
             <div className="space-y-1">
               <h2
                 id="empty-history-heading"
-                className="text-lg font-semibold text-foreground"
+                className="font-heading text-xl font-semibold text-foreground"
               >
                 No past reservations yet
               </h2>

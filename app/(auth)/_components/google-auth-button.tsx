@@ -22,7 +22,7 @@ export function GoogleAuthButton({
   const [state, formAction, pending] = useActionState(signInWithGoogle, {})
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       {!pending && state.formError && (
         <Alert variant="destructive">
           <AlertDescription>{state.formError}</AlertDescription>
@@ -37,7 +37,7 @@ export function GoogleAuthButton({
           variant="outline"
           disabled={pending}
           focusableWhenDisabled
-          className="h-auto min-h-12 w-full justify-center gap-3 rounded-full bg-background/90 py-3 font-medium whitespace-normal transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/60 hover:shadow-sm active:translate-y-0"
+          className="h-auto min-h-12 w-full justify-center gap-3 rounded-xl border-border bg-card py-3 font-semibold whitespace-normal shadow-2xs transition-all duration-150 hover:border-primary/40 hover:bg-surface-subtle"
         >
           <svg
             width="18"

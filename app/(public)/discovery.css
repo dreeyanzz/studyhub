@@ -1,6 +1,4 @@
-/* Public landing presentation rules (STORY-17):
- * Keeps the decorative startup desk-lamp intro styles and reduced-motion guards
- * cleanly separated while layout, typography, and D-031 tokens live in Tailwind. */
+/* D-033 & STORY-17: Luminous Aurora Glass Daylight landing page + startup desk-lamp intro styles and reduced-motion guards; rem-based text and intrinsic grids reflow cleanly. */
 
 .discovery-home {
   position: relative;
@@ -8,9 +6,670 @@
   color: var(--foreground);
   overflow-wrap: anywhere;
 }
-
 .discovery-home * {
   min-width: 0;
+}
+.discovery-container {
+  max-width: 72rem;
+  padding-inline: min(1.5rem, 4vw);
+  margin-inline: auto;
+}
+.discovery-home h1,
+.discovery-home h2,
+.discovery-home h3 {
+  font-family: var(--font-heading);
+}
+.discovery-home h2 {
+  font-size: clamp(1.9rem, 3.6vw, 2.85rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+.discovery-home h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+.discovery-home p {
+  line-height: 1.65;
+}
+.discovery-home a,
+.discovery-home button {
+  min-height: 3rem;
+  min-width: 3rem;
+  max-width: 100%;
+  height: auto;
+  padding-block: 0.7rem;
+  white-space: normal;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms ease;
+}
+.discovery-home a:focus-visible,
+.discovery-home button:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 4px;
+}
+
+.aurora-eyebrow {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* 1. Centered Luminous Botanical Hero + Bento Product Stage */
+.aurora-hero {
+  position: relative;
+  padding-top: clamp(2.25rem, 4.5vw, 4rem);
+  padding-bottom: clamp(3rem, 5.5vw, 5rem);
+  background:
+    radial-gradient(
+      ellipse 60% 45% at 20% 10%,
+      rgba(167, 212, 155, 0.34),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 55% 44% at 82% 10%,
+      rgba(231, 203, 131, 0.28),
+      transparent 70%
+    ),
+    radial-gradient(ellipse 50% 40% at 50% 35%, rgba(33, 92, 63, 0.09), transparent 70%),
+    var(--background);
+}
+.aurora-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 4.5vw, 3.75rem);
+}
+.aurora-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 48rem;
+  margin-inline: auto;
+}
+.aurora-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(33, 92, 63, 0.2);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--foreground);
+  box-shadow: var(--shadow-card);
+}
+.aurora-display {
+  margin-top: 1.4rem;
+  font-size: clamp(2.75rem, 6.2vw, 5.25rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--foreground);
+}
+.aurora-gradient-text {
+  background: linear-gradient(110deg, #173c2d 0%, #215c3f 54%, #3d7d57 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.aurora-lead {
+  margin-top: 1.25rem;
+  max-width: 39rem;
+  font-size: clamp(1rem, 1.45vw, 1.125rem);
+  color: var(--muted-foreground);
+}
+.aurora-search-capsule {
+  margin-top: 1.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 38rem;
+  padding: 0.45rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(33, 92, 63, 0.24);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-hero);
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.aurora-search-capsule:focus-within {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 4px rgba(33, 92, 63, 0.14),
+    var(--shadow-hero);
+}
+.aurora-search-field {
+  position: relative;
+  min-width: 0;
+  /* min(): at 200% text 14rem is wider than a 360 px phone (D-031). */
+  flex: 1 1 min(14rem, 100%);
+}
+.aurora-quick-row {
+  margin-top: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+}
+.aurora-sandbox-note {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--muted-foreground);
+}
+
+/* Centerpiece Frosted-Glass Bento Product Stage */
+.aurora-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.85rem;
+  border-radius: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-hero);
+}
+@media (min-width: 64rem) {
+  .aurora-stage {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  }
+}
+.aurora-stage-main {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.4rem;
+  min-height: 17rem;
+  background: var(--forest-deep);
+}
+.aurora-stage-main > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.aurora-stage-float {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--foreground);
+  box-shadow: var(--shadow-card);
+}
+.aurora-stage-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--primary);
+}
+.aurora-stage-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.aurora-stage-widget {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 1.4rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+}
+.aurora-widget-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.aurora-widget-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.aurora-widget-title {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+.aurora-widget-pill {
+  padding: 0.25rem 0.7rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.aurora-widget-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+.aurora-unit-tile {
+  aspect-ratio: 1;
+  border-radius: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.aurora-unit-tile.is-open {
+  background: #edf6ea;
+  border: 1px solid #b5d6b0;
+  color: #173c2d;
+}
+.aurora-unit-tile.is-taken {
+  background: #eef1e8;
+  border: 1px solid #d8dfd0;
+  color: #536356;
+}
+.aurora-unit-tile.is-reserved {
+  background: #faf3de;
+  border: 1px solid #dfc585;
+  color: #6b4e16;
+}
+.aurora-unit-tile.is-selected {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: #ffffff;
+  box-shadow: 0 6px 16px -4px rgba(33, 92, 63, 0.45);
+}
+.aurora-widget-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+}
+.aurora-widget-mint {
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  background: var(--brass);
+  color: var(--brass-foreground);
+  font-weight: 700;
+}
+.aurora-stage-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  flex: 1;
+}
+.aurora-pair-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.4rem;
+  min-height: 9rem;
+  background: var(--surface-subtle);
+}
+.aurora-pair-tile > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.aurora-pair-tile > span {
+  position: absolute;
+  left: 0.65rem;
+  /* Wraps inside the tile at 200% text instead of being clipped (D-031). */
+  max-width: calc(100% - 1.3rem);
+  bottom: 0.65rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* 2. Floating 3-Card Sculptural Pillars */
+.aurora-pillars-wrap {
+  padding-block: clamp(2rem, 4vw, 3.5rem);
+}
+.aurora-pillars {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (min-width: 48rem) {
+  /* Intrinsic columns, like the gallery: fewer columns at 200% text (D-031). */
+  .aurora-pillars {
+    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  }
+}
+.aurora-pillar-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.75rem;
+  border-radius: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-card);
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 240ms ease,
+    border-color 200ms ease;
+}
+.aurora-pillar-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(33, 92, 63, 0.35);
+  box-shadow: var(--shadow-card-hover);
+}
+.aurora-icon-orb {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+.aurora-icon-orb.is-emerald {
+  background: #e5eddc;
+  color: #215c3f;
+}
+.aurora-icon-orb.is-brass {
+  background: #faf3de;
+  color: #7c5b19;
+}
+.aurora-icon-orb.is-sage {
+  background: #ddebcc;
+  color: #173c2d;
+}
+.aurora-pillar-card h2 {
+  font-size: 1.35rem;
+}
+.aurora-pillar-card p {
+  font-size: 0.92rem;
+  color: var(--muted-foreground);
+}
+
+/* 3. Light-Glass Curated Environments Gallery */
+.aurora-gallery-section {
+  padding-block: clamp(3rem, 5.5vw, 5rem);
+}
+.aurora-section-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 40rem;
+  margin-inline: auto;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+}
+.aurora-section-desc {
+  font-size: 0.96rem;
+  color: var(--muted-foreground);
+}
+.aurora-gallery-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (min-width: 48rem) {
+  /* Intrinsic columns: three at 100% text, fewer at 200% instead of clipping (D-031). */
+  .aurora-gallery-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(13rem, 100%), 1fr));
+  }
+}
+.aurora-gallery-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 23rem;
+  border-radius: 1.75rem;
+  display: flex;
+  align-items: flex-end;
+  padding: 1rem;
+  background: var(--forest-deep);
+  box-shadow: var(--shadow-card);
+}
+.aurora-gallery-media {
+  position: absolute;
+  inset: 0;
+}
+.aurora-gallery-media > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.aurora-gallery-card:hover .aurora-gallery-media > img {
+  transform: scale(1.05);
+}
+.aurora-gallery-glass {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: 1.15rem 1.25rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-float);
+}
+.aurora-gallery-kind {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.aurora-gallery-glass h3 {
+  margin-top: 0.2rem;
+  color: var(--foreground);
+}
+.aurora-gallery-glass p {
+  margin-top: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+
+/* 4. Deep Forest Pine Luminous Glass Workflow */
+.aurora-cosmos-band {
+  position: relative;
+  background:
+    radial-gradient(ellipse 50% 50% at 15% 15%, rgba(46, 117, 82, 0.36), transparent 70%),
+    radial-gradient(
+      ellipse 45% 45% at 85% 85%,
+      rgba(231, 203, 131, 0.18),
+      transparent 70%
+    ),
+    var(--forest-deep);
+  color: #ffffff;
+  padding-block: clamp(4rem, 7vw, 6rem);
+  scroll-margin-top: 5.5rem;
+}
+.aurora-cosmos-head {
+  text-align: center;
+  max-width: 38rem;
+  margin-inline: auto;
+  margin-bottom: 3rem;
+}
+.aurora-cosmos-eyebrow {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(231, 203, 131, 0.38);
+  background: rgba(231, 203, 131, 0.14);
+  color: var(--brass);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.aurora-cosmos-head h2 {
+  margin-top: 1rem;
+  color: #ffffff;
+}
+.aurora-cosmos-sub {
+  margin-top: 0.75rem;
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.76);
+}
+.aurora-cosmos-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (min-width: 48rem) {
+  .aurora-cosmos-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.aurora-cosmos-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 2rem;
+  border-radius: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+}
+.aurora-cosmos-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.85rem;
+  background: var(--brass);
+  color: var(--brass-foreground);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.aurora-cosmos-card h3 {
+  color: #ffffff;
+  font-size: 1.3rem;
+}
+.aurora-cosmos-card p {
+  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* 5. Radiant Emerald-to-Pine Host CTA Showcase */
+.aurora-host-wrap {
+  padding-block: clamp(3.5rem, 6vw, 5.5rem);
+  scroll-margin-top: 5.5rem;
+}
+.aurora-host-banner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.25rem;
+  align-items: center;
+  /* A smaller floor keeps the Host list on a 360 px phone at 200% text (D-031). */
+  padding: clamp(1.25rem, 4.5vw, 3.75rem);
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at 90% 15%, rgba(231, 203, 131, 0.24), transparent 48%),
+    linear-gradient(135deg, #215c3f 0%, #173c2d 56%, #0e241b 100%);
+  color: #ffffff;
+  box-shadow: var(--shadow-hero);
+}
+@media (min-width: 64rem) {
+  .aurora-host-banner {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  }
+}
+.aurora-host-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.aurora-host-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass);
+}
+.aurora-host-copy h2 {
+  color: #ffffff;
+}
+.aurora-host-desc {
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.86);
+}
+.aurora-host-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.aurora-host-pills li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.15rem;
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+}
+.aurora-host-pills strong {
+  display: block;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+.aurora-host-pills span {
+  display: block;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+.aurora-host-pills .aurora-host-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: var(--brass);
+  color: var(--brass-foreground);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -33,27 +692,18 @@
   justify-content: center;
   overflow: hidden;
   pointer-events: none;
-  background-color: #060d0a;
+  background-color: #0d2219;
   background-image:
     radial-gradient(
       circle at 50% 44%,
-      rgba(19, 42, 31, 0.55) 0%,
-      rgba(10, 20, 16, 0.85) 55%,
-      rgba(6, 13, 10, 0.96) 100%
+      rgba(33, 92, 63, 0.42) 0%,
+      rgba(16, 43, 32, 0.92) 58%,
+      rgba(13, 34, 25, 0.98) 100%
     ),
-    radial-gradient(rgba(167, 243, 208, 0.14) 1px, transparent 1px),
-    linear-gradient(to right, rgba(216, 223, 208, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(216, 223, 208, 0.035) 1px, transparent 1px);
+    radial-gradient(rgba(231, 203, 131, 0.16) 1px, transparent 1px);
   background-size:
     100% 100%,
-    28px 28px,
-    56px 56px,
-    56px 56px;
-  background-position:
-    0 0,
-    14px 14px,
-    0 0,
-    0 0;
+    32px 32px;
   will-change: opacity;
   transition: opacity 650ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -96,11 +746,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
   font-weight: 600;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(199, 216, 204, 0.9);
+  color: rgba(242, 245, 238, 0.92);
   animation: startup-phrase-enter 480ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
 }
 .startup-lamp-svg {

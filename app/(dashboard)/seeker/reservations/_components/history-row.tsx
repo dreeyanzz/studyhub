@@ -137,18 +137,18 @@ export function HistoryRow({ item, reviewValues }: HistoryRowProps) {
       : `/spaces/${item.spaceId}?unit=${item.unitId}&from=history`
 
   return (
-    <Card data-testid="history-row" className="gap-3">
+    <Card data-testid="history-row" className="gap-3 rounded-3xl shadow-card">
       <CardHeader className="space-y-1">
         {/* min-w-0 lets this row shrink inside CardHeader's grid, and wrap-anywhere
             breaks a long one-word Space name, so neither clips at 360 px with 200% text
             (design §3, Accessibility). break-words alone doesn't lower the row's width. */}
         <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-2">
           <CardTitle className="min-w-0">
-            <h2 className="text-lg font-semibold wrap-anywhere">
+            <h2 className="font-heading text-xl font-semibold wrap-anywhere">
               {item.spaceListed ? (
                 <Link
                   href={`/spaces/${item.spaceId}`}
-                  className="inline-flex min-h-12 min-w-12 items-center wrap-anywhere hover:underline focus-visible:underline"
+                  className="inline-flex min-h-12 min-w-12 items-center wrap-anywhere hover:text-primary hover:underline focus-visible:underline"
                 >
                   {item.spaceName}
                 </Link>
@@ -165,7 +165,7 @@ export function HistoryRow({ item, reviewValues }: HistoryRowProps) {
       </CardHeader>
 
       <CardContent className="space-y-1.5 text-sm">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-surface-subtle/85 px-3.5 py-2.5">
           <span className="font-medium text-foreground">{outcomeText}</span>
           <span aria-hidden="true" className="text-muted-foreground">
             ·

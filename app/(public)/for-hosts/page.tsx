@@ -67,29 +67,26 @@ const HOST_FAQ = [
 export default function ForHostsPage() {
   return (
     <div className="bg-background wrap-anywhere text-foreground">
-      {/* Section 1: Split Editorial Host Hero */}
+      {/* Section 1: Luminous Botanical Glass Host Hero */}
       <section
         aria-labelledby="hosts-hero-title"
-        className="border-b border-border bg-background"
+        className="relative overflow-hidden border-b border-border/80 bg-[radial-gradient(ellipse_75%_55%_at_50%_-10%,rgba(221,235,204,0.72),transparent_70%)]"
       >
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12 lg:px-10 lg:py-20">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12 lg:px-8 lg:py-20">
           <div className="min-w-0 space-y-6">
             <EditorialReveal immediate y={10}>
-              <div className="flex items-center gap-3">
-                <span className="h-px w-8 bg-primary" aria-hidden="true" />
-                <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
-                  For study &amp; co-working Hosts · Metro Cebu
-                </p>
-              </div>
+              <p className="inline-flex items-center gap-2 rounded-full border border-border bg-white/85 px-3.5 py-1.5 font-mono text-xs font-semibold tracking-wider text-primary uppercase shadow-2xs backdrop-blur-sm">
+                <span className="size-2 rounded-full bg-primary" aria-hidden="true" />
+                <span>For study &amp; co-working Hosts · Metro Cebu</span>
+              </p>
             </EditorialReveal>
 
             <EditorialReveal immediate delay={0.07} y={14}>
               <h1
                 id="hosts-hero-title"
-                className="max-w-[16ch] font-heading text-4xl leading-[1.06] font-normal tracking-[-0.03em] text-balance text-foreground sm:text-5xl lg:text-[3.5rem]"
+                className="max-w-[16ch] font-heading text-4xl leading-[1.06] font-bold tracking-[-0.03em] text-balance text-foreground sm:text-5xl lg:text-[3.4rem]"
               >
-                Your Space, mapped{' '}
-                <em className="font-normal text-primary italic">for focused work.</em>
+                Your Space, mapped <span className="text-primary">for focused work.</span>
               </h1>
             </EditorialReveal>
 
@@ -106,7 +103,7 @@ export default function ForHostsPage() {
                 <EditorialInteractive lift={-1.5}>
                   <Link
                     href="/register?role=host"
-                    className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-brass px-6 py-3 text-sm font-bold whitespace-normal text-brass-foreground shadow-sm transition-colors hover:bg-brass-hover focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
                     Become a Host
                     <ArrowRight
@@ -118,7 +115,7 @@ export default function ForHostsPage() {
                 <EditorialInteractive lift={-1.5}>
                   <Link
                     href="/login"
-                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold whitespace-normal text-foreground transition-colors hover:bg-muted focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-border bg-white/90 px-5 py-3 text-sm font-semibold whitespace-normal text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-white focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
                     Host sign in
                   </Link>
@@ -127,7 +124,7 @@ export default function ForHostsPage() {
             </EditorialReveal>
 
             <EditorialReveal immediate delay={0.24} y={8}>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border pt-5">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-border/80 pt-5">
                 <Link
                   href="/spaces"
                   className="group inline-flex min-h-12 min-w-12 items-center gap-1.5 text-sm font-semibold whitespace-normal text-primary underline-offset-4 hover:underline focus-visible:rounded-md focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -148,8 +145,8 @@ export default function ForHostsPage() {
           </div>
 
           <EditorialReveal immediate delay={0.12} y={18} className="min-w-0">
-            <figure className="rounded-2xl border border-border bg-card p-3 shadow-[0_24px_48px_-32px_rgba(23,60,45,0.32)]">
-              <div className="overflow-hidden rounded-xl bg-secondary">
+            <figure className="rounded-3xl border border-white/95 bg-white/92 p-3 shadow-hero backdrop-blur-xl">
+              <div className="overflow-hidden rounded-2xl bg-secondary">
                 <Image
                   src="/images/public-landing/library.webp"
                   alt="Rows of study desks inside a quiet, well-lit reading room"
@@ -160,7 +157,7 @@ export default function ForHostsPage() {
                   className="aspect-[4/3] w-full object-cover transition-transform duration-500 hover:scale-[1.02] lg:aspect-[4/5]"
                 />
               </div>
-              <figcaption className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-border pt-3">
+              <figcaption className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t border-border/80 px-1 pt-3">
                 <div className="space-y-0.5">
                   <p className="font-mono text-xs font-semibold tracking-wider text-primary uppercase">
                     Host Portal · Zero extra hardware
@@ -170,7 +167,7 @@ export default function ForHostsPage() {
                     browser.
                   </p>
                 </div>
-                <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-2.5 py-1 font-mono text-xs font-medium text-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-3 py-1 font-mono text-xs font-semibold text-accent-foreground">
                   <ShieldCheck className="size-3.5 text-primary" aria-hidden="true" />
                   Verified Spaces
                 </span>
@@ -182,15 +179,15 @@ export default function ForHostsPage() {
 
       {/* Section 2: Interactive Host Front-Desk Preview */}
       <section aria-labelledby="host-desk-title" className="py-16 lg:py-24">
-        <div className="mx-auto w-full max-w-7xl space-y-12 px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto w-full max-w-6xl space-y-12 px-4 sm:px-6 lg:px-8">
           <EditorialReveal className="grid grid-cols-1 items-end gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
             <div className="min-w-0 space-y-3">
-              <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+              <p className="inline-block rounded-full bg-accent px-3 py-0.5 font-mono text-xs font-semibold tracking-wider text-accent-foreground uppercase">
                 01 / The Host portal
               </p>
               <h2
                 id="host-desk-title"
-                className="max-w-[20ch] font-heading text-3xl leading-[1.12] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-4xl"
+                className="max-w-[20ch] font-heading text-3xl leading-[1.12] font-bold tracking-[-0.025em] text-balance text-foreground sm:text-4xl"
               >
                 Run your floor without extra hardware.
               </h2>
@@ -207,19 +204,19 @@ export default function ForHostsPage() {
         </div>
       </section>
 
-      {/* Section 3: 4-Stage Host Onboarding Rail */}
+      {/* Section 3: 4-Stage Host Onboarding Grid */}
       <section
         aria-labelledby="host-onboarding-title"
-        className="border-y border-border bg-muted/60 py-16 lg:py-24"
+        className="border-y border-border/80 bg-surface-subtle/75 py-16 lg:py-24"
       >
-        <div className="mx-auto w-full max-w-7xl space-y-12 px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto w-full max-w-6xl space-y-10 px-4 sm:px-6 lg:px-8">
           <EditorialReveal className="space-y-3">
-            <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+            <p className="inline-block rounded-full bg-accent px-3 py-0.5 font-mono text-xs font-semibold tracking-wider text-accent-foreground uppercase">
               02 / From sign-up to Verified
             </p>
             <h2
               id="host-onboarding-title"
-              className="max-w-[24ch] font-heading text-3xl leading-[1.12] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-4xl"
+              className="max-w-[24ch] font-heading text-3xl leading-[1.12] font-bold tracking-[-0.025em] text-balance text-foreground sm:text-4xl"
             >
               Four steps to welcome your first Seeker.
             </h2>
@@ -228,21 +225,17 @@ export default function ForHostsPage() {
           <EditorialStagger
             as="ol"
             stagger={0.08}
-            className="grid grid-cols-1 gap-8 border-t border-border pt-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0"
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
           >
-            {ONBOARDING_STEPS.map((step, index) => (
+            {ONBOARDING_STEPS.map((step) => (
               <EditorialStaggerItem
                 key={step.number}
                 as="li"
-                className={
-                  index > 0
-                    ? 'space-y-2.5 border-t border-border pt-6 sm:border-t-0 sm:pt-0 lg:border-l lg:pl-7'
-                    : 'space-y-2.5 lg:pr-7'
-                }
+                className="space-y-3 rounded-3xl border border-border/80 bg-card p-6 shadow-card"
               >
                 <span
                   aria-hidden="true"
-                  className="block font-heading text-3xl text-primary"
+                  className="inline-flex size-10 items-center justify-center rounded-xl bg-accent font-mono text-sm font-bold text-primary"
                 >
                   {step.number}
                 </span>
@@ -260,14 +253,14 @@ export default function ForHostsPage() {
 
       {/* Section 4: Honest Host Ground Rules / FAQ */}
       <section aria-labelledby="host-faq-title" className="py-16 lg:py-24">
-        <div className="mx-auto w-full max-w-7xl space-y-10 px-4 sm:px-6 lg:px-10">
+        <div className="mx-auto w-full max-w-6xl space-y-10 px-4 sm:px-6 lg:px-8">
           <EditorialReveal className="space-y-3">
-            <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
+            <p className="inline-block rounded-full bg-accent px-3 py-0.5 font-mono text-xs font-semibold tracking-wider text-accent-foreground uppercase">
               03 / Ground rules
             </p>
             <h2
               id="host-faq-title"
-              className="max-w-[22ch] font-heading text-3xl leading-[1.12] font-normal tracking-[-0.02em] text-balance text-foreground sm:text-4xl"
+              className="max-w-[22ch] font-heading text-3xl leading-[1.12] font-bold tracking-[-0.025em] text-balance text-foreground sm:text-4xl"
             >
               Straight answers before you list.
             </h2>
@@ -276,11 +269,14 @@ export default function ForHostsPage() {
           <EditorialStagger
             as="dl"
             stagger={0.07}
-            className="grid grid-cols-1 gap-8 border-t border-border pt-8 md:grid-cols-2 md:gap-x-12 md:gap-y-10"
+            className="grid grid-cols-1 gap-5 md:grid-cols-2"
           >
             {HOST_FAQ.map((item) => (
-              <EditorialStaggerItem key={item.question} className="space-y-2.5">
-                <dt className="font-heading text-xl font-semibold text-foreground">
+              <EditorialStaggerItem
+                key={item.question}
+                className="space-y-2.5 rounded-3xl border border-border/80 bg-card p-6 shadow-card"
+              >
+                <dt className="font-heading text-lg font-semibold text-foreground">
                   {item.question}
                 </dt>
                 <dd className="text-sm leading-relaxed text-muted-foreground">
@@ -292,23 +288,27 @@ export default function ForHostsPage() {
         </div>
       </section>
 
-      {/* Section 5: Deep-Forest Closing Host CTA Band */}
+      {/* Section 5: Deep-Pine & Brass Closing Host CTA Band */}
       <section
         aria-labelledby="hosts-cta-title"
-        className="bg-foreground py-16 text-background lg:py-20"
+        className="relative overflow-hidden bg-forest-deep py-16 text-white lg:py-20"
       >
-        <EditorialReveal className="mx-auto flex w-full max-w-7xl flex-col items-start justify-between gap-8 px-4 sm:px-6 lg:flex-row lg:items-center lg:px-10">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_80%_20%,rgba(33,92,63,0.45),transparent_70%)]"
+        />
+        <EditorialReveal className="relative mx-auto flex w-full max-w-6xl flex-col items-start justify-between gap-8 px-4 sm:px-6 lg:flex-row lg:items-center lg:px-8">
           <div className="max-w-2xl space-y-3">
-            <p className="font-mono text-xs font-semibold tracking-widest text-[#f0c95c] uppercase">
+            <p className="font-mono text-xs font-semibold tracking-widest text-brass uppercase">
               Ready to host
             </p>
             <h2
               id="hosts-cta-title"
-              className="font-heading text-3xl leading-[1.12] font-normal tracking-[-0.02em] text-balance sm:text-4xl"
+              className="font-heading text-3xl leading-[1.12] font-bold tracking-[-0.025em] text-balance text-white sm:text-4xl"
             >
               Put your study Space on the Metro Cebu map.
             </h2>
-            <p className="text-sm leading-relaxed text-background/85 sm:text-base">
+            <p className="text-sm leading-relaxed text-white/85 sm:text-base">
               Set up your Space, map your Zones, and submit for Administrator verification
               in minutes.
             </p>
@@ -318,7 +318,7 @@ export default function ForHostsPage() {
             <EditorialInteractive lift={-1.5}>
               <Link
                 href="/register?role=host"
-                className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-[#f0c95c] px-6 py-3 text-sm font-semibold whitespace-normal text-[#173c2d] transition-colors hover:bg-[#e5bc49] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[#f0c95c]"
+                className="group inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-xl bg-brass px-6 py-3 text-sm font-bold whitespace-normal text-brass-foreground shadow-md transition-colors hover:bg-brass-hover focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brass"
               >
                 Create your Host account
                 <ArrowRight
@@ -330,7 +330,7 @@ export default function ForHostsPage() {
             <EditorialInteractive lift={-1.5}>
               <Link
                 href="/spaces"
-                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-background/45 px-5 py-3 text-sm font-semibold whitespace-normal text-background transition-colors hover:bg-background/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-background"
+                className="inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-semibold whitespace-normal text-white backdrop-blur transition-colors hover:border-brass/60 hover:bg-white/18 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-white"
               >
                 Explore Seeker map
               </Link>

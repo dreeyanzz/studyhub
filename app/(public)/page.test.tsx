@@ -18,7 +18,7 @@ describe('public landing page (STORY-02, STORY-17)', () => {
     )
   })
 
-  it('routes Hosts to the dedicated /for-hosts page from the header and footer while keeping / Seeker-focused', () => {
+  it('routes Hosts to the dedicated /for-hosts page from the header, landing banner, and footer', () => {
     const headerHtml = renderToStaticMarkup(<SiteHeader />)
     const footerHtml = renderToStaticMarkup(<SiteFooter />)
     const homeHtml = renderToStaticMarkup(<Home />)
@@ -28,29 +28,28 @@ describe('public landing page (STORY-02, STORY-17)', () => {
     expect(headerHtml).not.toContain('/#for-hosts')
     expect(footerHtml).not.toContain('/#for-hosts')
 
-    // `/` is strictly Seeker-centered with no competing Host promo block.
-    expect(homeHtml).not.toContain('id="for-hosts"')
-    expect(homeHtml).not.toContain('/register?role=host')
+    expect(homeHtml).toContain('href="/for-hosts"')
+    expect(homeHtml).toContain('href="/register?role=host"')
   })
 
-  it('provides a plain GET hero search form to /spaces and quick-filter shortcuts (SRS §3.7.1, STORY-08, STORY-17)', () => {
+  it('provides a plain GET hero search form to /spaces (SRS §3.7.1, STORY-08, STORY-17)', () => {
     const html = renderToStaticMarkup(<Home />)
 
     expect(html).toMatch(/<form[^>]*action="\/spaces"[^>]*method="get"/)
     expect(html).toMatch(/<input[^>]*name="q"/)
-    expect(html).toContain('/spaces?hours=open_now')
-    expect(html).toContain('/spaces?hours=open_late')
-    expect(html).toContain('/spaces?unitType=room')
-    expect(html).toContain('/spaces?price=budget')
+    expect(html).toContain('href="/spaces"')
+    expect(html).toContain('href="/register"')
   })
 
-  it('includes the session-mode explorer and stays honest without placeholder roadmap copy (D-002, D-033)', () => {
+  it('keeps illustrative atmosphere and honest sandbox copy without placeholder roadmap claims (D-002, D-005, D-033)', () => {
     const html = renderToStaticMarkup(<Home />)
 
-    expect(html).toContain('role="tablist"')
-    expect(html).toContain('Solo deep work')
-    expect(html).toContain('Café &amp; laptop')
-    expect(html).toContain('Team &amp; private rooms')
+    expect(html).toContain('The reading room')
+    expect(html).toContain('Snap-Grid Seat Map')
+    expect(html).toContain('Reserve-Now Holds')
+    expect(html).toContain(
+      'Reservation fees run in sandbox mode, so no real money moves.',
+    )
     expect(html).not.toMatch(/Sprint \d/)
     expect(html).not.toContain('coming next')
   })

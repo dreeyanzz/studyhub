@@ -39,7 +39,7 @@ const DISCOVERY_HREF = '/spaces'
  * h-12, shrink-0 and whitespace-nowrap.
  */
 const WRAPPING_BUTTON =
-  'h-auto min-h-12 max-w-full shrink rounded-full px-5 py-2 text-center font-semibold whitespace-normal'
+  'h-auto min-h-12 max-w-full shrink rounded-xl px-5 py-2 text-center font-semibold whitespace-normal'
 
 function linkClass(variant: 'default' | 'outline' = 'default'): string {
   return cn(buttonVariants({ variant }), WRAPPING_BUTTON)
@@ -51,11 +51,9 @@ function HoldButton() {
   return (
     <Button
       type="submit"
+      variant="brass"
       disabled={pending}
-      className={cn(
-        WRAPPING_BUTTON,
-        'bg-[#f0c95c] px-6 text-foreground shadow-sm hover:bg-[#e5ba45]',
-      )}
+      className={cn(WRAPPING_BUTTON, 'px-6')}
     >
       Hold this unit
     </Button>
@@ -64,7 +62,7 @@ function HoldButton() {
 
 function FeeLine({ terms }: { terms: HoldTerms }) {
   return (
-    <p className="rounded-2xl bg-secondary/55 px-4 py-2.5 text-sm font-medium text-foreground">
+    <p className="rounded-xl border border-border bg-surface-subtle px-4 py-3 text-sm font-medium text-foreground">
       Reservation fee: {formatPeso(terms.feeAmount)}. You&apos;ll have{' '}
       {terms.paymentWindowMinutes} minutes to pay.
     </p>

@@ -39,15 +39,15 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-3xl border border-l-4 border-border/60 border-l-purple-600 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
+        className="space-y-4 rounded-2xl border border-l-4 border-border border-l-purple-600 bg-card p-6 shadow-card"
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 id="current-hold-heading" className="font-heading text-lg font-semibold">
+          <h2 id="current-hold-heading" className="font-heading text-2xl font-medium">
             Your hold
           </h2>
           <HoldStatusBadge status={hold.status} />
         </div>
-        <p className="flex flex-wrap items-center gap-2 rounded-2xl bg-secondary/55 px-4 py-3">
+        <p className="flex flex-wrap items-center gap-2 rounded-xl border border-border/80 bg-surface-subtle px-4 py-3">
           <span className="font-medium text-foreground">
             {hold.unitLabel} at {hold.spaceName}
           </span>
@@ -70,24 +70,21 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-3xl border border-l-4 border-border/60 border-l-primary bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
+        className="space-y-4 rounded-2xl border border-l-4 border-border border-l-primary bg-card p-6 shadow-card"
       >
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <HoldStatusBadge status="reserved" />
-            {hold.zoneName && (
-              <Badge
-                variant="secondary"
-                className="h-auto min-h-7 max-w-full rounded-full px-3 py-1 text-sm whitespace-normal"
-              >
-                {hold.unitLabel} · {hold.zoneName}
-              </Badge>
-            )}
+            <Badge
+              variant="secondary"
+              className="h-auto min-h-7 max-w-full rounded-full px-3 py-1 text-sm whitespace-normal"
+            >
+              {hold.zoneName ? `${hold.unitLabel} · ${hold.zoneName}` : hold.unitLabel}
+            </Badge>
           </div>
-          <h2 id="current-hold-heading" className="font-heading text-xl font-semibold">
+          <h2 id="current-hold-heading" className="font-heading text-2xl font-medium">
             {hold.spaceName}
           </h2>
-          <HoldPlace reservation={hold} />
           <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
             <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
             <span>{hold.spaceAddress}</span>
@@ -95,7 +92,7 @@ export function CurrentHoldCard({
         </div>
 
         {hold.waitWindowEndsAt && (
-          <div className="space-y-1 rounded-2xl bg-blue-50/75 px-4 py-3.5">
+          <div className="space-y-1 rounded-2xl border border-blue-200/80 bg-blue-50/75 px-4 py-3.5">
             <WaitCountdown deadline={hold.waitWindowEndsAt} reservationId={hold.id} />
             <p className="text-sm text-muted-foreground">
               Check in by <ManilaTime iso={hold.waitWindowEndsAt} />.
@@ -129,7 +126,7 @@ export function CurrentHoldCard({
     return (
       <section
         aria-labelledby="current-hold-heading"
-        className="space-y-4 rounded-3xl border border-l-4 border-border/60 border-l-amber-600 bg-card p-6 shadow-[0_4px_20px_-8px_rgba(23,60,45,0.08)]"
+        className="space-y-4 rounded-2xl border border-l-4 border-border border-l-amber-600 bg-card p-6 shadow-card"
       >
         {checkOutError && (
           <Alert variant="destructive" className="rounded-2xl border-destructive/30">

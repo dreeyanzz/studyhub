@@ -71,11 +71,14 @@ export default async function AdminModerationPage({
   if (!queue || !historyMap) {
     return (
       <div className="space-y-6">
-        <div className="border-b border-border/70 pb-5">
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <div className="space-y-1.5 border-b border-border/80 pb-5">
+          <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
+            Administration · Moderation
+          </p>
+          <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
             Review Moderation
           </h1>
-          <p className="mt-1 text-sm font-medium text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Review reported content, restore hidden reviews, or remove them permanently.
           </p>
         </div>
@@ -89,10 +92,10 @@ export default async function AdminModerationPage({
                 href={`/admin/moderation?list=${tab.value}`}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-5 py-2 text-sm font-semibold whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                   active
-                    ? 'border-primary bg-primary text-primary-foreground shadow-2xs'
-                    : 'border-border/80 bg-card text-foreground hover:bg-muted',
+                    ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                    : 'border-border/80 bg-card text-foreground hover:border-primary/45 hover:bg-surface-subtle',
                 )}
               >
                 {tab.label}

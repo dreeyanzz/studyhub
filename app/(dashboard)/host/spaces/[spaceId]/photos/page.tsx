@@ -130,10 +130,10 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
             // cn() lets these win over the button's shrink-0 and whitespace-nowrap.
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              'h-auto min-h-12 max-w-full min-w-12 shrink px-4 py-2 text-sm font-medium whitespace-normal',
+              'h-auto min-h-12 max-w-full min-w-12 shrink rounded-full border-border/80 bg-card px-4 py-2 text-sm font-medium whitespace-normal shadow-2xs hover:border-primary/45 hover:bg-surface-subtle',
             )}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
+            <ArrowLeft className="mr-2 h-4 w-4 text-primary" aria-hidden="true" />
             Back to Spaces
           </Link>
         </div>

@@ -48,7 +48,7 @@ export function LoginForm({ returnUrl }: { returnUrl: string }) {
       />
       <Button
         type="submit"
-        className="mt-1 h-auto min-h-12 w-full rounded-full py-3 font-semibold whitespace-normal transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+        className="mt-1 h-auto min-h-12 w-full rounded-xl bg-gradient-to-r from-primary to-forest-mid py-3 font-semibold whitespace-normal text-white shadow-sm transition-all duration-200 hover:from-primary-hover hover:to-forest-deep hover:shadow-card"
         disabled={pending}
         focusableWhenDisabled
       >

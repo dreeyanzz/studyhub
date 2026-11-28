@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { signOut } from '@/app/(auth)/actions'
+import { WorqMark } from '@/components/brand/worq-mark'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -33,32 +34,31 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
   const isPayments = pathname.startsWith('/admin/payments')
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/80 bg-card/95 px-4 py-3 shadow-2xs backdrop-blur-md lg:hidden">
+    <header className="sticky top-0 z-20 border-b border-sidebar-border bg-sidebar px-4 py-3 text-sidebar-foreground shadow-xs lg:hidden">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/admin"
-          className="flex min-h-[48px] min-w-[48px] items-center gap-2.5 rounded-xl px-1 py-1 transition-colors hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          className="flex min-h-[48px] min-w-[48px] items-center gap-2.5 rounded-xl px-1 py-1 transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brass focus-visible:outline-none"
         >
-          <div className="relative">
-            <div
-              aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-xs font-bold text-primary"
-            >
-              {displayName.charAt(0).toUpperCase()}
-            </div>
-            <span
-              className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-card bg-primary ring-1 ring-primary/30"
-              aria-hidden="true"
-            />
+          <div
+            aria-hidden="true"
+            className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10"
+          >
+            <WorqMark className="size-7" />
           </div>
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-1.5">
-              <p className="truncate text-xs font-bold text-foreground">{displayName}</p>
-              <Badge variant="secondary" className="px-1.5 py-0.5 text-xs">
+              <p className="truncate font-heading text-lg font-bold tracking-[-0.03em] text-white">
+                Worq
+              </p>
+              <Badge
+                variant="secondary"
+                className="rounded-full bg-brass px-2 py-0.5 text-[10px] font-bold text-brass-foreground uppercase"
+              >
                 Administrator
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground">Administrator Console</p>
+            <p className="truncate text-xs text-white/75">{displayName}</p>
           </div>
         </Link>
 
@@ -69,18 +69,18 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
             rel="noopener noreferrer"
             aria-label="View Discovery Map (opens in new tab)"
             title="View Discovery Map"
-            className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 text-xs font-semibold text-foreground transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center gap-1.5 rounded-full border border-white/20 bg-white/8 px-3.5 text-xs font-semibold text-white transition hover:border-brass/60 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-brass focus-visible:outline-none"
           >
-            <MapPin className="size-3.5 text-primary" aria-hidden="true" />
+            <MapPin className="size-3.5 text-brass" aria-hidden="true" />
             <span className="hidden sm:inline">Map</span>
-            <ArrowUpRight className="size-3 text-muted-foreground" aria-hidden="true" />
+            <ArrowUpRight className="size-3 text-white/75" aria-hidden="true" />
           </Link>
 
           <form action={signOut}>
             <Button
               variant="outline"
               type="submit"
-              className="min-h-[48px] min-w-[48px] gap-1.5 rounded-xl border-border/80 text-xs font-semibold hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive active:scale-[0.98]"
+              className="min-h-[48px] min-w-[48px] gap-1.5 rounded-full border-white/20 bg-white/8 px-4 text-xs font-semibold text-white hover:border-red-400/60 hover:bg-red-500/20 hover:text-white active:scale-[0.98]"
             >
               <LogOut className="size-3.5" aria-hidden="true" />
               <span>Log out</span>
@@ -92,15 +92,15 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
       {/* Mobile Tab Bar */}
       <nav
         aria-label="Mobile administrator navigation"
-        className="mt-2.5 flex items-center gap-1.5 overflow-x-auto pb-0.5"
+        className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-0.5"
       >
         <Link
           href="/admin"
           className={cn(
-            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
+            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition',
             isVerification
-              ? 'bg-primary text-primary-foreground shadow-2xs'
-              : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-2xs'
+              : 'border border-white/15 bg-white/6 text-white/85 hover:bg-sidebar-accent hover:text-white',
           )}
           aria-current={isVerification ? 'page' : undefined}
         >
@@ -111,10 +111,10 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
         <Link
           href="/admin/moderation"
           className={cn(
-            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
+            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition',
             isModeration
-              ? 'bg-primary text-primary-foreground shadow-2xs'
-              : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-2xs'
+              : 'border border-white/15 bg-white/6 text-white/85 hover:bg-sidebar-accent hover:text-white',
           )}
           aria-current={isModeration ? 'page' : undefined}
         >
@@ -125,10 +125,10 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
         <Link
           href="/admin/payments"
           className={cn(
-            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold whitespace-nowrap transition',
+            'flex min-h-[48px] min-w-[48px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold whitespace-nowrap transition',
             isPayments
-              ? 'bg-primary text-primary-foreground shadow-2xs'
-              : 'bg-muted/50 text-muted-foreground hover:bg-muted',
+              ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-2xs'
+              : 'border border-white/15 bg-white/6 text-white/85 hover:bg-sidebar-accent hover:text-white',
           )}
           aria-current={isPayments ? 'page' : undefined}
         >

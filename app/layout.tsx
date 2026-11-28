@@ -1,39 +1,37 @@
 import type { Metadata } from 'next'
-import { Fraunces, Geist, Geist_Mono } from 'next/font/google'
+import { Fira_Code, Inter, Outfit } from 'next/font/google'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const outfit = Outfit({
+  variable: '--font-outfit',
   subsets: ['latin'],
 })
 
-const frauncesDisplay = Fraunces({
-  variable: '--font-display',
+const firaCode = Fira_Code({
+  variable: '--font-fira-code',
   subsets: ['latin'],
-  style: ['normal', 'italic'],
-  display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: {
-    default: 'Worq',
-    template: '%s | Worq',
-  },
-  description: 'Discover study and co-working spaces and hold an open seat now.',
+  title: { default: 'Worq', template: '%s — Worq' },
+  description:
+    'Find a study or co-working Space and hold an open seat now. Host-updated seat maps, curated amenities, and instant sandbox holds.',
 }
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${frauncesDisplay.variable} h-full antialiased`}
+      className={`${inter.variable} ${outfit.variable} ${firaCode.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col bg-background font-sans text-foreground selection:bg-accent selection:text-primary">
+        {children}
+      </body>
     </html>
   )
 }

@@ -31,17 +31,22 @@ export default async function SpacesPage() {
 
   return (
     <div className="discovery-page min-h-[calc(100vh-8rem)] w-full bg-background py-6 sm:py-8">
-      <div className="w-full px-4 sm:px-6 lg:px-10">
-        <header className="mx-auto mb-7 max-w-2xl space-y-2 text-center">
-          <p className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
-            <Compass className="size-3.5 shrink-0" aria-hidden="true" />
-            <span>Discover Spaces</span>
-          </p>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            Explore <span className="text-primary italic">Study &amp; Co-Working</span>{' '}
-            Spaces
-          </h1>
-          <p className="text-sm text-muted-foreground">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <header className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-5">
+          <div className="space-y-1.5">
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground">
+              <Compass className="size-3.5 shrink-0" aria-hidden="true" />
+              <span>Metro Cebu · Verified Spaces</span>
+            </p>
+            <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
+              Explore{' '}
+              <span className="bg-gradient-to-r from-primary to-forest-mid bg-clip-text text-transparent">
+                Study &amp; Co-Working
+              </span>{' '}
+              Spaces
+            </h1>
+          </div>
+          <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
             Search verified spaces near university campuses and study hubs across Metro
             Cebu.
           </p>
