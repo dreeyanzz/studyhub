@@ -2,8 +2,8 @@
 
 import { List, Map as MapIcon } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FilterDrawer } from './filter-drawer'
 import { FilterPanel, toggleFilterValue } from './filter-panel'
 import { SearchBar } from './search-bar'
@@ -18,11 +18,12 @@ import {
 import { resolveCampusCoordinates } from '@/lib/geo/campuses'
 import { haversineDistance } from '@/lib/geo/haversine'
 import { cn } from '@/lib/utils'
-import type {
-  DiscoverySearchQuery,
-  HoursFilter,
-  PriceTier,
-  UnitTypeFilter,
+import {
+  discoverySearchQuerySchema,
+  type DiscoverySearchQuery,
+  type HoursFilter,
+  type PriceTier,
+  type UnitTypeFilter,
 } from '@/lib/validation/search'
 
 // Dynamic import for Leaflet map with SSR disabled to prevent `window is not defined` errors (D-012)
@@ -99,6 +100,23 @@ export function buildDiscoveryQueryString(query: DiscoverySearchQuery): string {
 }
 
 /**
+ * Parses URLSearchParams into a normalized DiscoverySearchQuery, supporting both
+ * repeated keys (`?tags=a&tags=b`) and comma-separated values (`?tags=a,b`).
+ */
+export function parseDiscoverySearchParams(
+  searchParams: Pick<URLSearchParams, 'keys' | 'getAll'>,
+): DiscoverySearchQuery {
+  const raw: Record<string, string | string[]> = {}
+  for (const key of new Set(searchParams.keys())) {
+    const values = searchParams.getAll(key)
+    raw[key] = values.length > 1 ? values : (values[0] ?? '')
+  }
+
+  const parsed = discoverySearchQuerySchema.safeParse(raw)
+  return parsed.success ? normalizeDiscoveryQuery(parsed.data) : normalizeDiscoveryQuery()
+}
+
+/**
  * Resolves the target map center and zoom level from active geolocation or campus search.
  */
 export function resolveDiscoveryMapCenter(query: DiscoverySearchQuery): {
@@ -171,6 +189,13 @@ export function filterSpacesClientSide(
       continue
     }
 
+    // 2b. Unit / room type inventory filter (FR-1.2)
+    if (query.unitType.length > 0) {
+      const spaceUnitTypes = space.unit_types ?? []
+      const matchesUnitType = query.unitType.some((ut) => spaceUnitTypes.includes(ut))
+      if (!matchesUnitType) continue
+    }
+
     // 3. Dynamic operating hours filter (Asia/Manila UTC+8, D-048)
     if (query.hours.length > 0) {
       let matchesAllHours = true
@@ -241,28 +266,98 @@ export function filterSpacesClientSide(
   return results
 }
 
+export type DiscoverySortOption = 'default' | 'open_now' | 'rating' | 'nearest'
+
 /**
- * Bridges client-side URL updates to Next.js App Router when mounted inside a route.
- * Skipped during isolated `renderToStaticMarkup` unit tests where AppRouterContext is absent.
+ * Sorts already-filtered Spaces according to the Seeker's chosen sort order (STORY-17).
+ * Preserves relative order on ties.
  */
-function DiscoveryRouterBridge({
+export function sortSpacesClientSide(
+  spaces: VerifiedSpaceSearchResult[],
+  sortBy: DiscoverySortOption,
+  now: Date = new Date(),
+): VerifiedSpaceSearchResult[] {
+  if (sortBy === 'default' || spaces.length <= 1) {
+    return spaces
+  }
+
+  const sorted = [...spaces]
+
+  if (sortBy === 'open_now') {
+    const currentManilaMinutes = getManilaMinutesFromDate(now)
+    sorted.sort((a, b) => {
+      const aOpen = isSpaceOpenNow(a.opens_at, a.closes_at, currentManilaMinutes) ? 1 : 0
+      const bOpen = isSpaceOpenNow(b.opens_at, b.closes_at, currentManilaMinutes) ? 1 : 0
+      return bOpen - aOpen
+    })
+    return sorted
+  }
+
+  if (sortBy === 'rating') {
+    sorted.sort((a, b) => {
+      const aRating = a.avg_overall ?? -1
+      const bRating = b.avg_overall ?? -1
+      if (bRating !== aRating) return bRating - aRating
+      return b.review_count - a.review_count
+    })
+    return sorted
+  }
+
+  // sortBy === 'nearest'
+  sorted.sort((a, b) => {
+    const aDist = a.distance_km ?? Number.POSITIVE_INFINITY
+    const bDist = b.distance_km ?? Number.POSITIVE_INFINITY
+    return aDist - bDist
+  })
+  return sorted
+}
+
+/**
+ * Synchronizes URL query parameters with DiscoveryShell state on the client without
+ * triggering server round-trips on every filter click (STORY-08, Next.js 16 History API).
+ *
+ * Mounted inside its own `<Suspense fallback={null}>` boundary so `useSearchParams()`
+ * never opts the surrounding `DiscoveryShell` out of static/ISR prerendering, and
+ * skipped during isolated `renderToStaticMarkup` unit tests where AppRouterContext is absent.
+ */
+function DiscoveryUrlSync({
   pathname,
+  lastWrittenQsRef,
   navigateRef,
+  onSyncFromUrl,
 }: {
   pathname: string
+  lastWrittenQsRef: React.RefObject<string | null>
   navigateRef: React.RefObject<((queryString: string) => void) | null>
+  onSyncFromUrl: (nextQuery: DiscoverySearchQuery) => void
 }) {
-  const router = useRouter()
+  const searchParams = useSearchParams()
+  const currentQs = searchParams.toString()
 
   useEffect(() => {
     navigateRef.current = (queryString: string) => {
       const nextHref = queryString ? `${pathname}?${queryString}` : pathname
-      router.push(nextHref, { scroll: false })
+      lastWrittenQsRef.current = queryString
+      window.history.replaceState(null, '', nextHref)
     }
     return () => {
       navigateRef.current = null
     }
-  }, [pathname, router, navigateRef])
+  }, [pathname, navigateRef, lastWrittenQsRef])
+
+  useEffect(() => {
+    // First mount with no query string: initial state is already empty, nothing to sync.
+    if (lastWrittenQsRef.current === null && currentQs === '') {
+      lastWrittenQsRef.current = ''
+      return
+    }
+    // Ignore updates triggered by our own `window.history.replaceState`.
+    if (lastWrittenQsRef.current === currentQs) {
+      return
+    }
+    lastWrittenQsRef.current = currentQs
+    onSyncFromUrl(parseDiscoverySearchParams(new URLSearchParams(currentQs)))
+  }, [currentQs, lastWrittenQsRef, onSyncFromUrl])
 
   return null
 }
@@ -287,13 +382,18 @@ export function DiscoveryShell({
 }: DiscoveryShellProps) {
   const pathname = usePathname()
   const navigateRef = useRef<((queryString: string) => void) | null>(null)
+  const lastWrittenQsRef = useRef<string | null>(null)
 
   const [query, setQuery] = useState<DiscoverySearchQuery>(() =>
     normalizeDiscoveryQuery(initialQuery),
   )
+  const handleSyncFromUrl = useCallback((nextQuery: DiscoverySearchQuery) => {
+    setQuery(nextQuery)
+  }, [])
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null)
   const [hoveredSpaceId, setHoveredSpaceId] = useState<string | null>(null)
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
+  const [sortBy, setSortBy] = useState<DiscoverySortOption>('default')
 
   const applyNextQuery = (nextQuery: DiscoverySearchQuery) => {
     setQuery(nextQuery)
@@ -370,8 +470,8 @@ export function DiscoveryShell({
   }
 
   const displayedSpaces = useMemo(
-    () => filterSpacesClientSide(spaces, query),
-    [spaces, query],
+    () => sortSpacesClientSide(filterSpacesClientSide(spaces, query), sortBy),
+    [spaces, query, sortBy],
   )
 
   const { center: mapCenter, zoom: mapZoom } = useMemo(
@@ -407,7 +507,14 @@ export function DiscoveryShell({
       data-testid="discovery-shell"
     >
       {pathname !== null && (
-        <DiscoveryRouterBridge pathname={pathname} navigateRef={navigateRef} />
+        <Suspense fallback={null}>
+          <DiscoveryUrlSync
+            pathname={pathname}
+            lastWrittenQsRef={lastWrittenQsRef}
+            navigateRef={navigateRef}
+            onSyncFromUrl={handleSyncFromUrl}
+          />
+        </Suspense>
       )}
 
       {/* Search Header: Text Search, Quick Campus Chips & Geolocation Trigger */}
@@ -456,6 +563,28 @@ export function DiscoveryShell({
             mobileView === 'map' ? 'hidden lg:block' : 'block',
           )}
         >
+          {displayedSpaces.length > 0 && (
+            <div className="mb-4 flex flex-wrap items-center justify-end gap-2">
+              <label
+                htmlFor="discovery-sort"
+                className="text-xs font-semibold tracking-wide text-muted-foreground uppercase"
+              >
+                Sort by
+              </label>
+              <select
+                id="discovery-sort"
+                data-testid="discovery-sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as DiscoverySortOption)}
+                className="min-h-12 max-w-full min-w-12 rounded-full border border-border/80 bg-card px-4 py-2 text-sm font-medium text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+              >
+                <option value="default">Recommended</option>
+                <option value="open_now">Open now first</option>
+                <option value="rating">Highest rated</option>
+                <option value="nearest">Nearest</option>
+              </select>
+            </div>
+          )}
           <SpaceCardList
             spaces={displayedSpaces}
             activeSpaceId={activeSpaceId}

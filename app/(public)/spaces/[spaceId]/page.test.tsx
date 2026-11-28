@@ -305,8 +305,48 @@ describe('SpaceProfilePage (STORY-11, TSK-11.3)', () => {
       'You can review seats and amenities; reservations open during operating hours.',
     )
     expect(html).toContain('Closed · Opens tomorrow at 01:00')
+    expect(html).toContain('Explore other spaces')
     expect(html).toContain('data-testid="seeker-space-closed"')
     expect(html).not.toContain('href="/"')
+  })
+
+  it('omits duplicate Explore other spaces link in closed notice when no units are available', async () => {
+    mockSpace = {
+      ...mockSpace!,
+      opens_at: '01:00:00',
+      closes_at: '02:00:00',
+    }
+    mockZones = [
+      {
+        id: 'z1',
+        name: 'Main Hall',
+        position: 0,
+        units: [
+          {
+            id: 'u1',
+            unitType: 'seat',
+            label: 'D1',
+            capacity: 1,
+            row: 0,
+            col: 0,
+            colSpan: 1,
+            seatState: 'occupied',
+            hostUpdatedAt: '2026-11-09T10:00:00Z',
+            waitWindowEndsAt: null,
+            reservationId: null,
+          },
+        ],
+      },
+    ]
+
+    const page = await SpaceProfilePage({
+      params: Promise.resolve({ spaceId: VALID_SPACE_ID }),
+    })
+    const html = renderToStaticMarkup(page)
+
+    expect(html).toContain('data-testid="seeker-space-closed"')
+    expect(html).not.toContain('Explore other spaces')
+    expect(html).toContain('explore other spaces')
   })
 
   it('renders no available units notice when all units are occupied (seeker-profile-no-available-unit)', async () => {

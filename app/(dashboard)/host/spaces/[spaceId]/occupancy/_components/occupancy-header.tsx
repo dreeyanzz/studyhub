@@ -42,6 +42,25 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
 
   return (
     <header className="space-y-4">
+      <nav aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+          <li>
+            <Link
+              href="/host"
+              className="inline-flex min-h-12 min-w-12 items-center underline-offset-4 hover:underline"
+            >
+              Your Spaces
+            </Link>
+            <span aria-hidden="true"> /</span>
+          </li>
+          <li className="wrap-anywhere">
+            {space.name}
+            <span aria-hidden="true"> /</span>
+          </li>
+          <li aria-current="page">Occupancy</li>
+        </ol>
+      </nav>
+
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Link
@@ -86,7 +105,7 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
       </div>
 
       <div>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight wrap-anywhere text-foreground sm:text-4xl">
           {space.name} Occupancy
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">

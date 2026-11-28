@@ -4,49 +4,16 @@ import { useEffect, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
-export const STARTUP_LAMP_STORAGE_KEY = 'worq-lamp-lit'
-
-type StorageLike = Pick<Storage, 'getItem' | 'setItem'>
-
 export interface StartupLampCheckInput {
   reducedMotion: boolean
-  storage: StorageLike | null
-}
-
-function getBrowserSessionStorage(): StorageLike | null {
-  try {
-    return window.sessionStorage
-  } catch {
-    return null
-  }
 }
 
 /**
- * Checks whether the decorative startup lamp may play in this browser session
- * (STORY-17 §3). Skips when reduced motion is enabled, storage is blocked, or
- * the session flag is already set.
+ * Checks whether the decorative startup lamp may play (STORY-17 §3).
+ * Skips when reduced motion is enabled.
  */
 export function canShowStartupLamp(input: StartupLampCheckInput): boolean {
-  if (input.reducedMotion || !input.storage) return false
-  try {
-    return input.storage.getItem(STARTUP_LAMP_STORAGE_KEY) !== '1'
-  } catch {
-    return false
-  }
-}
-
-/**
- * Records that the startup lamp has played this session. Returns false when
- * storage writes are blocked so the overlay is skipped cleanly (STORY-17 §3).
- */
-export function markStartupLampPlayed(storage: StorageLike | null): boolean {
-  if (!storage) return false
-  try {
-    storage.setItem(STARTUP_LAMP_STORAGE_KEY, '1')
-    return true
-  } catch {
-    return false
-  }
+  return !input.reducedMotion
 }
 
 /**
@@ -238,39 +205,65 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
 }
 
 /**
- * Decorative desk-lamp intro shown once per browser session on `/` (STORY-17 §3).
- * Renders nothing on the server or without JavaScript, skips under reduced motion
- * or blocked storage, never blocks clicks or Tab, and fades out within ~1 s.
+ * Decorative desk-lamp intro shown on every load/reload of `/` (STORY-17 §3).
+ * Renders immediately on SSR so the viewport is covered from first paint while
+ * page assets load underneath, skips under reduced motion or no-JS via CSS,
+ * never blocks clicks or Tab, and fades out once loaded.
  */
 export function StartupLamp() {
-  const [phase, setPhase] = useState<'idle' | 'showing' | 'fading'>('idle')
+  const [phase, setPhase] = useState<'showing' | 'fading' | 'done'>('showing')
 
   useEffect(() => {
     const reducedMotion =
       typeof window.matchMedia === 'function' &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-    if (!canShowStartupLamp({ reducedMotion, storage: getBrowserSessionStorage() })) {
-      return
+    if (!canShowStartupLamp({ reducedMotion })) {
+      const frameId = window.requestAnimationFrame(() => setPhase('done'))
+      return () => window.cancelAnimationFrame(frameId)
     }
 
-    let fadeTimer: number | undefined
+    let cancelled = false
+    let minElapsed = false
+    let pageLoaded = document.readyState === 'complete'
+    let fadeStarted = false
     let doneTimer: number | undefined
-    const frameId = window.requestAnimationFrame(() => {
-      if (!markStartupLampPlayed(getBrowserSessionStorage())) return
-      setPhase('showing')
-      fadeTimer = window.setTimeout(() => setPhase('fading'), 350)
-      doneTimer = window.setTimeout(() => setPhase('idle'), 1050)
-    })
+    let fallbackTimer: number | undefined
+
+    const maybeStartFade = () => {
+      if (cancelled || fadeStarted || !minElapsed || !pageLoaded) return
+      fadeStarted = true
+      setPhase('fading')
+      doneTimer = window.setTimeout(() => {
+        if (!cancelled) setPhase('done')
+      }, 700)
+    }
+
+    const minTimer = window.setTimeout(() => {
+      minElapsed = true
+      maybeStartFade()
+    }, 550)
+
+    const onLoad = () => {
+      pageLoaded = true
+      maybeStartFade()
+    }
+
+    if (!pageLoaded) {
+      window.addEventListener('load', onLoad, { once: true })
+      fallbackTimer = window.setTimeout(onLoad, 5000)
+    }
 
     return () => {
-      window.cancelAnimationFrame(frameId)
-      if (fadeTimer !== undefined) window.clearTimeout(fadeTimer)
+      cancelled = true
+      window.clearTimeout(minTimer)
+      window.removeEventListener('load', onLoad)
       if (doneTimer !== undefined) window.clearTimeout(doneTimer)
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer)
     }
   }, [])
 
-  if (phase === 'idle') {
+  if (phase === 'done') {
     return null
   }
 

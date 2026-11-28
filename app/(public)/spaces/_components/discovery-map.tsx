@@ -367,7 +367,7 @@ export default function DiscoveryMap({
         style={{ minHeight: '360px' }}
       />
 
-      {spacesWithCoords.length > 0 && (
+      {spacesWithCoords.length > 0 ? (
         <button
           type="button"
           onClick={handleFitAll}
@@ -376,6 +376,15 @@ export default function DiscoveryMap({
           <LocateFixed className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
           <span>Fit all spaces</span>
         </button>
+      ) : (
+        spaces.length > 0 && (
+          <div
+            role="status"
+            className="pointer-events-none absolute top-3 right-3 z-[400] max-w-[calc(100%-4.5rem)] rounded-2xl border border-border/80 bg-card/95 px-3.5 py-2 text-xs font-medium text-muted-foreground shadow-sm backdrop-blur-md"
+          >
+            No map coordinates set for these spaces yet
+          </div>
+        )
       )}
 
       <div

@@ -134,8 +134,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  ::selection {
+    background-color: var(--accent);
+    color: var(--foreground);
+  }
   body {
     @apply bg-background text-foreground;
+    caret-color: var(--primary);
   }
   html {
     @apply font-sans;

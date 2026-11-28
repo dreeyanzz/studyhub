@@ -4,7 +4,11 @@ import Link from 'next/link'
 import { ReviewRating } from '@/components/review/review-rating'
 import { PriceTierBadge } from './price-tier-badge'
 import type { VerifiedSpaceSearchResult } from '@/lib/data/spaces'
-import { isSpaceOpen24h } from '@/lib/data/spaces'
+import {
+  getManilaMinutesFromDate,
+  isSpaceOpen24h,
+  isSpaceOpenNow,
+} from '@/lib/data/spaces'
 import { formatDescriptionSnippet } from '@/lib/space/format'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +16,8 @@ interface SpaceCardProps {
   space: VerifiedSpaceSearchResult
   isActive?: boolean
   isHovered?: boolean
+  /** Optional override for deterministic rendering/tests; defaults to live Manila time. */
+  isOpen?: boolean
   onHover?: (id: string | null) => void
   onSelect?: (id: string) => void
   className?: string
@@ -38,12 +44,16 @@ export function SpaceCard({
   space,
   isActive = false,
   isHovered = false,
+  isOpen,
   onHover,
   onSelect,
   className,
 }: SpaceCardProps) {
   const snippet = space.description ? formatDescriptionSnippet(space.description) : ''
   const hoursLabel = formatHours(space.opens_at, space.closes_at)
+  const openNow =
+    isOpen ??
+    isSpaceOpenNow(space.opens_at, space.closes_at, getManilaMinutesFromDate(new Date()))
 
   return (
     <article
@@ -185,9 +195,28 @@ export function SpaceCard({
             <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
               Operating hours
             </span>
-            <div className="flex items-center gap-1.5 font-mono text-xs font-medium text-foreground">
-              <Clock className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
-              <span>{hoursLabel}</span>
+            <div className="flex flex-wrap items-center gap-2 font-mono text-xs font-medium text-foreground">
+              <span className="flex items-center gap-1.5">
+                <Clock className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                <span>{hoursLabel}</span>
+              </span>
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-sans text-[11px] font-semibold',
+                  openNow
+                    ? 'border-primary/20 bg-accent text-accent-foreground'
+                    : 'border-border bg-surface-subtle text-muted-foreground',
+                )}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'size-1.5 shrink-0 rounded-full',
+                    openNow ? 'bg-primary' : 'bg-muted-foreground',
+                  )}
+                />
+                <span>{openNow ? 'Open now' : 'Closed'}</span>
+              </span>
             </div>
           </div>
 

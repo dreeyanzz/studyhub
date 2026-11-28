@@ -47,6 +47,18 @@ function areaOf(pathname: string): Area {
 }
 
 /**
+ * Whether `evaluateRouteAccess` needs the caller's role and `role_confirmed` flag
+ * from `profiles`. Public pages (`/`, `/spaces`, `/spaces/[spaceId]`, `/privacy`) and
+ * non-page requests (such as Server Action `POST`s) are always allowed through the
+ * proxy, so `lib/supabase/proxy.ts` can skip the extra `profiles` round-trip while
+ * still refreshing the session cookie (STORY-03).
+ */
+export function routeNeedsRole(pathname: string, method = 'GET'): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false
+  return areaOf(pathname) !== 'public'
+}
+
+/**
  * Decides whether a visitor may open a path, following the route access matrix in
  * STORY-03 design §2 and Google OAuth flow §5 (D-095). `role` is null for an
  * anonymous visitor, and both `role` and `roleConfirmed` must come from the user's

@@ -81,6 +81,18 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     expect(html).not.toContain('km away')
   })
 
+  it('shows Open now or Closed status on the card (STORY-17)', () => {
+    const openHtml = renderToStaticMarkup(<SpaceCard space={mockSpace} isOpen={true} />)
+    expect(openHtml).toContain('Open now')
+    expect(openHtml).not.toContain('>Closed<')
+
+    const closedHtml = renderToStaticMarkup(
+      <SpaceCard space={mockSpace} isOpen={false} />,
+    )
+    expect(closedHtml).toContain('Closed')
+    expect(closedHtml).not.toContain('Open now')
+  })
+
   it('clips the decorative cover-photo frame inside its rounded aria-hidden wrapper', () => {
     const html = renderToStaticMarkup(
       <SpaceCard

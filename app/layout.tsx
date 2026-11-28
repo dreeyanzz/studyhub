@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Fira_Code, Inter, Outfit } from 'next/font/google'
-
 import './globals.css'
 
 const inter = Inter({

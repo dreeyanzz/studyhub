@@ -58,7 +58,7 @@ export function SiteFooter() {
               </li>
               <li>
                 <Link
-                  href="/#for-hosts"
+                  href="/for-hosts"
                   className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
                 >
                   For Hosts
@@ -111,7 +111,7 @@ export function SiteFooter() {
                   href="/privacy"
                   className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
                 >
-                  Privacy Policy
+                  Privacy policy
                 </Link>
               </li>
             </ul>
@@ -126,7 +126,7 @@ export function SiteFooter() {
           <p className="rounded-full bg-surface-subtle px-3.5 py-1.5 font-medium text-foreground">
             Reservation fees run in sandbox mode, so no real money moves.
           </p>
-          <p>Worq · Study &amp; Co-Working Discovery</p>
+          <p>&copy; 2026 Worq · Study &amp; Co-Working Discovery</p>
         </div>
       </div>
     </footer>

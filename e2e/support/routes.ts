@@ -37,6 +37,12 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     path: '/',
   },
   {
+    id: 'public-for-hosts',
+    label: 'For Hosts page',
+    role: 'anon',
+    path: '/for-hosts',
+  },
+  {
     id: 'public-spaces',
     label: 'Discovery map and list',
     role: 'anon',
@@ -156,6 +162,25 @@ export const SWEEP_ROUTES: readonly SweepRoute[] = [
     label: 'Admin Space verification queue',
     role: 'admin',
     path: '/admin',
+  },
+  // STORY-20's other verification lists (design §3, D-084).
+  {
+    id: 'admin-verification-verified',
+    label: 'Admin Verified Spaces list',
+    role: 'admin',
+    path: '/admin?tab=verified',
+  },
+  {
+    id: 'admin-verification-rejected',
+    label: 'Admin Rejected Spaces list',
+    role: 'admin',
+    path: '/admin?tab=rejected',
+  },
+  {
+    id: 'admin-verification-taken-down',
+    label: 'Admin Taken down Spaces list',
+    role: 'admin',
+    path: '/admin?tab=taken_down',
   },
   {
     id: 'admin-moderation',

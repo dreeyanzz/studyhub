@@ -1,7 +1,7 @@
-/* D-033: Luminous Aurora Glass Daylight landing page; rem-based text and intrinsic grids reflow cleanly. */
+/* D-033 & STORY-17: Luminous Aurora Glass Daylight landing page + startup desk-lamp intro styles and reduced-motion guards; rem-based text and intrinsic grids reflow cleanly. */
+
 .discovery-home {
   position: relative;
-  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   overflow-wrap: anywhere;
@@ -652,7 +652,7 @@
   font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.78);
 }
-.aurora-host-check {
+.aurora-host-pills .aurora-host-check {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -700,6 +700,19 @@
   will-change: opacity;
   transition: opacity 650ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+.startup-lamp-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 44%,
+    rgba(33, 92, 63, 0.38) 0%,
+    rgba(19, 42, 31, 0.22) 38%,
+    transparent 70%
+  );
+  animation: startup-stage-glow 650ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 .startup-lamp-overlay.is-lit {
   opacity: 0;
 }
@@ -731,18 +744,63 @@
   font-weight: 600;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(238, 241, 250, 0.9);
+  color: rgba(242, 245, 238, 0.92);
+  animation: startup-phrase-enter 480ms cubic-bezier(0.16, 1, 0.3, 1) 80ms both;
 }
 .startup-lamp-svg {
   overflow: visible;
   filter: drop-shadow(0 24px 48px rgba(0, 0, 0, 0.65));
+  animation: startup-lamp-enter 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .startup-bulb-glow {
   opacity: 0.35;
   transition: opacity 280ms ease;
 }
+.startup-lamp-overlay:not(.is-lit) .startup-bulb-glow {
+  animation: startup-bulb-warmup 520ms cubic-bezier(0.16, 1, 0.3, 1) 140ms backwards;
+}
 .startup-lamp-overlay.is-lit .startup-bulb-glow {
   opacity: 1;
+}
+@keyframes startup-stage-glow {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes startup-lamp-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+@keyframes startup-phrase-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    letter-spacing: 0.32em;
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    letter-spacing: 0.24em;
+  }
+}
+@keyframes startup-bulb-warmup {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.35;
+  }
 }
 @keyframes startup-gentle-sway {
   0%,
@@ -756,4 +814,9 @@
 .startup-pull-group {
   transform-origin: 185px 118px;
   animation: startup-gentle-sway 4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce), (scripting: none) {
+  .startup-lamp-overlay {
+    display: none;
+  }
 }

@@ -103,9 +103,11 @@ export default async function SpacePhotosPage({ params, searchParams }: PageProp
               </Link>
               <span aria-hidden="true"> /</span>
             </li>
-            <li aria-current="page" className="wrap-anywhere">
+            <li className="wrap-anywhere">
               {space.name}
+              <span aria-hidden="true"> /</span>
             </li>
+            <li aria-current="page">Space Photos</li>
           </ol>
         </nav>
 

@@ -124,6 +124,22 @@ describe('updateSession', () => {
     expect(session.roleConfirmed).toBe(false)
   })
 
+  it('skips querying profiles when readRole is false while still refreshing the session', async () => {
+    signedInAs('seeker')
+    mocks.getUser.mockImplementation(async () => {
+      refreshSession([[newToken], cacheHeaders])
+      return { data: { user: { id: 'user-1', user_metadata: {} } } }
+    })
+
+    const session = await updateSession(request('/spaces'), { readRole: false })
+    const response = session.next()
+
+    expect(session.role).toBeNull()
+    expect(session.roleConfirmed).toBe(false)
+    expect(mocks.from).not.toHaveBeenCalled()
+    expect(response.cookies.get('sb-test-auth-token')?.value).toBe('new')
+  })
+
   it('passes no cookies on when the session did not change', async () => {
     const response = (await updateSession(request())).next()
 

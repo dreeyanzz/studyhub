@@ -61,12 +61,12 @@ export default async function ReservationHistoryPage({
             href="/seeker"
             className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            <ArrowLeft aria-hidden="true" className="size-4 text-primary" />
-            Back to dashboard
+            <ArrowLeft aria-hidden="true" className="size-4 shrink-0 text-primary" />
+            <span>Back to dashboard</span>
           </Link>
         </nav>
         <div className="space-y-1">
-          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight wrap-anywhere text-foreground sm:text-4xl">
             Reservation history
           </h1>
           <p className="text-sm text-muted-foreground sm:text-base">

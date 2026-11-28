@@ -217,6 +217,14 @@ email through the team Gmail account (D-089); and the history page, Hold again, 
 components, and their tests: the reason on Reject, the "Edited" mark, Take down, and the
 Host's reason, Resubmit and edit warning.
 
+> **Update, Fri 27 Nov: STORY-20 is done** (#427, #436, #440, #444). Rejecting or taking
+> down a Space needs a reason its Host reads on `/host`; a Host can resubmit a Rejected or
+> Taken down Space; editing a Verified Space's name, address or map pin sends it back to
+> Pending after a warning, marked "Edited"; and `/admin` lists Pending, Verified, Rejected
+> and Taken down Spaces, takes a Space down (cancelling unstarted holds and refunding their
+> fees), undoes either decision, shows each Space's list of changes, and warns live when a
+> Host edits a Space on screen. The design's manual checks passed on 27 Nov (design §9).
+
 For STORY-19: the Playwright journeys for every role, the accessibility sweep, and the
 performance measures against SRS §3.4.
 

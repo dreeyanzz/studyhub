@@ -1,6 +1,6 @@
 # STORY-20: Space verification follow-ups
 
-**Status:** approved 2026-11-25 · **Owner:** @dreeyanzz (status rules, migrations, triggers, functions, take-down cleanup helper and pgTAP tests), @lukedongque (pages, actions, Realtime live notice and tests) (D-073, D-075) · **Story:** #338 · **FR:** FR-5.1, FR-5.3 · **Depends on:** STORY-05, STORY-09, STORY-14, STORY-15 · **Flows:** [Space verification](../flows/space-verification.md), [Reservation lifecycle](../flows/reservation-lifecycle.md), [Host setup journey](../flows/host-setup-journey.md), [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md) · **Decisions:** D-027, D-037, D-052, D-053 to D-055, D-073 to D-075, D-079, D-083 to D-086, D-088, D-093, D-095, D-096
+**Status:** implemented 2026-11-27 · **Owner:** @dreeyanzz (status rules, migrations, triggers, functions, take-down cleanup helper and pgTAP tests), @lukedongque (pages, actions, Realtime live notice and tests) (D-073, D-075) · **Story:** #338 · **FR:** FR-5.1, FR-5.3 · **Depends on:** STORY-05, STORY-09, STORY-14, STORY-15 · **Flows:** [Space verification](../flows/space-verification.md), [Reservation lifecycle](../flows/reservation-lifecycle.md), [Host setup journey](../flows/host-setup-journey.md), [Sandbox payment confirmation](../flows/sandbox-payment-confirmation.md) · **Decisions:** D-027, D-037, D-052, D-053 to D-055, D-073 to D-075, D-079, D-083 to D-086, D-088, D-093, D-095, D-096
 
 Sprint 2's STORY-15 added the first verification queue: Pending Spaces could be approved or
 rejected once, with no reason and no way back (D-054). This story finishes verification
@@ -610,4 +610,96 @@ None. Maria and James review the built screens in STORY-17 once implemented (D-0
 
 ## 9. After the build
 
-Filled in when the story is done.
+Built in four PRs after this design (#411), in the order they merged, following §6:
+
+1. **#427 (`TSK-20.1`, #423, Adrian):** `20261126002801_space_status_taken_down.sql` (the
+   `taken_down` value, alone) and `20261126002802_space_verification_follow_ups.sql` (the
+   `spaces` and `reservations` columns, `space_events`, the 4-argument `set_space_status`,
+   `resubmit_space`, the V6 triggers, `unit_states` and `hold_terms`, and the Realtime
+   publication); `supabase/tests/05-space-verification.sql` rewritten (107 checks) and
+   `02-spaces.sql`'s V4 case; `db:types`; `lib/payments/take-down.ts`
+   (`cleanupTakeDownHolds`, `parseCancelledHolds`) with its Vitest tests; and §6's
+   compatibility updates, including the Reject mode of `verification-reason-dialog.tsx`.
+2. **#436 (`TSK-20.2`, #424):** `resubmitSpaceAction` and `resubmitSpaceSchema`, the
+   reason and Resubmit on `/host` (`space-list.tsx`, `resubmit-space-button.tsx`), the V6
+   warning (`verified-edit-warning-dialog.tsx`, `identityFieldsChanged` in
+   `space-form.tsx`), `cancelledByTakeDown` in `lib/data/reservations.ts`, `EndedView`'s
+   take-down wording, and the Host-side assertions of `host-admin-rejects-space`.
+3. **#440 (`TSK-20.3`, #425):** `lib/data/verification.ts` (`getVerificationSpaces`), the
+   four lists on `/admin` (`?tab`), the Take down mode of the reason dialog,
+   `verification-confirm-dialog.tsx` for Undo and Put back, `space-events-list.tsx`,
+   `realtime-space-notice.tsx`, and `setSpaceStatusAction` running
+   `cleanupTakeDownHolds`.
+4. **#444 (`TSK-20.4`, #426):** the live-notice test in `e2e/space-verification.spec.ts`,
+   `host-edit-returns-pending`, `host-resubmits-space`, `host-admin-takes-down-space` and
+   `host-admin-restores-space` in `e2e/host-setup.spec.ts`, the three new `/admin` tabs in
+   the accessibility sweep (`e2e/support/routes.ts`), and Realtime turned on in CI's `e2e`
+   job.
+
+### What differed from the original plan, and why
+
+- **Who opened TSK-20.2's PR:** §5 gives TSK-20.2 to Luke. #436 was opened from
+  @dreeyanzz's account; its body records Luke checking the Host side by hand on the local
+  stack.
+- **The schema half's additions (#427):** an index on `status_changed_by`, a check that a
+  status move has both ends, and the lock order in `set_space_status` (units locked before
+  their lapses are recorded, as in `confirm_payment`, so two calls can't deadlock). #427
+  recorded all three in §2.
+- **Realtime in CI:** the `e2e` job started Supabase with `-x realtime`, so the live notice
+  couldn't be tested there. #444 dropped `realtime` from the exclusions.
+- **Realtime's sign-in:** §3 didn't say how the listener authenticates. Subscribing at once
+  joined the channel before the Administrator's token arrived, so Realtime kept the
+  listener as `anon`, and RLS silently dropped updates to Spaces that aren't Verified.
+  #444's `startSpaceUpdateListener` calls `realtime.setAuth()` before joining, and if that
+  fails, N9 still refuses a stale decision.
+- **The Administrator's own update:** #444 keeps a decided Space marked as deciding through
+  its 250 ms removal fade, so the Administrator's own Realtime `UPDATE` never shows
+  "Updated by Host".
+- **Small layout fix:** at 360 px and 200% text, "No rejected spaces" overflowed its empty
+  card. #444 uses `p-6` below `sm` and lets the words wrap (D-031).
+- **Left as they were (#440):** the guide banner and metric cards on `/admin` wait for
+  STORY-17's restyle (D-073, D-074), and "Inspect" shows on Pending cards only, because
+  its dialog offers only Approve and Reject.
+- **Where take-down's holds are tested:** cancelling holds and refunding fees on take-down
+  are proven by pgTAP and Vitest, as §4 assigns them, not by Playwright.
+
+### Acceptance criteria coverage (#338)
+
+| Criterion                                                                                                                                                                      | Proven by                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rejecting a Space needs a reason, and its Host sees it                                                                                                                         | `05-space-verification.sql` ("an Administrator cannot reject or take down a Space without a reason", "a reason longer than 500 characters is refused", "an Administrator rejects a Pending Space with a reason, and its Host reads it"); `lib/validation/verification.test.ts` ("a rejection reason (STORY-20, TSK-20.1, N10)"); `verification-reason-dialog.test.tsx`; `space-list.test.tsx`; `e2e/host-setup.spec.ts` (`host-admin-rejects-space, host-sees-rejected`)                                                                                                                                                                                                                                      |
+| A Host can resubmit a Rejected Space, which returns it to Pending for a second review                                                                                          | `05-space-verification.sql` ("a Host resubmits their Rejected Space, and it returns to Pending, marked Resubmitted, with its reason", "a Host cannot resubmit a Pending or a Verified Space", "an Administrator approves a resubmitted Space"); `host/actions.test.ts` ("calls resubmit_space, revalidates /host and /admin, and says so on /host"); `e2e/host-setup.spec.ts` (`host-resubmits-space`)                                                                                                                                                                                                                                                                                                        |
+| A Host's edit to a Verified Space's name or location sends it back to Pending, after a warning. The queue marks it "Edited", and holds already made there keep running (D-079) | `05-space-verification.sql` ("a Host adding a map pin to a Verified Space sends it back to Pending", "a new address is in the list of changes, old and new", "saving a Verified Space with the same name, address and pin keeps it Verified", "a Verified Space sent back to Pending by an edit keeps its holds running"); `lib/data/verification.test.ts` (`pendingOrigin`, the "Edited" mark after V6); `space-form.test.tsx` (`identityFieldsChanged`); `verified-edit-warning-dialog.test.tsx`; `host/actions.test.ts` ("says the Space is back to Pending when a Verified Space moved (V6)"); `e2e/host-setup.spec.ts` (`host-edit-returns-pending`); `e2e/space-verification.spec.ts` (the live notice) |
+| Only an Administrator moves a Space to Verified or Rejected, and a Host can never verify their own (pgTAP)                                                                     | `05-space-verification.sql` ("a Host cannot approve or reject a Space, their own included", "a Seeker cannot approve or reject a Space", "a signed-out visitor cannot run set_space_status", "an Administrator cannot write status directly", "a Host cannot take their own Verified Space down")                                                                                                                                                                                                                                                                                                                                                                                                             |
+| An Administrator can take a Verified Space down (the last thing cut before email, D-075)                                                                                       | `05-space-verification.sql` ("an Administrator takes a Verified Space down with a reason", "a visit under way keeps running after a take-down", "hold_terms returns nothing for a Taken down Space", "an Administrator puts a Taken down Space back"); `take-down.test.ts`; `admin/actions.test.ts` ("sends a take-down with its reason and cleans up the cancelled holds (V7, D-085)"); `e2e/host-setup.spec.ts` (`host-admin-takes-down-space`, `host-admin-restores-space`)                                                                                                                                                                                                                                |
+
+### §4's manual checks (27 Nov)
+
+Run by Adrian, with Claude Code, on the local stack at `main`'s `e327ee9`, with Realtime on
+and the repository's Stripe stub (`e2e/support/stripe-stub.ts`) in place of Stripe, so no
+real payment moved (D-005). The browser checks were driven by a Playwright script, not by
+hand. Seeded accounts, plus four Spaces added for the check (Rejected, Taken down,
+Resubmitted and Edited) through `set_space_status`, `resubmit_space` and a Host's rename,
+so each has its list of changes. The local database was reset afterwards.
+
+| §4 row                                                                   | Result                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/host` at 360, 768 and 1024 px, 100% and 200% text, keyboard only       | Passed. 0 px of horizontal scroll at every width and size. The reasons ("Rejection reason:", "Take-down reason:", "Previous reason:"), the status words and Resubmit all show. At 360 px, every keyboard stop is at least 48 × 48 px, with visible focus                                                                                                                                                                                                                                                                |
+| `/admin`'s four lists and their dialogs, the same widths, sizes and keys | Passed. Pending, Verified, Rejected and Taken down: 0 px of horizontal scroll at every width and size, with the Edited and Resubmitted marks, "Previous reason:" and each list of changes ("Name: old → new", Latest, Since last verified). The Reject, Take down, Undo and Put back dialogs, and the Host's Verified edit warning, fit at 360 and 1024 px with 200% text. Focus starts inside each one, Tab stays inside, and Escape returns focus to the button that opened it. Every keyboard stop has visible focus |
+| A take-down with a paid Reserved hold, checked on `/admin/payments`      | Passed. Taking Sulok Co-working down from `/admin` with a reason announced "Sulok Co-working has been taken down. 1 unstarted hold cancelled; 1 sandbox fee refunded." The hold became `cancelled` with `cancelled_by_take_down`, its payment `refunded` with the reason "Space taken down: …", `/admin/payments?status=refunded` listed it as Refunded, and the Seeker's hold page said "This Space was taken down … Your ₱50.00 payment was refunded."                                                                |
+| The live notice across two real browser sessions                         | Passed, in two separate browser sessions driven by a script. The Administrator's card showed "Updated by Host" 82 ms after the Host saved, without a reload. Approve and Reject stayed disabled until "Reload latest version", which showed the new details. Nobody has checked it by hand                                                                                                                                                                                                                              |
+
+Also exercised through the pages, for #338's criteria: Resubmit on `/host` sent the
+Rejected Space back to Pending with its previous reason, and renaming the Verified Space
+through "Save and send for review" sent it back to Pending, with the rename in its list of
+changes, while a paid hold there stayed `reserved`.
+
+Two things the checks met that were on `main` before STORY-20, and that STORY-20 didn't
+change: at 360 px with 200% text, the Administrator's mobile tab strip scrolls inside itself,
+with "Payments" starting off screen (the keyboard still reaches it); and at 200% text, the
+sidebar cuts the account name short with an ellipsis.
+
+### Still open / follow-up
+
+- **STORY-17:** Maria and James review how the Host and `/admin` verification screens look
+  (D-073, D-074). #441 restyled `space-list.tsx` and kept its reason and Resubmit.

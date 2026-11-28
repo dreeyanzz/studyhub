@@ -2,9 +2,8 @@ import type { Metadata } from 'next'
 import { Compass } from 'lucide-react'
 
 import { DiscoveryShell } from './_components/discovery-shell'
-import { searchVerifiedSpaces } from '@/lib/data/spaces'
-import { createClient } from '@/lib/supabase/server'
-import { discoverySearchQuerySchema } from '@/lib/validation/search'
+import { getDiscoverySpaces } from '@/lib/data/spaces'
+import { createPublicClient } from '@/lib/supabase/public'
 
 export const metadata: Metadata = {
   title: 'Explore Study Spaces',
@@ -12,44 +11,23 @@ export const metadata: Metadata = {
     'Find verified study and co-working spaces in Metro Cebu, on a map or in a list.',
 }
 
-interface SpacesPageProps {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}
+// Public Verified Spaces catalog is identical for every visitor (D-055).
+// ISR lets `<Link href="/spaces">` prefetch the full route in production while
+// Server Actions call `revalidatePath('/spaces')` on every Space, tag, photo,
+// seat-map, verification, or review change, with a 60-second safety fallback.
+export const revalidate = 60
 
 /**
  * Server Component for /spaces (STORY-08, FR-1.1, FR-1.2, D-055).
- * Reads search parameters from URL, executes strictly verified spaces query,
- * and renders the synchronized map and list discovery shell.
+ * Reads the public Verified Spaces catalog in a single SQL RPC via a cookie-free
+ * Supabase client (enforcing anon RLS) so the page can be cached and prefetched.
+ * URL query parameters (`?q=`, `?tags=`, `?price=`, `?hours=`, `?unitType=`) are
+ * synchronized on the client in `DiscoveryShell` without blocking SSR or triggering
+ * extra server round-trips.
  */
-export default async function SpacesPage(props: SpacesPageProps) {
-  const searchParams = await props.searchParams
-  const parsedQuery = discoverySearchQuerySchema.safeParse(searchParams)
-  const initialQuery = parsedQuery.success ? parsedQuery.data : undefined
-  const supabase = await createClient()
-  const rawSpaces = await searchVerifiedSpaces(supabase, searchParams)
-
-  const spaces = await Promise.all(
-    rawSpaces.map(async (space) => {
-      try {
-        const { data: files } = await supabase.storage
-          .from('space-photos')
-          .list(space.id, {
-            limit: 2,
-            sortBy: { column: 'created_at', order: 'asc' },
-          })
-        const firstPhoto = (files ?? []).find((f) => f.name && !f.name.startsWith('.'))
-        if (!firstPhoto) {
-          return { ...space, cover_photo_url: null }
-        }
-        const coverUrl = supabase.storage
-          .from('space-photos')
-          .getPublicUrl(`${space.id}/${firstPhoto.name}`).data.publicUrl
-        return { ...space, cover_photo_url: coverUrl }
-      } catch {
-        return { ...space, cover_photo_url: null }
-      }
-    }),
-  )
+export default async function SpacesPage() {
+  const supabase = createPublicClient()
+  const spaces = await getDiscoverySpaces(supabase)
 
   return (
     <div className="discovery-page min-h-[calc(100vh-8rem)] w-full bg-background py-6 sm:py-8">
@@ -74,7 +52,7 @@ export default async function SpacesPage(props: SpacesPageProps) {
           </p>
         </header>
 
-        <DiscoveryShell spaces={spaces} initialQuery={initialQuery} />
+        <DiscoveryShell spaces={spaces} />
       </div>
     </div>
   )

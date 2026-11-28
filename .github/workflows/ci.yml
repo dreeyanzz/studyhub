@@ -90,10 +90,11 @@ jobs:
           cache: npm
       - run: npm ci
       # Starts the local Supabase stack keeping Kong, PostgREST, Auth and Storage, which the
-      # app needs (STORY-06 design §5, STORY-07 design §2). Seed accounts come from supabase/seed.sql.
+      # app needs (STORY-06 design §5, STORY-07 design §2), and Realtime, for /admin's live
+      # notice test (STORY-20 design §4, D-086). Seed accounts come from supabase/seed.sql.
       - run: >-
           npx supabase start
-          -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+          -x imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
       - run: npx playwright install chromium
       - run: npm run test:e2e
       # In CI, Playwright retries a failed test once and records a trace of the retry

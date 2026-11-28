@@ -66,6 +66,8 @@ describe('setSpaceStatusAction (STORY-15, STORY-20 TSK-20.1)', () => {
       p_reason: 'The photos show a different building.',
     })
     expect(revalidatePath).toHaveBeenCalledWith('/admin')
+    expect(revalidatePath).toHaveBeenCalledWith('/spaces')
+    expect(revalidatePath).toHaveBeenCalledWith(`/spaces/${spaceId}`)
   })
 
   it('sends an approval without a reason', async () => {

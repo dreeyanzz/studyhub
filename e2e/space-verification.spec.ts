@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Browser, type Page } from '@playwright/test'
 import postgres from 'postgres'
 
 // The shared seed password for all local test accounts (supabase/seed.sql).
@@ -23,8 +23,128 @@ async function deleteTestSpaces() {
     await sql`
       delete from public.spaces
       where host_id = ${HOST_1_ID}
-        and name ~ '^(Approval|Rejection) Space [0-9]+$'
+        and name ~ '^(Approval|Rejection|Live notice) Space [0-9]+( renamed)?$'
     `
+  } finally {
+    await sql.end()
+  }
+}
+
+async function findSpace(name: string) {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    const [row] = await sql<{ id: string; name: string; status: string }[]>`
+      select id, name, status from public.spaces where name = ${name}
+    `
+    if (!row) throw new Error(`No Space named ${name}`)
+    return row
+  } finally {
+    await sql.end()
+  }
+}
+
+async function readSpace(id: string) {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    const [row] = await sql<{ name: string; status: string }[]>`
+      select name, status from public.spaces where id = ${id}
+    `
+    return row
+  } finally {
+    await sql.end()
+  }
+}
+
+async function logIn(page: Page, email: string, returnUrl: string) {
+  await page.goto(`/login?returnUrl=${encodeURIComponent(returnUrl)}`)
+  await page.getByLabel('Email').fill(email)
+  await page.getByLabel('Password').fill(SEED_PASSWORD)
+  await page.getByRole('button', { name: 'Log in' }).click()
+  await expect(page).toHaveURL(returnUrl)
+}
+
+/** A page in its own browser context, so two people can be signed in at once. */
+async function newPage(browser: Browser) {
+  return (await browser.newContext()).newPage()
+}
+
+function verificationCard(admin: Page, name: string) {
+  return admin.locator('[data-slot="card"]').filter({
+    has: admin.getByRole('heading', { level: 2, name }),
+  })
+}
+
+function escapeRegExp(text: string) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * Watches the page's Realtime websocket. `subscribed` resolves once Realtime says the
+ * listener on `public.spaces` is live ("Subscribed to PostgreSQL"), so the Host's edit
+ * cannot land before /admin is listening and the test cannot pass or fail by timing.
+ * `frames` keeps every message, tokens redacted, for the failure report. Call it before
+ * the page loads /admin, so the websocket is caught as it opens.
+ */
+function watchRealtime(page: Page, timeoutMs = 30_000) {
+  const frames: string[] = []
+  const record = (direction: string, payload: string | Buffer) => {
+    const text = typeof payload === 'string' ? payload : '<binary>'
+    frames.push(
+      `${direction} ${text.replace(/("(?:access_token|user_token)":)"[^"]*"/g, '$1"<redacted>"').slice(0, 600)}`,
+    )
+  }
+  const subscribed = new Promise<void>((resolve, reject) => {
+    const timer = setTimeout(
+      () =>
+        reject(
+          new Error(
+            `Realtime never confirmed /admin is listening. Is Realtime running in the local stack?\n${frames.join('\n')}`,
+          ),
+        ),
+      timeoutMs,
+    )
+    page.on('websocket', (socket) => {
+      if (!socket.url().includes('/realtime/')) return
+      socket.on('framesent', ({ payload }) => record('sent', payload))
+      socket.on('framereceived', ({ payload }) => {
+        record('received', payload)
+        if (typeof payload === 'string' && payload.includes('Subscribed to PostgreSQL')) {
+          clearTimeout(timer)
+          resolve()
+        }
+      })
+    })
+  })
+  return { subscribed, frames }
+}
+
+/**
+ * What Realtime holds for the listeners on `public.spaces`: the role each one runs as
+ * decides, through row level security, which changes it is sent (D-086).
+ */
+async function realtimeListeners() {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    return await sql<
+      { role: string | null; sub: string | null; app_role: string | null }[]
+    >`
+      select claims_role::text as role, claims ->> 'sub' as sub, claims ->> 'role' as app_role
+      from realtime.subscription
+      where entity = 'public.spaces'::regclass
+    `
+  } finally {
+    await sql.end()
+  }
+}
+
+async function inPublication() {
+  const sql = postgres(databaseUrl, { max: 1 })
+  try {
+    const rows = await sql`
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'spaces'
+    `
+    return rows.length > 0
   } finally {
     await sql.end()
   }
@@ -223,5 +343,85 @@ test.describe('Space verification portal (STORY-15)', () => {
         has: page.getByRole('heading', { level: 3, name: uniqueRejectedName }),
       })
     await expect(hostRejectedCard.getByText('Rejected', { exact: true })).toBeVisible()
+  })
+})
+
+test.describe('The live notice (STORY-20, D-086)', () => {
+  test.afterAll(deleteTestSpaces)
+
+  test("an Administrator looking at a Space sees the Host's edit at once, and decides the latest version", async ({
+    browser,
+  }) => {
+    test.setTimeout(90_000)
+
+    // The Host creates a Pending Space.
+    const host = await newPage(browser)
+    await logIn(host, 'host@example.test', '/host')
+    const name = `Live notice Space ${Date.now()}`
+    const renamed = `${name} renamed`
+    await host.getByLabel('Space name').fill(name)
+    await host.getByLabel('Address').fill('102 Test St, Cebu City')
+    await host.getByLabel('Opening time').fill('08:00')
+    await host.getByLabel('Closing time').fill('20:00')
+    await host.getByRole('button', { name: 'Create Space' }).click()
+    await expect(
+      host.getByText('Space created. It is pending verification.'),
+    ).toBeVisible()
+    const { id } = await findSpace(name)
+
+    // The Administrator opens it, and waits until Realtime is listening.
+    const admin = await newPage(browser)
+    const realtime = watchRealtime(admin)
+    await logIn(admin, 'admin@example.test', '/admin')
+    const card = verificationCard(admin, name)
+    await expect(card).toBeVisible()
+    await realtime.subscribed
+
+    // The Host renames it while the Administrator still has the old version on screen.
+    await host.goto(`/host/spaces/${id}/edit`)
+    await host.getByLabel('Space name').fill(renamed)
+    await host.getByRole('button', { name: 'Save changes' }).click()
+    await expect.poll(async () => (await readSpace(id))?.name).toBe(renamed)
+
+    // At once, with no reload: the notice, and no decision on the old version. If it
+    // never comes, the report says what Realtime sent and which role it listened as.
+    try {
+      await expect(card.getByText('Updated by Host')).toBeVisible({ timeout: 15_000 })
+    } catch (error) {
+      const report = [
+        `spaces in supabase_realtime: ${await inPublication()}`,
+        `listeners: ${JSON.stringify(await realtimeListeners())}`,
+        'frames:',
+        ...realtime.frames,
+      ].join('\n')
+      await test
+        .info()
+        .attach('realtime-report', { body: report, contentType: 'text/plain' })
+      console.log(`Realtime report for the live notice test:\n${report}`)
+      throw error
+    }
+    await expect(card.getByRole('button', { name: `Approve ${name}` })).toBeDisabled()
+    await expect(card.getByRole('button', { name: `Reject ${name}` })).toBeDisabled()
+
+    // Reloading shows the latest version, its newest change marked "Latest".
+    await card.getByRole('button', { name: `Reload latest version ${name}` }).click()
+    const latest = verificationCard(admin, renamed)
+    await expect(latest).toBeVisible()
+    await expect(latest.getByText('Updated by Host')).toHaveCount(0)
+    const newest = latest
+      .getByRole('region', { name: 'List of changes' })
+      .getByRole('listitem')
+      .first()
+    await expect(newest.getByText('Latest', { exact: true })).toBeVisible()
+    await expect(newest).toContainText(
+      new RegExp(`Name: ${escapeRegExp(name)} . ${escapeRegExp(renamed)}`),
+    )
+
+    // The decision is on the latest version.
+    await latest.getByRole('button', { name: `Approve ${renamed}` }).click()
+    await expect(
+      admin.getByRole('status').filter({ hasText: 'has been approved' }),
+    ).toContainText(`${renamed} has been approved.`)
+    expect(await readSpace(id)).toEqual({ name: renamed, status: 'verified' })
   })
 })

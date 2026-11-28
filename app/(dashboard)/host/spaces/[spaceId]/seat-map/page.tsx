@@ -141,9 +141,11 @@ export default async function SeatMapPage({
               </Link>
               <span aria-hidden="true"> /</span>
             </li>
-            <li aria-current="page" className="wrap-anywhere">
+            <li className="wrap-anywhere">
               {space.name}
+              <span aria-hidden="true"> /</span>
             </li>
+            <li aria-current="page">Seat map</li>
           </ol>
         </nav>
         <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">

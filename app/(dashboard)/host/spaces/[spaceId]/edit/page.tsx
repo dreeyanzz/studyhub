@@ -6,8 +6,10 @@ import { ArrowLeft } from 'lucide-react'
 import { updateSpace } from '@/app/(dashboard)/host/actions'
 import { SpaceForm } from '@/app/(dashboard)/host/_components/space-form'
 import { SpaceSubNav } from '../_components/space-sub-nav'
+import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 import { parseIntervalToMinutes } from '@/lib/validation/reservation'
 import { spaceIdSchema } from '@/lib/validation/space'
 
@@ -46,27 +48,49 @@ export default async function EditSpacePage({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
+      <div className="space-y-2">
         <nav aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+            <li>
+              <Link
+                href="/host"
+                className="inline-flex min-h-12 min-w-12 items-center underline-offset-4 hover:underline"
+              >
+                Your Spaces
+              </Link>
+              <span aria-hidden="true"> /</span>
+            </li>
+            <li className="wrap-anywhere">
+              {space.name}
+              <span aria-hidden="true"> /</span>
+            </li>
+            <li aria-current="page">Edit Space</li>
+          </ol>
+        </nav>
+
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-2xl space-y-1">
+            <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+              Edit Space
+            </h1>
+            {/* V6 and V4 (STORY-20 design §3, D-079). The form also warns before such a
+                save, and this line says it even without JavaScript. */}
+            <p className="text-sm wrap-anywhere text-muted-foreground">
+              {space.status === 'verified'
+                ? "Changing this Space's name, address, or map pin sends it back to Pending verification. Other edits keep it Verified."
+                : `Saving changes to ${space.name} doesn't change its Verification status.`}
+            </p>
+          </div>
           <Link
             href="/host"
-            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'h-auto min-h-12 max-w-full min-w-12 shrink gap-2 rounded-full border-border/80 bg-card px-4 py-2 text-sm font-medium whitespace-normal text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle',
+            )}
           >
             <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <span>Back to Spaces</span>
           </Link>
-        </nav>
-        <div className="max-w-2xl space-y-1">
-          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-            Edit Space
-          </h1>
-          {/* V6 and V4 (STORY-20 design §3, D-079). The form also warns before such a
-              save, and this line says it even without JavaScript. */}
-          <p className="text-sm wrap-anywhere text-muted-foreground">
-            {space.status === 'verified'
-              ? "Changing this Space's name, address, or map pin sends it back to Pending verification. Other edits keep it Verified."
-              : `Saving changes to ${space.name} doesn't change its Verification status.`}
-          </p>
         </div>
       </div>
       <SpaceSubNav spaceId={space.id} current="edit" />

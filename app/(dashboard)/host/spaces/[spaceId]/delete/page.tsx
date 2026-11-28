@@ -4,8 +4,10 @@ import { notFound, redirect } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 
 import { DeleteSpaceForm } from '@/app/(dashboard)/host/_components/delete-space-form'
+import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
+import { cn } from '@/lib/utils'
 import { spaceIdSchema } from '@/lib/validation/space'
 
 export const metadata: Metadata = { title: 'Delete Space' }
@@ -40,19 +42,41 @@ export default async function DeleteSpacePage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <div className="space-y-3">
+      <div className="space-y-2">
         <nav aria-label="Breadcrumb">
+          <ol className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground">
+            <li>
+              <Link
+                href="/host"
+                className="inline-flex min-h-12 min-w-12 items-center underline-offset-4 hover:underline"
+              >
+                Your Spaces
+              </Link>
+              <span aria-hidden="true"> /</span>
+            </li>
+            <li className="wrap-anywhere">
+              {space.name}
+              <span aria-hidden="true"> /</span>
+            </li>
+            <li aria-current="page">Delete Space</li>
+          </ol>
+        </nav>
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Delete Space
+          </h1>
           <Link
             href="/host"
-            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className={cn(
+              buttonVariants({ variant: 'outline' }),
+              'h-auto min-h-12 max-w-full min-w-12 shrink gap-2 rounded-full border-border/80 bg-card px-4 py-2 text-sm font-medium whitespace-normal text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle',
+            )}
           >
             <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <span>Back to Spaces</span>
           </Link>
-        </nav>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Delete Space
-        </h1>
+        </div>
       </div>
       <Card className="rounded-3xl border-destructive/30 shadow-card">
         <CardContent className="space-y-5 pt-6">

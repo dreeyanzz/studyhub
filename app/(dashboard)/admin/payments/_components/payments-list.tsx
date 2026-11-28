@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Inbox } from 'lucide-react'
+import { CreditCard, Inbox } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import type { AdminPaymentRecordItem } from '@/lib/data/admin'
@@ -26,6 +27,22 @@ const FILTER_TABS: ReadonlyArray<{ value: PaymentRecordFilter; label: string }> 
   { value: 'refunded', label: 'Refunded' },
   { value: 'refundable', label: 'Refundable' },
 ]
+
+/**
+ * The count beside the heading, worded like `/admin`'s "3 pending": "3 payments" on All,
+ * "1 refundable" on a filter. It counts the records on screen, so it adds "+" when Show more
+ * has more to load (#448 review).
+ */
+export function paymentsCountLabel(
+  shownCount: number,
+  hasMore: boolean,
+  filter: PaymentRecordFilter,
+) {
+  const count = `${shownCount}${hasMore ? '+' : ''}`
+  if (filter === 'all')
+    return `${count} ${shownCount === 1 && !hasMore ? 'payment' : 'payments'}`
+  return `${count} ${filter}`
+}
 
 const STATUS_BADGE_STYLES = {
   pending: 'border-border bg-muted text-foreground',
@@ -59,17 +76,26 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1.5 border-b border-border/80 pb-5">
-        <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
-          Administration · Ledger
-        </p>
-        <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
-          Payment Records
-        </h1>
-        <p className="text-sm text-muted-foreground sm:text-base">
-          Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose hold
-          ended without a check-in.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-5">
+        <div className="space-y-1.5">
+          <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
+            Administration · Ledger
+          </p>
+          <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
+            Payment Records
+          </h1>
+          <p className="text-sm text-muted-foreground sm:text-base">
+            Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose
+            hold ended without a check-in.
+          </p>
+        </div>
+        <Badge
+          variant="secondary"
+          data-testid="payments-count"
+          className="rounded-full border border-border bg-card px-4 py-1.5 font-mono text-xs font-semibold text-foreground tabular-nums shadow-2xs"
+        >
+          {paymentsCountLabel(items.length, hasMore, filter)}
+        </Badge>
       </div>
 
       <nav aria-label="Payment filters" className="flex flex-wrap gap-2">
@@ -92,6 +118,19 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
         })}
       </nav>
 
+      {/* Refund Eligibility Guide */}
+      <div className="flex items-start gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
+        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-2xs">
+          <CreditCard className="size-4" aria-hidden="true" />
+        </div>
+        <div className="text-sm leading-relaxed text-foreground">
+          <strong className="font-bold text-foreground">Refund Guide:</strong> Paid
+          sandbox fees whose hold ended without a check-in can be refunded here. Select{' '}
+          <strong className="font-semibold">Refundable</strong> to filter directly to
+          eligible records.
+        </div>
+      </div>
+
       {/* Persistent polite status region for screen-reader announcements (design §3) */}
       <div
         role="status"
@@ -99,7 +138,7 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
         data-testid="payments-live-status"
         className={cn(
           announcement
-            ? 'rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm font-medium text-foreground'
+            ? 'rounded-2xl border border-border/80 bg-muted/40 px-4 py-3 text-sm font-medium text-foreground shadow-2xs'
             : 'sr-only',
         )}
       >
@@ -114,16 +153,16 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
           <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-border/80 bg-card text-primary shadow-2xs">
             <Inbox className="size-7" aria-hidden="true" />
           </div>
-          <h2 className="font-heading text-xl font-semibold wrap-anywhere text-foreground">
+          <h2 className="max-w-full font-heading text-xl font-semibold wrap-anywhere text-foreground">
             No payments match this filter.
           </h2>
-          <p className="mt-1.5 max-w-md text-sm wrap-anywhere text-muted-foreground">
+          <p className="mt-1.5 max-w-full text-sm wrap-anywhere text-muted-foreground sm:max-w-md">
             Paid, forfeited, and refunded sandbox fees will appear here once Seekers
             complete checkout.
           </p>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-5">
           {items.map((item) => {
             const paymentLabel = PAYMENT_STATUS_LABELS[item.paymentStatus]
             const reservationLabel = RESERVATION_STATUS_LABELS[item.reservationStatus]
@@ -132,7 +171,7 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
               <Card
                 key={item.paymentId}
                 data-testid={`payment-record-${item.paymentId}`}
-                className="min-w-0 rounded-3xl shadow-card"
+                className="min-w-0 overflow-hidden rounded-3xl shadow-card"
               >
                 <CardHeader className="min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
                   <div className="flex flex-wrap items-start justify-between gap-2">
@@ -230,13 +269,13 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
                 </CardContent>
 
                 {item.refundable && (
-                  <CardFooter className="flex min-w-0 flex-wrap justify-end gap-2">
+                  <CardFooter className="flex min-w-0 flex-wrap justify-end gap-2 border-t border-border/40 bg-muted/15 px-6 py-4">
                     <Button
                       type="button"
                       variant="default"
                       data-testid={`payment-refund-trigger-${item.paymentId}`}
                       onClick={() => setSelectedPayment(item)}
-                      className="h-auto min-h-12 max-w-full min-w-12 shrink py-2 whitespace-normal"
+                      className="h-auto min-h-12 max-w-full min-w-12 shrink rounded-xl py-2 whitespace-normal"
                     >
                       Refund
                       <span className="sr-only">

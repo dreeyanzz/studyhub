@@ -206,7 +206,8 @@ export function ReservationHistoryCard({
         href="/seeker/reservations"
         className={cn(buttonLinkClass('outline'), 'flex-wrap')}
       >
-        <History aria-hidden="true" className="size-4" /> View reservation history
+        <History aria-hidden="true" className="size-4 text-primary" /> View reservation
+        history
       </Link>
     </section>
   )

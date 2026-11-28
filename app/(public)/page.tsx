@@ -69,7 +69,7 @@ const stageUnits = [
 
 export default function Home() {
   return (
-    <div className="discovery-home">
+    <>
       <StartupLamp />
 
       {/* 1. Centered Luminous Daylight Aurora Hero + Elevated Glass Bento Product Stage */}
@@ -354,7 +354,7 @@ export default function Home() {
               seat map once, update occupancy in one tap, and verify Seeker check-ins via
               QR.
             </p>
-            <div className="pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 href="/register?role=host"
                 className={buttonVariants({
@@ -363,6 +363,16 @@ export default function Home() {
                 })}
               >
                 Become a Host <ArrowRight aria-hidden="true" size={16} />
+              </Link>
+              <Link
+                href="/for-hosts"
+                className={buttonVariants({
+                  variant: 'outline',
+                  className:
+                    'rounded-xl border-white/25 bg-white/10 px-6 font-semibold text-white backdrop-blur hover:border-brass/60 hover:bg-white/18 hover:text-white',
+                })}
+              >
+                For Hosts overview <ArrowUpRight aria-hidden="true" size={16} />
               </Link>
             </div>
           </div>
@@ -398,6 +408,6 @@ export default function Home() {
           </ul>
         </div>
       </section>
-    </div>
+    </>
   )
 }

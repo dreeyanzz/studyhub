@@ -2,7 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { CreditCard, LogOut, MessageSquare, ShieldCheck } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CreditCard,
+  LogOut,
+  MapPin,
+  MessageSquare,
+  ShieldCheck,
+} from 'lucide-react'
 
 import { signOut } from '@/app/(auth)/actions'
 import { WorqMark } from '@/components/brand/worq-mark'
@@ -29,7 +36,10 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
   return (
     <header className="sticky top-0 z-20 border-b border-sidebar-border bg-sidebar px-4 py-3 text-sidebar-foreground shadow-xs lg:hidden">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
+        <Link
+          href="/admin"
+          className="flex min-h-[48px] min-w-[48px] items-center gap-2.5 rounded-xl px-1 py-1 transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brass focus-visible:outline-none"
+        >
           <div
             aria-hidden="true"
             className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10"
@@ -50,18 +60,33 @@ export function AdminMobileHeader({ displayName, pendingCount }: AdminMobileHead
             </div>
             <p className="truncate text-xs text-white/75">{displayName}</p>
           </div>
-        </div>
+        </Link>
 
-        <form action={signOut}>
-          <Button
-            variant="outline"
-            type="submit"
-            className="min-h-[48px] min-w-[48px] gap-1.5 rounded-full border-white/20 bg-white/8 px-4 text-xs font-semibold text-white hover:border-red-400/60 hover:bg-red-500/20 hover:text-white active:scale-[0.98]"
+        <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/spaces"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View Discovery Map (opens in new tab)"
+            title="View Discovery Map"
+            className="inline-flex min-h-[48px] min-w-[48px] items-center justify-center gap-1.5 rounded-full border border-white/20 bg-white/8 px-3.5 text-xs font-semibold text-white transition hover:border-brass/60 hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-brass focus-visible:outline-none"
           >
-            <LogOut className="size-3.5" aria-hidden="true" />
-            <span>Log out</span>
-          </Button>
-        </form>
+            <MapPin className="size-3.5 text-brass" aria-hidden="true" />
+            <span className="hidden sm:inline">Map</span>
+            <ArrowUpRight className="size-3 text-white/75" aria-hidden="true" />
+          </Link>
+
+          <form action={signOut}>
+            <Button
+              variant="outline"
+              type="submit"
+              className="min-h-[48px] min-w-[48px] gap-1.5 rounded-full border-white/20 bg-white/8 px-4 text-xs font-semibold text-white hover:border-red-400/60 hover:bg-red-500/20 hover:text-white active:scale-[0.98]"
+            >
+              <LogOut className="size-3.5" aria-hidden="true" />
+              <span>Log out</span>
+            </Button>
+          </form>
+        </div>
       </div>
 
       {/* Mobile Tab Bar */}
