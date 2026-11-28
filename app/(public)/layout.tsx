@@ -1,3 +1,5 @@
+import { MotionProvider } from '@/components/motion/editorial-motion'
+
 import { SiteFooter } from './_components/site-footer'
 import { SiteHeader } from './_components/site-header'
 
@@ -5,7 +7,7 @@ import { SiteHeader } from './_components/site-header'
 // element, and moves focus to the main content.
 export default function PublicLayout({ children }: LayoutProps<'/'>) {
   return (
-    <>
+    <MotionProvider>
       <a
         href="#main-content"
         className="sr-only z-50 inline-flex min-h-12 min-w-12 items-center rounded-lg bg-primary px-4 font-medium text-primary-foreground outline-none focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -17,6 +19,6 @@ export default function PublicLayout({ children }: LayoutProps<'/'>) {
         {children}
       </main>
       <SiteFooter />
-    </>
+    </MotionProvider>
   )
 }
