@@ -133,6 +133,8 @@ npm run db:new <name>  # new migration file
 npm run db:check-order # verify migrations are append-only and newer than origin/main (D-066, D-096)
 npm run db:types       # regenerate lib/supabase/database.types.ts
 npm run db:accounts    # register the cloud dev project's test accounts (D-028, D-061)
+npm run db:seed:demo -- --reset        # seed 50 Metro Cebu demo spaces + photos + users to cloud dev (D-097)
+npm run db:seed:demo:local -- --reset  # seed the same 50 Metro Cebu demo spaces to local Supabase (D-097)
 npm run db:promote-admin -- <email>  # promote a confirmed production account to Administrator (Adrian only, D-091)
 npm run stripe:listen  # forward Stripe sandbox events to the local webhook (Stripe CLI, D-070)
 npm run webhook:simulate -- <reservation-id>  # send a signed test payment event to the local webhook

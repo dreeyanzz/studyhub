@@ -1,9 +1,8 @@
-# The job name `checks` is a required status check on main; renaming it blocks
-# every PR until the ruleset is updated. There are no `paths:` filters on
-# purpose: a required check that never runs leaves docs-only PRs waiting.
-# The job name `db` is a required check too (D-014): it applies every migration
-# and seed.sql to a fresh local stack, runs the pgTAP policy tests, and checks
-# that the committed database types match the migrations.
+# Required status checks on main: `checks`, `db`, `e2e` (plus `pr-title` in pr-title.yml).
+# Renaming any of those job names blocks every PR until the ruleset is updated.
+# There are no workflow-level `paths:` filters on purpose: a skipped required check leaves
+# docs-only PRs waiting. Instead, `changes` detects docs-only PRs so `db` and `e2e` fast-pass
+# with conclusion `success` without booting Docker or Playwright shards.
 name: CI
 
 on:
@@ -19,6 +18,35 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.filter.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Detect docs-only pull requests
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --no-tags origin "+refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
+          changed="$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")"
+          if [ -z "$changed" ]; then
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          non_docs="$(printf '%s\n' "$changed" | grep -Ev '^(docs/|notes/|.*\.md$)' || true)"
+          if [ -z "$non_docs" ]; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
+
   checks:
     name: checks
     runs-on: ubuntu-latest
@@ -41,34 +69,46 @@ jobs:
 
   db:
     name: db
+    needs: [changes]
     runs-on: ubuntu-latest
     steps:
+      - name: Skip database suite on docs-only PR
+        if: needs.changes.outputs.docs_only == 'true'
+        run: |
+          echo "Docs-only PR: skipping local database suite."
       - uses: actions/checkout@v7
+        if: needs.changes.outputs.docs_only != 'true'
         with:
           # Full history so three-dot diffs against origin/<base> resolve merge-base.
           fetch-depth: 0
       - uses: actions/setup-node@v7
+        if: needs.changes.outputs.docs_only != 'true'
         with:
           node-version-file: .nvmrc
           cache: npm
       # Fails fast before starting Docker if a PR edits an applied migration
       # (AGENTS.md rule 9) or adds a timestamp older than main's latest (D-066, D-096).
       - name: Migrations are append-only and newer than main
-        if: github.event_name == 'pull_request'
+        if: needs.changes.outputs.docs_only != 'true' && github.event_name == 'pull_request'
         run: |
           git fetch --no-tags origin "+refs/heads/${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
           node scripts/check-migration-order.mjs "origin/${{ github.base_ref }}"
-      - run: npm ci
+      - if: needs.changes.outputs.docs_only != 'true'
+        run: npm ci
       # Only Postgres and Auth are needed: the seed writes auth.users, and the
       # tests talk to Postgres directly. Excluding the rest keeps the job fast.
-      - run: >-
+      - if: needs.changes.outputs.docs_only != 'true'
+        run: >-
           npx supabase start
           -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
-      - run: npm run db:test
-      - run: npm run db:race
+      - if: needs.changes.outputs.docs_only != 'true'
+        run: npm run db:test
+      - if: needs.changes.outputs.docs_only != 'true'
+        run: npm run db:race
       # Every story imports these types, so a stale file would type their code
       # against a schema that no longer exists.
       - name: Generated types match the migrations
+        if: needs.changes.outputs.docs_only != 'true'
         run: |
           npm run db:types
           git diff --exit-code lib/supabase/database.types.ts || {
@@ -76,12 +116,18 @@ jobs:
             exit 1
           }
 
-  e2e:
-    name: e2e
+  e2e-shard:
+    name: e2e (${{ matrix.shard }}/3)
+    needs: [changes]
+    if: needs.changes.outputs.docs_only != 'true'
     runs-on: ubuntu-latest
-    # A green run takes about 7 minutes. A stuck stack or browser install fails the
-    # job here instead of holding a runner for GitHub's 6-hour default.
-    timeout-minutes: 20
+    # Sharded runs against a production build finish in ~3 minutes. A stuck stack or
+    # browser install fails here instead of holding a runner for GitHub's 6-hour default.
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -95,14 +141,55 @@ jobs:
       - run: >-
           npx supabase start
           -x imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      # Build once with the local stack's NEXT_PUBLIC_* values so Playwright serves a
+      # compiled production build (`next start`) instead of on-the-fly `next dev`.
+      - name: Build production app against local Supabase
+        run: |
+          status_env="$(npx supabase status -o env)"
+          api_url="$(printf '%s\n' "$status_env" | sed -n 's/^API_URL="\(.*\)"$/\1/p')"
+          pub_key="$(printf '%s\n' "$status_env" | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')"
+          if [ -z "$api_url" ] || [ -z "$pub_key" ]; then
+            echo "::error::Could not read API_URL or PUBLISHABLE_KEY from supabase status -o env"
+            exit 1
+          fi
+          NEXT_PUBLIC_SUPABASE_URL="$api_url" \
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="$pub_key" \
+            PLAYWRIGHT_DISABLE_ISR=1 \
+            npm run build
       - run: npx playwright install chromium
-      - run: npm run test:e2e
+      - name: Run Playwright shard ${{ matrix.shard }}/3
+        env:
+          PLAYWRIGHT_USE_BUILD: '1'
+          PLAYWRIGHT_DISABLE_ISR: '1'
+        run: npx playwright test --shard=${{ matrix.shard }}/3
       # In CI, Playwright retries a failed test once and records a trace of the retry
       # in test-results/ (playwright.config.ts). Upload it, or it is lost with the runner.
       - name: Keep the Playwright traces of a failed run
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-traces
+          name: playwright-traces-shard-${{ matrix.shard }}
           path: test-results/
           retention-days: 7
+
+  e2e:
+    name: e2e
+    needs: [changes, e2e-shard]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check E2E shard results
+        run: |
+          if [ "${{ needs.changes.result }}" != "success" ]; then
+            echo "::error::changes job did not succeed (${{ needs.changes.result }})."
+            exit 1
+          fi
+          if [ "${{ needs.changes.outputs.docs_only }}" = "true" ]; then
+            echo "Docs-only PR: skipping E2E shards."
+            exit 0
+          fi
+          if [ "${{ needs.e2e-shard.result }}" != "success" ]; then
+            echo "::error::One or more E2E shards failed (${{ needs.e2e-shard.result }})."
+            exit 1
+          fi
+          echo "All E2E shards passed."
