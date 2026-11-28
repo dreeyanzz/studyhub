@@ -72,8 +72,8 @@ export default function ForHostsPage() {
         aria-labelledby="hosts-hero-title"
         className="border-b border-border bg-background"
       >
-        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-12 lg:px-10 lg:py-20">
-          <div className="space-y-6 lg:col-span-7">
+        <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-12 lg:px-10 lg:py-20">
+          <div className="min-w-0 space-y-6">
             <EditorialReveal immediate y={10}>
               <div className="flex items-center gap-3">
                 <span className="h-px w-8 bg-primary" aria-hidden="true" />
@@ -147,7 +147,7 @@ export default function ForHostsPage() {
             </EditorialReveal>
           </div>
 
-          <EditorialReveal immediate delay={0.12} y={18} className="lg:col-span-5">
+          <EditorialReveal immediate delay={0.12} y={18} className="min-w-0">
             <figure className="rounded-2xl border border-border bg-card p-3 shadow-[0_24px_48px_-32px_rgba(23,60,45,0.32)]">
               <div className="overflow-hidden rounded-xl bg-secondary">
                 <Image
@@ -183,8 +183,8 @@ export default function ForHostsPage() {
       {/* Section 2: Interactive Host Front-Desk Preview */}
       <section aria-labelledby="host-desk-title" className="py-16 lg:py-24">
         <div className="mx-auto w-full max-w-7xl space-y-12 px-4 sm:px-6 lg:px-10">
-          <EditorialReveal className="grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
-            <div className="space-y-3 lg:col-span-7">
+          <EditorialReveal className="grid grid-cols-1 items-end gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+            <div className="min-w-0 space-y-3">
               <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
                 01 / The Host portal
               </p>
@@ -195,7 +195,7 @@ export default function ForHostsPage() {
                 Run your floor without extra hardware.
               </h2>
             </div>
-            <p className="text-base leading-relaxed text-muted-foreground lg:col-span-5">
+            <p className="min-w-0 text-base leading-relaxed text-muted-foreground">
               Worq pairs automatic Seeker holds with fast manual overrides for walk-ins.
               Try toggling a walk-in seat or verifying a booking token below.
             </p>

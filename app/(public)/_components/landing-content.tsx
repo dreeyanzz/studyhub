@@ -88,8 +88,8 @@ type WorkModeId = (typeof WORK_MODES)[number]['id']
  *   a crisp masked display reveal and anchored search bar.
  * - Continuity: directional clip-path curtain wipe + sliding underline indicator in the
  *   session-mode explorer that tracks left/right tab order.
- * - Scroll relationship: gentle ink focus progression on the manifesto pull-quote
- *   (always readable in default state, never hidden).
+ * - Scroll relationship: gentle vertical settle on the manifesto pull-quote
+ *   while keeping full ink opacity at every scroll position for WCAG 2.1 AA contrast.
  * - Hover discipline: outer pointer targets stay anchored; inner child elements carry
  *   subtle feedback so controls never shift out from under the cursor.
  */
@@ -103,7 +103,7 @@ export function LandingContent() {
     target: manifestoRef,
     offset: ['start 0.92', 'center 0.58'],
   })
-  const manifestoOpacity = useTransform(manifestoProgress, [0, 1], [0.58, 1])
+  const manifestoY = useTransform(manifestoProgress, [0, 1], [12, 0])
 
   const activeIndex = WORK_MODES.findIndex((mode) => mode.id === activeModeId)
   const safeIndex = activeIndex === -1 ? 0 : activeIndex
@@ -218,7 +218,7 @@ export function LandingContent() {
               className="flex w-full flex-col gap-2 rounded-2xl border border-border bg-card p-2 text-left text-foreground shadow-[0_24px_60px_-24px_rgba(0,0,0,0.55)] transition-shadow duration-200 focus-within:shadow-[0_28px_68px_-20px_rgba(0,0,0,0.72)] sm:flex-row sm:items-center"
             >
               <label htmlFor="hero-search-input" className="sr-only">
-                Search by area, city, or Space name
+                Search by campus, city, or Space name
               </label>
               <div className="relative flex flex-1 items-center">
                 <Search
@@ -286,14 +286,14 @@ export function LandingContent() {
         </div>
       </section>
 
-      {/* Section 2: Centered Literary Manifesto Pull-Quote (scroll-linked ink focus) */}
+      {/* Section 2: Centered Literary Manifesto Pull-Quote (scroll-linked gentle settle) */}
       <section
         ref={manifestoRef}
         aria-label="Editorial manifesto"
         className="py-18 lg:py-24"
       >
         <motion.div
-          style={prefersReducedMotion ? undefined : { opacity: manifestoOpacity }}
+          style={prefersReducedMotion ? undefined : { y: manifestoY }}
           className="mx-auto flex max-w-4xl flex-col items-center space-y-6 px-4 text-center sm:px-6"
         >
           <blockquote className="max-w-[34ch] font-[family-name:var(--font-display)] text-[clamp(1.625rem,3.1vw,2.5rem)] leading-[1.24] font-normal tracking-[-0.02em] text-balance text-foreground">

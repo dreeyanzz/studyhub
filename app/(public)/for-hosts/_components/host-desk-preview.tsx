@@ -100,10 +100,10 @@ export function HostDeskPreview() {
   return (
     <div
       data-testid="host-desk-preview"
-      className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8"
+      className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-8"
     >
       {/* Panel A: One-Tap Walk-In Occupancy (STORY-12) */}
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)] sm:p-6 lg:col-span-7">
+      <div className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)] sm:p-6">
         <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-4">
           <div>
             <p className="font-mono text-xs font-semibold tracking-widest text-primary uppercase">
@@ -235,7 +235,7 @@ export function HostDeskPreview() {
       </div>
 
       {/* Panel B: QR Check-In Desk (STORY-10) */}
-      <div className="rounded-2xl border border-border bg-card shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)] lg:col-span-5">
+      <div className="min-w-0 rounded-2xl border border-border bg-card shadow-[0_18px_40px_-30px_rgba(23,60,45,0.28)]">
         <div className="rounded-t-2xl bg-foreground px-5 py-4 text-background sm:px-6">
           <p className="font-mono text-xs font-semibold tracking-widest text-[#f0c95c] uppercase">
             Illustrative Check-In Desk
