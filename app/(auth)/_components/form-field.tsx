@@ -37,7 +37,7 @@ export function FormField({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor={id} className="px-1 text-foreground">
+      <Label htmlFor={id} className="text-[13px] font-medium text-foreground">
         {label}
       </Label>
       <div className="relative">
@@ -48,7 +48,7 @@ export function FormField({
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy || undefined}
           className={cn(
-            'rounded-full border-input bg-muted/85 px-4 text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background',
+            'rounded-xl border-input bg-card px-4 text-foreground shadow-2xs transition-colors placeholder:text-muted-foreground hover:border-primary/45 focus-visible:border-primary focus-visible:bg-card',
             isPassword && 'pr-12',
             className,
           )}

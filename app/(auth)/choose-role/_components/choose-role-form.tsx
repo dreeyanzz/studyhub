@@ -64,7 +64,7 @@ export function ChooseRoleForm({
         aria-describedby={roleError ? 'role-error' : undefined}
         className="flex flex-col gap-2"
       >
-        <legend id="role-legend" className="mb-2 text-sm font-medium">
+        <legend id="role-legend" className="mb-1.5 px-1 text-sm font-medium">
           I want to join as
         </legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -72,7 +72,7 @@ export function ChooseRoleForm({
             <label
               key={role.value}
               htmlFor={`role-${role.value}`}
-              className="grid min-h-12 cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1 rounded-lg border border-input p-3 has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
+              className="grid min-h-12 cursor-pointer grid-cols-[auto_minmax(0,1fr)] items-start gap-x-2.5 gap-y-0.5 rounded-2xl border border-input bg-surface-subtle/60 p-3 shadow-2xs transition-all hover:border-primary/40 has-checked:border-primary has-checked:bg-accent/70 has-checked:shadow-card has-focus-visible:ring-3 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
             >
               <input
                 id={`role-${role.value}`}
@@ -89,7 +89,7 @@ export function ChooseRoleForm({
               </span>
               <span
                 id={`role-${role.value}-text`}
-                className="text-sm text-muted-foreground"
+                className="text-xs text-muted-foreground"
               >
                 {role.text}
               </span>
@@ -97,7 +97,7 @@ export function ChooseRoleForm({
           ))}
         </div>
         {roleError && (
-          <p id="role-error" className="text-sm text-destructive">
+          <p id="role-error" className="px-1 text-sm text-destructive">
             {roleError}
           </p>
         )}
@@ -107,7 +107,7 @@ export function ChooseRoleForm({
         type="submit"
         disabled={pending}
         focusableWhenDisabled
-        className="h-auto min-h-12 w-full py-3 whitespace-normal"
+        className="mt-1 h-auto min-h-12 w-full rounded-full py-3 font-semibold whitespace-normal transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
       >
         {pending ? 'Saving your account…' : 'Continue to Worq'}
       </Button>

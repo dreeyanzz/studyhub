@@ -40,7 +40,7 @@ export function RegisterForm({
   const [email, setEmail] = useState(state.values?.email ?? '')
 
   return (
-    <form {...formProps} className="flex flex-col gap-4">
+    <form {...formProps} className="flex flex-col gap-2.5">
       {showServerMessage && state.formError && (
         <Alert variant="destructive">
           <AlertDescription>{state.formError}</AlertDescription>
@@ -62,17 +62,17 @@ export function RegisterForm({
         aria-required
         aria-invalid={roleError ? true : undefined}
         aria-describedby={roleError ? 'role-error' : undefined}
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-1.5"
       >
-        <legend id="role-legend" className="mb-1.5 px-1 text-sm font-medium">
+        <legend id="role-legend" className="mb-1 text-[13px] font-medium text-foreground">
           I want to join as
         </legend>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           {roles.map((role) => (
             <label
               key={role.value}
               htmlFor={`role-${role.value}`}
-              className="grid min-h-12 cursor-pointer grid-cols-[auto_1fr] items-start gap-x-2.5 gap-y-0.5 rounded-2xl border border-input bg-muted/40 p-3 transition-colors has-checked:border-primary has-checked:bg-accent has-focus-visible:ring-3 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
+              className="grid min-h-12 cursor-pointer grid-cols-[auto_1fr] items-start gap-x-2.5 gap-y-0.5 rounded-xl border border-input bg-card p-2.5 shadow-2xs transition-all hover:border-primary/45 has-checked:border-primary has-checked:bg-accent/70 has-focus-visible:ring-3 has-focus-visible:ring-ring has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background"
             >
               <input
                 id={`role-${role.value}`}
@@ -143,7 +143,7 @@ export function RegisterForm({
         type="submit"
         disabled={pending}
         focusableWhenDisabled
-        className="mt-1 h-auto min-h-12 w-full rounded-full font-semibold whitespace-normal transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+        className="mt-1 h-auto min-h-12 w-full rounded-xl bg-gradient-to-r from-primary to-forest-mid font-semibold whitespace-normal text-white shadow-sm transition-all duration-200 hover:from-primary-hover hover:to-forest-deep hover:shadow-card"
       >
         {pending ? 'Creating your account…' : 'Create account'}
       </Button>

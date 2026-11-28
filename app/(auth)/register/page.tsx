@@ -52,7 +52,7 @@ export default async function RegisterPage({ searchParams }: PageProps<'/registe
       title="Start your focus"
       subtitle="Create your Worq account as a Seeker or a Host."
     >
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3.5">
         {notice && (
           <Alert variant={notice.variant} role={notice.role}>
             <AlertDescription>{notice.message}</AlertDescription>
