@@ -148,6 +148,8 @@ Their lengths are decided in STORY-09's design.
 
 **Amended by D-091** for the production project, whose accounts use real addresses on the team Gmail account.
 
+**Amended by D-097** for the demo catalog's real Metro Cebu study and co-working hub names and approximate locations.
+
 **Decision:** Seed and demo data are invented, and emails use `@example.test`. The admin account is seeded locally only, never in a cloud project.
 
 **Why:** Seed passwords are public in this repository, and no real person's data belongs in a class demo.
@@ -1465,3 +1467,19 @@ Supersedes D-006's "Both exist at space level and unit level". The rest of D-006
 **Rejected:** Dropping required peer approvals to `0` (removes GitHub-enforced peer review required by CPEPE361 and the Sprint DoD); keeping Adrian as the sole merger with Luke as backup (still bottlenecks on one or two people); using `SUPABASE_ACCESS_TOKEN` in GitHub Actions (account-wide scope reaches `studyhub-prod`'s separate organization, violating D-090); leaving `studyhub-dev` migrations manual after teammates can merge (Vercel deploys `main` immediately, leaving the live app ahead of the schema).
 
 **Revisit if:** Peer-merged pull requests break `main` or miss domain approvals, or `studyhub-dev` auto-pushes hit migration collisions.
+
+## D-097 · Faithful 50-space Metro Cebu demo catalog (local + cloud parity)
+
+**Amends D-013** for demo Space names, addresses, and approximate coordinates only.
+
+**Decision:**
+
+- A single idempotent script (`scripts/seed-demo-spaces.mjs`, invoked via `npm run db:seed:demo` for cloud dev and `npm run db:seed:demo:local` for local Docker Supabase) seeds **50 real Metro Cebu study and co-working spaces** across all 13 campus clusters in `lib/geo/campuses.ts`, along with synthetic `@example.test` user accounts, zones, units, curated and custom tags, uploaded cover photos in `space-photos`, verification `space_events`, reservations, payments, reviews, review reports, and moderation events covering every status and substate in the schema.
+- Real Metro Cebu study/co-working hub names and approximate barangay/corridor addresses are used so the discovery map, campus searches, and Final defense demo feel authentic to Cebu. All user accounts, emails (`@example.test`), phone numbers, reservations, payments, and reviews remain strictly synthetic (D-013).
+- `supabase/seed.sql` stays minimal and untouched so pgTAP (`npm run db:test`), race tests (`npm run db:race`), and Playwright E2E (`npm run test:e2e`) keep their fixed 3-Space fixtures and fast CI runtime.
+
+**Why:** Adrian decided it on 28 November: seeding 50 realistic Cebu hubs via one shared script gives local and cloud dev identical, rich data across every Space, Unit, Reservation, Payment, and Review state without coupling CI tests to 50 spaces or breaking `seed.sql` fixtures.
+
+**Rejected:** Expanding `supabase/seed.sql` to 50 spaces (breaks pgTAP/E2E fixed-count assertions and cannot upload binary cover photos to Supabase Storage); keeping invented-only Space names in the demo catalog (less recognizable during a Cebu class demo).
+
+**Revisit if:** Any featured hub requests removal of its name from the class demo catalog, or if production switches to live Host-onboarded listings only.
