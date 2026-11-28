@@ -260,7 +260,7 @@ One PR per row, and every PR targets `main`:
 
 - None blocking. The Sprint 1 question on Administrator portal access is settled by D-032.
 - **`/admin` has no page until STORY-14.** An Administrator (local stack and CI only, D-013) who logs in is sent to `/admin` and sees a 404 until then. STORY-03 does not build an admin page. Likewise `/seeker` shows a 404 until STORY-04's portal, and `/host` until STORY-05's.
-- **The public header is the same for everyone (settled in TSK-03.4).** In Sprint 1 it shows Log in and Sign up to signed-in visitors too. Following either sends a signed-in user to their dashboard, because the proxy redirects the auth pages (§2). The public pages read no session and stay static (STORY-02 §4, §8).
+- **The public header is the same for everyone (settled in TSK-03.4).** In Sprint 1 it shows Log in and Sign up to signed-in visitors too. Following either sends a signed-in user to their dashboard, because the proxy redirects the auth pages (§2). Updated later so `SiteHeaderNav` reads the session on the client (keeping `/spaces` ISR cookie-free) and shows `Dashboard`, `My reservations` (for Seekers), `Find a Space`, the user's role badge, and `Log out` for signed-in users (or `Finish sign-up` for unconfirmed OAuth users).
 - **Sign-out is owned here.** `signOut` lives in `app/(auth)/actions.ts`; the Seeker and Host portals' Log out buttons call it rather than writing their own.
 - **Zod is added here.** STORY-04 and STORY-05 schemas depend on TSK-03.1 for the package.
 

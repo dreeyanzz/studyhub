@@ -4,9 +4,11 @@ import { WorqMark } from '@/components/brand/worq-mark'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-// Everyone sees Log in and Sign up: the public pages read no session (STORY-02
-// design §4, §8, STORY-03 design §8). Find a Space leads to the discovery map,
-// and links wrap cleanly at 360 px and 200% text zoom.
+import { SiteHeaderNav } from './site-header-nav'
+
+// Public header stays cookie-free so /spaces keeps ISR caching (STORY-08), while
+// SiteHeaderNav checks the Supabase session on the client to show Dashboard,
+// role badge, and Log out for signed-in visitors instead of Log in / Sign up.
 // An outline, not only the button's box-shadow ring: the shadow fades in over the
 // button's 200 ms transition, so a fast Tab shows no ring at first (D-031, D-093).
 const headerFocus =
@@ -28,64 +30,7 @@ export function SiteHeader() {
           Worq
         </Link>
 
-        <nav
-          aria-label="Main"
-          className="flex flex-wrap items-center gap-1 rounded-xl bg-surface-subtle/90 p-1"
-        >
-          <Link
-            href="/spaces"
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              headerFocus,
-              'h-auto min-h-12 rounded-lg px-3 py-2.5 text-sm font-semibold whitespace-normal text-foreground hover:bg-card hover:shadow-2xs sm:px-4',
-            )}
-          >
-            Find a Space
-          </Link>
-          <Link
-            href="/#how-it-works"
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              headerFocus,
-              'hidden h-auto min-h-12 rounded-lg px-3.5 py-2.5 text-sm font-medium whitespace-normal text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-2xs md:inline-flex',
-            )}
-          >
-            How it works
-          </Link>
-          <Link
-            href="/for-hosts"
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              headerFocus,
-              'h-auto min-h-12 rounded-lg px-3 py-2.5 text-sm font-medium whitespace-normal text-muted-foreground hover:bg-card hover:text-foreground hover:shadow-2xs sm:px-3.5',
-            )}
-          >
-            For Hosts
-          </Link>
-        </nav>
-
-        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-          <Link
-            href="/login"
-            className={cn(
-              buttonVariants({ variant: 'ghost' }),
-              headerFocus,
-              'h-auto min-h-12 min-w-12 rounded-xl px-3 py-2.5 text-sm font-semibold whitespace-normal text-foreground hover:bg-surface-subtle sm:px-4',
-            )}
-          >
-            Log in
-          </Link>
-          <Link
-            href="/register"
-            className={cn(
-              buttonVariants(),
-              headerFocus,
-              'h-auto min-h-12 rounded-xl bg-gradient-to-r from-primary to-forest-mid px-4 py-2.5 text-sm font-semibold whitespace-normal text-white shadow-sm hover:from-primary-hover hover:to-forest-deep sm:px-5',
-            )}
-          >
-            Sign up
-          </Link>
-        </div>
+        <SiteHeaderNav />
       </div>
     </header>
   )
