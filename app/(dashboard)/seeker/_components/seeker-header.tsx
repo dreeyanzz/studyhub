@@ -39,20 +39,21 @@ export async function SeekerHeader() {
   const displayName = profile.full_name || user.email || 'Your account'
 
   return (
-    <header className="border-b border-border bg-card/95 backdrop-blur-sm">
-      <div className="flex w-full flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-10">
+    <header className="z-40 px-3 pt-3 pb-1 sm:px-6 lg:sticky lg:top-0 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/90 bg-white/82 px-4 py-2 shadow-float backdrop-blur-xl">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link
             href="/seeker"
             aria-label="Worq home"
             className={cn(
               buttonVariants({ variant: 'ghost' }),
-              'h-auto min-h-12 max-w-full shrink gap-2 px-2 py-2 font-heading text-xl font-semibold whitespace-normal',
+              'h-auto min-h-12 max-w-full shrink gap-2.5 rounded-xl px-2 py-2 font-heading text-xl font-bold tracking-[-0.03em] whitespace-normal hover:bg-surface-subtle',
             )}
           >
             <WorqMark className="size-7" />
             Worq
           </Link>
+          <span aria-hidden="true" className="hidden h-5 w-px bg-border sm:block" />
           <SeekerNav />
         </div>
 
@@ -60,13 +61,13 @@ export async function SeekerHeader() {
           <div className="flex min-w-0 flex-wrap items-center gap-2.5">
             <div
               aria-hidden="true"
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-forest-mid text-xs font-bold text-white shadow-2xs"
             >
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-base font-semibold wrap-anywhere text-foreground">
+                <p className="text-sm font-semibold wrap-anywhere text-foreground sm:text-base">
                   {displayName}
                 </p>
                 <Badge variant="secondary">{roleLabels[profile.role]}</Badge>
@@ -76,10 +77,10 @@ export async function SeekerHeader() {
           </div>
           <form action={signOut}>
             <Button
-              variant="ghost"
+              variant="outline"
               size="default"
               type="submit"
-              className="h-auto min-h-12 max-w-full shrink rounded-full px-4 py-2 whitespace-normal"
+              className="h-auto min-h-12 max-w-full shrink rounded-xl border-border bg-card px-4 py-2 whitespace-normal hover:border-primary/40 hover:bg-surface-subtle"
             >
               Log out
             </Button>

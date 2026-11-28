@@ -46,9 +46,10 @@ export function reservationsCurrent(pathname: string): 'page' | 'true' | undefin
 // min-h-12 min-w-12: a 48 x 48 px target (SRS §3.2.2).
 const linkClass = cn(
   buttonVariants({ variant: 'ghost' }),
-  'min-h-12 min-w-12 rounded-full px-4',
+  'min-h-12 min-w-12 rounded-xl px-4 text-muted-foreground hover:bg-surface-subtle hover:text-foreground',
 )
-const currentClass = 'bg-secondary text-secondary-foreground'
+const currentClass =
+  'bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover hover:text-primary-foreground'
 
 export function SeekerNav() {
   const pathname = usePathname()

@@ -39,7 +39,7 @@ export default async function ConfirmationPage({
     <nav aria-label="Breadcrumb">
       <Link
         href="/seeker"
-        className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
         <span>Back to dashboard</span>
