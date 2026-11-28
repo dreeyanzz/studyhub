@@ -8,6 +8,10 @@ const PORT = 3100
 // localhost, not 127.0.0.1: Next 16 blocks its dev resources (the HMR socket) for
 // any other host name unless next.config.ts lists it in allowedDevOrigins.
 const BASE_URL = `http://localhost:${PORT}`
+// CI builds the app once against the local Supabase stack and serves it with `next start`
+// to avoid per-route dev compilation overhead across all E2E specs. Local runs keep
+// `next dev` unless PLAYWRIGHT_USE_BUILD=1 is set.
+const USE_BUILD = process.env.PLAYWRIGHT_USE_BUILD === '1' || !!process.env.CI
 
 // The local stack's own URL and publishable key, from `supabase status` (STORY-06
 // design §1), so the app never gets .env.local's cloud values or a stand-in key
@@ -46,7 +50,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `npx next dev -p ${PORT}`,
+    command: USE_BUILD ? `npx next start -p ${PORT}` : `npx next dev -p ${PORT}`,
     url: BASE_URL,
     reuseExistingServer: false,
     timeout: 120_000,
@@ -61,6 +65,8 @@ export default defineConfig({
       STRIPE_API_URL: STRIPE_STUB_URL,
       STRIPE_SECRET_KEY: 'sk_test_e2e-stub-placeholder',
       STRIPE_WEBHOOK_SECRET: STRIPE_STUB_WEBHOOK_SECRET,
+      // Specs insert fixture Spaces directly in Postgres (bypassing revalidatePath).
+      ...(USE_BUILD ? { PLAYWRIGHT_DISABLE_ISR: '1' } : {}),
     },
   },
 })

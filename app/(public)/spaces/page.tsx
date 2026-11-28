@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import { Compass } from 'lucide-react'
 
 import { DiscoveryShell } from './_components/discovery-shell'
@@ -26,6 +27,12 @@ export const revalidate = 60
  * extra server round-trips.
  */
 export default async function SpacesPage() {
+  // Playwright specs insert/delete fixture Spaces directly in Postgres (bypassing
+  // Server Actions' revalidatePath('/spaces')), so opt /spaces into dynamic rendering
+  // only during E2E production builds where PLAYWRIGHT_DISABLE_ISR=1 is set.
+  if (process.env.PLAYWRIGHT_DISABLE_ISR === '1') {
+    await connection()
+  }
   const supabase = createPublicClient()
   const spaces = await getDiscoverySpaces(supabase)
 
