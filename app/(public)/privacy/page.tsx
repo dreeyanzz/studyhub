@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowLeft, ShieldCheck } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -99,11 +100,10 @@ export default function PrivacyPage() {
           <div>
             <a
               href="mailto:worq.team.ph@gmail.com"
-              className={buttonVariants({
-                variant: 'link',
-                className:
-                  'h-auto min-h-12 justify-start px-0 py-2 text-left font-medium break-all whitespace-normal',
-              })}
+              className={cn(
+                buttonVariants({ variant: 'link' }),
+                'h-auto min-h-12 max-w-full justify-start px-0 py-2 text-left font-medium break-all whitespace-normal',
+              )}
             >
               worq.team.ph@gmail.com
             </a>

@@ -14,7 +14,7 @@ export function SiteFooter() {
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
       />
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 pb-10 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
+        <div className="grid gap-10 pb-10 wrap-anywhere md:grid-cols-[minmax(0,1.5fr)_minmax(0,3fr)]">
           {/* Brand Column */}
           <div className="space-y-4">
             <Link
@@ -34,92 +34,95 @@ export function SiteFooter() {
             </p>
           </div>
 
-          {/* Explore */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-              Explore
-            </p>
-            <ul className="space-y-0.5 text-sm">
-              <li>
-                <Link
-                  href="/spaces"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  Find a Space
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/#how-it-works"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  How it works
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/for-hosts"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  For Hosts
-                </Link>
-              </li>
-            </ul>
-          </div>
+          {/* The link columns stay one Footer landmark (STORY-02, STORY-21 privacy link). */}
+          <nav aria-label="Footer" className="grid gap-10 sm:grid-cols-3">
+            {/* Explore */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+                Explore
+              </p>
+              <ul className="space-y-0.5 text-sm">
+                <li>
+                  <Link
+                    href="/spaces"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Find a Space
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/#how-it-works"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    How it works
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/for-hosts"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    For Hosts
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Account */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-              Account
-            </p>
-            <ul className="space-y-0.5 text-sm">
-              <li>
-                <Link
-                  href="/login"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  Log in
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  Sign up
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/register?role=host"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  Become a Host
-                </Link>
-              </li>
-            </ul>
-          </div>
+            {/* Account */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+                Account
+              </p>
+              <ul className="space-y-0.5 text-sm">
+                <li>
+                  <Link
+                    href="/login"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Log in
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/register"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Sign up
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/register?role=host"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Become a Host
+                  </Link>
+                </li>
+              </ul>
+            </div>
 
-          {/* Trust & Legal */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-              Trust
-            </p>
-            <ul className="space-y-0.5 text-sm">
-              <li>
-                <Link
-                  href="/privacy"
-                  className="inline-flex min-h-12 items-center font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:outline-none"
-                >
-                  Privacy policy
-                </Link>
-              </li>
-            </ul>
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Every listed Space is reviewed and verified by an Administrator before it
-              appears on the map.
-            </p>
-          </div>
+            {/* Trust & Legal */}
+            <div className="space-y-2.5">
+              <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+                Trust
+              </p>
+              <ul className="space-y-0.5 text-sm">
+                <li>
+                  <Link
+                    href="/privacy"
+                    className="inline-flex min-h-12 min-w-12 items-center rounded-sm font-medium text-muted-foreground transition-colors hover:text-primary focus-visible:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                  >
+                    Privacy policy
+                  </Link>
+                </li>
+              </ul>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Every listed Space is reviewed and verified by an Administrator before it
+                appears on the map.
+              </p>
+            </div>
+          </nav>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground">

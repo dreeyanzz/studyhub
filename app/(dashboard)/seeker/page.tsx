@@ -140,7 +140,7 @@ export default async function SeekerPage({
           }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-7 wrap-anywhere">
       {/* 1. Command Header Bar with Personal Greeting & Quick Actions */}
       <header className="flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-6">
         <div className="min-w-0 space-y-2">
@@ -162,7 +162,7 @@ export default async function SeekerPage({
             href="/seeker/reservations"
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              'h-auto min-h-12 min-w-12 rounded-xl border-border bg-card px-4 py-2.5 font-semibold whitespace-normal shadow-2xs hover:border-primary/40 hover:bg-surface-subtle',
+              'h-auto min-h-12 max-w-full min-w-12 rounded-xl border-border bg-card px-4 py-2.5 font-semibold whitespace-normal shadow-2xs hover:border-primary/40 hover:bg-surface-subtle',
             )}
           >
             <History aria-hidden="true" className="size-4 text-primary" />
@@ -172,7 +172,7 @@ export default async function SeekerPage({
             href="/spaces"
             className={cn(
               buttonVariants({ variant: 'default' }),
-              'h-auto min-h-12 min-w-12 rounded-xl bg-gradient-to-r from-primary to-forest-mid px-5 py-2.5 font-semibold whitespace-normal text-white shadow-sm hover:from-primary-hover hover:to-forest-deep',
+              'h-auto min-h-12 max-w-full min-w-12 rounded-xl bg-gradient-to-r from-primary to-forest-mid px-5 py-2.5 font-semibold whitespace-normal text-white shadow-sm hover:from-primary-hover hover:to-forest-deep',
             )}
           >
             <Search aria-hidden="true" className="size-4" />
@@ -184,7 +184,7 @@ export default async function SeekerPage({
       {/* 2. 4-Card Luminous Real-Data Snapshot Strip */}
       <section
         aria-label="Account summary"
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        className="grid grid-cols-1 gap-4 wrap-anywhere sm:grid-cols-2 lg:grid-cols-4"
       >
         <div className="flex min-w-0 items-center gap-3.5 rounded-3xl border border-border/80 bg-card p-5 shadow-card">
           <div
@@ -195,10 +195,10 @@ export default async function SeekerPage({
           </div>
           <div className="min-w-0">
             <p className="text-xs font-semibold text-muted-foreground">Seat status</p>
-            <p className="truncate font-heading text-xl font-bold tracking-[-0.02em] text-foreground">
+            <p className="font-heading text-xl font-bold tracking-[-0.02em] wrap-anywhere text-foreground">
               {holdSnapshot.label}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="text-xs wrap-anywhere text-muted-foreground">
               {holdSnapshot.detail}
             </p>
           </div>
@@ -218,7 +218,7 @@ export default async function SeekerPage({
             <p className="font-heading text-2xl font-bold tracking-tight text-foreground tabular-nums">
               {completedCount}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="text-xs wrap-anywhere text-muted-foreground">
               {historyItems.length === 0
                 ? 'Your first visit starts here'
                 : `${historyItems.length}${history?.hasMore ? '+' : ''} total paid holds`}
@@ -238,7 +238,7 @@ export default async function SeekerPage({
             <p className="font-heading text-2xl font-bold tracking-tight text-foreground tabular-nums">
               {reviewedCount}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="text-xs wrap-anywhere text-muted-foreground">
               {reviewedCount > 0 ? 'Helping fellow Seekers' : 'Rate after a visit'}
             </p>
           </div>
@@ -260,7 +260,7 @@ export default async function SeekerPage({
             <p className="font-heading text-2xl font-bold tracking-tight text-primary tabular-nums">
               {verifiedSpaces.length}
             </p>
-            <p className="truncate text-xs text-muted-foreground">
+            <p className="text-xs wrap-anywhere text-muted-foreground">
               {openNowCount} open right now
             </p>
           </div>

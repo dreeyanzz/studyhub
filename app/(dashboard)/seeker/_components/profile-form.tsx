@@ -118,13 +118,13 @@ export function ProfileForm({ profile, email = null }: ProfileFormProps) {
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-heading text-base font-bold text-foreground">
+            <p className="font-heading text-base font-bold wrap-anywhere text-foreground">
               {displayName}
             </p>
             {email ? (
-              <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+              <p className="mt-0.5 flex items-center gap-1.5 text-xs wrap-anywhere text-muted-foreground">
                 <Mail aria-hidden="true" className="size-3.5 shrink-0 text-primary" />
-                <span className="truncate">{email}</span>
+                <span className="min-w-0 wrap-anywhere">{email}</span>
               </p>
             ) : (
               <p className="mt-0.5 text-xs text-muted-foreground">Worq Seeker Profile</p>

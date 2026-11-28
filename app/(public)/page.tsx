@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { StartupLamp } from './_components/startup-lamp'
 import './discovery.css'
 
@@ -69,7 +70,7 @@ const stageUnits = [
 
 export default function Home() {
   return (
-    <>
+    <div className="discovery-home">
       <StartupLamp />
 
       {/* 1. Centered Luminous Daylight Aurora Hero + Elevated Glass Bento Product Stage */}
@@ -118,12 +119,13 @@ export default function Home() {
                   className="min-h-12 w-full min-w-0 rounded-xl bg-transparent pr-3 pl-11 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:text-sm"
                 />
               </div>
+              {/* cn(), so whitespace-normal replaces the base nowrap: the label wraps at 200% text (D-031). */}
               <button
                 type="submit"
-                className={buttonVariants({
-                  className:
-                    'shrink-0 rounded-xl bg-gradient-to-r from-primary to-forest-mid px-6 font-semibold text-white shadow-sm hover:from-primary-hover hover:to-forest-deep',
-                })}
+                className={cn(
+                  buttonVariants(),
+                  'h-auto min-h-12 max-w-full rounded-xl bg-gradient-to-r from-primary to-forest-mid px-6 py-2 font-semibold whitespace-normal text-white shadow-sm hover:from-primary-hover hover:to-forest-deep',
+                )}
               >
                 <span>Search Spaces</span>
                 <ArrowRight aria-hidden="true" size={16} />
@@ -133,22 +135,20 @@ export default function Home() {
             <div className="aurora-quick-row">
               <Link
                 href="/spaces"
-                className={buttonVariants({
-                  variant: 'outline',
-                  className:
-                    'rounded-full border-border bg-white/90 px-5 font-semibold text-foreground shadow-2xs hover:border-primary/40 hover:bg-white',
-                })}
+                className={cn(
+                  buttonVariants({ variant: 'outline' }),
+                  'h-auto min-h-12 max-w-full rounded-full border-border bg-white/90 px-5 py-2 font-semibold whitespace-normal text-foreground shadow-2xs hover:border-primary/40 hover:bg-white',
+                )}
               >
                 <Compass aria-hidden="true" size={16} className="text-primary" /> Find a
                 Space
               </Link>
               <Link
                 href="/register"
-                className={buttonVariants({
-                  variant: 'ghost',
-                  className:
-                    'rounded-full px-4 font-semibold text-foreground hover:bg-white/75',
-                })}
+                className={cn(
+                  buttonVariants({ variant: 'ghost' }),
+                  'h-auto min-h-12 max-w-full rounded-full px-4 py-2 font-semibold whitespace-normal text-foreground hover:bg-white/75',
+                )}
               >
                 Get started <ArrowUpRight aria-hidden="true" size={16} />
               </Link>
@@ -357,20 +357,19 @@ export default function Home() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link
                 href="/register?role=host"
-                className={buttonVariants({
-                  variant: 'brass',
-                  className: 'rounded-xl px-7 font-bold shadow-md',
-                })}
+                className={cn(
+                  buttonVariants({ variant: 'brass' }),
+                  'h-auto min-h-12 max-w-full rounded-xl px-7 py-2 font-bold whitespace-normal shadow-md',
+                )}
               >
                 Become a Host <ArrowRight aria-hidden="true" size={16} />
               </Link>
               <Link
                 href="/for-hosts"
-                className={buttonVariants({
-                  variant: 'outline',
-                  className:
-                    'rounded-xl border-white/25 bg-white/10 px-6 font-semibold text-white backdrop-blur hover:border-brass/60 hover:bg-white/18 hover:text-white',
-                })}
+                className={cn(
+                  buttonVariants({ variant: 'outline' }),
+                  'h-auto min-h-12 max-w-full rounded-xl border-white/25 bg-white/10 px-6 py-2 font-semibold whitespace-normal text-white backdrop-blur hover:border-brass/60 hover:bg-white/18 hover:text-white',
+                )}
               >
                 For Hosts overview <ArrowUpRight aria-hidden="true" size={16} />
               </Link>
@@ -408,6 +407,6 @@ export default function Home() {
           </ul>
         </div>
       </section>
-    </>
+    </div>
   )
 }

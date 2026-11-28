@@ -39,7 +39,7 @@ export async function HostHeader() {
   const displayName = profile.full_name || 'Host portal'
 
   return (
-    <header className="sticky top-0 z-40 px-3 pt-3 pb-1 sm:px-6 lg:px-8">
+    <header className="z-40 px-3 pt-3 pb-1 sm:px-6 lg:sticky lg:top-0 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/90 bg-white/82 px-4 py-2 shadow-float backdrop-blur-xl">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
           <Link

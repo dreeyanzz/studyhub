@@ -162,7 +162,7 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
           <Button
             type="button"
             variant={viewMode === 'seat_map' ? 'default' : 'ghost'}
-            className="h-12 min-w-12 gap-2 rounded-full px-5 text-sm font-semibold"
+            className="h-auto min-h-12 max-w-full min-w-12 gap-2 rounded-full px-5 py-2 text-sm font-semibold whitespace-normal"
             onClick={() => setViewMode('seat_map')}
             aria-pressed={viewMode === 'seat_map'}
           >
@@ -172,7 +172,7 @@ export function OccupancyView({ space, initialZones }: OccupancyViewProps) {
           <Button
             type="button"
             variant={viewMode === 'list' ? 'default' : 'ghost'}
-            className="h-12 min-w-12 gap-2 rounded-full px-5 text-sm font-semibold"
+            className="h-auto min-h-12 max-w-full min-w-12 gap-2 rounded-full px-5 py-2 text-sm font-semibold whitespace-normal"
             onClick={() => setViewMode('list')}
             aria-pressed={viewMode === 'list'}
           >

@@ -179,7 +179,7 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
 
   const actionLinkClass = cn(
     buttonVariants({ variant: 'outline' }),
-    'h-auto min-h-12 gap-1.5 rounded-xl border-border bg-card px-3.5 py-2 text-xs font-semibold whitespace-normal shadow-2xs hover:border-primary/40 hover:bg-surface-subtle',
+    'h-auto min-h-12 max-w-full gap-1.5 rounded-xl border-border bg-card px-3.5 py-2 text-xs font-semibold whitespace-normal shadow-2xs hover:border-primary/40 hover:bg-surface-subtle',
   )
 
   return (

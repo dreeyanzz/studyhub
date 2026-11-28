@@ -83,7 +83,7 @@ export function FeaturedSpacesCard({
               <article
                 key={space.id}
                 className={cn(
-                  'group min-w-0 overflow-hidden rounded-2xl border border-border/80 bg-surface-subtle/40 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card hover:shadow-card-hover',
+                  'group min-w-0 overflow-hidden rounded-2xl border border-border/80 bg-surface-subtle/40 wrap-anywhere transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:bg-card hover:shadow-card-hover',
                   isSingleFeature
                     ? 'grid grid-cols-1 sm:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]'
                     : 'flex flex-col justify-between',
@@ -151,7 +151,7 @@ export function FeaturedSpacesCard({
                       <ReviewRating
                         average={space.avg_overall}
                         count={space.review_count}
-                        className="shrink-0 rounded-full border border-border bg-card px-2 py-0.5 text-xs text-foreground"
+                        className="max-w-full flex-wrap rounded-full border border-border bg-card px-2 py-0.5 text-xs text-foreground"
                       />
                     </div>
 
@@ -163,7 +163,7 @@ export function FeaturedSpacesCard({
                       <span className="min-w-0 break-words">{space.address}</span>
                     </p>
 
-                    <p className="flex items-center gap-1.5 font-mono text-xs font-medium text-foreground/85">
+                    <p className="flex flex-wrap items-center gap-1.5 font-mono text-xs font-medium text-foreground/85">
                       <Clock
                         aria-hidden="true"
                         className="size-3.5 shrink-0 text-primary"

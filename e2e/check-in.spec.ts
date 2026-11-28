@@ -107,7 +107,10 @@ test.describe('Check-in, wait-window timers, and unit release (STORY-10 TSK-10.5
 
     // 3. Seeker sees Reserved hold, wait countdown, QR code, and grouped token on /seeker
     await page.goto('/seeker')
-    await expect(page.getByRole('heading', { name: 'Sulok Co-working' })).toBeVisible()
+    // Level 2: the hold card's heading, not the Featured Spaces card (STORY-17) below it.
+    await expect(
+      page.getByRole('heading', { level: 2, name: 'Sulok Co-working' }),
+    ).toBeVisible()
     await expect(
       page.getByRole('img', { name: `Booking QR code for token ${groupedToken}` }),
     ).toBeVisible()
