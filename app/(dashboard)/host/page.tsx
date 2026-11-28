@@ -119,12 +119,12 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
   const createSpaceSection = (
     <section aria-labelledby="create-space-heading" className="space-y-4">
       <div className="space-y-1">
-        <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+        <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
           Add a location
         </p>
         <h2
           id="create-space-heading"
-          className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+          className="font-heading text-2xl font-medium tracking-tight text-foreground"
         >
           Create a Space
         </h2>
@@ -136,16 +136,16 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
         ) : null}
       </div>
       {canCreate ? (
-        <Card className="max-w-3xl rounded-2xl border-border/80 bg-card shadow-sm">
+        <Card className="max-w-3xl rounded-2xl border-border bg-card shadow-card">
           <CardContent className="pt-6">
             <SpaceForm mode="create" action={createSpace} />
           </CardContent>
         </Card>
       ) : (
         // A Card, not an Alert: the note is part of the page, not news to announce.
-        <Card className="max-w-3xl rounded-2xl border-border/80 bg-card shadow-sm">
+        <Card className="max-w-3xl rounded-2xl border-border bg-card shadow-card">
           <CardHeader>
-            <CardTitle className="font-heading text-lg">
+            <CardTitle className="font-heading text-lg font-medium">
               Only Hosts create Spaces
             </CardTitle>
             <CardDescription>
@@ -162,18 +162,18 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
     <section aria-labelledby="your-spaces-heading" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <p className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          <p className="font-mono text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
             Your portfolio
           </p>
           <div className="flex flex-wrap items-baseline gap-3">
             <h2
               id="your-spaces-heading"
-              className="font-heading text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+              className="font-heading text-2xl font-medium tracking-tight text-foreground"
             >
               Your Spaces
             </h2>
             {spaces && spaces.length > 0 ? (
-              <span className="text-sm font-medium text-muted-foreground">
+              <span className="font-mono text-xs font-medium text-muted-foreground">
                 {spaces.length === 1 ? '1 Space' : `${spaces.length} Spaces`}
               </span>
             ) : null}
@@ -199,12 +199,12 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/70 pb-6">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-6">
         <div className="space-y-1.5">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+          <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
             Host Portal
           </p>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
             Manage Spaces
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
@@ -216,8 +216,8 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
           <Link
             href="#create-space-heading"
             className={cn(
-              buttonVariants({ variant: 'default' }),
-              'h-auto min-h-12 max-w-full gap-2 rounded-full bg-[#f0c95c] px-5 py-2.5 font-semibold whitespace-normal text-[#173c2d] shadow-xs hover:bg-[#f0c95c]/90',
+              buttonVariants({ variant: 'brass' }),
+              'h-auto min-h-12 max-w-full gap-2 rounded-xl px-6 py-2.5 font-bold whitespace-normal shadow-sm',
             )}
           >
             <Plus className="size-4 shrink-0" aria-hidden="true" />
@@ -227,42 +227,42 @@ export default async function HostPage({ searchParams }: PageProps<'/host'>) {
       </div>
 
       {hasSpaces && spaces ? (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))] gap-4">
-          <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="flex min-w-0 items-center gap-4 rounded-3xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-secondary text-primary">
               <Building2 className="size-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
+              <p className="text-xs font-semibold wrap-anywhere text-muted-foreground">
                 Total Spaces
               </p>
-              <p className="font-heading text-2xl font-bold text-foreground">
+              <p className="font-heading text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {spaces.length}
               </p>
             </div>
           </div>
-          <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground">
-              <CheckCircle2 className="size-5 text-primary" aria-hidden="true" />
+          <div className="flex min-w-0 items-center gap-4 rounded-3xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+              <CheckCircle2 className="size-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
+              <p className="text-xs font-semibold wrap-anywhere text-muted-foreground">
                 Verified
               </p>
-              <p className="font-heading text-2xl font-bold text-foreground">
+              <p className="font-heading text-3xl font-bold tracking-tight text-primary tabular-nums">
                 {verifiedCount}
               </p>
             </div>
           </div>
-          <div className="flex min-w-0 items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4 shadow-xs">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#f0c95c]/25 text-[#173c2d]">
+          <div className="flex min-w-0 items-center gap-4 rounded-3xl border border-border/80 bg-card p-5 shadow-card sm:p-6">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-brass-soft text-brass-foreground">
               <Clock className="size-5" aria-hidden="true" />
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-medium wrap-anywhere text-muted-foreground">
+              <p className="text-xs font-semibold wrap-anywhere text-muted-foreground">
                 Pending verification
               </p>
-              <p className="font-heading text-2xl font-bold text-foreground">
+              <p className="font-heading text-3xl font-bold tracking-tight text-foreground tabular-nums">
                 {pendingCount}
               </p>
             </div>

@@ -79,9 +79,11 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
     <div className="mx-auto w-full max-w-xl space-y-6">
       <CheckInResultBanner spaceId={spaceId} result={result} answerKey={answerCount} />
 
-      <Card>
+      <Card className="rounded-3xl shadow-card">
         <CardHeader className="space-y-1.5">
-          <CardTitle>Verify booking at {spaceName}</CardTitle>
+          <CardTitle className="font-heading text-xl">
+            Verify booking at {spaceName}
+          </CardTitle>
           <CardDescription>
             Scan a Seeker&apos;s QR code or enter their 12-character booking code to check
             them in.
@@ -93,7 +95,7 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
             <div
               role="tablist"
               aria-label="Check-in methods"
-              className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1"
+              className="grid grid-cols-2 gap-1.5 rounded-full border border-border/75 bg-surface-subtle p-1"
             >
               <button
                 type="button"
@@ -103,10 +105,10 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
                 aria-controls="panel-camera-scanner"
                 onClick={() => setSelectedTab('scanner')}
                 className={cn(
-                  'inline-flex min-h-12 items-center justify-center gap-2 rounded-md px-3 py-2 text-center text-sm font-medium whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-3 py-2 text-center text-sm font-semibold whitespace-normal transition-all focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                   activeTab === 'scanner'
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:bg-card hover:text-foreground',
                 )}
               >
                 <Camera className="size-4 shrink-0" aria-hidden="true" />
@@ -121,10 +123,10 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
                 aria-controls="panel-manual-entry"
                 onClick={() => setSelectedTab('manual')}
                 className={cn(
-                  'inline-flex min-h-12 items-center justify-center gap-2 rounded-md px-3 py-2 text-center text-sm font-medium whitespace-normal transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                  'inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-3 py-2 text-center text-sm font-semibold whitespace-normal transition-all focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                   activeTab === 'manual'
-                    ? 'bg-background text-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground',
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:bg-card hover:text-foreground',
                 )}
               >
                 <Keyboard className="size-4 shrink-0" aria-hidden="true" />
@@ -132,7 +134,7 @@ export function CheckInShell({ spaceId, spaceName }: CheckInShellProps) {
               </button>
             </div>
           ) : (
-            <p className="rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+            <p className="rounded-2xl border border-border/80 bg-surface-subtle px-4 py-3 text-sm text-muted-foreground">
               This browser can&apos;t scan QR codes. Type the code instead.
             </p>
           )}

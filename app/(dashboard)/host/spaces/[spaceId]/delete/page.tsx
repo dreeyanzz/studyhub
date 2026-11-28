@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 
 import { DeleteSpaceForm } from '@/app/(dashboard)/host/_components/delete-space-form'
 import { Card, CardContent } from '@/components/ui/card'
@@ -38,11 +40,22 @@ export default async function DeleteSpacePage({
 
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-        Delete Space
-      </h1>
-      <Card>
-        <CardContent className="space-y-5">
+      <div className="space-y-3">
+        <nav aria-label="Breadcrumb">
+          <Link
+            href="/host"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>Back to Spaces</span>
+          </Link>
+        </nav>
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+          Delete Space
+        </h1>
+      </div>
+      <Card className="rounded-3xl border-destructive/30 shadow-card">
+        <CardContent className="space-y-5 pt-6">
           <p className="text-base wrap-anywhere">
             You&apos;re about to permanently delete <strong>{space.name}</strong>. This
             can&apos;t be undone.

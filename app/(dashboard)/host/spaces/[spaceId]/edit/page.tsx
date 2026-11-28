@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
+import { ArrowLeft } from 'lucide-react'
 
 import { updateSpace } from '@/app/(dashboard)/host/actions'
 import { SpaceForm } from '@/app/(dashboard)/host/_components/space-form'
@@ -44,21 +46,32 @@ export default async function EditSpacePage({
 
   return (
     <div className="space-y-6">
-      <div className="max-w-2xl space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Edit Space
-        </h1>
-        {/* V6 and V4 (STORY-20 design §3, D-079). The form also warns before such a
-            save, and this line says it even without JavaScript. */}
-        <p className="text-sm wrap-anywhere text-muted-foreground">
-          {space.status === 'verified'
-            ? "Changing this Space's name, address, or map pin sends it back to Pending verification. Other edits keep it Verified."
-            : `Saving changes to ${space.name} doesn't change its Verification status.`}
-        </p>
+      <div className="space-y-3">
+        <nav aria-label="Breadcrumb">
+          <Link
+            href="/host"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border/80 bg-card px-4 text-sm font-medium text-foreground shadow-2xs transition-colors hover:border-primary/45 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
+            <span>Back to Spaces</span>
+          </Link>
+        </nav>
+        <div className="max-w-2xl space-y-1">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            Edit Space
+          </h1>
+          {/* V6 and V4 (STORY-20 design §3, D-079). The form also warns before such a
+              save, and this line says it even without JavaScript. */}
+          <p className="text-sm wrap-anywhere text-muted-foreground">
+            {space.status === 'verified'
+              ? "Changing this Space's name, address, or map pin sends it back to Pending verification. Other edits keep it Verified."
+              : `Saving changes to ${space.name} doesn't change its Verification status.`}
+          </p>
+        </div>
       </div>
       <SpaceSubNav spaceId={space.id} current="edit" />
-      <Card className="max-w-2xl">
-        <CardContent>
+      <Card className="max-w-2xl rounded-3xl shadow-card">
+        <CardContent className="pt-6">
           <SpaceForm
             mode="edit"
             action={updateSpace}

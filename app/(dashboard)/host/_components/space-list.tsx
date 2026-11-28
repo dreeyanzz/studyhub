@@ -126,8 +126,8 @@ function SpaceSetupChecklist({
   ] as const
 
   return (
-    <div className="rounded-xl border border-border/80 bg-secondary/35 p-3.5">
-      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+    <div className="rounded-xl border border-border bg-surface-subtle p-3.5">
+      <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
         Setup checklist
       </p>
       <ul className="mt-2 space-y-1 text-sm">
@@ -179,15 +179,15 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
 
   const actionLinkClass = cn(
     buttonVariants({ variant: 'outline' }),
-    'h-auto min-h-12 gap-1.5 rounded-xl border-border/80 bg-background/60 px-3.5 py-2 text-xs font-semibold whitespace-normal hover:bg-secondary/60',
+    'h-auto min-h-12 gap-1.5 rounded-xl border-border bg-card px-3.5 py-2 text-xs font-semibold whitespace-normal shadow-2xs hover:border-primary/40 hover:bg-surface-subtle',
   )
 
   return (
-    <Card className="flex h-full flex-col rounded-2xl border-border/80 bg-card shadow-sm transition-shadow hover:shadow-md">
+    <Card className="flex h-full flex-col rounded-3xl border-border/80 bg-card shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-card-hover">
       <CardHeader className="space-y-2 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <CardTitle className="min-w-0">
-            <h3 className="font-heading text-xl font-semibold wrap-anywhere text-foreground">
+            <h3 className="font-heading text-2xl font-bold tracking-[-0.02em] wrap-anywhere text-foreground">
               {space.name}
             </h3>
           </CardTitle>
@@ -217,7 +217,7 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
             </p>
           </div>
         ) : null}
-        <dl className="grid gap-2 rounded-xl border border-border/60 bg-muted/40 p-3 text-sm sm:grid-cols-2">
+        <dl className="grid gap-2.5 rounded-2xl border border-border/60 bg-surface-subtle/85 p-3.5 text-sm sm:grid-cols-2">
           <div className="min-w-0">
             <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <Clock className="size-3.5 shrink-0 text-primary/70" aria-hidden="true" />
@@ -286,7 +286,7 @@ function SpaceCard({ space, setup }: { space: SpaceListItem; setup?: SpaceSetupS
             href={`/host/spaces/${space.id}/delete`}
             className={cn(
               buttonVariants({ variant: 'destructive' }),
-              'h-auto min-h-12 gap-1.5 rounded-xl px-3.5 py-2 text-xs font-semibold whitespace-normal',
+              'h-auto min-h-12 gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold whitespace-normal',
             )}
           >
             <Trash2 className="size-3.5 shrink-0" aria-hidden="true" />

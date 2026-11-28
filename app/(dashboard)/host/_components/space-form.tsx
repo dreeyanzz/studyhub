@@ -65,11 +65,11 @@ export function identityFieldsChanged(
 // The Input primitive's look, for the one multi-line field. STORY-02 ships no
 // Textarea, and this story does not add one (design §0).
 const textareaClassName =
-  'min-h-32 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
+  'min-h-32 w-full min-w-0 rounded-xl border border-input/90 bg-card px-3.5 py-2.5 text-base shadow-2xs transition-colors outline-none placeholder:text-muted-foreground hover:border-primary/45 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
 
 // A native select styled like STORY-02's Input for the wait window picker (design §3).
 const selectClassName =
-  'h-12 w-full min-w-0 rounded-lg border border-input bg-transparent px-3 py-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
+  'h-12 w-full min-w-0 rounded-xl border border-input/90 bg-card px-3.5 py-2 text-base shadow-2xs transition-colors outline-none hover:border-primary/45 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive md:text-sm'
 
 // The four price tiers, in order, with the words Seekers see on pins and cards
 // (STORY-08 design §3). One per Space, so a radio group rather than checkboxes.
@@ -304,7 +304,7 @@ export function SpaceForm(props: SpaceFormProps) {
           {priceTierOptions.map((option) => (
             <label
               key={option.value}
-              className="flex min-h-12 cursor-pointer items-center gap-2 rounded-lg border border-input px-3 text-sm has-checked:border-primary has-focus-visible:ring-3 has-focus-visible:ring-ring"
+              className="flex min-h-12 cursor-pointer items-center gap-2 rounded-xl border border-input/90 bg-surface-subtle/60 px-3.5 text-sm font-medium shadow-2xs transition-colors hover:border-primary/45 has-checked:border-primary has-checked:bg-accent/70 has-focus-visible:ring-3 has-focus-visible:ring-ring"
             >
               <input
                 type="radio"
@@ -370,9 +370,10 @@ export function SpaceForm(props: SpaceFormProps) {
         <Button
           ref={submitRef}
           type="submit"
+          variant="brass"
           disabled={pending}
           focusableWhenDisabled
-          className="h-auto min-h-12 rounded-full bg-[#f0c95c] px-6 py-2.5 font-semibold text-[#173c2d] shadow-xs hover:bg-[#f0c95c]/90"
+          className="h-auto min-h-12 rounded-full px-6 py-2.5 font-semibold"
         >
           {creating
             ? pending

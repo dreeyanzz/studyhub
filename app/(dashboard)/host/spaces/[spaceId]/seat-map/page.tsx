@@ -146,11 +146,11 @@ export default async function SeatMapPage({
             </li>
           </ol>
         </nav>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Seat map
         </h1>
         <SpaceSubNav spaceId={space.id} current="seat-map" />
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-base font-medium wrap-anywhere text-foreground">
               {space.name}
@@ -161,16 +161,16 @@ export default async function SeatMapPage({
           <div
             role="group"
             aria-label="View switcher"
-            className="inline-flex rounded-lg border border-input bg-muted p-1 text-muted-foreground"
+            className="inline-flex rounded-full border border-border/75 bg-surface-subtle p-1 text-muted-foreground"
           >
             <Link
               href={gridHref}
               aria-current={!isListView ? 'page' : undefined}
               className={cn(
-                'inline-flex h-12 min-w-12 items-center justify-center rounded-md px-4 text-sm font-medium ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                'inline-flex h-12 min-w-12 items-center justify-center rounded-full px-5 text-sm font-semibold ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                 !isListView
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'hover:bg-background/50 hover:text-foreground',
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'hover:bg-card hover:text-foreground',
               )}
             >
               Grid
@@ -179,10 +179,10 @@ export default async function SeatMapPage({
               href={listHref}
               aria-current={isListView ? 'page' : undefined}
               className={cn(
-                'inline-flex h-12 min-w-12 items-center justify-center rounded-md px-4 text-sm font-medium ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                'inline-flex h-12 min-w-12 items-center justify-center rounded-full px-5 text-sm font-semibold ring-offset-background transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                 isListView
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'hover:bg-background/50 hover:text-foreground',
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'hover:bg-card hover:text-foreground',
               )}
             >
               List

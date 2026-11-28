@@ -1,4 +1,13 @@
 import Link from 'next/link'
+import {
+  Camera,
+  LayoutGrid,
+  Pencil,
+  QrCode,
+  Tag,
+  Users,
+  type LucideIcon,
+} from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -6,13 +15,17 @@ import { cn } from '@/lib/utils'
 export type HostSpaceSection =
   'occupancy' | 'check-in' | 'seat-map' | 'photos' | 'tags' | 'edit'
 
-const SECTIONS: ReadonlyArray<{ key: HostSpaceSection; label: string }> = [
-  { key: 'occupancy', label: 'Occupancy' },
-  { key: 'check-in', label: 'Check-in desk' },
-  { key: 'seat-map', label: 'Seat map' },
-  { key: 'photos', label: 'Photos' },
-  { key: 'tags', label: 'Tags' },
-  { key: 'edit', label: 'Edit' },
+const SECTIONS: ReadonlyArray<{
+  key: HostSpaceSection
+  label: string
+  icon: LucideIcon
+}> = [
+  { key: 'occupancy', label: 'Occupancy', icon: Users },
+  { key: 'check-in', label: 'Check-in desk', icon: QrCode },
+  { key: 'seat-map', label: 'Seat map', icon: LayoutGrid },
+  { key: 'photos', label: 'Photos', icon: Camera },
+  { key: 'tags', label: 'Tags', icon: Tag },
+  { key: 'edit', label: 'Edit', icon: Pencil },
 ]
 
 /**
@@ -30,9 +43,9 @@ export function SpaceSubNav({
   return (
     <nav
       aria-label="Space sections"
-      className="flex flex-wrap items-center gap-1.5 border-b border-border pb-3"
+      className="flex flex-wrap items-center gap-2 border-b border-border/75 pb-4"
     >
-      {SECTIONS.map(({ key, label }) => {
+      {SECTIONS.map(({ key, label, icon: Icon }) => {
         const isCurrent = key === current
         return (
           <Link
@@ -40,10 +53,13 @@ export function SpaceSubNav({
             href={`/host/spaces/${spaceId}/${key}`}
             aria-current={isCurrent ? 'page' : undefined}
             className={cn(
-              buttonVariants({ variant: isCurrent ? 'secondary' : 'ghost' }),
-              'h-auto min-h-12 max-w-full min-w-12 rounded-full px-4 py-2 text-center whitespace-normal',
+              buttonVariants({ variant: isCurrent ? 'default' : 'outline' }),
+              'h-auto min-h-12 max-w-full min-w-12 gap-1.5 rounded-full px-4 py-2 text-center whitespace-normal',
+              !isCurrent &&
+                'border-border/80 bg-card text-foreground shadow-2xs hover:border-primary/45 hover:bg-surface-subtle',
             )}
           >
+            <Icon className="size-4 shrink-0" aria-hidden="true" />
             {label}
           </Link>
         )

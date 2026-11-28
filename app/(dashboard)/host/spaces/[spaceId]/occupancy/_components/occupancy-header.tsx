@@ -48,17 +48,17 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
             href="/host"
             className={cn(
               buttonVariants({ variant: 'outline' }),
-              'h-auto min-h-12 max-w-full min-w-12 gap-2 px-4 py-2 text-sm font-medium whitespace-normal',
+              'h-auto min-h-12 max-w-full min-w-12 gap-2 rounded-full border-border/80 bg-card px-4 py-2 text-sm font-medium whitespace-normal shadow-2xs hover:border-primary/45 hover:bg-surface-subtle',
             )}
           >
-            <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
+            <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
             Back to Spaces
           </Link>
           <Link
             href={`/host/spaces/${space.id}/check-in`}
             className={cn(
               buttonVariants({ variant: 'default' }),
-              'h-auto min-h-12 max-w-full min-w-12 gap-2 px-4 py-2 text-sm font-medium whitespace-normal',
+              'h-auto min-h-12 max-w-full min-w-12 gap-2 rounded-full px-5 py-2 text-sm font-medium whitespace-normal',
             )}
           >
             Check-in desk
@@ -70,14 +70,14 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Badge
             variant="secondary"
-            className="h-auto max-w-full px-3 py-1 text-sm font-medium whitespace-normal"
+            className="h-auto max-w-full rounded-full px-3.5 py-1 text-sm font-medium whitespace-normal"
           >
             {occupiedUnits} / {totalUnits} units occupied
           </Badge>
           {latestHostUpdatedAt ? (
             <Badge
               variant="outline"
-              className="h-auto max-w-full flex-wrap px-3 py-1 text-sm font-medium whitespace-normal"
+              className="h-auto max-w-full flex-wrap rounded-full border-border/80 bg-card px-3.5 py-1 text-sm font-medium whitespace-normal"
             >
               Host-updated · <RelativeTime date={latestHostUpdatedAt} className="ml-1" />
             </Badge>
@@ -86,7 +86,7 @@ export function OccupancyHeader({ space, zones }: OccupancyHeaderProps) {
       </div>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           {space.name} Occupancy
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
