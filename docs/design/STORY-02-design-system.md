@@ -153,7 +153,7 @@ After the gates above, branch from fresh `main`, reuse the merged public shell, 
 
 ## 8. Open questions
 
-- **A signed-in header.** Settled in STORY-03's design §8: in Sprint 1 everyone sees Log in and Sign up, and a signed-in user who follows either is sent to their dashboard by the proxy. The public pages read no session.
+- **A signed-in header.** Settled in STORY-03's design §8: in Sprint 1 everyone sees Log in and Sign up, and a signed-in user who follows either is sent to their dashboard by the proxy. Updated later so `SiteHeaderNav` checks the Supabase session on the client (keeping `/spaces` ISR cookie-free) and shows `Dashboard`, `My reservations` (for Seekers), `Find a Space`, the user's role badge, and `Log out` when signed in (or `Finish sign-up` when `role_confirmed` is false).
 - Authentication destinations rechecked on 2026-09-28, with STORY-03 on `main`: the header's Log in link and both Sign up links open the real `/login` and `/register` pages. No blocking database dependency.
 - **A new visual direction is a follow-up, not part of this story.** In review of TSK-02.2, @fayeye-09 proposed a photo-led landing page (#117). On 2026-09-28 Adrian accepted her option A: a photo hero, Host promotion, an explanatory panel instead of filters, and noninteractive example cards labelled as illustrative, with free-license stock photos. This revision records that limited exception in §0, §3 and D-033. Build only after the design merges and Adrian confirms the Sprint 1 Musts are safe, or early in Sprint 2. Photo selection is an implementation gate, not a claim that the prototype assets are approved.
 
