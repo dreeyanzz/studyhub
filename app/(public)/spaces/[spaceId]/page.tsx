@@ -275,11 +275,11 @@ export default async function SpaceProfilePage({
 
   return (
     <div className="min-h-[calc(100vh-8rem)] w-full bg-background">
-      <div className="w-full min-w-0 space-y-6 px-4 py-5 sm:px-6 sm:py-6 lg:px-10">
+      <div className="mx-auto w-full max-w-7xl min-w-0 space-y-6 px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         <nav aria-label="Breadcrumb">
           <Link
             href={DISCOVERY_HREF}
-            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full bg-secondary px-4 text-sm font-medium text-secondary-foreground transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground shadow-2xs transition-colors hover:border-primary/40 hover:bg-surface-subtle focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             <ArrowLeft className="size-4 shrink-0 text-primary" aria-hidden="true" />
             <span>Back to search</span>
@@ -370,29 +370,29 @@ export default async function SpaceProfilePage({
           selectedUnitActionSlot={holdPanel}
         />
 
-        {/* Visual section divider separating Live Seat Booking from Photos & Reviews */}
+        {/* Visual section divider separating Seat Selection from Photos & Reviews */}
         <div aria-hidden="true" className="flex items-center gap-4 pt-4">
-          <div className="h-px flex-1 bg-border/80" />
-          <span className="inline-flex items-center rounded-full border border-border/70 bg-secondary/65 px-4 py-1.5 text-xs font-semibold tracking-wider text-secondary-foreground uppercase">
+          <div className="h-px flex-1 bg-border" />
+          <span className="inline-flex items-center rounded-full border border-border bg-card px-4 py-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase shadow-2xs">
             Explore More · Photos &amp; Reviews
           </span>
-          <div className="h-px flex-1 bg-border/80" />
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         {/* Dedicated Photo Gallery Card for browsing more Space photos (TSK-11.4) */}
         <section
           aria-labelledby="space-photos-heading"
-          className="space-y-4 rounded-3xl border border-border/60 bg-muted/75 p-6 sm:p-7"
+          className="space-y-4 rounded-2xl border border-border bg-card p-6 shadow-card sm:p-7"
         >
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div className="space-y-1">
-              <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+              <p className="inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
                 <Camera className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
                 <span>Gallery</span>
               </p>
               <h2
                 id="space-photos-heading"
-                className="font-heading text-lg font-semibold tracking-tight text-foreground"
+                className="font-heading text-2xl font-medium tracking-tight text-foreground"
               >
                 Space Photos
               </h2>
@@ -401,7 +401,7 @@ export default async function SpaceProfilePage({
               </p>
             </div>
             {photos.length > 0 && (
-              <span className="inline-flex items-center rounded-full bg-card px-3.5 py-1 text-xs font-semibold text-foreground shadow-2xs">
+              <span className="inline-flex items-center rounded-full border border-border bg-surface-subtle px-3.5 py-1 font-mono text-xs font-semibold text-foreground">
                 {photos.length} {photos.length === 1 ? 'photo' : 'photos'}
               </span>
             )}

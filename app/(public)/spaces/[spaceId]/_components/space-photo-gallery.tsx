@@ -69,7 +69,7 @@ export function SpacePhotoGallery({
       <div
         data-testid="space-photos-empty"
         className={cn(
-          'flex h-full min-h-64 flex-col items-center justify-center rounded-[2rem] border border-border/60 bg-secondary/45 p-8 text-center sm:p-12',
+          'flex h-full min-h-60 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-subtle/75 p-8 text-center sm:p-10',
           className,
         )}
       >
@@ -139,7 +139,7 @@ export function SpacePhotoGallery({
         <div
           data-testid="carousel-counter"
           aria-live="polite"
-          className="absolute top-3.5 right-3.5 rounded-full border border-white/25 bg-foreground/65 px-3 py-1 text-xs font-medium text-white shadow-xs backdrop-blur-md"
+          className="absolute top-3.5 right-3.5 rounded-full border border-white/25 bg-forest-deep/80 px-3 py-1 text-xs font-medium text-white shadow-xs backdrop-blur-md"
         >
           {/* Screen readers hear only "Slide 1 of 3", not the visible "1 / 3" as well */}
           <span aria-hidden="true">

@@ -55,8 +55,8 @@ export function SeatMapRefresh() {
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <p className="text-xs text-muted-foreground">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-y border-border/80 py-2.5">
+      <p className="text-xs font-medium text-muted-foreground">
         Availability refreshes automatically while this page is open.
       </p>
       <Button
@@ -64,7 +64,7 @@ export function SeatMapRefresh() {
         variant="outline"
         onClick={handleManualRefresh}
         aria-busy={isPending}
-        className="h-auto min-h-12 max-w-full shrink gap-2 py-2 text-center whitespace-normal"
+        className="h-auto min-h-12 max-w-full shrink gap-2 rounded-full border-border bg-card px-4 py-2 text-center whitespace-normal"
       >
         <RefreshCw
           aria-hidden="true"

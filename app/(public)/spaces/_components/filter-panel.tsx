@@ -237,25 +237,25 @@ function FilterDropdown({
         aria-controls={menuId}
         onClick={onToggleOpen}
         className={cn(
-          'inline-flex min-h-12 min-w-12 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
+          'inline-flex min-h-12 min-w-12 items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold whitespace-normal transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:outline-none',
           selectedCount > 0
-            ? 'border-primary bg-primary/12 text-primary shadow-xs'
+            ? 'border-primary bg-accent text-accent-foreground shadow-2xs'
             : isOpen
-              ? 'border-primary/60 bg-secondary text-foreground'
-              : 'border-border/70 bg-secondary/45 text-foreground hover:border-primary/45 hover:bg-secondary/80',
+              ? 'border-primary/50 bg-surface-subtle text-foreground'
+              : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-surface-subtle',
         )}
       >
-        <Icon className="size-3.5 shrink-0" aria-hidden="true" />
+        <Icon className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
         <span>{title}</span>
         {selectedCount > 0 && (
-          <span className="inline-flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+          <span className="inline-flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
             {selectedCount}
           </span>
         )}
         <ChevronDown
           aria-hidden="true"
           className={cn(
-            'size-3.5 shrink-0 text-muted-foreground transition-transform duration-200',
+            'size-3.5 shrink-0 text-muted-foreground transition-transform duration-150',
             isOpen && 'rotate-180',
           )}
         />
@@ -264,7 +264,7 @@ function FilterDropdown({
       <div
         id={menuId}
         className={cn(
-          'absolute top-full z-30 mt-2 max-w-[calc(100vw-2rem)] min-w-60 rounded-2xl border border-border bg-card p-1.5 shadow-xl ring-1 ring-black/5',
+          'absolute top-full z-30 mt-2 max-w-[calc(100vw-2rem)] min-w-60 rounded-2xl border border-white/90 bg-white/96 p-1.5 shadow-float backdrop-blur-xl',
           alignRight ? 'right-0' : 'left-0',
           !isOpen && 'hidden',
         )}
@@ -280,8 +280,8 @@ function FilterDropdown({
               className={cn(
                 'flex min-h-12 w-full min-w-12 items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none',
                 opt.selected
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-foreground hover:bg-muted/70',
+                  ? 'bg-accent font-semibold text-accent-foreground'
+                  : 'text-foreground hover:bg-surface-subtle',
               )}
             >
               <span>{opt.label}</span>
@@ -374,7 +374,7 @@ export function FilterPanel({
       aria-label="Curated space filters"
       data-testid="filter-panel"
       className={cn(
-        'relative z-40 rounded-2xl border border-border/60 bg-card/90 px-4 py-3.5 shadow-xs backdrop-blur-md',
+        'relative z-30 flex flex-wrap items-center justify-between gap-2 border-y border-border/80 bg-background py-3',
         className,
       )}
     >
@@ -383,43 +383,12 @@ export function FilterPanel({
         {activeCount} active {activeCount === 1 ? 'filter' : 'filters'} applied
       </div>
 
-      {/* Filter Bar Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex size-7 items-center justify-center rounded-full bg-secondary text-primary">
-            <SlidersHorizontal className="size-3.5" aria-hidden="true" />
-          </span>
-          <h2 className="font-heading text-sm font-bold text-foreground">
-            Filter Spaces
-          </h2>
-          {activeCount > 0 && (
-            <span
-              data-testid="active-filter-count"
-              className="inline-flex items-center justify-center rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground"
-            >
-              {activeCount} active
-            </span>
-          )}
-          <span className="text-xs text-muted-foreground">
-            · Amenities, hours, price, and seat type
-          </span>
-        </div>
-
-        {activeCount > 0 && (
-          <button
-            type="button"
-            onClick={onClearAll}
-            data-testid="clear-all-filters"
-            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-          >
-            <RotateCcw className="size-3.5" aria-hidden="true" />
-            <span>Clear all</span>
-          </button>
-        )}
-      </div>
-
-      {/* 7 Cohesive Filter Dropdowns */}
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      {/* 7 Cohesive Filter Dropdowns in a single compact architectural toolbar */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
+          <SlidersHorizontal className="size-3.5 text-primary" aria-hidden="true" />
+          <span className="sr-only">Filter Spaces</span>
+        </span>
         {CURATED_TAG_GROUPS.map((group) => (
           <FilterDropdown
             key={group.category}
@@ -499,6 +468,26 @@ export function FilterPanel({
           }))}
         />
       </div>
+
+      {activeCount > 0 && (
+        <div className="flex items-center gap-2">
+          <span
+            data-testid="active-filter-count"
+            className="inline-flex items-center justify-center rounded-full bg-primary px-2.5 py-0.5 text-xs font-semibold text-primary-foreground"
+          >
+            {activeCount} active
+          </span>
+          <button
+            type="button"
+            onClick={onClearAll}
+            data-testid="clear-all-filters"
+            className="inline-flex min-h-12 min-w-12 items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+          >
+            <RotateCcw className="size-3.5" aria-hidden="true" />
+            <span>Clear all</span>
+          </button>
+        </div>
+      )}
     </section>
   )
 }

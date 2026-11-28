@@ -90,7 +90,7 @@ export function SpaceUnitList({ zones, selectedUnitId }: SpaceUnitListProps) {
             {zone.name}
           </h3>
 
-          <div className="divide-y divide-border/60 rounded-3xl bg-card">
+          <div className="divide-y divide-border/70 rounded-2xl border border-border/80 bg-card shadow-card">
             {zone.units.length === 0 ? (
               <p className="p-4 text-sm text-muted-foreground">No units in this zone.</p>
             ) : (

@@ -88,7 +88,7 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
             </linearGradient>
             <linearGradient id="worqBrassGrad" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#b79248" />
-              <stop offset="45%" stopColor="#e7cb83" />
+              <stop offset="50%" stopColor="#e7cb83" />
               <stop offset="100%" stopColor="#9c7834" />
             </linearGradient>
             <linearGradient
@@ -99,17 +99,17 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
               y2="295"
               gradientUnits="userSpaceOnUse"
             >
-              <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.72" />
+              <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.68" />
               <stop offset="55%" stopColor="#fde68a" stopOpacity="0.22" />
               <stop offset="100%" stopColor="#fde68a" stopOpacity="0" />
             </linearGradient>
             <radialGradient id="worqDeskPool" cx="0.5" cy="0.5" r="0.5">
-              <stop offset="0%" stopColor="#fef3c7" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#fef3c7" stopOpacity="0" />
+              <stop offset="0%" stopColor="#fde68a" stopOpacity="0.34" />
+              <stop offset="100%" stopColor="#fde68a" stopOpacity="0" />
             </radialGradient>
           </defs>
 
-          <ellipse cx="135" cy="292" rx="115" ry="12" fill="#040907" opacity="0.75" />
+          <ellipse cx="135" cy="292" rx="115" ry="12" fill="#07120d" opacity="0.8" />
           <ellipse
             cx="130"
             cy="288"
@@ -126,8 +126,8 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
 
           <path
             d="M90 286 C90 274 108 268 135 268 C162 268 180 274 180 286 Z"
-            fill="#183f2d"
-            stroke="#2c6649"
+            fill="#173c2d"
+            stroke="#b79248"
             strokeWidth="1.5"
           />
           <rect
@@ -151,7 +151,7 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
             cy="190"
             r="6"
             fill="url(#worqBrassGrad)"
-            stroke="#143a28"
+            stroke="#102b20"
             strokeWidth="2"
           />
           <circle
@@ -159,7 +159,7 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
             cy="112"
             r="5"
             fill="url(#worqBrassGrad)"
-            stroke="#143a28"
+            stroke="#102b20"
             strokeWidth="2"
           />
 
@@ -176,7 +176,7 @@ export function StartupLampOverlay({ fading }: { fading: boolean }) {
           <path
             d="M98 66 C98 59 162 59 162 66 L188 118 C190 123 185 126 178 126 L82 126 C75 126 70 123 72 118 Z"
             fill="url(#worqShadeGrad)"
-            stroke="#3a8660"
+            stroke="#e7cb83"
             strokeWidth="1.5"
           />
           <path

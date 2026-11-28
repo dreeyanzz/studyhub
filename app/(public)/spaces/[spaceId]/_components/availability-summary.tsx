@@ -23,12 +23,12 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
   return (
     <section
       aria-labelledby="availability-overview-heading"
-      className="h-full min-w-0 space-y-4 rounded-3xl border border-primary/15 bg-gradient-to-br from-secondary/75 via-secondary/45 to-muted/80 p-6"
+      className="h-full min-w-0 space-y-4 rounded-3xl border border-border/80 bg-card p-6 shadow-card"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2
           id="availability-overview-heading"
-          className="font-heading text-base font-semibold text-foreground"
+          className="font-heading text-xl font-bold tracking-[-0.02em] text-foreground"
         >
           Current Availability
         </h2>
@@ -36,7 +36,7 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
         {summary.totalUnits > 0 && (
           <span
             aria-hidden="true"
-            className="inline-flex items-center gap-1.5 rounded-full bg-card px-3 py-1 text-xs font-semibold text-foreground shadow-2xs"
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-subtle px-3 py-1 font-mono text-xs font-semibold text-foreground tabular-nums"
           >
             <span
               className={`size-2 rounded-full ${
@@ -62,10 +62,10 @@ export function AvailabilitySummary({ summary }: AvailabilitySummaryProps) {
               <div
                 key={zone.zoneId}
                 role="listitem"
-                className={`max-w-full min-w-0 space-y-2 rounded-2xl px-4 py-3 text-xs sm:text-sm ${
+                className={`max-w-full min-w-0 space-y-2 rounded-xl border px-4 py-3 text-xs sm:text-sm ${
                   hasAvailable
-                    ? 'bg-card text-foreground shadow-[0_1px_4px_rgba(23,60,45,0.06)]'
-                    : 'bg-background/85 text-muted-foreground'
+                    ? 'border-border/80 bg-surface-subtle text-foreground'
+                    : 'border-border/60 bg-muted/60 text-muted-foreground'
                 }`}
               >
                 <div className="flex max-w-full min-w-0 flex-wrap items-center gap-1.5">

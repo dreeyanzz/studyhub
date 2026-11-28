@@ -98,16 +98,16 @@ export function SpaceReviews({
     <section
       aria-labelledby="reviews-heading"
       data-testid="space-reviews-section"
-      className="space-y-6 rounded-3xl border border-primary/15 bg-secondary/50 p-3 text-card-foreground sm:p-8"
+      className="space-y-6 rounded-3xl border border-border/80 bg-surface-subtle/80 p-5 text-card-foreground shadow-card sm:p-8"
     >
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
-          <p className="text-xs font-semibold tracking-wider text-primary uppercase">
+          <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
             Community Feedback
           </p>
           <h2
             id="reviews-heading"
-            className="font-heading text-xl font-bold tracking-tight text-foreground"
+            className="font-heading text-2xl font-bold tracking-[-0.025em] text-foreground sm:text-3xl"
           >
             Reviews
           </h2>
@@ -117,7 +117,7 @@ export function SpaceReviews({
           <ReviewRating
             average={summary.avgOverall}
             count={summary.reviewCount}
-            className="rounded-full bg-card px-4 py-1.5 text-base font-semibold"
+            className="rounded-full border border-border bg-card px-4 py-1.5 text-sm font-semibold shadow-2xs"
             data-testid="reviews-overall-rating"
           />
         )}
@@ -140,7 +140,7 @@ export function SpaceReviews({
           {/* Averages scorecard strip (solid white divided bar with solid stars + numeric scores) or Empty State */}
           {summary.reviewCount > 0 ? (
             <div data-testid="reviews-summary">
-              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] divide-y divide-border/60 rounded-2xl border border-border/50 bg-card shadow-[0_2px_10px_-4px_rgba(23,60,45,0.06)] sm:divide-x sm:divide-y-0">
+              <dl className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,8.5rem),1fr))] divide-y divide-border/70 rounded-2xl border border-border/80 bg-card shadow-card sm:divide-x sm:divide-y-0">
                 {categoryAverages.map((category) => (
                   <div
                     key={category.label}
@@ -197,10 +197,10 @@ export function SpaceReviews({
                       })}
                       aria-current={isCurrent ? 'page' : undefined}
                       className={cn(
-                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full px-4 py-2 text-center text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                        'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-4 py-2 text-center text-sm font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                         isCurrent
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-card text-foreground hover:bg-accent',
+                          ? 'border-foreground bg-foreground text-background shadow-xs'
+                          : 'border-border bg-card text-foreground hover:border-foreground/40 hover:bg-background',
                       )}
                     >
                       {option.label}
@@ -229,14 +229,14 @@ export function SpaceReviews({
                       <li key={review.id} className="min-w-0">
                         <article
                           data-testid={`review-card-${review.id}`}
-                          className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] sm:p-6"
+                          className="flex h-full flex-col justify-between gap-4 rounded-2xl border border-border/80 bg-card p-4 shadow-card sm:p-6"
                         >
                           <div className="space-y-3.5">
                             <div className="flex flex-wrap items-start justify-between gap-2">
                               <div className="flex min-w-0 flex-wrap items-start gap-3">
                                 <span
                                   aria-hidden="true"
-                                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-sm font-bold text-primary"
+                                  className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground font-mono text-xs font-semibold text-background"
                                 >
                                   {initial}
                                 </span>
@@ -265,9 +265,9 @@ export function SpaceReviews({
                                 </div>
                               </div>
 
-                              <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
+                              <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full border border-border/70 bg-surface-subtle px-3 py-1 text-sm font-semibold text-foreground">
                                 <Star
-                                  className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
+                                  className="size-3.5 shrink-0 fill-star text-star-stroke"
                                   aria-hidden="true"
                                 />
                                 <span className="wrap-anywhere">

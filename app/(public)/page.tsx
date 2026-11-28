@@ -1,98 +1,112 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Armchair, BookOpen, Leaf, Search, Users } from 'lucide-react'
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  Compass,
+  LayoutGrid,
+  QrCode,
+  Search,
+  Sparkles,
+} from 'lucide-react'
+
 import { buttonVariants } from '@/components/ui/button'
 import { StartupLamp } from './_components/startup-lamp'
 import './discovery.css'
 
-// D-033: these are illustrative content, never inventory or interactive cards.
-const examples = [
+// D-033: illustrative study environment gallery, never inventory or interactive cards.
+const environments = [
   {
     title: 'The reading room',
-    kind: 'Library inspiration',
+    kind: 'Quiet Library',
     image: 'library',
-    text: 'A little room for a good book and a big idea.',
+    crop: 'object-center',
+    text: 'Long oak tables, natural daylight, and uninterrupted silence for deep reading.',
   },
   {
     title: 'Coffee & chapters',
-    kind: 'Café inspiration',
+    kind: 'Ambient Café',
     image: 'cafe',
-    text: 'A change of scenery for your next chapter.',
+    crop: 'object-center',
+    text: 'Warm ambient light and espresso within reach for your next draft.',
   },
   {
     title: 'The shared desk',
-    kind: 'Workspace inspiration',
+    kind: 'Co-Working Studio',
     image: 'workspace',
-    text: 'A setting for working alongside others.',
+    crop: 'object-left',
+    text: 'Ergonomic desks, fast Wi-Fi, and power outlets at every seat.',
   },
+] as const
+
+const workflowCards = [
   {
-    title: 'A quiet corner',
-    kind: 'Study inspiration',
-    image: 'library',
-    text: 'Make space for a slower, more thoughtful day.',
-  },
-]
-const pillars = [
-  {
+    step: '01',
     title: 'Snap-Grid Seat Map',
-    step: 'Step 01',
-    text: 'Every Host maps out their Space, so you can choose the exact desk or quiet corner that fits your day.',
+    text: 'Hosts publish their floor plan on a 6-column snap grid, so you see open desks, standing tables, and rooms before you travel.',
   },
   {
+    step: '02',
     title: 'Verified Spaces & Tags',
-    step: 'Step 02',
-    text: 'Filter by curated amenities—from power outlets to fast Wi-Fi—on Spaces reviewed by an Administrator.',
+    text: 'Every Space is verified by an Administrator and filterable by curated Wi-Fi, power outlet, quietness, and price-tier tags.',
   },
   {
+    step: '03',
     title: 'Reserve-Now Holds',
-    step: 'Step 03',
-    text: 'Lock in an open seat before you commute with a simple sandbox reservation fee, then scan your QR at the desk.',
+    text: 'Hold your exact seat with a sandbox reservation fee, walk in within your wait window, and check in with your booking QR.',
   },
-]
+] as const
+
+const stageUnits = [
+  { id: 'S1', state: 'open' },
+  { id: 'S2', state: 'open' },
+  { id: 'S3', state: 'taken' },
+  { id: 'S4', state: 'selected' },
+  { id: 'S5', state: 'open' },
+  { id: 'S6', state: 'reserved' },
+] as const
 
 export default function Home() {
   return (
     <div className="discovery-home">
       <StartupLamp />
-      <section className="discovery-hero" aria-labelledby="hero-title">
-        <div className="hero-backdrop">
-          <Image
-            src="/images/public-landing/workspace.webp"
-            alt="Desks and chairs in an unoccupied shared office"
-            width={1600}
-            height={1067}
-            sizes="100vw"
-            loading="eager"
-          />
-        </div>
-        <div className="discovery-container hero-inner">
-          <div className="hero-copy">
-            <p className="discovery-eyebrow">
-              <Leaf aria-hidden="true" size={20} /> A little room for big ideas
+
+      {/* 1. Centered Luminous Daylight Aurora Hero + Elevated Glass Bento Product Stage */}
+      <section className="aurora-hero" aria-labelledby="hero-title">
+        <div className="discovery-container aurora-hero-inner">
+          <div className="aurora-hero-copy">
+            <p className="aurora-pill">
+              <Sparkles className="size-3.5 text-primary" aria-hidden="true" />
+              <span>Metro Cebu · Verified Study &amp; Co-Working Spaces</span>
             </p>
-            <h1 id="hero-title">
-              Your space.
+
+            <h1 id="hero-title" className="aurora-display">
+              Find your seat.
               <br />
-              <em>Your focus.</em>
+              <span className="aurora-gradient-text">Lock in your focus.</span>
             </h1>
-            <p className="hero-description">
-              Find an open seat and hold it now. Worq connects Seekers with verified study
-              and co-working Spaces—complete with seat maps and instant holds.
+
+            <p className="aurora-lead">
+              Explore Administrator-verified study rooms, quiet cafés, and co-working
+              desks. Inspect Host-updated seat maps and hold an open unit before you
+              commute.
             </p>
-            {/* Plain GET form works before JavaScript loads (STORY-17 §3, SRS §3.7.1). */}
+
+            {/* Centered Floating Frosted-Glass Search Capsule (Plain GET form, SRS §3.7.1) */}
             <form
               action="/spaces"
               method="get"
               role="search"
               aria-label="Search study Spaces"
-              className="hero-search"
+              className="aurora-search-capsule"
             >
-              <div className="hero-search-field">
+              <div className="aurora-search-field">
                 <label htmlFor="hero-search-input" className="sr-only">
                   Search by campus, city, or Space name
                 </label>
                 <Search
-                  className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
+                  className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-primary"
                   aria-hidden="true"
                 />
                 <input
@@ -100,167 +114,289 @@ export default function Home() {
                   name="q"
                   type="search"
                   maxLength={100}
-                  placeholder="Search by campus, city, or Space name..."
-                  className="min-h-12 w-full min-w-0 rounded-xl border border-input bg-background px-4 pl-10 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm"
+                  placeholder="Search campus, city, or Space..."
+                  className="min-h-12 w-full min-w-0 rounded-xl bg-transparent pr-3 pl-11 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none sm:text-sm"
                 />
               </div>
-              <button type="submit" className={buttonVariants({ className: 'shrink-0' })}>
-                Search
+              <button
+                type="submit"
+                className={buttonVariants({
+                  className:
+                    'shrink-0 rounded-xl bg-gradient-to-r from-primary to-forest-mid px-6 font-semibold text-white shadow-sm hover:from-primary-hover hover:to-forest-deep',
+                })}
+              >
+                <span>Search Spaces</span>
+                <ArrowRight aria-hidden="true" size={16} />
               </button>
             </form>
-            <div className="hero-actions">
-              <Link href="/spaces" className={buttonVariants({ variant: 'outline' })}>
-                <Search aria-hidden="true" size={18} /> Find a Space
-              </Link>
-              <Link href="/register" className={buttonVariants({ variant: 'outline' })}>
-                Get started <ArrowRight aria-hidden="true" size={18} />
+
+            <div className="aurora-quick-row">
+              <Link
+                href="/spaces"
+                className={buttonVariants({
+                  variant: 'outline',
+                  className:
+                    'rounded-full border-border bg-white/90 px-5 font-semibold text-foreground shadow-2xs hover:border-primary/40 hover:bg-white',
+                })}
+              >
+                <Compass aria-hidden="true" size={16} className="text-primary" /> Find a
+                Space
               </Link>
               <Link
-                href="#how-it-works"
-                className={buttonVariants({ variant: 'outline' })}
+                href="/register"
+                className={buttonVariants({
+                  variant: 'ghost',
+                  className:
+                    'rounded-full px-4 font-semibold text-foreground hover:bg-white/75',
+                })}
               >
-                How it works
+                Get started <ArrowUpRight aria-hidden="true" size={16} />
               </Link>
             </div>
+
             {/* Honest about payments, as the footer is (D-005). */}
-            <p className="discovery-caption">
+            <p className="aurora-sandbox-note">
               Reservation fees run in sandbox mode, so no real money moves.
             </p>
           </div>
-          <p className="hero-note">
-            <BookOpen aria-hidden="true" size={22} />
-            <span>
-              A space for you.
-              <br />
-              <strong>Study your way.</strong>
-            </span>
-          </p>
+
+          {/* Centerpiece Elevated Frosted-Glass Bento Product Stage (Illustrative, aria-hidden) */}
+          <div className="aurora-stage" aria-hidden="true">
+            <div className="aurora-stage-main">
+              <Image
+                src="/images/public-landing/library.webp"
+                alt=""
+                width={1600}
+                height={1067}
+                sizes="(min-width: 64rem) 56vw, 100vw"
+                loading="eager"
+              />
+              <div className="aurora-stage-float">
+                <span className="aurora-stage-dot" />
+                <span>Verified Space · Snap-Grid Floor Plan</span>
+              </div>
+            </div>
+
+            <div className="aurora-stage-side">
+              {/* Airy White-Glass Miniature Seat-Map Card */}
+              <div className="aurora-stage-widget">
+                <div className="aurora-widget-top">
+                  <div>
+                    <p className="aurora-widget-eyebrow">Zone A · Quiet Desks</p>
+                    <p className="aurora-widget-title">Seat Availability</p>
+                  </div>
+                  <span className="aurora-widget-pill">4 / 6 Open</span>
+                </div>
+
+                <div className="aurora-widget-grid">
+                  {stageUnits.map((u) => (
+                    <div key={u.id} className={`aurora-unit-tile is-${u.state}`}>
+                      <span>{u.id}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="aurora-widget-foot">
+                  <span>Selected: S4 · Power Outlet</span>
+                  <span className="aurora-widget-mint">Ready to hold</span>
+                </div>
+              </div>
+
+              {/* Dual Ambient Photo Tiles */}
+              <div className="aurora-stage-pair">
+                <div className="aurora-pair-tile">
+                  <Image
+                    src="/images/public-landing/cafe.webp"
+                    alt=""
+                    width={1600}
+                    height={2387}
+                    sizes="(min-width: 64rem) 18vw, 50vw"
+                    loading="eager"
+                  />
+                  <span>Café Study</span>
+                </div>
+                <div className="aurora-pair-tile">
+                  <Image
+                    src="/images/public-landing/workspace.webp"
+                    alt=""
+                    width={1600}
+                    height={1067}
+                    sizes="(min-width: 64rem) 18vw, 50vw"
+                    loading="eager"
+                  />
+                  <span>Shared Desk</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="discovery-container" aria-label="A thoughtful study day">
-        <ul className="explanatory-panel">
-          <li>
-            <BookOpen aria-hidden="true" />
-            <div>
-              <h2>Find your focus</h2>
-              <p>Discover quiet cafés, libraries, and co-working Spaces near you.</p>
+      {/* 2. Floating 3-Card Sculptural Feature Bento */}
+      <section
+        className="discovery-container aurora-pillars-wrap"
+        aria-label="Key benefits"
+      >
+        <ol className="aurora-pillars">
+          <li className="aurora-pillar-card">
+            <div className="aurora-icon-orb is-emerald" aria-hidden="true">
+              <Compass size={22} />
             </div>
+            <h2>Find your focus</h2>
+            <p>
+              Search verified cafés, quiet libraries, and co-working desks around campuses
+              and study hubs across Metro Cebu.
+            </p>
           </li>
-          <li>
-            <Armchair aria-hidden="true" />
-            <div>
-              <h2>Pick your seat</h2>
-              <p>Check live seat maps before you head out.</p>
+          <li className="aurora-pillar-card">
+            <div className="aurora-icon-orb is-brass" aria-hidden="true">
+              <LayoutGrid size={22} />
             </div>
+            <h2>Pick your exact seat</h2>
+            <p>
+              Inspect Host-updated snap-grid layouts, operating hours, and curated amenity
+              tags before heading out.
+            </p>
           </li>
-          <li>
-            <Users aria-hidden="true" />
-            <div>
-              <h2>Settle right in</h2>
-              <p>Hold your spot and check in with your booking QR.</p>
+          <li className="aurora-pillar-card">
+            <div className="aurora-icon-orb is-sage" aria-hidden="true">
+              <QrCode size={22} />
             </div>
+            <h2>Check in effortlessly</h2>
+            <p>
+              Hold your chosen desk with a sandbox fee and present your booking QR code or
+              token at the front desk.
+            </p>
           </li>
+        </ol>
+      </section>
+
+      {/* 3. Light-Glass Curated Environments Gallery (D-033) */}
+      <section
+        className="discovery-container aurora-gallery-section"
+        aria-labelledby="examples-title"
+        aria-describedby="examples-note"
+      >
+        <div className="aurora-section-head">
+          <p className="aurora-eyebrow">Environments</p>
+          <h2 id="examples-title">Spaces shaped around how you study.</h2>
+          <p id="examples-note" className="aurora-section-desc">
+            Sample study settings to spark your day. Browse verified Spaces on the map to
+            check current seat availability and hold an open unit.
+          </p>
+        </div>
+
+        <ul className="aurora-gallery-grid">
+          {environments.map((item) => (
+            <li key={item.title} className="aurora-gallery-card">
+              <div className="aurora-gallery-media">
+                <Image
+                  src={`/images/public-landing/${item.image}.webp`}
+                  alt=""
+                  width={1600}
+                  height={item.image === 'cafe' ? 2387 : 1067}
+                  sizes="(min-width: 64rem) 31vw, 100vw"
+                  className={item.crop}
+                />
+              </div>
+              <div className="aurora-gallery-glass">
+                <span className="aurora-gallery-kind">{item.kind}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </div>
+            </li>
+          ))}
         </ul>
       </section>
 
-      <div className="discovery-container discovery-bottom">
-        <section id="for-hosts" className="host-promo" aria-labelledby="host-title">
-          <Image
-            src="/images/public-landing/workspace.webp"
-            alt=""
-            width={1600}
-            height={1067}
-            sizes="(min-width: 64rem) 30vw, 100vw"
-          />
-          <div className="host-copy">
-            <p className="discovery-eyebrow">For Hosts</p>
-            <h2 id="host-title">
-              Your Space.
-              <br />
-              <em>Their next big idea.</em>
-            </h2>
-            <p>
-              Welcome focused Seekers to your empty desks. Set up your Space, keep your
-              seat map current, and manage check-ins with ease.
-            </p>
-            <Link
-              href="/register?role=host"
-              className={buttonVariants({ variant: 'secondary' })}
-            >
-              Become a Host <ArrowRight aria-hidden="true" size={18} />
-            </Link>
-          </div>
-          <ul className="host-benefits">
-            <li>Publish your seat map</li>
-            <li>Keep availability live</li>
-            <li>Verify check-ins in seconds</li>
-          </ul>
-        </section>
-        <section
-          className="example-section"
-          aria-labelledby="examples-title"
-          aria-describedby="examples-note"
-        >
-          <p className="discovery-eyebrow">Room to imagine</p>
-          <h2 id="examples-title">What does your focus look like?</h2>
-          <p id="examples-note" className="discovery-caption">
-            Sample study environments to spark your day. Browse live Spaces on the map to
-            book an open seat.
-          </p>
-          <ul className="example-grid">
-            {examples.map((example) => (
-              <li className="example-card" key={example.title}>
-                <Image
-                  src={`/images/public-landing/${example.image}.webp`}
-                  alt=""
-                  width={1600}
-                  height={example.image === 'cafe' ? 2387 : 1067}
-                  sizes="(min-width: 64rem) 20vw, (min-width: 40rem) 50vw, 100vw"
-                />
-                <div className="example-copy">
-                  <p className="discovery-caption">{example.kind}</p>
-                  <h3>{example.title}</h3>
-                  <p>{example.text}</p>
-                </div>
-              </li>
-            ))}
-          </ul>
-          <div className="example-cta">
-            <div>
-              <h3>Ready to find your seat?</h3>
-              <p className="discovery-caption">
-                Browse verified Spaces on the live map, filter by amenities, and hold an
-                open desk now.
-              </p>
-            </div>
-            <Link href="/spaces" className={buttonVariants()}>
-              Explore Spaces <ArrowRight aria-hidden="true" size={18} />
-            </Link>
-          </div>
-        </section>
-      </div>
-
+      {/* 4. Deep Midnight Cosmos Luminous Glass Workflow (#how-it-works) */}
       <section
         id="how-it-works"
-        className="discovery-container how-section"
+        className="aurora-cosmos-band"
         aria-labelledby="how-title"
       >
-        <p className="discovery-eyebrow">Built around your study day</p>
-        <h2 id="how-title">Know your spot before you go.</h2>
-        <p className="discovery-caption">Three steps from search to settled in.</p>
-        <ol className="pillar-grid">
-          {pillars.map((pillar, index) => (
-            <li key={pillar.title}>
-              <span className="pillar-number" aria-hidden="true">
-                0{index + 1}
+        <div className="discovery-container">
+          <div className="aurora-cosmos-head">
+            <p className="aurora-cosmos-eyebrow">How Worq Works</p>
+            <h2 id="how-title">From map search to your reserved desk.</h2>
+            <p className="aurora-cosmos-sub">
+              Three transparent steps built around Host-updated occupancy and instant
+              front-desk QR verification.
+            </p>
+          </div>
+
+          <ol className="aurora-cosmos-grid">
+            {workflowCards.map((card) => (
+              <li key={card.step} className="aurora-cosmos-card">
+                <span className="aurora-cosmos-step" aria-hidden="true">
+                  {card.step}
+                </span>
+                <h3>{card.title}</h3>
+                <p>{card.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* 5. Radiant Indigo-to-Midnight Host CTA Showcase (#for-hosts) */}
+      <section
+        id="for-hosts"
+        className="discovery-container aurora-host-wrap"
+        aria-labelledby="host-title"
+      >
+        <div className="aurora-host-banner">
+          <div className="aurora-host-copy">
+            <p className="aurora-host-eyebrow">For Space Hosts</p>
+            <h2 id="host-title">Your Space. Their next breakthrough.</h2>
+            <p className="aurora-host-desc">
+              List your study hall, quiet café, or co-working floor. Build your snap-grid
+              seat map once, update occupancy in one tap, and verify Seeker check-ins via
+              QR.
+            </p>
+            <div className="pt-2">
+              <Link
+                href="/register?role=host"
+                className={buttonVariants({
+                  variant: 'brass',
+                  className: 'rounded-xl px-7 font-bold shadow-md',
+                })}
+              >
+                Become a Host <ArrowRight aria-hidden="true" size={16} />
+              </Link>
+            </div>
+          </div>
+
+          <ul className="aurora-host-pills">
+            <li>
+              <span className="aurora-host-check" aria-hidden="true">
+                <Check size={15} />
               </span>
-              <p className="discovery-caption">{pillar.step}</p>
-              <h3>{pillar.title}</h3>
-              <p>{pillar.text}</p>
+              <div>
+                <strong>Visual 6-column seat map</strong>
+                <span>Arrange desks, standing tables, and rooms by zone.</span>
+              </div>
             </li>
-          ))}
-        </ol>
+            <li>
+              <span className="aurora-host-check" aria-hidden="true">
+                <Check size={15} />
+              </span>
+              <div>
+                <strong>One-tap occupancy updates</strong>
+                <span>Keep walk-in and reserved seats accurate all day.</span>
+              </div>
+            </li>
+            <li>
+              <span className="aurora-host-check" aria-hidden="true">
+                <Check size={15} />
+              </span>
+              <div>
+                <strong>Instant QR &amp; token check-in</strong>
+                <span>Scan Seeker passes directly from the Host check-in desk.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
       </section>
     </div>
   )

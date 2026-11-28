@@ -151,7 +151,7 @@ export function ReportReviewForm({
           aria-describedby={noteCountId}
           aria-invalid={state.fieldErrors?.note ? 'true' : undefined}
           placeholder="Add any detail that helps an Administrator review this."
-          className="min-h-24 w-full rounded-2xl border border-input bg-muted/60 px-4 py-3 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
+          className="min-h-24 w-full rounded-2xl border border-input/90 bg-card px-4 py-3 text-sm text-foreground shadow-2xs transition-colors placeholder:text-muted-foreground hover:border-primary/40 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
         />
         <div className="flex flex-wrap items-center justify-between gap-2 px-1">
           <p id={noteCountId} className="text-xs text-muted-foreground">

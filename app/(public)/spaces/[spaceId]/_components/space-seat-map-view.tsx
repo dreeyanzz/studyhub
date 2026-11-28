@@ -94,22 +94,19 @@ export function SpaceSeatMapView({
   return (
     <section
       aria-labelledby="seat-selection-heading"
-      className="min-w-0 space-y-5 rounded-3xl sm:border sm:border-primary/20 sm:bg-card/90 sm:p-6 sm:shadow-[0_12px_36px_-18px_rgba(23,60,45,0.14)] lg:p-7"
+      className="min-w-0 space-y-5 rounded-3xl sm:border sm:border-border/80 sm:bg-card sm:p-6 sm:shadow-card lg:p-8"
       data-testid="space-seat-map-view"
     >
-      {/* Distinct Booking & Seat Selection header: Eyebrow + Title + Solid pill view switcher */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/60 pb-5">
+      {/* Distinct Booking & Seat Selection header: Eyebrow + Title + Floating pill view switcher */}
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-5">
         <div className="min-w-0 space-y-1">
-          <p className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-wider text-primary uppercase">
-            <span
-              aria-hidden="true"
-              className="size-2 rounded-full bg-[#f0c95c] ring-2 ring-primary/20"
-            />
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
+            <span aria-hidden="true" className="size-2 rounded-full bg-primary" />
             <span>Reserve a Seat</span>
           </p>
           <h2
             id="seat-selection-heading"
-            className="min-w-0 font-heading text-lg font-semibold tracking-tight wrap-anywhere text-foreground"
+            className="min-w-0 font-heading text-2xl font-bold tracking-[-0.025em] wrap-anywhere text-foreground"
           >
             Seat Selection
           </h2>
@@ -121,7 +118,7 @@ export function SpaceSeatMapView({
         <div
           role="group"
           aria-label="View switcher"
-          className="inline-flex max-w-full flex-wrap rounded-full bg-secondary/80 p-1"
+          className="inline-flex max-w-full flex-wrap rounded-full border border-border bg-surface-subtle p-1"
         >
           <Link
             href={gridHref}
@@ -130,8 +127,8 @@ export function SpaceSeatMapView({
             className={cn(
               'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
               view === 'grid'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-secondary-foreground hover:bg-card/70',
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-card hover:text-foreground',
             )}
           >
             <LayoutGrid className="size-4" aria-hidden="true" />
@@ -145,8 +142,8 @@ export function SpaceSeatMapView({
             className={cn(
               'inline-flex min-h-12 min-w-12 items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none sm:text-sm',
               view === 'list'
-                ? 'bg-primary text-primary-foreground'
-                : 'text-secondary-foreground hover:bg-card/70',
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:bg-card hover:text-foreground',
             )}
           >
             <List className="size-4" aria-hidden="true" />
@@ -182,15 +179,15 @@ export function SpaceSeatMapView({
                       aria-label={tileAria}
                       aria-current={isSelected ? 'true' : undefined}
                       className={cn(
-                        'group relative flex h-full min-h-12 w-full min-w-[48px] items-stretch rounded-md p-0 text-left transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                        'group relative flex h-full min-h-12 w-full min-w-[48px] items-stretch rounded-xl p-0 text-left transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                         isSelected && 'ring-2 ring-primary ring-offset-2',
                       )}
                     >
                       <SeatMapTile
                         unit={unit}
                         className={cn(
-                          'pointer-events-none transition-shadow',
-                          isSelected ? 'shadow-md' : 'group-hover:shadow-xs',
+                          'pointer-events-none transition-all',
+                          isSelected ? 'shadow-card-hover' : 'group-hover:shadow-card',
                         )}
                       />
                     </Link>
@@ -209,44 +206,44 @@ export function SpaceSeatMapView({
             {selectedUnit ? (
               <Card
                 data-testid="selected-unit-panel"
-                className="gap-0 rounded-3xl border border-primary/20 bg-card py-0 shadow-[0_14px_34px_-12px_rgba(23,60,45,0.14)] ring-0"
+                className="gap-0 rounded-3xl border border-primary/25 bg-card py-0 shadow-float ring-0"
               >
-                <CardHeader className="rounded-t-[calc(1.5rem-1px)] bg-primary px-6 py-5 text-primary-foreground">
+                <CardHeader className="rounded-t-[calc(1.5rem-1px)] bg-gradient-to-r from-primary via-forest-mid to-forest-deep px-6 py-5 text-white">
                   <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-                    <CardTitle className="min-w-0 font-heading text-base font-semibold wrap-anywhere text-primary-foreground">
+                    <CardTitle className="min-w-0 font-heading text-xl font-bold wrap-anywhere text-white">
                       Selected Unit: {selectedUnit.label}
                     </CardTitle>
-                    <span className="min-w-0 rounded-full border border-white/25 bg-white/15 px-3 py-0.5 text-xs font-semibold wrap-anywhere text-primary-foreground backdrop-blur-xs">
+                    <span className="min-w-0 rounded-full bg-brass px-3 py-0.5 text-xs font-bold wrap-anywhere text-brass-foreground">
                       {selectedZone?.name ?? 'Zone'}
                     </span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-5 p-6">
                   <div className="grid grid-cols-1 gap-2.5 text-xs sm:grid-cols-2 sm:text-sm">
-                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
+                    <div className="min-w-0 rounded-2xl border border-border/70 bg-surface-subtle p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Type
                       </span>
-                      <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
+                      <span className="mt-0.5 block font-semibold wrap-anywhere text-foreground">
                         {TYPE_LABELS[selectedUnit.unitType] ?? selectedUnit.unitType}
                       </span>
                     </div>
 
-                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
+                    <div className="min-w-0 rounded-2xl border border-border/70 bg-surface-subtle p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Capacity
                       </span>
-                      <span className="mt-0.5 block font-medium wrap-anywhere text-foreground">
+                      <span className="mt-0.5 block font-semibold wrap-anywhere text-foreground">
                         {selectedUnit.capacity ?? 1}{' '}
                         {(selectedUnit.capacity ?? 1) === 1 ? 'person' : 'people'}
                       </span>
                     </div>
 
-                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
+                    <div className="min-w-0 rounded-2xl border border-border/70 bg-surface-subtle p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Status
                       </span>
-                      <span className="mt-0.5 flex items-center gap-1.5 font-medium wrap-anywhere text-foreground">
+                      <span className="mt-0.5 flex items-center gap-1.5 font-semibold wrap-anywhere text-foreground">
                         <span
                           aria-hidden="true"
                           className={cn(
@@ -261,13 +258,13 @@ export function SpaceSeatMapView({
                       </span>
                     </div>
 
-                    <div className="min-w-0 rounded-2xl bg-muted/65 p-3.5">
+                    <div className="min-w-0 rounded-2xl border border-border/70 bg-surface-subtle p-3.5">
                       <span className="block text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Freshness
                       </span>
                       <FreshnessBadge
                         date={selectedUnit.hostUpdatedAt}
-                        className="mt-0.5 block font-medium wrap-anywhere text-foreground"
+                        className="mt-0.5 block font-semibold wrap-anywhere text-foreground"
                       />
                     </div>
                   </div>
@@ -332,11 +329,11 @@ export function SpaceSeatMapView({
                 </CardContent>
               </Card>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-primary/25 bg-secondary/35 p-8 text-center">
-                <div className="mb-3 flex size-12 items-center justify-center rounded-2xl bg-card text-primary shadow-2xs">
-                  <Armchair className="size-6" aria-hidden="true" />
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface-subtle p-8 text-center">
+                <div className="mb-3 flex size-12 items-center justify-center rounded-xl border border-border bg-card text-primary shadow-2xs">
+                  <Armchair className="size-5" aria-hidden="true" />
                 </div>
-                <p className="font-heading text-base font-semibold text-foreground">
+                <p className="font-heading text-lg font-medium text-foreground">
                   Choose a unit on the map
                 </p>
                 <p className="mt-1 max-w-xs text-sm text-muted-foreground">

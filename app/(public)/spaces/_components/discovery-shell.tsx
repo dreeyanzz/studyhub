@@ -423,7 +423,7 @@ export function DiscoveryShell({
       />
 
       {/* Desktop Filter Panel (>= 1024px) */}
-      <div className="mb-6 hidden lg:block">
+      <div className="mb-5 hidden lg:block">
         <FilterPanel
           filters={activeFilters}
           onToggleTag={handleToggleTag}
@@ -474,7 +474,7 @@ export function DiscoveryShell({
             mobileView === 'list' ? 'hidden lg:block' : 'block',
           )}
         >
-          <div className="h-[calc(100vh-11rem)] min-h-[460px] w-full overflow-hidden rounded-[2rem] border border-border/60 bg-card shadow-[0_8px_30px_-12px_rgba(23,60,45,0.18)]">
+          <div className="relative isolate z-0 h-[calc(100vh-11rem)] min-h-[460px] w-full overflow-hidden rounded-3xl border border-border/80 bg-card shadow-float">
             <DiscoveryMap
               spaces={displayedSpaces}
               activeSpaceId={activeSpaceId}
@@ -506,7 +506,7 @@ export function DiscoveryShell({
           onClick={toggleMobileView}
           data-testid="mobile-view-toggle"
           aria-label={mobileView === 'list' ? 'Show map view' : 'Show list view'}
-          className="inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-full border border-white/20 bg-forest-deep px-6 py-3 text-sm font-semibold text-white shadow-hero transition-all outline-none hover:bg-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.98]"
         >
           {mobileView === 'list' ? (
             <>

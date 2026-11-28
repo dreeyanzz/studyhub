@@ -77,44 +77,54 @@ export function AuthorReviewCard({
     })
   }
 
+  const initial = reviewerShortName.trim().charAt(0).toUpperCase() || 'S'
+
   return (
     <article
       data-testid={`author-review-${review.id}`}
-      className="space-y-3.5 rounded-2xl border border-primary/30 bg-card p-3 shadow-[0_2px_12px_-6px_rgba(23,60,45,0.08)] ring-1 ring-primary/10 sm:p-6"
+      className="space-y-3.5 rounded-2xl border border-primary/30 bg-card p-4 shadow-card ring-1 ring-primary/10 sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0 space-y-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold wrap-anywhere text-foreground">
-              {reviewerShortName}
-            </p>
-            <span className="inline-flex max-w-full items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
-              Checked-in visit
-            </span>
-            {review.edited && (
-              <span className="inline-flex max-w-full items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-foreground">
-                Edited
+        <div className="flex min-w-0 flex-wrap items-start gap-3">
+          <span
+            aria-hidden="true"
+            className="flex size-9 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-sm font-bold text-primary"
+          >
+            {initial}
+          </span>
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-semibold wrap-anywhere text-foreground">
+                {reviewerShortName}
+              </p>
+              <span className="inline-flex max-w-full items-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-secondary-foreground">
+                Checked-in visit
               </span>
-            )}
-            {statusLabel && (
-              <span
-                data-testid={`author-review-status-${review.id}`}
-                className="inline-flex max-w-full items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold wrap-anywhere text-amber-900"
-              >
-                {statusLabel}
-              </span>
+              {review.edited && (
+                <span className="inline-flex max-w-full items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium wrap-anywhere text-foreground">
+                  Edited
+                </span>
+              )}
+              {statusLabel && (
+                <span
+                  data-testid={`author-review-status-${review.id}`}
+                  className="inline-flex max-w-full items-center rounded-full border border-amber-300 bg-amber-100 px-2.5 py-0.5 text-xs font-semibold wrap-anywhere text-amber-900"
+                >
+                  {statusLabel}
+                </span>
+              )}
+            </div>
+            {postedDate && (
+              <p className="text-xs text-muted-foreground">
+                Reviewed <time dateTime={review.createdAt}>{postedDate}</time>
+              </p>
             )}
           </div>
-          {postedDate && (
-            <p className="text-xs text-muted-foreground">
-              Reviewed <time dateTime={review.createdAt}>{postedDate}</time>
-            </p>
-          )}
         </div>
 
-        <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full bg-secondary/75 px-3 py-1 text-sm font-semibold text-foreground">
+        <p className="inline-flex max-w-full flex-wrap items-center gap-1.5 rounded-full border border-border/70 bg-surface-subtle px-3 py-1 text-sm font-semibold text-foreground">
           <Star
-            className="size-3.5 shrink-0 fill-[#eab308] text-[#ca8a04]"
+            className="size-3.5 shrink-0 fill-star text-star-stroke"
             aria-hidden="true"
           />
           <span className="wrap-anywhere">

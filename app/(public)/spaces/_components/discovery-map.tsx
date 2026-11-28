@@ -57,9 +57,9 @@ function createSvgPin(
     space.review_count > 0 && space.avg_overall !== null
       ? `${space.avg_overall.toFixed(1)} ★`
       : 'New'
-  const pillBg = isActive ? '#f0c95c' : '#153528'
-  const pillText = isActive ? '#173c2d' : '#ffffff'
-  const pillStarColor = isActive ? '#173c2d' : '#f0c95c'
+  const pillBg = isActive ? 'var(--brass)' : 'var(--forest-deep)'
+  const pillText = isActive ? 'var(--brass-foreground)' : '#ffffff'
+  const pillStarColor = isActive ? 'var(--brass-foreground)' : 'var(--brass)'
   const pillBorder = isElevated ? '#ffffff' : 'rgba(255,255,255,0.22)'
 
   const svg = `
@@ -151,7 +151,7 @@ export function buildPopupHtml(
       ${distance}
       ${tags}
       <div style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
-        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: #f0c95c; color: #173c2d; padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-decoration: none;">View Space</a>
+        <a href="/spaces/${encodeURIComponent(space.id)}" style="display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; text-align: center; background: var(--brass); color: var(--brass-foreground); padding: 6px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; text-decoration: none;">View Space</a>
       </div>
     </div>
   `
