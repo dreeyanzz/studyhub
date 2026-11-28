@@ -451,6 +451,7 @@ async function run() {
       unit_id: unit.id,
       unit_label: unit.label,
       status: h.status,
+      cancelled_by_take_down: false,
       wait_window: `${h.waitWindowMinutes} minutes`,
       payment_window_ends_at: isPendingPayment ? minutesFromNowIso(9) : minutesAgoIso(10),
       wait_window_ends_at: isPendingPayment
@@ -536,6 +537,7 @@ async function run() {
       unit_id: unit.id,
       unit_label: unit.label,
       status: 'completed',
+      cancelled_by_take_down: false,
       wait_window: '60 minutes',
       payment_window_ends_at: daysAgoIso(v.daysAgo, 170),
       wait_window_ends_at: daysAgoIso(v.daysAgo, 115),
