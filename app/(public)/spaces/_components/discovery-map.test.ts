@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildPopupHtml, escapeHtml } from './discovery-map'
+import { buildPopupHtml, CARD_FOCUS_ZOOM, escapeHtml, planMapMove } from './discovery-map'
 
 const space = {
   id: 'e0000000-0000-4000-8000-000000000003',
@@ -65,5 +65,71 @@ describe('buildPopupHtml (pin popup, D-003)', () => {
     expect(html).toContain('Sulok &lt;img src=x onerror=&quot;alert(1)&quot;&gt;')
     expect(html).toContain('&lt;script&gt;alert(2)&lt;/script&gt;')
     expect(html).toContain('&lt;b&gt;Tag&lt;/b&gt;')
+  })
+})
+
+describe('planMapMove (card click centres the map, FR-1.1)', () => {
+  const A = 'e0000000-0000-4000-8000-000000000001'
+  const B = 'e0000000-0000-4000-8000-000000000003'
+  const base = {
+    activeSpaceId: A,
+    prevActiveSpaceId: null,
+    focusRequest: null,
+    lastFocusSeq: 0,
+    currentZoom: 13,
+  }
+
+  it('does nothing with no selection', () => {
+    expect(planMapMove({ ...base, activeSpaceId: null })).toEqual({ kind: 'none' })
+  })
+
+  it('pans when a pin selects a new Space', () => {
+    expect(planMapMove(base)).toEqual({ kind: 'pan' })
+  })
+
+  it('leaves the map alone when the selection is unchanged and nothing asked for focus', () => {
+    expect(planMapMove({ ...base, prevActiveSpaceId: A })).toEqual({ kind: 'none' })
+  })
+
+  it('flies to the Space and zooms in to street level on a card click', () => {
+    expect(planMapMove({ ...base, focusRequest: { spaceId: A, seq: 1 } })).toEqual({
+      kind: 'fly',
+      zoom: CARD_FOCUS_ZOOM,
+      focusSeq: 1,
+    })
+  })
+
+  it('flies again when the same card is clicked twice', () => {
+    expect(
+      planMapMove({
+        ...base,
+        prevActiveSpaceId: A,
+        focusRequest: { spaceId: A, seq: 2 },
+        lastFocusSeq: 1,
+      }),
+    ).toMatchObject({ kind: 'fly', focusSeq: 2 })
+  })
+
+  it('does not fly twice for the same request', () => {
+    expect(
+      planMapMove({
+        ...base,
+        prevActiveSpaceId: A,
+        focusRequest: { spaceId: A, seq: 2 },
+        lastFocusSeq: 2,
+      }),
+    ).toEqual({ kind: 'none' })
+  })
+
+  it('never zooms out when the Seeker is already closer than street level', () => {
+    expect(
+      planMapMove({ ...base, focusRequest: { spaceId: A, seq: 1 }, currentZoom: 18 }),
+    ).toMatchObject({ kind: 'fly', zoom: 18 })
+  })
+
+  it('ignores a focus request for a different Space than the selected one', () => {
+    expect(planMapMove({ ...base, focusRequest: { spaceId: B, seq: 1 } })).toEqual({
+      kind: 'pan',
+    })
   })
 })
