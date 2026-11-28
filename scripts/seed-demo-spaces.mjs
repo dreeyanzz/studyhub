@@ -138,46 +138,54 @@ async function ensureDemoUsers(supabase, users, accountPassword, adminPassword) 
   let created = 0
   let reused = 0
 
-  for (const spec of users) {
-    const emailKey = spec.email.toLowerCase()
-    const password = spec.isAdminPassword ? adminPassword : accountPassword
-    let existing = byEmail.get(emailKey)
+  // Create missing auth users in parallel batches of 5 to keep seeding fast
+  const BATCH_SIZE = 5
+  const profileRows = []
+  for (let i = 0; i < users.length; i += BATCH_SIZE) {
+    const batch = users.slice(i, i + BATCH_SIZE)
+    await Promise.all(
+      batch.map(async (spec) => {
+        const emailKey = spec.email.toLowerCase()
+        const password = spec.isAdminPassword ? adminPassword : accountPassword
+        let existing = byEmail.get(emailKey)
 
-    if (!existing) {
-      const { data: createdData, error: createError } =
-        await supabase.auth.admin.createUser({
-          email: spec.email,
-          password,
-          email_confirm: true,
-          user_metadata: {
-            role: spec.role === 'admin' ? 'seeker' : spec.role,
-            full_name: spec.fullName,
-          },
+        if (!existing) {
+          const { data: createdData, error: createError } =
+            await supabase.auth.admin.createUser({
+              email: spec.email,
+              password,
+              email_confirm: true,
+              user_metadata: {
+                role: spec.role === 'admin' ? 'seeker' : spec.role,
+                full_name: spec.fullName,
+              },
+            })
+          if (createError || !createdData?.user) {
+            fail(`Failed to create user ${spec.email}: ${createError?.message}`)
+          }
+          existing = createdData.user
+          created++
+        } else {
+          reused++
+        }
+
+        userIdsByKey.set(spec.key, existing.id)
+        profileRows.push({
+          id: existing.id,
+          role: spec.role,
+          full_name: spec.fullName,
+          phone_number: spec.phoneNumber,
+          role_confirmed: spec.roleConfirmed,
         })
-      if (createError || !createdData?.user) {
-        fail(`Failed to create user ${spec.email}: ${createError?.message}`)
-      }
-      existing = createdData.user
-      created++
-    } else {
-      reused++
-    }
-
-    const { error: profileError } = await supabase.from('profiles').upsert(
-      {
-        id: existing.id,
-        role: spec.role,
-        full_name: spec.fullName,
-        phone_number: spec.phoneNumber,
-        role_confirmed: spec.roleConfirmed,
-      },
-      { onConflict: 'id' },
+      }),
     )
-    if (profileError) {
-      fail(`Failed to upsert profile for ${spec.email}: ${profileError.message}`)
-    }
+  }
 
-    userIdsByKey.set(spec.key, existing.id)
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .upsert(profileRows, { onConflict: 'id' })
+  if (profileError) {
+    fail(`Failed to upsert demo profiles: ${profileError.message}`)
   }
 
   return { userIdsByKey, created, reused }
@@ -531,7 +539,7 @@ async function run() {
       wait_window: '60 minutes',
       payment_window_ends_at: daysAgoIso(v.daysAgo, 170),
       wait_window_ends_at: daysAgoIso(v.daysAgo, 115),
-      booking_token: `DEMO2026${String(v.index).padStart(4, '0')}`,
+      booking_token: `WRQ2026${String(v.index).padStart(5, '0')}`,
       checked_in_at: daysAgoIso(v.daysAgo, 120),
       checked_out_at: daysAgoIso(v.daysAgo),
       ended_at: daysAgoIso(v.daysAgo),
@@ -618,13 +626,15 @@ async function run() {
   if (revErr) fail(`Failed to insert reviews: ${revErr.message}`)
 
   // Trigger bump_review_version() cleanly for edited reviews so version=2 & edited_at are set
-  for (const edit of editedReviews) {
-    const { error: editErr } = await supabase
-      .from('reviews')
-      .update({ comment: edit.comment })
-      .eq('id', edit.id)
-    if (editErr) fail(`Failed to apply review edit: ${editErr.message}`)
-  }
+  await Promise.all(
+    editedReviews.map(async (edit) => {
+      const { error: editErr } = await supabase
+        .from('reviews')
+        .update({ comment: edit.comment })
+        .eq('id', edit.id)
+      if (editErr) fail(`Failed to apply review edit: ${editErr.message}`)
+    }),
+  )
 
   if (reportRows.length > 0) {
     const { error: repErr } = await supabase.from('review_reports').insert(reportRows)
