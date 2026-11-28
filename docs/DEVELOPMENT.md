@@ -39,13 +39,13 @@ project after about a week without activity, so wake it the day before any demo.
 
 ## Environments
 
-| Environment            | Database                                   | App                   | Data                                                  |
-| ---------------------- | ------------------------------------------ | --------------------- | ----------------------------------------------------- |
-| Local (migration work) | `npm run db:start` (Docker)                | `npm run dev`         | `supabase/seed.sql`, invented                         |
-| Local (other work)     | Shared cloud dev project                   | `npm run dev`         | The shared test accounts (D-028), and what you create |
-| Preview                | Shared cloud dev project                   | Vercel preview per PR | The shared test accounts (D-028), and what you create |
-| Production             | Production project                         | Vercel, from `main`   | Real accounts (D-091), and demo data built in the app |
-| CI                     | A fresh local stack per run (the `db` job) | None                  | `supabase/seed.sql`, invented                         |
+| Environment            | Database                                                                          | App                            | Data                                                  |
+| ---------------------- | --------------------------------------------------------------------------------- | ------------------------------ | ----------------------------------------------------- |
+| Local (migration work) | `npm run db:start` (Docker)                                                       | `npm run dev`                  | `supabase/seed.sql`, invented                         |
+| Local (other work)     | Shared cloud dev project                                                          | `npm run dev`                  | The shared test accounts (D-028), and what you create |
+| Preview                | Shared cloud dev project                                                          | Vercel preview per PR          | The shared test accounts (D-028), and what you create |
+| Production             | Production project                                                                | Vercel, from `main`            | Real accounts (D-091), and demo data built in the app |
+| CI                     | A fresh local stack per job (`db` + 3 `e2e` shards; fast-passed on docs-only PRs) | `next start` (in `e2e` shards) | `supabase/seed.sql`, invented                         |
 
 ## Secrets
 
@@ -99,9 +99,11 @@ rebase or force-push.
 
 ## Running the Playwright tests locally
 
-The Playwright tests (`npm run test:e2e`: STORY-06's smoke test, and the form-values test
-from #146) run against the local Supabase stack only (D-013, D-028) and start their own
-server on port 3100. They never talk to the cloud database.
+The Playwright tests (`npm run test:e2e`) run against the local Supabase stack only
+(D-013, D-028) and start their own server on port 3100 (`next dev` locally, or
+`next start` in CI and when `PLAYWRIGHT_USE_BUILD=1` is set after building with the local
+stack's `NEXT_PUBLIC_*` env vars and `PLAYWRIGHT_DISABLE_ISR=1`). They never talk to the
+cloud database.
 
 1. Stop `npm run dev` first: Next 16 runs one dev server per project folder.
 2. Install Chromium once: `npx playwright install chromium`
