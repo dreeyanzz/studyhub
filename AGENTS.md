@@ -71,8 +71,9 @@ components/ui/        shadcn/ui primitives (added through `npx shadcn add`)
 components/<domain>/  components shared across routes
 hooks/                shared client hooks
 lib/utils.ts          cn()
-lib/supabase/         client.ts, server.ts, admin.ts (secret key; app/api only),
-                      proxy.ts, database.types.ts (generated)
+lib/supabase/         client.ts, server.ts, public.ts (cookie-free anon),
+                      admin.ts (secret key; app/api only), proxy.ts,
+                      database.types.ts (generated)
 lib/validation/       Zod schemas shared by browser and server
 lib/data/             server-only query helpers
 lib/<domain>/         pure logic: no database, no session, no React; tests next to it
@@ -104,7 +105,7 @@ campus dictionary), `lib/occupancy/` (STORY-12's override rules), `lib/payments/
 fee, time and countdown formatters, and STORY-16's Manila date formatter), `lib/seat-map/`
 (STORY-07's grid rules), `lib/space/` (STORY-15's shared Space formatters, and
 STORY-11's opening status, freshness and availability),
-`lib/supabase/` (`client.ts`, `server.ts`, `proxy.ts`, STORY-09's `admin.ts` for `app/api`
+`lib/supabase/` (`client.ts`, `server.ts`, `public.ts`, `proxy.ts`, STORY-09's `admin.ts` for `app/api`
 only, and the generated types),
 `lib/validation/` (the auth, profile, Space, occupancy, seat map, verification,
 search, tags, reservation, check-in, Stripe webhook, Space photo, review, admin and reservation history rules), `scripts/`,

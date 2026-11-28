@@ -20,7 +20,20 @@ export type ProxySession = {
 
 type SessionCookie = { name: string; value: string; options: CookieOptions }
 
-export async function updateSession(request: NextRequest): Promise<ProxySession> {
+export interface UpdateSessionOptions {
+  /**
+   * Whether to query `profiles` for `role` and `role_confirmed` when signed in.
+   * Defaults to `true`. Set to `false` on public pages and non-GET/HEAD requests
+   * where `evaluateRouteAccess` always allows the request without inspecting role.
+   */
+  readRole?: boolean
+}
+
+export async function updateSession(
+  request: NextRequest,
+  options: UpdateSessionOptions = {},
+): Promise<ProxySession> {
+  const { readRole = true } = options
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   if (!url || !publishableKey) {
@@ -60,7 +73,7 @@ export async function updateSession(request: NextRequest): Promise<ProxySession>
 
   let role: UserRole | null = null
   let roleConfirmed = false
-  if (user) {
+  if (user && readRole) {
     // Never user_metadata: a user can rewrite their own (STORY-03 design §2, D-095).
     const { data: profile } = await supabase
       .from('profiles')

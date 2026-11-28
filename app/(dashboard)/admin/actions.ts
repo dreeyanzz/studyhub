@@ -165,6 +165,8 @@ export async function setSpaceStatusAction(
   }
 
   revalidatePath('/admin')
+  revalidatePath('/spaces')
+  revalidatePath(`/spaces/${spaceId}`)
 
   if (status === 'verified' || !reason) return { success: true, spaceId, status }
 

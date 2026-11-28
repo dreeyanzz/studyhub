@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  getDiscoverySpaces,
   getManilaMinutesFromDate,
   isSpaceOpen24h,
   isSpaceOpenLate,
@@ -472,6 +473,127 @@ describe('searchVerifiedSpaces and hours logic (STORY-08, FR-1.1, FR-1.2, D-048,
 
       const results = await searchVerifiedSpaces(mockSupabase, {})
       expect(results).toEqual([])
+    })
+  })
+
+  describe('getDiscoverySpaces single-RPC helper (STORY-08, D-055, D-063)', () => {
+    it('maps tags, unit types, visible review summary, and synchronous public cover URL', async () => {
+      const rpc = vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: '11111111-1111-4111-8111-111111111111',
+            name: 'Talamban Study Haven',
+            description: 'Quiet desks',
+            address: 'Nasipit, Cebu City',
+            opens_at: '07:00:00',
+            closes_at: '23:00:00',
+            latitude: 10.355,
+            longitude: 123.912,
+            price_tier: 'budget',
+            curated_tags: [
+              { id: 'wifi_fast', label: 'Wi-Fi: Fast (50+ Mbps)', category: 'wifi' },
+              { invalid: true },
+            ],
+            custom_tags: ['Brewed coffee'],
+            unit_types: ['seat', 'room'],
+            review_count: 3,
+            avg_overall: '4.25',
+            cover_photo_path: '11111111-1111-4111-8111-111111111111/cover.webp',
+          },
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            name: 'No Photo Hub',
+            description: null,
+            address: 'IT Park, Cebu City',
+            opens_at: '00:00:00',
+            closes_at: '00:00:00',
+            latitude: null,
+            longitude: null,
+            price_tier: 'free',
+            curated_tags: [],
+            custom_tags: [],
+            unit_types: [],
+            review_count: 0,
+            avg_overall: null,
+            cover_photo_path: null,
+          },
+        ],
+        error: null,
+      })
+
+      const getPublicUrl = vi.fn((path: string) => ({
+        data: {
+          publicUrl: `https://example.supabase.co/storage/v1/object/public/space-photos/${path}`,
+        },
+      }))
+      const storageFrom = vi.fn(() => ({ getPublicUrl }))
+
+      const mockSupabase = {
+        rpc,
+        storage: { from: storageFrom },
+      } as unknown as SupabaseClient<Database>
+
+      const results = await getDiscoverySpaces(mockSupabase)
+
+      expect(rpc).toHaveBeenCalledWith('discovery_spaces')
+      expect(storageFrom).toHaveBeenCalledTimes(1)
+      expect(storageFrom).toHaveBeenCalledWith('space-photos')
+      expect(getPublicUrl).toHaveBeenCalledWith(
+        '11111111-1111-4111-8111-111111111111/cover.webp',
+      )
+      expect(results).toEqual([
+        {
+          id: '11111111-1111-4111-8111-111111111111',
+          name: 'Talamban Study Haven',
+          description: 'Quiet desks',
+          address: 'Nasipit, Cebu City',
+          opens_at: '07:00:00',
+          closes_at: '23:00:00',
+          latitude: 10.355,
+          longitude: 123.912,
+          price_tier: 'budget',
+          distance_km: null,
+          curated_tags: [
+            { id: 'wifi_fast', label: 'Wi-Fi: Fast (50+ Mbps)', category: 'wifi' },
+          ],
+          custom_tags: ['Brewed coffee'],
+          unit_types: ['seat', 'room'],
+          review_count: 3,
+          avg_overall: 4.25,
+          cover_photo_url:
+            'https://example.supabase.co/storage/v1/object/public/space-photos/11111111-1111-4111-8111-111111111111/cover.webp',
+        },
+        {
+          id: '22222222-2222-4222-8222-222222222222',
+          name: 'No Photo Hub',
+          description: null,
+          address: 'IT Park, Cebu City',
+          opens_at: '00:00:00',
+          closes_at: '00:00:00',
+          latitude: null,
+          longitude: null,
+          price_tier: 'free',
+          distance_km: null,
+          curated_tags: [],
+          custom_tags: [],
+          unit_types: [],
+          review_count: 0,
+          avg_overall: null,
+          cover_photo_url: null,
+        },
+      ])
+    })
+
+    it('returns an empty array when the RPC errors or rejects', async () => {
+      const errorClient = {
+        rpc: vi.fn().mockResolvedValue({ data: null, error: { code: 'XX000' } }),
+      } as unknown as SupabaseClient<Database>
+      expect(await getDiscoverySpaces(errorClient)).toEqual([])
+
+      const throwingClient = {
+        rpc: vi.fn().mockRejectedValue(new Error('ECONNREFUSED')),
+      } as unknown as SupabaseClient<Database>
+      expect(await getDiscoverySpaces(throwingClient)).toEqual([])
     })
   })
 })

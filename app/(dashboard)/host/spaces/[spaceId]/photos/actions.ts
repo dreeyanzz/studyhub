@@ -156,6 +156,7 @@ export async function revalidatePhotos(spaceIdInput: unknown): Promise<PhotoActi
   }
 
   revalidatePath(`/host/spaces/${spaceId}/photos`)
+  revalidatePath('/spaces')
   revalidatePath(`/spaces/${spaceId}`)
 
   return { success: true }
@@ -211,6 +212,7 @@ export async function deletePhoto(
   }
 
   revalidatePath(`/host/spaces/${spaceId}/photos`)
+  revalidatePath('/spaces')
   revalidatePath(`/spaces/${spaceId}`)
   redirect(`/host/spaces/${spaceId}/photos`)
 }

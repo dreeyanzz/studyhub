@@ -4,6 +4,7 @@ import {
   dashboardFor,
   evaluateRouteAccess,
   landingPathFor,
+  routeNeedsRole,
 } from './role-guard'
 
 const allow = { type: 'allow' }
@@ -265,4 +266,23 @@ describe('evaluateRouteAccess: unconfirmed Google OAuth user and /choose-role (G
     )
     expect(evaluateRouteAccess('/seeker', 'seeker', '', 'POST', false)).toEqual(allow)
   })
+})
+
+describe('routeNeedsRole', () => {
+  it.each(['/', '/spaces', '/spaces/123', '/privacy', '/seekers', '/hostel'])(
+    'returns false for public route %s',
+    (path) => {
+      expect(routeNeedsRole(path, 'GET')).toBe(false)
+      expect(routeNeedsRole(path, 'HEAD')).toBe(false)
+    },
+  )
+
+  it.each(['/login', '/register', '/choose-role', '/seeker', '/host/spaces', '/admin'])(
+    'returns true for guarded page loads on %s and false for POST actions',
+    (path) => {
+      expect(routeNeedsRole(path, 'GET')).toBe(true)
+      expect(routeNeedsRole(path, 'HEAD')).toBe(true)
+      expect(routeNeedsRole(path, 'POST')).toBe(false)
+    },
+  )
 })
