@@ -88,7 +88,7 @@ notes/                postmortems
 
 Most of that tree does not exist yet; it is where files go when a story creates them. On
 `main` today there are only `app/` (the root layout, STORY-02's public shell in
-`(public)/` (with STORY-08's discovery map in `spaces/`, STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel and STORY-13's community reviews, and STORY-21's `privacy/` policy page), STORY-03's `(auth)/` pages (with STORY-21's Google OAuth button and `choose-role/` onboarding page) and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
+`(public)/` (with STORY-17's Seeker-centered landing page and `/for-hosts` Host page, STORY-08's discovery map in `spaces/`, STORY-11's Space profile in `spaces/[spaceId]/` with STORY-09's hold panel and STORY-13's community reviews, and STORY-21's `privacy/` policy page), STORY-03's `(auth)/` pages (with STORY-21's Google OAuth button and `choose-role/` onboarding page) and `api/auth/callback/`, STORY-09's `api/webhooks/stripe/`, STORY-04's
 `(dashboard)/seeker/` portal (with STORY-09's hold and return pages in `reservations/[id]/`, and STORY-16's reservation history in `reservations/`), STORY-05's Host portal and Space actions in
 `(dashboard)/host/` (with STORY-12's occupancy views and actions, STORY-11's photo
 page, STORY-08's tags page and STORY-10's check-in desk), and STORY-15's Administrator portal in `(dashboard)/admin/` (with STORY-14's review moderation page in `moderation/` and Payments page in `payments/`)),
