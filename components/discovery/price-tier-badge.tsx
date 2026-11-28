@@ -48,7 +48,7 @@ export function PriceTierBadge({
     <span
       data-testid={`price-tier-badge-${tier}`}
       className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap transition-colors',
+        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-tight whitespace-nowrap shadow-2xs transition-colors',
         colorStyles[tier],
         className,
       )}

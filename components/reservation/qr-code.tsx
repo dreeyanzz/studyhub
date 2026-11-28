@@ -423,7 +423,7 @@ export function BookingQrCode({
   return (
     <div
       className={cn(
-        'inline-flex rounded-lg border border-border bg-card p-2 text-card-foreground',
+        'inline-flex rounded-2xl border border-border/80 bg-card p-3 text-card-foreground shadow-card',
         className,
       )}
     >

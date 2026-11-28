@@ -104,7 +104,7 @@ export function SeatMapTile({
       role="img"
       aria-label={accessibleName}
       className={cn(
-        'flex h-full min-h-12 w-full min-w-[48px] flex-col items-center justify-between rounded-md border p-1 text-center transition-colors select-none',
+        'flex h-full min-h-12 w-full min-w-[48px] flex-col items-center justify-between rounded-xl border p-1.5 text-center shadow-2xs transition-all duration-150 select-none',
         stateInfo.tileClassName,
         className,
       )}

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 /**
  * The Worq desk-lamp mark (STORY-17 design §3). Decorative: every link that shows it
  * also says "Worq" in text, so it is hidden from screen readers. The public header and
- * the Seeker portal header share it, so the two never drift apart.
+ * the portal headers share it, so the brand mark never drifts apart.
  */
 export function WorqMark({ className }: { className?: string }) {
   return (

@@ -108,7 +108,7 @@ export function SolidStars({
                 style={{ clipPath: `inset(0 ${100 - fillPercent}% 0 0)` }}
               >
                 <Star
-                  className={cn(iconClass, 'fill-[#eab308] text-[#ca8a04]')}
+                  className={cn(iconClass, 'fill-star text-star-stroke')}
                   strokeWidth={1.5}
                 />
               </span>
@@ -163,10 +163,7 @@ export function ReviewRating({
         className,
       )}
     >
-      <Star
-        className="size-4 shrink-0 fill-[#eab308] text-[#ca8a04]"
-        aria-hidden="true"
-      />
+      <Star className="size-4 shrink-0 fill-star text-star-stroke" aria-hidden="true" />
       <span aria-hidden="true">{text}</span>
     </span>
   )

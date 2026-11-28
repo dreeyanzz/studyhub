@@ -81,7 +81,7 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
     expect(html).not.toContain('km away')
   })
 
-  it('clips the decorative blurred cover-photo backdrop inside its rounded wrapper', () => {
+  it('clips the decorative cover-photo frame inside its rounded aria-hidden wrapper', () => {
     const html = renderToStaticMarkup(
       <SpaceCard
         space={{
@@ -92,7 +92,7 @@ describe('SpaceCard component (STORY-08, FR-1.1, D-003)', () => {
       />,
     )
     expect(html).toContain(
-      'pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]',
+      'pointer-events-none absolute inset-0 overflow-hidden rounded-2xl',
     )
   })
 })

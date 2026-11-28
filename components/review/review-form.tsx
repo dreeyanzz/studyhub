@@ -133,11 +133,11 @@ export function ReviewForm({
                     <label
                       key={value}
                       className={cn(
-                        'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-semibold shadow-2xs transition-all select-none',
+                        'relative inline-flex min-h-12 min-w-12 cursor-pointer items-center justify-center rounded-full border px-3 text-sm font-semibold shadow-2xs transition-all duration-150 select-none',
                         'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-background',
                         isSelected
-                          ? 'border-primary bg-primary text-primary-foreground shadow-xs'
-                          : 'border-border/80 bg-card text-foreground hover:border-primary/40 hover:bg-accent/40',
+                          ? 'border-primary bg-primary text-primary-foreground shadow-card'
+                          : 'border-border/80 bg-card text-foreground hover:-translate-y-0.5 hover:border-primary/45 hover:bg-surface-subtle',
                         isPending && 'pointer-events-none opacity-50',
                       )}
                     >
@@ -190,7 +190,7 @@ export function ReviewForm({
           aria-describedby={commentCountId}
           aria-invalid={state.fieldErrors?.comment ? 'true' : undefined}
           placeholder="Share how quiet, reliable, clean, and comfortable the Space felt."
-          className="min-h-24 w-full rounded-2xl border border-input bg-muted/60 px-4 py-3 text-sm text-foreground transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-background focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
+          className="min-h-24 w-full rounded-2xl border border-input/90 bg-card px-4 py-3 text-sm text-foreground shadow-2xs transition-colors placeholder:text-muted-foreground hover:border-primary/40 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none disabled:opacity-50"
         />
         <div className="flex flex-wrap items-center justify-between gap-2 px-1">
           <p id={commentCountId} className="text-xs text-muted-foreground">
