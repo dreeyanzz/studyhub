@@ -213,6 +213,7 @@ The shared database behind every teammate's `npm run dev` and the Vercel preview
   the project is recreated; it skips accounts that exist and checks each one's role and
   password. The production project's accounts are real addresses instead (D-091, STORY-19's
   design).
+- **50-space Metro Cebu demo catalog (D-097).** `npm run db:seed:demo -- --reset` (cloud dev via `.env.local`) and `npm run db:seed:demo:local -- --reset` (local Docker Supabase) seed the same 50 real Metro Cebu study and co-working spaces, 15 synthetic `@example.test` accounts, zones, units, tags, cover photos (`space-photos` bucket), verification `space_events`, reservations, payments, reviews, and moderation fixtures while keeping `supabase/seed.sql` minimal for pgTAP and Playwright CI.
 - **Deleting an account.** Before you delete a Host's account in the dashboard, delete
   their Spaces in the app, or empty each Space's `space-photos/<space_id>` folder on the
   Storage page. Nothing else removes those photos, and the bucket is public (D-092). The
