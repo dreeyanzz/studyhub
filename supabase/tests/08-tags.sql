@@ -213,9 +213,10 @@ update public.spaces
 set latitude = 10.0000, longitude = 123.0000
 where id = 'e0000000-0000-4000-8000-000000000003';
 
+-- Sulok keeps its seeded pin (supabase/seed.sql): the update matched no row.
 select is(
   (select latitude from public.spaces where id = 'e0000000-0000-4000-8000-000000000003'),
-  null,
+  10.3302::double precision,
   'a host cannot update coordinates on another host''s space'
 );
 
