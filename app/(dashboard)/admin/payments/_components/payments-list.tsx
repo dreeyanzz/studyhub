@@ -59,11 +59,14 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+      <div className="space-y-1.5 border-b border-border/80 pb-5">
+        <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
+          Administration · Ledger
+        </p>
+        <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
           Payment Records
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground sm:text-base">
           Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose hold
           ended without a check-in.
         </p>
@@ -80,7 +83,7 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
               data-testid={`payments-filter-${tab.value}`}
               className={cn(
                 buttonVariants({ variant: active ? 'default' : 'outline' }),
-                'h-auto min-h-12 min-w-12 py-2 whitespace-normal',
+                'h-auto min-h-12 min-w-12 rounded-full px-5 py-2 whitespace-normal',
               )}
             >
               {tab.label}
@@ -106,13 +109,15 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
       {items.length === 0 ? (
         <Card
           data-testid="payments-empty-state"
-          className="flex min-w-0 flex-col items-center justify-center p-6 text-center sm:p-8"
+          className="flex min-w-0 flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border/80 bg-surface-subtle/75 p-10 text-center shadow-card"
         >
-          <Inbox className="mb-4 size-12 text-muted-foreground" aria-hidden="true" />
-          <h2 className="text-lg font-semibold wrap-anywhere text-foreground">
+          <div className="mb-4 flex size-14 items-center justify-center rounded-2xl border border-border/80 bg-card text-primary shadow-2xs">
+            <Inbox className="size-7" aria-hidden="true" />
+          </div>
+          <h2 className="font-heading text-xl font-semibold wrap-anywhere text-foreground">
             No payments match this filter.
           </h2>
-          <p className="mt-1 text-sm wrap-anywhere text-muted-foreground">
+          <p className="mt-1.5 max-w-md text-sm wrap-anywhere text-muted-foreground">
             Paid, forfeited, and refunded sandbox fees will appear here once Seekers
             complete checkout.
           </p>
@@ -127,12 +132,12 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
               <Card
                 key={item.paymentId}
                 data-testid={`payment-record-${item.paymentId}`}
-                className="min-w-0"
+                className="min-w-0 rounded-3xl shadow-card"
               >
                 <CardHeader className="min-w-0 grid-cols-[minmax(0,1fr)] gap-2">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0 space-y-1">
-                      <h2 className="text-base font-semibold wrap-anywhere text-foreground">
+                      <h2 className="font-heading text-lg font-semibold wrap-anywhere text-foreground">
                         {item.spaceName} · {item.unitLabel}
                       </h2>
                       <p className="text-sm wrap-anywhere text-muted-foreground">
@@ -153,7 +158,7 @@ export function PaymentsList({ items, filter, shown, hasMore }: PaymentsListProp
                       >
                         {paymentLabel}
                       </span>
-                      <span className="text-sm font-semibold text-foreground">
+                      <span className="text-sm font-semibold text-foreground tabular-nums">
                         {formatPeso(item.feeAmount)}
                       </span>
                     </div>

@@ -81,7 +81,6 @@ function SpaceInspectionDossier({
   onReject: (space: VerificationCardItem) => Promise<void>
 }) {
   const [isApproving, setIsApproving] = useState(false)
-  const [isRejecting, setIsRejecting] = useState(false)
   const [photoIndex, setPhotoIndex] = useState(0)
 
   const photosUnavailable = space.photos === null
@@ -114,13 +113,7 @@ function SpaceInspectionDossier({
   }
 
   async function handleReject() {
-    setIsRejecting(true)
-    try {
-      await onReject(space)
-      onClose()
-    } finally {
-      setIsRejecting(false)
-    }
+    await onReject(space)
   }
 
   return (
@@ -277,19 +270,19 @@ function SpaceInspectionDossier({
           <Button
             type="button"
             variant="outline"
-            className="h-auto min-h-12 w-full min-w-12 gap-2 rounded-xl border-destructive/40 bg-destructive/5 px-4 py-2.5 text-xs font-semibold whitespace-normal text-destructive hover:bg-destructive/15 sm:w-auto"
+            className="h-auto min-h-12 w-full min-w-12 gap-2 rounded-full border-destructive/40 bg-destructive/5 px-5 py-2.5 text-xs font-semibold whitespace-normal text-destructive hover:bg-destructive/15 sm:w-auto"
             onClick={handleReject}
-            disabled={isRejecting || isApproving}
+            disabled={isApproving}
           >
             <XCircle className="size-4 shrink-0" aria-hidden="true" />
-            <span>{isRejecting ? 'Rejecting...' : 'Reject Space'}</span>
+            <span>Reject Space</span>
           </Button>
 
           <Button
             type="button"
-            className="h-auto min-h-12 w-full min-w-12 gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold whitespace-normal text-primary-foreground shadow-sm hover:bg-primary/90 sm:w-auto"
+            className="h-auto min-h-12 w-full min-w-12 gap-2 rounded-full bg-primary px-6 py-2.5 text-xs font-semibold whitespace-normal text-primary-foreground shadow-xs hover:bg-primary-hover sm:w-auto"
             onClick={handleApprove}
-            disabled={isApproving || isRejecting}
+            disabled={isApproving}
           >
             <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
             <span>{isApproving ? 'Approving...' : 'Approve & Publish'}</span>

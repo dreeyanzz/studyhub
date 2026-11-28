@@ -72,11 +72,11 @@ export default async function AdminModerationPage({
   if (!queue || !historyMap) {
     return (
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <div className="space-y-1 border-b border-border/75 pb-5">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Review Moderation
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Review reported content, restore hidden reviews, or remove them permanently.
           </p>
         </div>
@@ -89,7 +89,7 @@ export default async function AdminModerationPage({
               aria-current={list === tab.value ? 'page' : undefined}
               className={cn(
                 buttonVariants({ variant: list === tab.value ? 'default' : 'outline' }),
-                'h-auto min-h-12 min-w-12 py-2 whitespace-normal',
+                'h-auto min-h-12 min-w-12 rounded-full px-5 py-2 whitespace-normal',
               )}
             >
               {tab.label}

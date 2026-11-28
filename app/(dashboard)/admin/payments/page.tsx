@@ -63,11 +63,11 @@ export default async function AdminPaymentsPage({
   if (!records) {
     return (
       <div className="space-y-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        <div className="space-y-1 border-b border-border/75 pb-5">
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             Payment Records
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Inspect paid, forfeited, and refunded sandbox fees, and refund a fee whose
             hold ended without a check-in.
           </p>
@@ -81,7 +81,7 @@ export default async function AdminPaymentsPage({
               aria-current={status === tab.value ? 'page' : undefined}
               className={cn(
                 buttonVariants({ variant: status === tab.value ? 'default' : 'outline' }),
-                'h-auto min-h-12 min-w-12 py-2 whitespace-normal',
+                'h-auto min-h-12 min-w-12 rounded-full px-5 py-2 whitespace-normal',
               )}
             >
               {tab.label}

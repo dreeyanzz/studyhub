@@ -50,7 +50,7 @@ const TIMESTAMP_LABELS = {
 } as const
 
 const BUTTON =
-  'min-h-[48px] w-full min-w-[48px] gap-2 rounded-xl px-5 font-semibold sm:w-auto'
+  'min-h-[48px] w-full min-w-[48px] gap-2 rounded-full px-5 font-semibold sm:w-auto'
 const DESTRUCTIVE_OUTLINE =
   'border-destructive/40 bg-destructive/5 text-destructive shadow-2xs hover:border-destructive hover:bg-destructive/15 hover:text-destructive focus-visible:ring-destructive'
 
@@ -137,19 +137,19 @@ export function VerificationCard({
         : null
 
   return (
-    <Card className="group relative h-full overflow-visible rounded-2xl border border-border/80 bg-card shadow-sm transition-all duration-300 hover:border-primary/40 hover:shadow-md">
+    <Card className="group relative h-full overflow-visible rounded-2xl border border-border bg-card shadow-card transition-all duration-200 hover:border-foreground/30 hover:shadow-card-hover">
       <CardHeader className="min-w-0 grid-cols-[minmax(0,1fr)] gap-3 pb-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3.5">
             <div
               aria-hidden="true"
-              className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 font-heading text-xl font-bold text-primary shadow-2xs transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground"
+              className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-subtle font-heading text-xl font-medium text-foreground shadow-2xs transition-all duration-300 group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground"
             >
               {space.name.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <CardTitle className="min-w-0">
-                <h2 className="font-heading text-xl font-bold tracking-tight wrap-anywhere text-foreground sm:text-2xl">
+                <h2 className="font-heading text-xl font-medium tracking-tight wrap-anywhere text-foreground sm:text-2xl">
                   {space.name}
                 </h2>
               </CardTitle>

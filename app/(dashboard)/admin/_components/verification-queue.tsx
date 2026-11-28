@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Clock, Inbox, ShieldCheck, Sparkles, X } from 'lucide-react'
+import { Inbox, X } from 'lucide-react'
 
 import {
   setSpaceStatusAction,
@@ -233,19 +233,22 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
       <RealtimeSpaceNotice spaces={watched} deciding={deciding} onStale={markStale} />
 
       {/* Title Bar */}
-      <div className="-m-2 flex flex-wrap items-center justify-between gap-4 rounded-2xl p-2">
-        <div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border/80 pb-5">
+        <div className="space-y-1.5">
+          <p className="inline-block rounded-full bg-accent px-3 py-0.5 text-xs font-semibold text-accent-foreground">
+            Administration · Queue
+          </p>
+          <h1 className="font-heading text-3xl font-bold tracking-[-0.03em] text-foreground sm:text-4xl">
             Space Verification
           </h1>
-          <p className="mt-1 text-sm font-medium text-muted-foreground">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Review Pending Spaces, inspect changes, take Verified Spaces down, or undo
             past decisions.
           </p>
         </div>
         <Badge
           variant="secondary"
-          className="rounded-xl border border-border/80 bg-secondary/80 px-3.5 py-1.5 text-sm font-bold text-foreground shadow-2xs"
+          className="rounded-full border border-border bg-card px-4 py-1.5 font-mono text-xs font-semibold text-foreground tabular-nums shadow-2xs"
         >
           {spaces.length} {current.count}
         </Badge>
@@ -261,10 +264,10 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
                   href={`/admin?tab=${link.tab}`}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-xl border px-4 py-2 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
+                    'inline-flex min-h-12 min-w-12 items-center justify-center rounded-full border px-5 py-2 text-sm font-semibold transition-all focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none',
                     active
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-border/80 bg-card text-foreground hover:bg-muted',
+                      ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                      : 'border-border bg-card text-foreground shadow-2xs hover:border-primary/40 hover:bg-surface-subtle',
                   )}
                 >
                   {link.label}
@@ -274,64 +277,6 @@ export function VerificationQueue({ tab, initialSpaces }: VerificationQueueProps
           })}
         </ul>
       </nav>
-
-      {/* Professional Guidance Banner */}
-      <div className="flex items-start gap-3 rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
-        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-2xs">
-          <ShieldCheck className="size-4" aria-hidden="true" />
-        </div>
-        <div className="text-sm leading-relaxed text-foreground">
-          <strong className="font-bold text-foreground">Administrator Guide:</strong>{' '}
-          Inspect the Space&apos;s operating hours, campus vicinity and list of changes.
-          Approving or putting a Space back publishes it to the public map at once.
-        </div>
-      </div>
-
-      {/* Overview metric cards. Columns follow the container's width, not the
-          viewport's, so they stack beside the sidebar at 200% text (#430). */}
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,12rem),1fr))] gap-3">
-        <div className="group relative flex items-center gap-3.5 rounded-2xl border border-primary/40 bg-card p-4.5 shadow-xs ring-1 ring-primary/20 transition-all duration-300 hover:border-primary">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs">
-            <Clock className="size-5" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold tracking-wider wrap-anywhere text-primary uppercase">
-              {current.label}
-            </p>
-            <p className="text-xl font-bold tracking-tight wrap-anywhere text-foreground sm:text-2xl">
-              {spaces.length} {spaces.length === 1 ? 'Space' : 'Spaces'}
-            </p>
-          </div>
-        </div>
-
-        <div className="group relative flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-2xs">
-            <ShieldCheck className="size-5 text-primary" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
-              Quality Standard
-            </p>
-            <p className="text-sm font-bold wrap-anywhere text-foreground">
-              Verified Standards
-            </p>
-          </div>
-        </div>
-
-        <div className="group relative flex items-center gap-3.5 rounded-2xl border border-border/80 bg-card p-4.5 shadow-xs transition-all duration-300 hover:border-border">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-secondary-foreground shadow-2xs">
-            <Sparkles className="size-5 text-primary" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold tracking-wider wrap-anywhere text-muted-foreground uppercase">
-              Search Sync
-            </p>
-            <p className="text-sm font-bold wrap-anywhere text-foreground">
-              Instant Map Publishing
-            </p>
-          </div>
-        </div>
-      </div>
 
       {/* Always mounted, so a screen reader hears each new result (D-031). */}
       <div role="status" aria-live="polite">

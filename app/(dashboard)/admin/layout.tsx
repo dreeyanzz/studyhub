@@ -46,10 +46,20 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="flex min-h-screen bg-background text-foreground antialiased">
+      <a
+        href="#main-content"
+        className="sr-only z-50 inline-flex min-h-12 min-w-12 items-center rounded-lg bg-primary px-4 font-medium text-primary-foreground outline-none focus-visible:not-sr-only focus-visible:fixed focus-visible:top-2 focus-visible:left-2 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        Skip to main content
+      </a>
       <AdminSidebar displayName={displayName} pendingCount={pendingCount} />
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminMobileHeader displayName={displayName} pendingCount={pendingCount} />
-        <main className="w-full max-w-6xl flex-1 px-4 py-6 sm:px-8 sm:py-8">
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="w-full max-w-6xl flex-1 px-4 py-6 outline-none sm:px-8 sm:py-8"
+        >
           {children}
         </main>
       </div>
