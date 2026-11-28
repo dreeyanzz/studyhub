@@ -164,6 +164,44 @@ export const DEMO_USERS = [
     phoneNumber: null,
     roleConfirmed: false, // Unconfirmed role -> /choose-role onboarding state
   },
+  // Expanded Cebu Seeker community (seeker9..seeker33) so 200 reviews come from a realistic userbase
+  ...[
+    ['Katrina Velasco', '+63 917 500 0209'],
+    ['Jerick Mendoza', '+63 917 500 0210'],
+    ['Aileen Cortes', null],
+    ['Carlo Abella', '+63 917 500 0212'],
+    ['Patricia Yu', '+63 917 500 0213'],
+    ['Noel Panganiban', '+63 917 500 0214'],
+    ['Shiela Ramos', null],
+    ['Bong Espinoza', '+63 917 500 0216'],
+    ['Clarisse Ong', '+63 917 500 0217'],
+    ['Daryl Bacalso', '+63 917 500 0218'],
+    ['Mikaela Caballes', '+63 917 500 0219'],
+    ['Jomar Alcantara', null],
+    ['Bea Escano', '+63 917 500 0221'],
+    ['Francis Borromeo', '+63 917 500 0222'],
+    ['Hannah Quijano', '+63 917 500 0223'],
+    ['Leo Cabahug', '+63 917 500 0224'],
+    ['Danica Sotto', null],
+    ['Vince Ybanez', '+63 917 500 0226'],
+    ['Giselle Aznar', '+63 917 500 0227'],
+    ['Kenji Lim', '+63 917 500 0228'],
+    ['Maricar Duterte', '+63 917 500 0229'],
+    ['Nathaniel Sy', null],
+    ['Erika Cabatingan', '+63 917 500 0231'],
+    ['Renz Pogoy', '+63 917 500 0232'],
+    ['Tessa Villamor', '+63 917 500 0233'],
+  ].map(([fullName, phoneNumber], idx) => {
+    const n = idx + 9
+    return {
+      key: `seeker${n}`,
+      email: `seeker${n}@example.test`,
+      role: 'seeker',
+      fullName,
+      phoneNumber,
+      roleConfirmed: true,
+    }
+  }),
 ]
 
 // Compact seat-map presets so every space has realistic, non-overlapping grids.
@@ -1431,7 +1469,7 @@ export const DEMO_SCENARIOS = {
       spaceIndex: 4, // Workplace Cafe - IT Park (24h)
       unitLabel: 'S1',
       status: 'reserved',
-      bookingToken: 'DEMO20260001',
+      bookingToken: 'WRQ202600001',
       waitWindowMinutes: 60,
       paymentStatus: 'paid',
     },
@@ -1442,7 +1480,7 @@ export const DEMO_SCENARIOS = {
       spaceIndex: 4, // Workplace Cafe - IT Park (24h)
       unitLabel: 'S2',
       status: 'occupied',
-      bookingToken: 'DEMO20260002',
+      bookingToken: 'WRQ202600002',
       waitWindowMinutes: 60,
       paymentStatus: 'paid',
     },
@@ -1468,7 +1506,7 @@ export const DEMO_SCENARIOS = {
       unitLabel: 'S1',
       status: 'cancelled',
       cancelledByTakeDown: true,
-      bookingToken: 'DEMO20260004',
+      bookingToken: 'WRQ202600004',
       waitWindowMinutes: 45,
       daysAgo: 3,
       paymentStatus: 'refunded',
@@ -1481,7 +1519,7 @@ export const DEMO_SCENARIOS = {
       unitLabel: 'S1',
       status: 'cancelled',
       cancelledByTakeDown: false,
-      bookingToken: 'DEMO20260005',
+      bookingToken: 'WRQ202600005',
       waitWindowMinutes: 60,
       daysAgo: 6,
       paymentStatus: 'paid', // refundable/paid cancelled record for /admin/payments
@@ -1493,7 +1531,7 @@ export const DEMO_SCENARIOS = {
       unitLabel: 'S1',
       status: 'no_show',
       cancelledByTakeDown: false,
-      bookingToken: 'DEMO20260006',
+      bookingToken: 'WRQ202600006',
       waitWindowMinutes: 30,
       daysAgo: 8,
       paymentStatus: 'forfeited',
@@ -1517,7 +1555,7 @@ export const DEMO_SCENARIOS = {
       unitLabel: 'S1',
       status: 'cancelled',
       cancelledByTakeDown: false,
-      bookingToken: 'DEMO20260008',
+      bookingToken: 'WRQ202600008',
       waitWindowMinutes: 45,
       daysAgo: 5,
       paymentStatus: 'refunded',
@@ -1865,5 +1903,225 @@ export const DEMO_SCENARIOS = {
       daysAgo: 1,
       review: null,
     },
+    ...buildExpandedReviews(),
   ],
+}
+
+/**
+ * Generates 181 additional realistic Cebu reviews (19 hand-crafted + 181 = 200 total)
+ * spread across 31 verified spaces (leaving 7 verified spaces intentionally unreviewed / "New"),
+ * authored by 31 active seekers (seeker1..seeker6, seeker9..seeker33) who review multiple spaces.
+ */
+function buildExpandedReviews() {
+  // Exact 181 extra reviews across 31 verified spaces
+  const distribution = [
+    { spaceIndex: 1, count: 9, tier: 'high' }, // Workplace Cafe - Ramos (12 total)
+    { spaceIndex: 2, count: 7, tier: 'high' }, // Workplace Cafe - Banawa
+    { spaceIndex: 3, count: 6, tier: 'mid' }, // Workplace Cafe - Mandaue
+    { spaceIndex: 4, count: 9, tier: 'high' }, // Workplace Cafe - IT Park (11 total)
+    { spaceIndex: 5, count: 8, tier: 'high' }, // The Company Cebu - IT Park (10 total)
+    { spaceIndex: 6, count: 6, tier: 'high' }, // The Company Cebu - Mandaue
+    { spaceIndex: 7, count: 9, tier: 'high' }, // Mindspace Study Hub - CIT-U (11 total)
+    { spaceIndex: 8, count: 7, tier: 'high' }, // Espacio Co-Working - Talisay (8 total)
+    { spaceIndex: 9, count: 7, tier: 'mid' }, // Nomad's Hub - Lahug (8 total)
+    { spaceIndex: 10, count: 7, tier: 'high' }, // Sync Work + Study Hub - Talamban (8 total)
+    { spaceIndex: 11, count: 8, tier: 'high' }, // From Here Coworking - IT Park (10 total)
+    { spaceIndex: 12, count: 6, tier: 'high' }, // Enspace Cebu - IT Park
+    { spaceIndex: 13, count: 6, tier: 'mid' }, // Desko Study Lounge - P. del Rosario (7 total)
+    { spaceIndex: 14, count: 7, tier: 'high' }, // Productive Spaces - Banilad
+    { spaceIndex: 15, count: 6, tier: 'high' }, // The Mill Lifestyle & Coworking - Ayala
+    { spaceIndex: 16, count: 4, tier: 'low' }, // Study Nook - Urgello
+    { spaceIndex: 17, count: 6, tier: 'mid' }, // Cebu City Public Library (7 total)
+    { spaceIndex: 18, count: 7, tier: 'high' }, // USC Talamban Learning Commons
+    { spaceIndex: 19, count: 5, tier: 'mid' }, // UP Cebu Library Annex
+    { spaceIndex: 20, count: 6, tier: 'mid' }, // 24/7 Study Lounge - Banilad (7 total)
+    { spaceIndex: 21, count: 5, tier: 'high' }, // KMC Solutions - Skyrise 4B
+    { spaceIndex: 22, count: 4, tier: 'high' }, // Regus - AppleOne Equicom Tower
+    { spaceIndex: 23, count: 5, tier: 'mid' }, // A Space Cebu - Crossroads Banilad (6 total)
+    { spaceIndex: 24, count: 4, tier: 'mid' }, // Workstation 24 - Colon
+    { spaceIndex: 25, count: 5, tier: 'high' }, // The Study Hub - N. Bacalso
+    { spaceIndex: 26, count: 4, tier: 'high' }, // Focus Pod Cebu - Talamban
+    { spaceIndex: 27, count: 3, tier: 'low' }, // Brainbox Study Center - Labangon (4 total)
+    { spaceIndex: 28, count: 4, tier: 'high' }, // CoLab Cebu - Mandaue North
+    { spaceIndex: 29, count: 4, tier: 'high' }, // Loom Coworking - CDU Reclamation
+    { spaceIndex: 33, count: 3, tier: 'low' }, // Sanciangko Desk Club
+    { spaceIndex: 38, count: 4, tier: 'high' }, // Cebu IT Park Night Owl Desk
+  ]
+
+  const unitLabelsByLayout = {
+    hybrid: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'D1', 'D2', 'Room A'],
+    seat_room: ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'Pod 1', 'Pod 2'],
+    seat_standing: ['A1', 'A2', 'A3', 'A4', 'W1', 'W2', 'W3'],
+    seats_only: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6'],
+    rooms_only: ['Suite 1', 'Suite 2', 'Suite 3'],
+  }
+
+  const spaceByIndex = new Map(RAW_SPACES.map((s) => [s.index, s]))
+
+  // 31 active reviewers (seeker7 stays 0 reviews/visits; seeker8 stays unconfirmed onboarding)
+  const reviewerKeys = [
+    'seeker1',
+    'seeker2',
+    'seeker3',
+    'seeker4',
+    'seeker5',
+    'seeker6',
+    ...Array.from({ length: 25 }, (_, i) => `seeker${i + 9}`),
+  ]
+
+  const highComments = [
+    'Super reliable fiber Wi-Fi and cold AC all afternoon. Easy QR check-in at the front desk.',
+    'Quiet atmosphere, plenty of outlets, and comfortable chairs for a 5-hour study block.',
+    'My go-to spot in Cebu before major exams. Clean restrooms and helpful staff.',
+    'Desk lamps are warm and easy on the eyes. Zero lag during my evening online class.',
+    'Great lighting and well-spaced desks so you never feel cramped even when busy.',
+    'Worth every peso — fast connection, spotless tables, and peaceful focus vibe.',
+    'Held a seat on Worq before leaving campus and it was waiting for me right on arrival.',
+    'Super accommodating host and crisp AC. Finished my entire capstone chapter here.',
+    'Clean, calm, and consistent internet speed even during peak evening hours.',
+    'Love the ergonomic seating and dedicated power strip at every workstation.',
+    'Best place around the area for deep work and uninterrupted coding sessions.',
+    'Stayed past midnight without any issues. Safe location and steady Wi-Fi.',
+  ]
+
+  const midComments = [
+    'Good value for students. Wi-Fi is steady for browsing and docs, though slightly slower at peak.',
+    'Decent desks and cold AC. Gets a bit lively near the entrance around 5 PM.',
+    'Solid backup spot when my usual hub is full. Clean enough and friendly staff.',
+    'Chairs are fine for 2–3 hours and outlets are easy to reach if you pick a wall seat.',
+    'Convenient commute from campus and fair pricing. Bring headphones if you need total silence.',
+    'Reliable enough for group review sessions; lighting is bright and comfortable.',
+    'Clean tables and quick check-in, though parking can be tight in the evening.',
+    'Good everyday study spot. Aircon is strong so bring a light jacket.',
+  ]
+
+  const lowComments = [
+    'Affordable rates, but Wi-Fi dipped twice during my video call and outlets were limited.',
+    'Space was a bit cramped and noisy near the counter; okay for quick reading only.',
+    'AC took a while to cool down and a couple of chairs were wobbly.',
+    'Fine in a pinch if you just need a desk near campus, but needs better Wi-Fi maintenance.',
+  ]
+
+  const ratingProfiles = {
+    high: [
+      [5, 5, 5, 5],
+      [5, 5, 4, 5],
+      [4, 5, 5, 5],
+      [5, 4, 5, 5],
+      [5, 5, 5, 4],
+      [4, 5, 5, 4],
+    ],
+    mid: [
+      [4, 4, 4, 4],
+      [4, 3, 4, 4],
+      [3, 4, 4, 4],
+      [4, 4, 5, 3],
+      [4, 4, 3, 4],
+    ],
+    low: [
+      [3, 2, 3, 3],
+      [2, 2, 3, 2],
+      [3, 3, 2, 2],
+      [2, 3, 3, 2],
+    ],
+  }
+
+  const visits = []
+  let seq = 30
+  let globalReviewNum = 0
+
+  for (const entry of distribution) {
+    const space = spaceByIndex.get(entry.spaceIndex)
+    const unitPool = unitLabelsByLayout[space.layout]
+    const commentPool =
+      entry.tier === 'high'
+        ? highComments
+        : entry.tier === 'mid'
+          ? midComments
+          : lowComments
+    const scorePool = ratingProfiles[entry.tier]
+
+    for (let i = 0; i < entry.count; i++) {
+      const idx = seq++
+      const rNum = globalReviewNum++
+      const reviewerIdx = (entry.spaceIndex * 7 + i * 3 + rNum) % reviewerKeys.length
+      const seekerKey = reviewerKeys[reviewerIdx]
+      const unitLabel = unitPool[(entry.spaceIndex + i) % unitPool.length]
+      const [quietness, wifi, cleanliness, comfort] = scorePool[rNum % scorePool.length]
+
+      // ~18% rating-only (comment: null), ~4% edited (version = 2)
+      const isRatingOnly = rNum % 6 === 5
+      const isEdited = !isRatingOnly && rNum % 25 === 7
+      const comment = isRatingOnly ? null : commentPool[(rNum + i) % commentPool.length]
+
+      // Add 3 extra open reports, 2 hidden, 2 removed, and 3 dismissed across the 181 reviews
+      const review = {
+        quietness,
+        wifi,
+        cleanliness,
+        comfort,
+        comment,
+        status: 'visible',
+        ...(isEdited ? { edited: true } : {}),
+      }
+
+      const reporterKey = reviewerKeys[(reviewerIdx + 5) % reviewerKeys.length]
+      if (rNum === 22) {
+        review.openReport = {
+          reporterKey,
+          reason: 'offensive',
+          note: 'Contains rude remarks directed at other students.',
+        }
+      } else if (rNum === 64) {
+        review.openReport = {
+          reporterKey,
+          reason: 'other',
+          note: 'Mentions an old address from before the venue renovated.',
+        }
+      } else if (rNum === 115) {
+        review.openReport = {
+          reporterKey,
+          reason: 'spam',
+          note: 'Suspected duplicate promotional post.',
+        }
+      } else if (rNum === 41 || rNum === 132) {
+        review.status = 'hidden'
+        review.closedReport = {
+          reporterKey,
+          reason: 'offensive',
+          note: 'Flagged for personal attacks; hidden by Administrator.',
+          outcome: 'hidden',
+          modAction: 'hide',
+        }
+      } else if (rNum === 83 || rNum === 158) {
+        review.status = 'removed'
+        review.closedReport = {
+          reporterKey,
+          reason: 'spam',
+          note: 'Promotional link spam; removed by Administrator.',
+          outcome: 'removed',
+          modAction: 'remove',
+        }
+      } else if (rNum === 50 || rNum === 99 || rNum === 144) {
+        review.closedReport = {
+          reporterKey,
+          reason: 'not_about_space',
+          note: 'Reported as off-topic, but review accurately describes the venue.',
+          outcome: 'dismissed',
+          modAction: 'dismiss',
+        }
+      }
+
+      visits.push({
+        index: idx,
+        seekerKey,
+        spaceIndex: entry.spaceIndex,
+        unitLabel,
+        daysAgo: 2 + ((rNum * 3 + i) % 45),
+        review,
+      })
+    }
+  }
+
+  return visits
 }

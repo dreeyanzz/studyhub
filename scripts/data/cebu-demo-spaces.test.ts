@@ -124,8 +124,12 @@ describe('50-space Metro Cebu demo catalog (D-097)', () => {
     }
   })
 
-  it('keeps all synthetic demo users on @example.test and covers every role & onboarding substate', () => {
+  it('keeps all 40 synthetic demo users on @example.test and covers every role & onboarding substate', () => {
+    expect(catalog.users).toHaveLength(40)
     expect(catalog.users.every((u) => u.email.endsWith('@example.test'))).toBe(true)
+
+    const emails = new Set(catalog.users.map((u) => u.email))
+    expect(emails.size).toBe(40)
 
     const roles = new Set(catalog.users.map((u) => u.role))
     expect(roles).toEqual(new Set(['admin', 'host', 'seeker']))
@@ -134,6 +138,65 @@ describe('50-space Metro Cebu demo catalog (D-097)', () => {
 
     // seeker1 (seeker@example.test) stays free of active holds for live booking demos
     expect(DEMO_SCENARIOS.activeHolds.some((h) => h.seekerKey === 'seeker1')).toBe(false)
+  })
+
+  it('seeds exactly 200 reviews spread across spaces with multi-space reviewers and unreviewed New spaces', () => {
+    const visitsWithReviews = DEMO_SCENARIOS.completedVisitsWithReviews.filter(
+      (v) => v.review !== null,
+    )
+    expect(visitsWithReviews).toHaveLength(200)
+
+    // Spread across many verified spaces, while leaving some verified spaces with 0 reviews ("New")
+    const reviewedSpaceIndices = new Set(visitsWithReviews.map((v) => v.spaceIndex))
+    expect(reviewedSpaceIndices.size).toBe(31)
+
+    const verifiedSpacesWithZeroReviews = catalog.spaces.filter(
+      (s) => s.status === 'verified' && !reviewedSpaceIndices.has(s.index),
+    )
+    expect(verifiedSpacesWithZeroReviews.length).toBe(7)
+
+    // Same users review multiple different spaces
+    const spacesByReviewer = new Map<string, Set<number>>()
+    for (const v of visitsWithReviews) {
+      const reviewer = String(v.seekerKey)
+      const set = spacesByReviewer.get(reviewer) ?? new Set<number>()
+      set.add(v.spaceIndex)
+      spacesByReviewer.set(reviewer, set)
+    }
+    const multiSpaceReviewers = [...spacesByReviewer.values()].filter(
+      (spaces) => spaces.size >= 3,
+    )
+    expect(multiSpaceReviewers.length).toBeGreaterThanOrEqual(25)
+
+    // Every referenced (spaceIndex, unitLabel) exists and every booking token is valid Crockford Base32
+    const validUnits = new Set(
+      catalog.spaces.flatMap((s) =>
+        s.zones.flatMap((z: { units: Array<{ label: string }> }) =>
+          z.units.map((u: { label: string }) => `${s.index}:${u.label}`),
+        ),
+      ),
+    )
+    const tokenPattern = /^[0-9A-HJKMNP-TV-Z]{12}$/
+    const seenTokens = new Set<string>()
+
+    for (const h of [
+      ...DEMO_SCENARIOS.activeHolds,
+      ...DEMO_SCENARIOS.historicalNonCompleted,
+    ]) {
+      expect(validUnits.has(`${h.spaceIndex}:${h.unitLabel}`)).toBe(true)
+      if (h.bookingToken) {
+        expect(h.bookingToken).toMatch(tokenPattern)
+        expect(seenTokens.has(h.bookingToken)).toBe(false)
+        seenTokens.add(h.bookingToken)
+      }
+    }
+    for (const v of DEMO_SCENARIOS.completedVisitsWithReviews) {
+      expect(validUnits.has(`${v.spaceIndex}:${v.unitLabel}`)).toBe(true)
+      const token = `WRQ2026${String(v.index).padStart(5, '0')}`
+      expect(token).toMatch(tokenPattern)
+      expect(seenTokens.has(token)).toBe(false)
+      seenTokens.add(token)
+    }
   })
 
   it('covers all reservation, payment, review, and report moderation states', () => {
@@ -171,8 +234,15 @@ describe('50-space Metro Cebu demo catalog (D-097)', () => {
     const reportReasons = new Set(
       DEMO_SCENARIOS.completedVisitsWithReviews.flatMap((v) => {
         const reasons: string[] = []
-        if (v.review?.openReport) reasons.push(v.review.openReport.reason)
-        if (v.review?.closedReport) reasons.push(v.review.closedReport.reason)
+        const rev = v.review as
+          | {
+              openReport?: { reason: string }
+              closedReport?: { reason: string }
+            }
+          | null
+          | undefined
+        if (rev?.openReport) reasons.push(rev.openReport.reason)
+        if (rev?.closedReport) reasons.push(rev.closedReport.reason)
         return reasons
       }),
     )
