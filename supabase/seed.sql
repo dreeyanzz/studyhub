@@ -66,17 +66,20 @@ where id = 'a0000000-0000-4000-8000-000000000001';
 --   e0000000-0000-4000-8000-000000000001  host@   verified  07:00-22:00
 --   e0000000-0000-4000-8000-000000000002  host@   pending   18:00-02:00 (after midnight)
 --   e0000000-0000-4000-8000-000000000003  host2@  verified  open 24 hours
-insert into public.spaces (id, host_id, name, description, address, opens_at, closes_at, status)
+-- Each has a map pin (STORY-08, FR-1.1) so the discovery map shows them locally: the
+-- Kapihan pair share one in Lahug, Sulok sits in IT Park. Approximate barangay points,
+-- not real buildings (D-013).
+insert into public.spaces (id, host_id, name, description, address, opens_at, closes_at, status, latitude, longitude)
 values
   ('e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000001',
    'Kapihan Study Hall', 'Quiet tables, strong wifi and bottomless brewed coffee.',
-   '12 Invented Street, Lahug, Cebu City', '07:00', '22:00', 'verified'),
+   '12 Invented Street, Lahug, Cebu City', '07:00', '22:00', 'verified', 10.3321, 123.8987),
   ('e0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000001',
    'Kapihan Night Desk', 'The late-night room upstairs, for night owls.',
-   '12 Invented Street, Lahug, Cebu City', '18:00', '02:00', 'pending'),
+   '12 Invented Street, Lahug, Cebu City', '18:00', '02:00', 'pending', 10.3321, 123.8987),
   ('e0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000002',
    'Sulok Co-working', 'Open desks and two meeting pods, open all day and night.',
-   '48 Sample Avenue, IT Park, Cebu City', '00:00', '00:00', 'verified');
+   '48 Sample Avenue, IT Park, Cebu City', '00:00', '00:00', 'verified', 10.3302, 123.9060);
 
 -- Zones and units (STORY-07), with fixed ids for pgTAP.
 -- Every unit starts with host_state = 'available' (FR-3.1, D-046).

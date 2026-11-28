@@ -8,6 +8,7 @@ import { FilterDrawer } from './filter-drawer'
 import { FilterPanel, toggleFilterValue } from './filter-panel'
 import { SearchBar } from './search-bar'
 import { SpaceCardList } from './space-card-list'
+import type { MapFocusRequest } from './discovery-map'
 import {
   getManilaMinutesFromDate,
   isSpaceOpen24h,
@@ -25,6 +26,17 @@ import {
   type PriceTier,
   type UnitTypeFilter,
 } from '@/lib/validation/search'
+
+/**
+ * The next card-click focus request for the discovery map: always a new `seq`, so the
+ * map re-centres even when the same card is clicked twice (FR-1.1).
+ */
+export function nextMapFocus(
+  prev: MapFocusRequest | null,
+  spaceId: string,
+): MapFocusRequest {
+  return { spaceId, seq: (prev?.seq ?? 0) + 1 }
+}
 
 // Dynamic import for Leaflet map with SSR disabled to prevent `window is not defined` errors (D-012)
 const DiscoveryMap = dynamic(() => import('./discovery-map'), {
@@ -392,6 +404,7 @@ export function DiscoveryShell({
   }, [])
   const [activeSpaceId, setActiveSpaceId] = useState<string | null>(null)
   const [hoveredSpaceId, setHoveredSpaceId] = useState<string | null>(null)
+  const [mapFocus, setMapFocus] = useState<MapFocusRequest | null>(null)
   const [mobileView, setMobileView] = useState<'list' | 'map'>('list')
   const [sortBy, setSortBy] = useState<DiscoverySortOption>('default')
 
@@ -493,6 +506,13 @@ export function DiscoveryShell({
     setActiveSpaceId(id)
   }
 
+  // A card click selects the Space and asks the map to fly to its pin and zoom in.
+  // A new seq each time re-centres even when the same card is clicked twice (FR-1.1).
+  const handleSelectSpaceFromCard = (id: string) => {
+    setActiveSpaceId(id)
+    setMapFocus((prev) => nextMapFocus(prev, id))
+  }
+
   const handleHoverSpace = (id: string | null) => {
     setHoveredSpaceId(id)
   }
@@ -589,7 +609,7 @@ export function DiscoveryShell({
             spaces={displayedSpaces}
             activeSpaceId={activeSpaceId}
             hoveredSpaceId={hoveredSpaceId}
-            onSelectSpace={handleSelectSpace}
+            onSelectSpace={handleSelectSpaceFromCard}
             onHoverSpace={handleHoverSpace}
             onClearFilters={handleClearAllFilters}
           />
@@ -610,6 +630,7 @@ export function DiscoveryShell({
               hoveredSpaceId={hoveredSpaceId}
               onSelectSpace={handleSelectSpace}
               onHoverSpace={handleHoverSpace}
+              focusRequest={mapFocus}
               center={mapCenter}
               zoom={mapZoom}
             />

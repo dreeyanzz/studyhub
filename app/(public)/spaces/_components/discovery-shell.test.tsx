@@ -4,6 +4,7 @@ import {
   DiscoveryShell,
   buildDiscoveryQueryString,
   filterSpacesClientSide,
+  nextMapFocus,
   normalizeDiscoveryQuery,
   parseDiscoverySearchParams,
   resolveDiscoveryMapCenter,
@@ -202,5 +203,14 @@ describe('DiscoveryShell component and filter helpers (STORY-08, FR-1.1, FR-1.2,
       hours: ['open_now'],
       unitType: ['room'],
     })
+  })
+})
+
+describe('nextMapFocus (card click centres the map, FR-1.1)', () => {
+  it('starts at seq 1 and gives every click, even on the same card, a new seq', () => {
+    const first = nextMapFocus(null, 'a')
+    expect(first).toEqual({ spaceId: 'a', seq: 1 })
+    expect(nextMapFocus(first, 'a')).toEqual({ spaceId: 'a', seq: 2 })
+    expect(nextMapFocus({ spaceId: 'a', seq: 2 }, 'b')).toEqual({ spaceId: 'b', seq: 3 })
   })
 })

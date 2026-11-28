@@ -14,13 +14,64 @@ interface DiscoveryMapProps {
   hoveredSpaceId: string | null
   onSelectSpace: (id: string) => void
   onHoverSpace: (id: string | null) => void
+  /**
+   * Set when a Seeker clicks a Space card. Each new `seq` flies the map to that
+   * Space's pin and zooms in, even when the same card is clicked again after the
+   * map was moved away (FR-1.1).
+   */
+  focusRequest?: MapFocusRequest | null
   center?: [number, number]
   zoom?: number
   className?: string
 }
 
+export interface MapFocusRequest {
+  spaceId: string
+  seq: number
+}
+
 const DEFAULT_CENTER: [number, number] = [10.3157, 123.8854] // Cebu City center (D-012)
 const DEFAULT_ZOOM = 13
+/** Street level: close enough to pick out the pin and its popup on a card click. */
+export const CARD_FOCUS_ZOOM = 16
+
+export type MapMove =
+  { kind: 'none' } | { kind: 'pan' } | { kind: 'fly'; zoom: number; focusSeq: number }
+
+/**
+ * Decides how the map follows the selected Space (FR-1.1). A new selection from a pin
+ * pans; a card click (a `focusRequest` with an unseen `seq`) flies to the pin and zooms
+ * in to at least `CARD_FOCUS_ZOOM`, never out. The same selection with no new request
+ * leaves the map where the Seeker moved it.
+ */
+export function planMapMove({
+  activeSpaceId,
+  prevActiveSpaceId,
+  focusRequest,
+  lastFocusSeq,
+  currentZoom,
+}: {
+  activeSpaceId: string | null
+  prevActiveSpaceId: string | null
+  focusRequest: MapFocusRequest | null
+  lastFocusSeq: number
+  currentZoom: number
+}): MapMove {
+  if (!activeSpaceId) return { kind: 'none' }
+  if (
+    focusRequest !== null &&
+    focusRequest.spaceId === activeSpaceId &&
+    focusRequest.seq !== lastFocusSeq
+  ) {
+    return {
+      kind: 'fly',
+      zoom: Math.max(currentZoom, CARD_FOCUS_ZOOM),
+      focusSeq: focusRequest.seq,
+    }
+  }
+  if (prevActiveSpaceId === activeSpaceId) return { kind: 'none' }
+  return { kind: 'pan' }
+}
 
 function getPinColor(tier: PriceTier): string {
   switch (tier) {
@@ -167,6 +218,7 @@ export default function DiscoveryMap({
   hoveredSpaceId,
   onSelectSpace,
   onHoverSpace,
+  focusRequest = null,
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   className = 'h-full w-full',
@@ -176,6 +228,7 @@ export default function DiscoveryMap({
   const leafletModuleRef = useRef<typeof LeafletType | null>(null)
   const markersRef = useRef<Map<string, LeafletType.Marker>>(new Map())
   const prevActiveSpaceIdRef = useRef<string | null>(null)
+  const lastFocusSeqRef = useRef(0)
   const prevViewRef = useRef<{ lat: number; lng: number; zoom: number }>({
     lat: center[0],
     lng: center[1],
@@ -296,32 +349,59 @@ export default function DiscoveryMap({
     }
   }, [mapReady, spaces, activeSpaceId, hoveredSpaceId, onSelectSpace, onHoverSpace])
 
-  // Open popup and pan map only when activeSpaceId changes
+  // Open the popup and move the map when the selection changes (a pin click pans),
+  // or when a card click asks for focus (flies to the pin and zooms in, FR-1.1).
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
 
-    if (!activeSpaceId) {
-      prevActiveSpaceIdRef.current = null
-      return
-    }
-
-    if (prevActiveSpaceIdRef.current === activeSpaceId) return
+    const move = planMapMove({
+      activeSpaceId,
+      prevActiveSpaceId: prevActiveSpaceIdRef.current,
+      focusRequest,
+      lastFocusSeq: lastFocusSeqRef.current,
+      currentZoom: map.getZoom(),
+    })
     prevActiveSpaceIdRef.current = activeSpaceId
+    if (move.kind === 'none' || !activeSpaceId) return
+    if (move.kind === 'fly') lastFocusSeqRef.current = move.focusSeq
 
     const marker = markersRef.current.get(activeSpaceId)
-    if (marker && !marker.isPopupOpen()) {
-      marker.openPopup()
+    const openPopup = () => {
+      if (marker && !marker.isPopupOpen()) marker.openPopup()
     }
 
     const activeSpace = spaces.find((s) => s.id === activeSpaceId)
-    if (activeSpace && activeSpace.latitude !== null && activeSpace.longitude !== null) {
-      map.panTo([activeSpace.latitude, activeSpace.longitude], {
-        animate: true,
-        duration: 0.5,
-      })
+    if (!activeSpace || activeSpace.latitude === null || activeSpace.longitude === null) {
+      openPopup()
+      return
     }
-  }, [mapReady, activeSpaceId, spaces])
+    const target: [number, number] = [activeSpace.latitude, activeSpace.longitude]
+
+    if (move.kind === 'pan') {
+      openPopup()
+      map.panTo(target, { animate: true, duration: 0.5 })
+      return
+    }
+
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    // On a phone the map is hidden (0 × 0) behind the list; flyTo needs a real size,
+    // so jump straight there and let the map be in place when the Seeker opens it.
+    const hidden = map.getSize().x === 0
+    if (reduceMotion || hidden) {
+      map.setView(target, move.zoom, { animate: false })
+      openPopup()
+      return
+    }
+    // Open the popup once the flight lands: an open popup auto-pans the map to fit,
+    // and that pan cancels a flight still in progress. Listen only after flyTo starts,
+    // since flyTo stopping an earlier pan fires that pan's moveend straight away.
+    map.flyTo(target, move.zoom, { duration: 0.6 })
+    map.once('moveend', openPopup)
+    return () => {
+      map.off('moveend', openPopup)
+    }
+  }, [mapReady, activeSpaceId, spaces, focusRequest])
 
   // Re-center map when search center or geolocation coordinates change (STORY-08, FR-1.1)
   useEffect(() => {

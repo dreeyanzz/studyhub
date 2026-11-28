@@ -24,6 +24,15 @@ interface SpaceCardProps {
 }
 
 /**
+ * True when a click on the card landed on the card itself rather than on one of its
+ * links or buttons, which keep their own behaviour (FR-1.1).
+ */
+export function isCardBodyClick(target: EventTarget | null): boolean {
+  if (!target || typeof (target as Element).closest !== 'function') return false
+  return (target as Element).closest('a, button') === null
+}
+
+/**
  * Format time from "HH:mm:ss" or "HH:mm" to display string.
  */
 function formatHours(opensAt: string, closesAt: string): string {
@@ -56,13 +65,24 @@ export function SpaceCard({
     isSpaceOpenNow(space.opens_at, space.closes_at, getManilaMinutesFromDate(new Date()))
 
   return (
+    // A click on the card body selects the Space so the discovery map centres on its
+    // pin (FR-1.1); links keep their own behaviour and open the profile page. This is a
+    // pointer shortcut, not the only way in: keyboard users reach a Space on the map
+    // from its pin (Leaflet pins take focus, and Enter opens the popup, which pans the
+    // map to show it) and open it with the name or View Space link (D-031), so the card
+    // itself needs no key handler.
+    // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
     <article
       data-testid={`space-card-${space.id}`}
       data-space-id={space.id}
       aria-label={`${space.name}, ${space.address}`}
       onMouseEnter={() => onHover?.(space.id)}
       onMouseLeave={() => onHover?.(null)}
+      onClick={(event) => {
+        if (onSelect && isCardBodyClick(event.target)) onSelect(space.id)
+      }}
       className={cn(
+        onSelect && 'cursor-pointer',
         'group relative rounded-3xl border border-border/80 bg-card p-4 text-card-foreground shadow-card transition-all duration-200 outline-none',
         'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary hover:-translate-y-1 hover:border-primary/35 hover:shadow-card-hover',
         isActive && 'border-primary shadow-card-hover ring-2 ring-primary',
